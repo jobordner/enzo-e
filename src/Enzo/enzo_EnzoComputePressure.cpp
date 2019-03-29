@@ -65,15 +65,10 @@ void EnzoComputePressure::compute_(Block * block)
 
   enzo_float * te = (enzo_float*) field.values("total_energy");
 
-  int nx,ny,nz;
-  field.size(&nx,&ny,&nz);
-
-  int gx,gy,gz;
-  field.ghost_depth (0,&gx,&gy,&gz);
-  if (rank < 2) gy = 0;
-  if (rank < 3) gz = 0;
-
-  int m = (nx+2*gx) * (ny+2*gy) * (nz+2*gz);
+  int mx,my,mz;
+  field.dimensions(0,&mx,&my,&mz);
+  const int m = mx*my*mz;
+  
   enzo_float gm1 = gamma_ - 1.0;
   for (int i=0; i<m; i++) {
     enzo_float e= te[i];

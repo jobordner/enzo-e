@@ -57,20 +57,12 @@ void EnzoInitialCosmology::enforce_block
   enzo_float * vz = (enzo_float *) field.values("velocity_z");
 
   int mx,my,mz;
-  int gx,gy,gz;
   field.dimensions (0,&mx,&my,&mz);
-  field.ghost_depth(0,&gx,&gy,&gz);
-
-  gx=gy=gz=0;
-  for (int iz=gz; iz<mz-gz; iz++) {
-    for (int iy=gy; iy<my-gy; iy++) {
-      for (int ix=gx; ix<mx-gx; ix++) {
-	int i = ix + mx*(iy + my*iz);
-	ei[i] = internal_energy;
-	et[i] = ei[i] + 0.5*(vx[i]*vx[i] + vy[i]*vy[i] + vz[i]*vz[i]);
-      }
-    }
+  const int m=mx*my*mz;
+  
+  for (int i=0; i<m; i++) {
+    ei[i] = internal_energy;
+    et[i] = ei[i] + 0.5*(vx[i]*vx[i] + vy[i]*vy[i] + vz[i]*vz[i]);
   }
-
   
 }

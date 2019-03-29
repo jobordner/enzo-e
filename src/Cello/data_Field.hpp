@@ -83,13 +83,11 @@ public: // interface
   { field_descr_->set_padding(padding); }
 
   /// Set centering for a field
-  void set_centering(int id, int cx, int cy=0, int cz=0) 
-    throw()
+  void set_centering(int id, double cx, double cy, double cz) throw()
   { field_descr_->set_centering(id,cx,cy,cz); }
 
   /// Set ghost_depth for a field
-  void set_ghost_depth(int id, int gx, int gy=0, int gz=0) 
-    throw()
+  void set_ghost_depth(int id, int gx, int gy, int gz) throw()
   { field_descr_->set_ghost_depth(id,gx,gy,gz); }
 
 
@@ -141,18 +139,16 @@ public: // interface
   { return field_descr_->padding() ;}
 
   /// centering of given field
-  void centering(int id, int * cx, int * cy = 0, int * cz = 0) const 
-    throw()
-  { return field_descr_->centering(id,cx,cy,cz); }
+  void get_centering(int id, double & cx, double & cy, double & cz) const
+  { return field_descr_->get_centering(id,cx,cy,cz); }
 
   /// return whether the field variable is centered in the cell
   bool is_centered(int id) const
   { return field_descr_->is_centered(id); }
 
   /// depth of ghost zones of given field
-  void ghost_depth(int id, int * gx, int * gy = 0, int * gz = 0) const 
-    throw()
-  { return field_descr_->ghost_depth(id,gx,gy,gz); }
+  void ghost_depth(int id, int * gx, int * gy, int * gz) const
+  { return field_descr_-> ghost_depth(id,gx,gy,gz); }
 
   /// Return precision of given field
   int precision(int id) const throw()
@@ -237,7 +233,7 @@ public: // interface
   //==================================================
 
   /// Return size of fields on the data, assuming centered
-  void size(int * nx, int * ny = 0, int * nz = 0) const throw()
+  void size(int * nx, int * ny, int * nz) const throw()
   { field_data_->size(nx,ny,nz); }
 
   /// Return dimensions of fields on the data, assuming centered

@@ -124,7 +124,6 @@ void EnzoBoundary::enforce_reflecting_
 				  nx,ny,nz, gx,gy,gz,  vx,vy,vz,
 				  x,y,z,    xm,ym,zm, xp,yp,zp, t);
   }
-
   delete [] x;
   delete [] y;
   delete [] z;
@@ -140,7 +139,7 @@ void EnzoBoundary::enforce_reflecting_precision_
  int nx,int ny,int nz,
  int gx,int gy,int gz,
  bool vx,bool vy,bool vz,
- double *x, double *y, double *z,
+ double * x, double * y, double * z,
  double xm, double ym, double zm,
  double xp, double yp, double zp,
  double t

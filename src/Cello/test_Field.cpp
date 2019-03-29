@@ -21,7 +21,7 @@ struct field_info_type {
 
 
   int gx, gy, gz;
-  int cx, cy, cz;
+  double cx, cy, cz;
 };
 
 PARALLEL_MAIN_BEGIN
@@ -101,9 +101,9 @@ PARALLEL_MAIN_BEGIN
 
     // set centering
 
-    field.set_centering(i2, 1, 0, 0);
-    field.set_centering(i3, 0, 1, 0);
-    field.set_centering(i4, 0, 0, 1);
+    field.set_centering(i2, 1.0, 0.0, 0.0);
+    field.set_centering(i3, 0.0, 1.0, 0.0);
+    field.set_centering(i4, 0.0, 0.5, 0.5);
 
     double xpm,ypm,zpm;
     xpm = -1.0;  ypm = -2.0, zpm = -3.0;
@@ -205,29 +205,27 @@ PARALLEL_MAIN_BEGIN
   
     // field sizes without ghosts
 
-    int nu1 = (nx)   * (ny)   * (nz);
-    int nu2 = (nx+1) * (ny)   * (nz);
-    int nu3 = (nx)   * (ny+1) * (nz);
-    int nu4 = (nx)   * (ny)   * (nz+1);
+    int nu = (nx) * (ny) * (nz);
+
 
     // field sizes with ghosts
 
-    int nv1 = (nx + 2*g1[0])   * (ny + 2*g1[1])   * (nz + 2*g1[2]);
-    int nv2 = (nx + 2*g2[0]+1) * (ny + 2*g2[1])   * (nz + 2*g2[2]);
-    int nv3 = (nx + 2*g3[0])   * (ny + 2*g3[1]+1) * (nz + 2*g3[2]);
-    int nv4 = (nx + 2*g4[0])   * (ny + 2*g4[1])   * (nz + 2*g4[2]+1);
+    int nv1 = (nx + 2*g1[0]) * (ny + 2*g1[1]) * (nz + 2*g1[2]);
+    int nv2 = (nx + 2*g2[0]) * (ny + 2*g2[1]) * (nz + 2*g2[2]);
+    int nv3 = (nx + 2*g3[0]) * (ny + 2*g3[1]) * (nz + 2*g3[2]);
+    int nv4 = (nx + 2*g4[0]) * (ny + 2*g4[1]) * (nz + 2*g4[2]);
   
     size_t nb1 = (char *) v2 - (char *) v1;
     size_t nb2 = (char *) v3 - (char *) v2;
     size_t nb3 = (char *) v4 - (char *) v3;
     size_t nb4 = (char *) v5 - (char *) v4;
 
-    unit_assert (nb1 == sizeof (float) * nu1);
-    TRACE2("nb2,nu2 = %d %d",nb2,sizeof(double)*nu2);
-    unit_assert (nb2 == sizeof (double)* nu2);
-    TRACE2("nb3,nu3 = %d %d",nb3,sizeof(double)*nu3);
-    unit_assert (nb3 == sizeof (double)* nu3);
-    unit_assert (nb4 == sizeof (double)* nu4);
+    unit_assert (nb1 == sizeof (float) * nu);
+    TRACE2("nb2,nu = %d %d",nb2,sizeof(double)*nu);
+    unit_assert (nb2 == sizeof (double)* nu);
+    TRACE2("nb3,nu = %d %d",nb3,sizeof(double)*nu);
+    unit_assert (nb3 == sizeof (double)* nu);
+    unit_assert (nb4 == sizeof (double)* nu);
 
     //----------------------------------------------------------------------
 
@@ -251,10 +249,10 @@ PARALLEL_MAIN_BEGIN
     nb3 = (char *)u4 - (char *)u3;
     nb4 = (char *)u5-(char *)u4;
 
-    unit_assert (nb1 == sizeof (float) * nu1);
-    unit_assert (nb2 == sizeof (double)* nu2);
-    unit_assert (nb3 == sizeof (double)* nu3);
-    unit_assert (nb4 == sizeof (double)* nu4);
+    unit_assert (nb1 == sizeof (float) * nu);
+    unit_assert (nb2 == sizeof (double)* nu);
+    unit_assert (nb3 == sizeof (double)* nu);
+    unit_assert (nb4 == sizeof (double)* nu);
 
     // unknown field
     unit_assert (field.unknowns (1000) == NULL);
@@ -329,11 +327,11 @@ PARALLEL_MAIN_BEGIN
     //         = (bv + (bu-bv)) - (av + (au-av))
     //         = (bv - av) + (bu-bv) - (au-av)
 
-    int m1[3] = { nx+2*g1[0],   ny+2*g1[1],   nz+2*g1[2]};
-    int m2[3] = { nx+2*g2[0]+1, ny+2*g2[1],   nz+2*g2[2]};
-    int m3[3] = { nx+2*g3[0],   ny+2*g3[1]+1, nz+2*g3[2]};
-    int m4[3] = { nx+2*g4[0],   ny+2*g4[1],   nz+2*g4[2]+1};
-    int m5[3] = { nx+2*g5[0],   ny+2*g5[1],   nz+2*g5[2]};
+    int m1[3] = { nx+2*g1[0], ny+2*g1[1], nz+2*g1[2]};
+    int m2[3] = { nx+2*g2[0], ny+2*g2[1], nz+2*g2[2]};
+    int m3[3] = { nx+2*g3[0], ny+2*g3[1], nz+2*g3[2]};
+    int m4[3] = { nx+2*g4[0], ny+2*g4[1], nz+2*g4[2]};
+    int m5[3] = { nx+2*g5[0], ny+2*g5[1], nz+2*g5[2]};
 
     size_t ng1 = sizeof (float)      * (g1[0] + m1[0] *(g1[1] + m1[1]*g1[2]));
     size_t ng2 = sizeof (double)     * (g2[0] + m2[0] *(g2[1] + m2[1]*g2[2]));
@@ -555,11 +553,11 @@ PARALLEL_MAIN_BEGIN
     v4 =      (double *) field.values(i4);
     v5 = (long double *) field.values(i5);
 
-    unit_assert(3.0 == v2[(nx+1)*ny*nz-1]);
+    unit_assert(3.0 == v2[nx*ny*nz-1]);
     unit_assert(4.0 == v3[0] );
-    unit_assert(4.0 == v3[nx*(ny+1)*nz-1]);
+    unit_assert(4.0 == v3[nx*ny*nz-1]);
     unit_assert(4.0 == v4[0] );
-    unit_assert(4.0 == v4[nx*ny*(nz+1)-1]);
+    unit_assert(4.0 == v4[nx*ny*nz-1]);
     unit_assert(2.0 == v5[0] );
 
     // Test temporary fields
@@ -1064,22 +1062,23 @@ PARALLEL_MAIN_BEGIN
 
     unit_func("centering");
 
-    field.set_centering(info.field_velocity_x, 1, 0, 0);
-    field.set_centering(info.field_velocity_y, 0, 1, 0);
-    field.set_centering(info.field_velocity_z, 0, 0, 1);
+    field.set_centering(info.field_velocity_x, 1.0, 0.0, 0.0);
+    field.set_centering(info.field_velocity_y, 0.0, 1.0, 0.0);
+    field.set_centering(info.field_velocity_z, 0.0, 0.5, 0.5);
 
 
-    field.centering(info.field_density, &info.cx, &info.cy, &info.cz);
-    unit_assert(info.cx == 0 && info.cy == 0 && info.cz == 0);
+    field.get_centering(info.field_density, info.cx, info.cy, info.cz);
+    unit_assert(info.cx == 0.0 && info.cy == 0.0 && info.cz == 0.0);
 
-    field.centering(info.field_velocity_x, &info.cx, &info.cy, &info.cz);
-    unit_assert(info.cx == 1 && info.cy == 0 && info.cz == 0);
+    field.get_centering(info.field_velocity_x, info.cx, info.cy, info.cz);
+    unit_assert(info.cx == 1.0 && info.cy == 0.0 && info.cz == 0.0);
 
-    field.centering(info.field_velocity_y, &info.cx, &info.cy, &info.cz);
-    unit_assert(info.cx == 0 && info.cy == 1 && info.cz == 0);
+    field.get_centering(info.field_velocity_y, info.cx, info.cy, info.cz);
+    unit_assert(info.cx == 0.0 && info.cy == 1.0 && info.cz == 0.0);
 
-    field.centering(info.field_velocity_z, &info.cx, &info.cy, &info.cz);
-    unit_assert(info.cx == 0 && info.cy == 0 && info.cz == 1);
+    field.get_centering(info.field_velocity_z, info.cx, info.cy, info.cz);
+    CkPrintf ("DEBUG get_centering %f %f %f\n",info.cx,info.cy,info.cz);
+    unit_assert(info.cx == 0.0 && info.cy == 0.5 && info.cz == 0.5);
   
     // Ghost zone depth
 

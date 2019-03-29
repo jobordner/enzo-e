@@ -376,7 +376,7 @@ public: // attributes
   std::vector<std::string>   field_list;
   std::map<std::string,int>  field_index;
   int                        field_alignment;
-  std::vector<int>           field_centering [3];
+  std::vector<double>        field_centering [3];
   int                        field_ghost_depth[3];
   int                        field_padding;
   int                        field_history;
