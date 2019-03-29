@@ -67,18 +67,17 @@ void EnzoInitialSedovArray2::enforce_block
   enzo_float *  d = (enzo_float *) field.values ("density");
   enzo_float * te = (enzo_float *) field.values ("total_energy");
 
-  int nx,ny;
-  field.size(&nx,&ny);
+  int nx,ny,nz;
+  field.size(&nx,&ny,&nz);
 
   double xbm,ybm;
-  block->data()->lower(&xbm,&ybm);
-
   double xbp,ybp;
+  block->data()->lower(&xbm,&ybm);
   block->data()->upper(&xbp,&ybp);
 
   double hx,hy;
   field.cell_width(xbm,xbp,&hx,
-			  ybm,ybp,&hy);
+		   ybm,ybp,&hy);
 
   // Parameters
 
@@ -92,8 +91,8 @@ void EnzoInitialSedovArray2::enforce_block
   const double sedov_te_out= 
     pressure_out_ / ((EnzoBlock::Gamma[in] - 1.0) * density_);
 
-  int gx,gy;
-  field.ghost_depth(0,&gx,&gy);
+  int gx,gy,gz;
+  field.ghost_depth(0,&gx,&gy,&gz);
 
   int ndx = nx + 2*gx;
   int ndy = ny + 2*gy;

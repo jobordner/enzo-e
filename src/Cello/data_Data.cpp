@@ -75,15 +75,14 @@ Data & Data::operator= (const Data & data) throw ()
 //----------------------------------------------------------------------
 
 void Data::field_cells (double * x, double * y, double * z,
-			 int gx, int gy, int gz) const
+			int gx, int gy, int gz) const
 {
   double hx,hy,hz;
-
   field_cell_width (&hx,&hy,&hz);
-
   double xm,ym,zm;
   this->lower(&xm,&ym,&zm);
 
+  
   int nx,ny,nz;
   field_data()->size(&nx,&ny,&nz);
 

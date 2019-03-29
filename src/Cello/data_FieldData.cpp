@@ -98,15 +98,13 @@ void FieldData::dimensions
  int * mx, int * my, int * mz ) const throw()
 {
   int nx,ny,nz;
+  size (&nx,&ny,&nz);
   int gx,gy,gz;
-  int cx,cy,cz;
-  size      (&nx,&ny,&nz);
   field_descr->ghost_depth (id_field,&gx,&gy,&gz);
-  field_descr->centering (id_field,&cx,&cy,&cz);
 
-  if (mx) (*mx) = (nx > 1) ? (nx + 2*gx + cx) : 1;
-  if (my) (*my) = (ny > 1) ? (ny + 2*gy + cy) : 1;
-  if (mz) (*mz) = (nz > 1) ? (nz + 2*gz + cz) : 1;
+  if (mx) (*mx) = (nx > 1) ? (nx + 2*gx) : 1;
+  if (my) (*my) = (ny > 1) ? (ny + 2*gy) : 1;
+  if (mz) (*mz) = (nz > 1) ? (nz + 2*gz) : 1;
 }
 
 //----------------------------------------------------------------------
@@ -202,7 +200,7 @@ char * FieldData::unknowns
     int gx,gy,gz;
     int mx,my;
 
-    field_descr->ghost_depth    (id_field,&gx,&gy,&gz);
+    field_descr->ghost_depth  (id_field,&gx,&gy,&gz);
     dimensions(field_descr,id_field,&mx,&my);
 
     precision_type precision = field_descr->precision(id_field);
@@ -477,9 +475,9 @@ int FieldData::field_size
 (
  const FieldDescr * field_descr,
  int                id_field,
- int              * nx,
- int              * ny,
- int              * nz
+ int              * mx,
+ int              * my,
+ int              * mz
  ) const throw()
 {
   // Adjust memory usage due to ghosts if needed
@@ -491,27 +489,21 @@ int FieldData::field_size
     gx = gy = gz = 0;
   }
 
-  // Adjust memory usage due to field centering if needed
-
-  int cx,cy,cz;
-  field_descr->centering(id_field,&cx,&cy,&cz);
-
   // Compute array size
 
-  if (nx) (*nx) = size_[0] + 2*gx + cx;
-  if (ny) (*ny) = size_[1] + 2*gy + cy;
-  if (nz) (*nz) = size_[2] + 2*gz + cz;
+  if (mx) (*mx) = size_[0] + 2*gx;
+  if (my) (*my) = size_[1] + 2*gy;
+  if (mz) (*mz) = size_[2] + 2*gz;
 
   // Return array size in bytes
-
   precision_type precision = field_descr->precision(id_field);
   int bytes_per_element = cello::sizeof_precision (precision);
-
+ 
   int bytes_total = bytes_per_element;
 
-  if (nx) bytes_total *= (*nx);
-  if (ny) bytes_total *= (*ny);
-  if (nz) bytes_total *= (*nz);
+  if (mx) bytes_total *= (*mx);
+  if (my) bytes_total *= (*my);
+  if (mz) bytes_total *= (*mz);
 
   return bytes_total;
 }

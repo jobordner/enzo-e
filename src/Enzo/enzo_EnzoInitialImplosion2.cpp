@@ -50,8 +50,8 @@ void EnzoInitialImplosion2::enforce_block
   enzo_float * te = (enzo_float *) field.values("total_energy");
 
   // Block size (excluding ghosts)
-  int nx,ny;
-  field.size(&nx,&ny);
+  int nx,ny,nz;
+  field.size(&nx,&ny,&nz);
 
   // Cell widths
   double xm,ym,xp,yp,hx,hy;
@@ -60,16 +60,16 @@ void EnzoInitialImplosion2::enforce_block
   field.cell_width(xm,xp,&hx,ym,yp,&hy);
 
   // Ghost depths
-  int gx,gy;
-  field.ghost_depth(0,&gx,&gy);
+  int gx,gy,gz;
+  field.ghost_depth(0,&gx,&gy,&gz);
 
   // WARNING("EnzoInitialImplosion2",
   // 		  "Assumes same ghost zone depth for all fields");
 
   const int in = cello::index_static();
 
-  int mx,my;
-  field.dimensions(0,&mx,&my);
+  int mx,my,mz;
+  field.dimensions(0,&mx,&my,&mz);
 
   for (int iy=gy; iy<ny+gy; iy++) {
     double y = ym + (iy - gy + 0.5)*hy;

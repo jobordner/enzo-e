@@ -99,38 +99,29 @@ int FieldDescr::field_id(const std::string & name) const throw()
 
 //----------------------------------------------------------------------
 
-void FieldDescr::centering
-(
- int id_field,
- int * cx, 
- int * cy, 
- int * cz
- ) const throw()
+void FieldDescr::get_centering
+( int id_field, double & cx, double & cy, double & cz ) const
 {
   if (id_field>=0) {
-    if (cx) (*cx) = centering_.at(id_field)[0];
-    if (cy) (*cy) = centering_.at(id_field)[1];
-    if (cz) (*cz) = centering_.at(id_field)[2];
+    cx = centering_.at(id_field)[0];
+    cy = centering_.at(id_field)[1];
+    cz = centering_.at(id_field)[2];
   } 
 }
 
 //----------------------------------------------------------------------
 
 void FieldDescr::ghost_depth
-(
- int id_field,
- int * gx, 
- int * gy, 
- int * gz
- ) const throw()
+( int id_field, int * gx,  int * gy,  int * gz ) const throw()
 {
   if (id_field>=0) {
-    int g3[3] = {ghost_depth_.at(id_field)[0],
-		 ghost_depth_.at(id_field)[1],
-		 ghost_depth_.at(id_field)[2]};
-    int gd[3] = {ghost_depth_default_[0],
-		 ghost_depth_default_[1],
-		 ghost_depth_default_[2]};
+
+     int g3[3] = {ghost_depth_.at(id_field)[0],
+ 		 ghost_depth_.at(id_field)[1],
+ 		 ghost_depth_.at(id_field)[2]};
+     int gd[3] = {ghost_depth_default_[0],
+ 		 ghost_depth_default_[1],
+ 		 ghost_depth_default_[2]};
 	       
     if (gx) (*gx) = g3[0] < 0 ? gd[0] : g3[0];
     if (gy) (*gy) = g3[1] < 0 ? gd[1] : g3[1];
@@ -199,8 +190,7 @@ int FieldDescr::insert_(const std::string & field_name,
   // Initialize attributes with default values
 
   int precision = default_precision;
-
-  int * centered = new int[3];
+  double * centered = new double[3];
   centered[0] = 0;
   centered[1] = 0;
   centered[2] = 0;
@@ -244,7 +234,8 @@ int FieldDescr::bytes_per_element(int id_field) const throw()
 
 //----------------------------------------------------------------------
 
-void FieldDescr::set_centering(int id_field, int cx, int cy, int cz) throw()
+void FieldDescr::set_centering(int id_field,
+			       double cx, double cy, double cz) throw()
 {
   if (id_field >= 0) {
     centering_.at(id_field)[0] = cx;
@@ -290,7 +281,7 @@ void FieldDescr::copy_(const FieldDescr & field_descr) throw()
   }
   centering_.resize(field_descr.centering_.size());
   for (size_t i=0; i<centering_.size(); i++) {
-    centering_[i] = new int[3];
+    centering_[i] = new double[3];
     centering_[i][0] = field_descr.centering_[i][0];
     centering_[i][1] = field_descr.centering_[i][1];
     centering_[i][2] = field_descr.centering_[i][2];

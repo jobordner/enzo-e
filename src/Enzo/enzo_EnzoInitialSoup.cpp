@@ -110,7 +110,7 @@ void EnzoInitialSoup::enforce_block
   int gx,gy,gz;
   field.ghost_depth(0,&gx,&gy,&gz);
 
-  int mx = nx + 2*gx;
+ int mx = nx + 2*gx;
   int my = ny + 2*gy;
   int mz = nz + 2*gz;
 

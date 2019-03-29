@@ -529,9 +529,9 @@ void Simulation::initialize_data_descr_() throw()
 
     std::string field_name = field_descr_->field_name(i);
 
-    const int cx = config_->field_centering[0][i];
-    const int cy = config_->field_centering[1][i];
-    const int cz = config_->field_centering[2][i];
+    const double cx = config_->field_centering[0][i];
+    const double cy = config_->field_centering[1][i];
+    const double cz = config_->field_centering[2][i];
 
     field_descr_->set_centering(i,cx,cy,cz);
 

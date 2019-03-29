@@ -62,7 +62,7 @@ public: // functions
     p | n;
     if (up) centering_.resize(n);
     for (int i=0; i<n; i++) {
-      if (up) centering_[i] = new int[3];
+      if (up) centering_[i] = new double[3];
       PUParray(p,centering_[i],3);
     }
     
@@ -90,14 +90,14 @@ public: // functions
   /// Set precision for a field
   void set_precision(int id_field, int precision) throw();
 
-  /// Set centering for a field
-  void set_centering(int id_field, int cx, int cy=0, int cz=0) throw();
+  /// Set centering for a field as offset from center scaled by cell width 
+  void set_centering(int id_field, double cx, double cy, double cz) throw();
 
   /// Set default ghost_depth
-  void set_default_ghost_depth(int gx, int gy=0, int gz=0) throw();
+  void set_default_ghost_depth(int gx, int gy, int gz) throw();
 
   /// Set ghost_depth for a field
-  void set_ghost_depth(int id_field, int gx, int gy=0, int gz=0) throw();
+  void set_ghost_depth(int id_field, int gx, int gy, int gz) throw();
 
   /// Set whether a field is a conserved quantity
   void set_conserved(int id_field, bool conserved) throw();
@@ -150,8 +150,8 @@ public: // functions
 	  set_ghost_depth(ih,gx,gy,gz);
 
 	  // set centering
-	  int cx,cy,cz;
-	  centering(ip,&cx,&cy,&cz);
+	  double cx,cy,cz;
+	  get_centering(ip,cx,cy,cz);
 	  set_centering(ih,cx,cy,cz);
 	}
       }
@@ -193,23 +193,22 @@ public: // functions
   }
 
   /// centering of given field
-  void centering(int id_field, int * cx, int * cy = 0, int * cz = 0) const 
-    throw();
+  void get_centering
+  (int id_field, double & cx, double & cy, double & cz) const;
 
   /// return whether the field variable is centered in the cell
   bool is_centered(int id_field) const
   {
-    return (centering_[id_field][0] == 0 &&
-	    centering_[id_field][1] == 0 &&
-	    centering_[id_field][2] == 0); }
+    return (centering_[id_field][0] == 0.0 &&
+	    centering_[id_field][1] == 0.0 &&
+	    centering_[id_field][2] == 0.0); }
 
   /// depth of ghost zones of given field
-  void ghost_depth(int id_field, int * gx, int * gy = 0, int * gz = 0) const 
-    throw();
+  void ghost_depth
+  (int id_field, int * gx, int * gy, int * gz) const throw();
 
   /// whether the field is a conserved quantity
-  bool conserved(int id_field) const 
-    throw()
+  bool is_conserved(int id_field) const throw()
   {
     return (id_field >= 0) ? conserved_.at(id_field) : false;
   }
@@ -276,10 +275,10 @@ private: // attributes
   std::vector<int> precision_;
 
   /// cell centering for each field
-  std::vector<int *> centering_;
+  std::vector< double * > centering_;
 
   /// Ghost depth of each field, or -1 if using default
-  std::vector<int *> ghost_depth_;
+  std::vector< int * > ghost_depth_;
 
   /// Default ghost depth if not specified
   int ghost_depth_default_[3];

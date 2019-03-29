@@ -205,9 +205,9 @@ void EnzoInitialPm::density_placement_
 
   did = field.field_id( (field_ == "") ? "density" : field_);
 
-  field.dimensions  (did,&mx,&my,&mz);
-  field.size           (&nx,&ny,&nz);
-  field.ghost_depth (did,&gx,&gy,&gz);
+  field.dimensions (0,&mx,&my,&mz);
+  field.size         (&nx,&ny,&nz);
+  field.ghost_depth(0,&gx,&gy,&gz);
 
   enzo_float * density = (enzo_float *) field.values(did);
 

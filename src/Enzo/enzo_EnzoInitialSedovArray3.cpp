@@ -98,12 +98,9 @@ void EnzoInitialSedovArray3::enforce_block
   const double sedov_te_out= 
     pressure_out_ / ((EnzoBlock::Gamma[in] - 1.0) * density_);
 
-  int gx,gy,gz;
-  field.ghost_depth(0,&gx,&gy,&gz);
-
-  int mx = nx + 2*gx;
-  int my = ny + 2*gy;
-  int mz = nz + 2*gz;
+  int mx,my,mz;
+  field.dimensions(0,&mx,&my,&mz);
+  const int m = mx*my*mz;
 
   // clear all fields
 
@@ -111,14 +108,7 @@ void EnzoInitialSedovArray3::enforce_block
 
     enzo_float * array = (enzo_float *) field.values (iv);
 
-    for (int iz=0; iz<mz; iz++) {
-      for (int iy=0; iy<my; iy++) {
-	for (int ix=0; ix<mx; ix++) {
-	  int i = INDEX(ix,iy,iz,mx,my);
-	  array[i] = 0.0;
-	}
-      }
-    }
+    std::fill_n(array,m,0.0);
   }
 
   // background 
@@ -160,6 +150,9 @@ void EnzoInitialSedovArray3::enforce_block
   double hza = (zpd-zmd) / array_[2];
 
   // (kx,ky,kz) index bounds of explosions in domain
+
+  int gx,gy,gz;
+  field.ghost_depth(0,&gx,&gy,&gz);
 
   for (int kz=kzm; kz<kzp; kz++) {
     double zc = hza*(0.5+kz);

@@ -49,13 +49,13 @@ void EnzoInitialCollapse::enforce_block
 
   // Get Field parameters
   
+  int gx,gy,gz;
+  field.ghost_depth(0,&gx,&gy,&gz);
   int nx,ny,nz;
   field.size(&nx,&ny,&nz);
-
-  double bxm,bym,bzm;
-  double bxp,byp,bzp;
-  double hx,hy,hz;
-  int gx,gy,gz;
+  int mx,my,mz;
+  field.dimensions(0,&mx,&my,&mz);
+  const int m = mx*my*mz;
 
   // domain extents
   double dxm,dym,dzm;
@@ -64,18 +64,16 @@ void EnzoInitialCollapse::enforce_block
   hierarchy->upper(&dxp,&dyp,&dzp);
 
   // Block extents
+  double bxm,bym,bzm;
+  double bxp,byp,bzp;
   block->data()->lower(&bxm,&bym,&bzm);
   block->data()->upper(&bxp,&byp,&bzp);
+
+  // Cell widths
+  double hx,hy,hz;
   field.cell_width(bxm,bxp,&hx,
 		   bym,byp,&hy,
 		   bzm,bzp,&hz);
-  field.ghost_depth(0,&gx,&gy,&gz);
-
-  const int mx = nx + 2*gx;
-  const int my = ny + 2*gy;
-  const int mz = nz + 2*gz;
-
-  const int m = mx*my*mz;
 
   // Get Fields
   

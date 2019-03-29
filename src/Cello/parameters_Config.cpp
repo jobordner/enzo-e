@@ -514,9 +514,19 @@ void Config::read_field_ (Parameters * p) throw()
 
     param = std::string("Field:") + field_list[index_field] + ":centering";
 
-    field_centering[0][index_field] = p->list_value_logical(0,param,true) ? 0 : 1;
-    field_centering[1][index_field] = p->list_value_logical(1,param,true) ? 0 : 1;
-    field_centering[2][index_field] = p->list_value_logical(2,param,true) ? 0 : 1;
+    field_centering[0][index_field] = p->list_value_float(0,param,0.0);
+    field_centering[1][index_field] = p->list_value_float(1,param,0.0);
+    field_centering[2][index_field] = p->list_value_float(2,param,0.0);
+
+    double cx = field_centering[0][index_field];
+    double cy = field_centering[1][index_field];
+    double cz = field_centering[2][index_field];
+    ASSERT4("Config::read_field_()",
+	   "Centering (%f,%f,%f) for field '%s' is out of range [-1.0,+1.0]",
+	    cx,cy,cz,field_list[index_field].c_str(),
+	    ((-1.0 <= cx && cx <= 1.0) &&
+	     (-1.0 <= cy && cy <= 1.0) &&
+	     (-1.0 <= cz && cz <= 1.0)));
 
   }
 
