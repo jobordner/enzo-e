@@ -561,7 +561,7 @@ template<class T> size_t FieldFace::store_
 ( T * ghost, const T * array,
   int m3[3], int n3[3],int i3[3], bool accumulate) throw()
 {
-#define FORTRAN_STORE
+  /* #define FORTRAN_STORE   // fortran code breaks test_FieldFace long double when optimization <= 2 */
 
 #ifdef FORTRAN_STORE
 
