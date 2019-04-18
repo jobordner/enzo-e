@@ -1,4 +1,5 @@
 
+class MsgRefresh;
 #include "main.decl.h"
 extern CProxy_Main proxy_main;
 

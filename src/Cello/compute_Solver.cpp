@@ -71,7 +71,8 @@ int Solver::add_refresh (int ghost_depth,
   int index=refresh_list_.size();
   refresh_list_.resize(index+1);
   refresh_list_[index] = new Refresh 
-    (ghost_depth,min_face_rank,neighbor_type,sync_type,sync_id,true);
+    (std::string("Solver::add_refresh_"+name()),
+     ghost_depth,min_face_rank,neighbor_type,sync_type,sync_id,true);
   id_sync_ = sync_id;
   return index;
 }

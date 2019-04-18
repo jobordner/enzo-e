@@ -235,6 +235,9 @@ void Main::p_initial_exit()
 void Main::p_adapt_end()
 {
 #ifdef CHARM_ENZO
+#ifdef DEBUG_NEW_REFRESH    
+  CkPrintf ("Calling Main::p_adapt_end() calling p_adapt_end\n");
+#endif  
   cello::block_array().p_adapt_end();
 #endif
 }
@@ -244,6 +247,11 @@ void Main::p_adapt_end()
 void Main::p_adapt_next()
 {
 #ifdef CHARM_ENZO
+#ifdef DEBUG_NEW_REFRESH    
+  CkPrintf ("%s:%d DEBUG_REFRESH calling block_array().p_adapt_next()\n",
+	    __FILE__,__LINE__);
+  fflush(stdout);
+#endif  
   cello::block_array().p_adapt_next();
 #endif
 }
@@ -262,6 +270,9 @@ void Main::p_adapt_called()
 void Main::p_adapt_exit()
 {
 #ifdef CHARM_ENZO
+#ifdef DEBUG_NEW_REFRESH    
+  CkPrintf ("Main::p_adapt_exit() calling p_adapt_exit\n");
+#endif  
   cello::block_array().p_adapt_exit();
 #endif
 }

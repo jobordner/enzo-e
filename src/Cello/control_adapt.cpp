@@ -13,6 +13,7 @@
 // #define DEBUG_FACE
 // #define DEBUG_ADAPT
 // #define DEBUG_NEW_REFRESH
+// #define CELLO_TRACE
 //--------------------------------------------------
 
 #ifdef DEBUG_FACE
@@ -31,7 +32,8 @@
     int nb3[3] = {2,2,2};						\
     CkPrintf ("%s %s -> B%s"						\
 	     " [%d => %d] if3 %2d %2d %2d  ic3 %d %d %d\n",		\
-	      name().c_str(),MSG,INDEX_RECV.bit_string(INDEX_RECV.level(),rank(),nb3).c_str(),LEVEL_NOW,LEVEL_NEW, \
+	      name().c_str(),MSG,INDEX_RECV.bit_string			\
+	      (INDEX_RECV.level(),cello::rank(),nb3).c_str(),LEVEL_NOW,LEVEL_NEW, \
 	     IF3[0],IF3[1],IF3[2],IC3[0],IC3[1],IC3[2]);		\
     check_child_(IC3,"PUT_LEVEL",__FILE__,__LINE__);			\
     check_face_(IF3,"PUT_LEVEL",__FILE__,__LINE__);			\
@@ -88,6 +90,9 @@ void Block::adapt_enter_()
     
   } else {
 
+#ifdef DEBUG_NEW_REFRESH    
+    CkPrintf ("Calling adapt_exit\n");
+#endif
     adapt_exit_();
 
   }
@@ -127,6 +132,11 @@ void Block::adapt_called_()
 
   adapt_send_level();
 
+#ifdef DEBUG_NEW_REFRESH    
+  CkPrintf ("%s:%d DEBUG_REFRESH calling CkIndex_Main::p_adapt_next()\n",
+	    __FILE__,__LINE__);
+#endif  
+  fflush(stdout);
   control_sync_quiescence (CkIndex_Main::p_adapt_next());
 }
 
@@ -162,6 +172,9 @@ void Block::adapt_next_()
     if (level() > level_next_) adapt_coarsen_();
   }
 
+#ifdef DEBUG_NEW_REFRESH    
+  CkPrintf ("DEBUG_REFRESH Calling QD Main::p_adapt_end()\n");
+#endif  
   control_sync_quiescence (CkIndex_Main::p_adapt_end());
 }
 
@@ -203,6 +216,9 @@ void Block::adapt_end_()
 
   bool adapt_again = (is_first_cycle && (adapt_step_++ < level_maximum));
 
+#ifdef DEBUG_NEW_REFRESH    
+  CkPrintf ("DEBUG_REFRESH adapt_again %d\n",adapt_again);
+#endif  
   if (adapt_again) {
     control_sync_quiescence (CkIndex_Main::p_adapt_enter());
   } else {
@@ -332,7 +348,7 @@ void Block::adapt_refine_()
 
       int if3[3] = {0,0,0};
       bool lg3[3] = {true,true,true};
-      Refresh * refresh = new Refresh;
+      Refresh * refresh = new Refresh("Block::adapt_refine_");
       refresh->add_all_data();
       
       FieldFace * field_face = create_face 
@@ -513,7 +529,7 @@ void Block::adapt_delete_child_(Index index_child)
 #ifdef DEBUG_ADAPT
   int nb3[3] = {2,2,2};
   CkPrintf ("%s deleting child %s\n",
-	    name().c_str(), index_child.bit_string(index_child.level(),rank(),nb3).c_str());
+	    name().c_str(), index_child.bit_string(index_child.level(),cello::rank(),nb3).c_str());
   fflush(stdout);
 #endif
   thisProxy[index_child].p_adapt_delete();
@@ -590,7 +606,7 @@ void Block::p_adapt_recv_level
     CkPrintf ("%s %s <- B%s"
 	      " [%d => %d] if3 %2d %2d %2d  ic3 %d %d %d [%d] %s\n",
 	      name().c_str(),"recv",
-	      index_send.bit_string(index_send.level(),rank(),nb3).c_str(),
+	      index_send.bit_string(index_send.level(),cello::rank(),nb3).c_str(),
 	      level_face_curr,level_face_new,
 	      if3[0],if3[1],if3[2],				
 	      ic3[0],ic3[1],ic3[2], face_level_last_[ICF3(ic3,if3)],
@@ -823,7 +839,7 @@ void Block::adapt_coarsen_()
   index_.child(level,&ic3[0],&ic3[1],&ic3[2]);
   int if3[3] = {0,0,0};
   bool lg3[3] = {false,false,false};
-  Refresh * refresh = new Refresh;
+  Refresh * refresh = new Refresh("Block::adapt_coarsen");
   refresh->add_all_data();
 
   FieldFace * field_face = create_face

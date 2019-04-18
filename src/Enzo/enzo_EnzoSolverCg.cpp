@@ -289,7 +289,8 @@ void EnzoSolverCg::loop_0a
 
 // Refresh field faces then call r_solver_cg_matvec
 
-  Refresh refresh (4,0,neighbor_type_(), sync_type_(),
+  Refresh refresh ("EnzoSolverBiCgStab::loop_0a",
+		   4,0,neighbor_type_(), sync_type_(),
 		   enzo_sync_id_solver_cg_loop_0a);
   refresh.set_active(is_finest_(enzo_block));
 
@@ -329,7 +330,8 @@ void EnzoSolverCg::loop_0b
   
   // Refresh field faces then call solver_matvec
 
-  Refresh refresh (4,0,neighbor_type_(), sync_type_(),
+  Refresh refresh ("EnzoSolverBiCgStab::loop_0b",
+		   4,0,neighbor_type_(), sync_type_(),
 		   enzo_sync_id_solver_cg_loop_0b);
   refresh.set_active(is_finest_(enzo_block));
   //  refresh.add_all_fields();
@@ -449,7 +451,8 @@ void EnzoBlock::r_solver_cg_shift_1 (CkReductionMsg * msg)
 
 void EnzoSolverCg::loop_2a (EnzoBlock * enzo_block) throw()
 {
-  Refresh refresh (4,0,neighbor_type_(), sync_type_(),
+  Refresh refresh ("EnzoSolverBiCgStab::loop_2a",
+		   4,0,neighbor_type_(), sync_type_(),
 		   enzo_sync_id_solver_cg_loop_2a);
   refresh.set_active(is_finest_(enzo_block));
 

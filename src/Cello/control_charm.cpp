@@ -187,8 +187,14 @@ void Block::control_sync (int entry_point, int sync_type, int id_sync,
 
 void Block::control_sync_quiescence (int entry_point)
 {
-  if (index_.is_root())
+  if (index_.is_root()) {
+#ifdef DEBUG_NEW_REFRESH    
+    CkPrintf ("%s:%d control_sync_quiescence calling Main::%d\n",
+	      __FILE__,__LINE__,entry_point);
+    fflush(stdout);
+#endif    
     CkStartQD(CkCallback (entry_point,proxy_main));
+  }
 }
 
 //----------------------------------------------------------------------

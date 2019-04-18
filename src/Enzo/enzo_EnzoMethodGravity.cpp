@@ -367,7 +367,8 @@ void EnzoBlock::r_method_gravity_continue()
   // refresh ("Charm++ fatal error: mis-matched client callbacks in
   // reduction messages")
 
-  Refresh refresh (4,0,neighbor_leaf, sync_barrier,
+  Refresh refresh ("r_method_gravity_continue",
+		   4,0,neighbor_leaf, sync_barrier,
 		   enzo_sync_id_method_gravity_continue);
   
   refresh.set_active(is_leaf());

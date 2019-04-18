@@ -314,7 +314,7 @@ void Block::init
     // Create field face of refined data from parent
     int if3[3] = {0,0,0};
     bool lg3[3] = {true,true,true};
-    Refresh * refresh = new Refresh;
+    Refresh * refresh = new Refresh("Block::init");
     refresh->add_all_data();
     
     FieldFace * field_face = create_face
@@ -582,7 +582,7 @@ Block::~Block()
     char * array;
     int if3[3]={0,0,0};
     bool lg3[3]={false,false,false};
-    Refresh * refresh = new Refresh;
+    Refresh * refresh = new Refresh("Block::~Block()");
     refresh->add_all_data();
     
     FieldFace * field_face = create_face
@@ -628,7 +628,7 @@ void Block::p_refresh_child
   performance_start_(perf_refresh_child);
   int  if3[3]  = {0,0,0};
   bool lg3[3] = {false,false,false};
-  Refresh * refresh = new Refresh;
+  Refresh * refresh = new Refresh("Block::p_refresh_child");
   refresh->add_all_data();
   
   FieldFace * field_face = create_face

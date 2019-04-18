@@ -427,6 +427,11 @@ public:
   void p_adapt_next ()
   {
     performance_start_(perf_adapt_update);
+#ifdef DEBUG_NEW_REFRESH    
+  CkPrintf ("%s:%d DEBUG_REFRESH calling adapt_next()\n",
+	    __FILE__,__LINE__);
+  fflush(stdout);
+#endif  
     adapt_next_();
     performance_stop_(perf_adapt_update);
     performance_start_(perf_adapt_update_sync);
@@ -447,18 +452,13 @@ public:
     performance_stop_(perf_adapt_notify);
     performance_start_(perf_adapt_notify_sync);
   }
-  void r_adapt_called(CkReductionMsg * msg) 
-  {
-    performance_start_(perf_adapt_notify);
-    delete msg;    
-    adapt_called_();
-    performance_stop_(perf_adapt_notify);
-    performance_start_(perf_adapt_notify_sync);
-  }
 
   void p_adapt_end ()  
   {
     performance_start_(perf_adapt_end);
+#ifdef DEBUG_NEW_REFRESH    
+    CkPrintf ("DEBUG_REFRESH Block::p_adapt_end\n");
+#endif    
     adapt_end_();
     performance_stop_(perf_adapt_end);
     performance_start_(perf_adapt_end_sync);
@@ -466,6 +466,9 @@ public:
   void r_adapt_end (CkReductionMsg * msg)  
   {
     performance_start_(perf_adapt_end);
+#ifdef DEBUG_NEW_REFRESH    
+    CkPrintf ("DEBUG_REFRESH Block::r_adapt_end\n");
+#endif   
     delete msg;    
     adapt_end_();
     performance_stop_(perf_adapt_end);
@@ -475,6 +478,9 @@ public:
   void p_adapt_exit() 
   {
     performance_start_(perf_adapt_end);
+#ifdef DEBUG_NEW_REFRESH    
+    CkPrintf ("DEBUG_REFRESH Block::p_adapt_exit()\n");
+#endif    
     adapt_exit_();
     performance_stop_(perf_adapt_end);
     performance_start_(perf_adapt_end_sync);
@@ -482,6 +488,9 @@ public:
   void r_adapt_exit(CkReductionMsg * msg) 
   {
     performance_start_(perf_adapt_end);
+#ifdef DEBUG_NEW_REFRESH    
+    CkPrintf ("DEBUG_REFRESH Block::r_adapt_exit()\n");
+#endif    
     delete msg;
     adapt_exit_();
     performance_stop_(perf_adapt_end);

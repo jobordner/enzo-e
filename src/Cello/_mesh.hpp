@@ -30,6 +30,9 @@
 // number of neighbors
 #define NN(rank) (2*(rank))
 
+// Maximum number of stored refresh objects per refresh type
+#define MAX_REFRESH 5
+
 //----------------------------------------------------------------------
 // Enums
 //----------------------------------------------------------------------

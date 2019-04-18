@@ -56,6 +56,10 @@ void Block::compute_next_ ()
 
     Refresh * refresh = method->refresh();
 
+#ifdef DEBUG_NEW_REFRESH    
+    CkPrintf ("DEBUG_REFRESH refresh = %p\n",refresh);
+#endif    
+    
     if (refresh) {
 
       refresh->set_active (is_leaf());

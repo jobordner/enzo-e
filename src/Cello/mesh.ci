@@ -151,7 +151,6 @@ module mesh {
     entry void r_adapt_next(CkReductionMsg *);
 
     entry void p_adapt_called();
-    entry void r_adapt_called(CkReductionMsg *);
 
     entry void p_adapt_exit();
     entry void r_adapt_exit(CkReductionMsg *);

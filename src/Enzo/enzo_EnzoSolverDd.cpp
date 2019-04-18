@@ -550,7 +550,7 @@ FieldMsg * EnzoSolverDd::pack_field_(EnzoBlock * enzo_block,
   bool lg3[3];
   for (int i=0; i<3; i++) lg3[i] = (refresh_type == refresh_fine);
 
-  Refresh * refresh = new Refresh;
+  Refresh * refresh = new Refresh("EnzoSolverDd::pack_field");
   refresh->add_field(index_field);
 
   FieldFace * field_face = enzo_block->create_face
@@ -593,7 +593,7 @@ void EnzoSolverDd::unpack_field_
   int if3[3] = {0,0,0};
   bool lg3[3];
   for (int i=0; i<3; i++) lg3[i] = (refresh_type == refresh_fine);
-  Refresh * refresh = new Refresh;
+  Refresh * refresh = new Refresh("EnzoSolverDd::unpack_field");
   refresh->add_field(index_field);
 
   int * ic3 = msg->ic3;

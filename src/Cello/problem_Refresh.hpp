@@ -18,7 +18,7 @@ class Refresh : public PUP::able {
 public: // interface
 
   /// empty constructor for charm++ pup()
-  Refresh() throw() 
+  Refresh(std::string name) throw() 
   : all_fields_(false),
     field_list_src_(),
     field_list_dst_(),
@@ -32,13 +32,15 @@ public: // interface
     sync_id_ (-1),
     active_(true),
     callback_(0) ,
-    root_level_(0)
+    root_level_(0),
+    name_(name)
   {
   }
 
   /// empty constructor for charm++ pup()
   Refresh
-  (int ghost_depth,
+  (std::string name,
+   int ghost_depth,
    int min_face_rank,
    int neighbor_type,
    int sync_type,
@@ -57,7 +59,8 @@ public: // interface
       sync_id_(sync_id),
       active_(active),
       callback_(0),
-      root_level_(0)
+      root_level_(0),
+      name_(name)
   {
   }
 
@@ -129,6 +132,8 @@ public: // interface
   /// Add a named field to the list of fields to refresh
   void add_field(std::string field_name);
 
+  std::string name () const { return name_; }
+  
   /// Add a source and corresponding destination field to refresh;
   /// does not check if fields are already in the lists
   void add_field_src_dst(int id_field_src, int id_field_dst) {
@@ -409,6 +414,9 @@ private: // attributes
 
   /// Coarse level for neighbor_tree type
   int root_level_;
+
+  /// String identifier
+  std::string name_;
 };
 
 #endif /* PROBLEM_REFRESH_HPP */

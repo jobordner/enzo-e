@@ -70,8 +70,10 @@ public: // virtual functions
   {
     int index=refresh_list_.size();
     refresh_list_.resize(index+1);
+    
     refresh_list_[index] = new Refresh 
-      (ghost_depth,min_face_rank,neighbor_type,sync_type,id,true);
+      (std::string("Method_"+name()),
+       ghost_depth,min_face_rank,neighbor_type,sync_type,id,true);
     return index;
   }
 

@@ -796,7 +796,8 @@ void EnzoSolverBiCgStab::loop_25 (EnzoBlock * block) throw() {
 
   const int ghost_depth = A_->ghost_depth();
   Refresh refresh
-    (ghost_depth,min_face_rank,neighbor_type_(),
+    ("EnzoSolverBiCgStab::loop_25",
+     ghost_depth,min_face_rank,neighbor_type_(),
      sync_type_(), enzo_sync_id_solver_bicgstab_loop_25);
 
   if (solve_type_ == solve_tree)
@@ -1118,7 +1119,8 @@ void EnzoSolverBiCgStab::loop_85 (EnzoBlock * block) throw() {
   const int ghost_depth = A_->ghost_depth();  
   const int min_face_rank = cello::rank() - 1;
   Refresh refresh
-    (ghost_depth,min_face_rank,neighbor_type_(), sync_type_(),
+    ("EnzoSolverBiCgStab::loop_85",
+     ghost_depth,min_face_rank,neighbor_type_(), sync_type_(),
      enzo_sync_id_solver_bicgstab_loop_85);
   
   if (solve_type_ == solve_tree)

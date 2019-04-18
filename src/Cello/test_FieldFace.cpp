@@ -351,7 +351,7 @@ PARALLEL_MAIN_BEGIN
 	  field_list.push_back(1);
 	  field_list.push_back(2);
 
-	  Refresh refresh;
+	  Refresh refresh("test_FieldFace");
 	  refresh.set_field_list(field_list);
 	  face_lower.set_refresh(&refresh,false);
 	  face_upper.set_refresh(&refresh,false);

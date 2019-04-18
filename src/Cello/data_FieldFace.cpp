@@ -514,7 +514,7 @@ char * FieldFace::load_data (char * buffer)
   memcpy(&refresh_type_,p,n=sizeof(int));
   p+=n;
 
-  Refresh * refresh = new Refresh;
+  Refresh * refresh = new Refresh("FieldFace::load_data");
   set_refresh(refresh,true);
 
   p = refresh_->load_data(p);
@@ -561,7 +561,7 @@ template<class T> size_t FieldFace::store_
 ( T * ghost, const T * array,
   int m3[3], int n3[3],int i3[3], bool accumulate) throw()
 {
-  /* #define FORTRAN_STORE   // fortran code breaks test_FieldFace long double when optimization <= 2 */
+#define FORTRAN_STORE   // fortran code breaks test_FieldFace long double when optimization <= 2 */
 
 #ifdef FORTRAN_STORE
 

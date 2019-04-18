@@ -1326,7 +1326,7 @@ FieldMsg * EnzoSolverMg0::pack_residual_(EnzoBlock * enzo_block) throw()
   
   int if3[3] = {0,0,0};
   bool lg3[3] = {false,false,false};
-  Refresh * refresh = new Refresh;
+  Refresh * refresh = new Refresh("EnzoSolverMg0::pack_residual");
   refresh->add_field(ir_);
 
   // copy data from EnzoBlock to array via FieldFace
@@ -1376,7 +1376,7 @@ void EnzoSolverMg0::unpack_residual_
 {
   int if3[3] = {0,0,0};
   bool lg3[3] = {false,false,false};
-  Refresh * refresh = new Refresh;
+  Refresh * refresh = new Refresh("EnzoSolverMg0::unpack_residual");
   refresh->add_field(ib_);
 
   DEBUG_FIELD (enzo_block,ib_,"B restrict_recv");
@@ -1414,7 +1414,7 @@ FieldMsg * EnzoSolverMg0::pack_correction_
 
   int if3[3] = {0,0,0};
   bool lg3[3] = {true,true,true};
-  Refresh * refresh = new Refresh;
+  Refresh * refresh = new Refresh ("EnzoSolverMg0::pack_correction");
   refresh->add_field(ix_);
     
   // copy data from EnzoBlock to array via FieldFace
@@ -1472,7 +1472,7 @@ void EnzoSolverMg0::unpack_correction_
 {
   int if3[3] = {0,0,0};
   bool lg3[3] = {true,true,true};
-  Refresh * refresh = new Refresh;
+  Refresh * refresh = new Refresh("EnzoSolverMg0::unpack_correction");
   refresh->add_field(ic_);
 
   // copy data from msg to this EnzoBlock

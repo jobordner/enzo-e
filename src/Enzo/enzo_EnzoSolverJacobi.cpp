@@ -243,7 +243,8 @@ void EnzoSolverJacobi::do_refresh_(Block * block)
   const int id_sync = 2*sync_id_()+(*piter_(block))%2;
   
   Refresh refresh
-    (ghost_depth,min_face_rank,neighbor_type_(),
+    ("EnzoSolverJacobi::do_refresh",
+     ghost_depth,min_face_rank,neighbor_type_(),
      sync_type_(), id_sync);
 
   refresh.set_active(is_finest_(block));

@@ -20,6 +20,8 @@ long MsgRefresh::counter[CONFIG_NODE_SIZE] = {0};
 MsgRefresh::MsgRefresh()
     : CMessage_MsgRefresh(),
       is_local_(true),
+      index_refresh_(-1),
+      type_refresh_(-1),
       data_msg_(NULL),
       buffer_(NULL)
 {
@@ -59,6 +61,8 @@ void * MsgRefresh::pack (MsgRefresh * msg)
   int size = 0;
 
   size += sizeof(int); // have_data
+  size += sizeof(int); // index_refresh_
+  size += sizeof(int); // type_refresh_
 
   int have_data = (msg->data_msg_ != NULL);
   if (have_data) {
@@ -85,6 +89,8 @@ void * MsgRefresh::pack (MsgRefresh * msg)
 
   have_data = (msg->data_msg_ != NULL);
   (*pi++) = have_data;
+  (*pi++) = msg->index_refresh_;
+  (*pi++) = msg->type_refresh_;
   if (have_data) {
     pc = msg->data_msg_->save_data(pc);
   }
@@ -131,6 +137,8 @@ MsgRefresh * MsgRefresh::unpack(void * buffer)
   pc = (char *) buffer;
 
   int have_data = (*pi++);
+  msg ->set_index_refresh (*pi++);
+  msg ->set_type_refresh  (*pi++);
   if (have_data) {
     msg->data_msg_ = new DataMsg;
     pc = msg->data_msg_->load_data(pc);
