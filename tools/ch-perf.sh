@@ -42,7 +42,8 @@ printf "plot " >> $out_accum
 printf "plot " >> $out_cycle
 
 echo $simulation
-using="using (\$1):(\$2/1000000)"
+#using="using (\$1):(\$2/1000000)" # vs time
+using="using (\$2/1000000)" # vs cycle
 simulation="perf_simulation"
 simulation_title=${simulation//perf\_/}
 simulation_title=${simulation_title//\_/\\_}
