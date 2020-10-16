@@ -11,7 +11,8 @@
 //----------------------------------------------------------------------
 
 EnzoSolverCg::EnzoSolverCg 
-(std::string name,
+(int index_solver,
+ std::string name,
  std::string field_x,
  std::string field_b,
  int monitor_iter,
@@ -21,7 +22,8 @@ EnzoSolverCg::EnzoSolverCg
  int iter_max, double res_tol,
  int index_precon
  )
-  : Solver(name,
+  : Solver(index_solver,
+           name,
 	   field_x,
 	   field_b,
 	   monitor_iter,
@@ -155,6 +157,9 @@ void EnzoSolverCg::pup (PUP::er &p)
 
 void EnzoSolverCg::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
 {
+  const int index_perf = perf_solver + 2*index_;
+  block->performance_start(index_perf);
+  
   Solver::begin_(block);
 
   A_ = A;
@@ -173,7 +178,8 @@ void EnzoSolverCg::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
   // int precision = field.precision(ib_);
 
   compute_(enzo_block);
-
+  block->performance_stop(index_perf);
+  block->performance_start(index_perf+1);
 }
 
 //======================================================================
@@ -248,13 +254,15 @@ void EnzoBlock::r_solver_cg_loop_0a (CkReductionMsg * msg)
 /// - EnzoBlock accumulate global contribution to DOT(R,R)
 /// ==> refresh P for AP = MATVEC (A,P)
 {
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_solver + 2*solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
 
   EnzoSolverCg * solver = 
     static_cast<EnzoSolverCg*> (this->solver());
 
   solver->loop_0a(this,msg);
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------
@@ -286,13 +294,15 @@ void EnzoSolverCg::loop_0a
 void EnzoBlock::r_solver_cg_loop_0b (CkReductionMsg * msg)
 /// ==> refresh P for AP = MATVEC (A,P)
 {
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_solver + 2*solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
 
   EnzoSolverCg * solver = 
     static_cast<EnzoSolverCg*> (this->solver());
 
   solver->loop_0b(this,msg);
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------
@@ -320,7 +330,8 @@ void EnzoSolverCg::loop_0b
 void EnzoBlock::p_solver_cg_matvec()
 {
   
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_solver + 2*solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
 
   EnzoSolverCg * solver = 
     static_cast<EnzoSolverCg*> (this->solver());
@@ -332,7 +343,8 @@ void EnzoBlock::p_solver_cg_matvec()
 
   solver->shift_1(this);
 
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------
@@ -400,7 +412,8 @@ void EnzoSolverCg::shift_1 (EnzoBlock * enzo_block) throw()
 
 void EnzoBlock::r_solver_cg_shift_1 (CkReductionMsg * msg)
 {
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_solver + 2*solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
 
   EnzoSolverCg * solver = 
     static_cast<EnzoSolverCg*> (this->solver());
@@ -411,7 +424,8 @@ void EnzoBlock::r_solver_cg_shift_1 (CkReductionMsg * msg)
 
   solver -> loop_2a(this);
 
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------
@@ -430,13 +444,15 @@ void EnzoSolverCg::loop_2a (EnzoBlock * enzo_block) throw()
 
 void EnzoBlock::p_solver_cg_loop_2 ()
 {
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_solver + 2*solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
   
   EnzoSolverCg * solver = 
     static_cast<EnzoSolverCg*> (this->solver());
 
   solver->loop_2b(this);
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
   
 }
 
@@ -512,7 +528,8 @@ void EnzoSolverCg::loop_2b (EnzoBlock * enzo_block) throw()
 
 void EnzoBlock::r_solver_cg_loop_3 (CkReductionMsg * msg)
 {
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_solver + 2*solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
 
   EnzoSolverCg * solver = 
     static_cast<EnzoSolverCg*> (this->solver());
@@ -527,7 +544,8 @@ void EnzoBlock::r_solver_cg_loop_3 (CkReductionMsg * msg)
 
   solver -> loop_4(this);
 
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 
 }
 
@@ -615,7 +633,8 @@ void EnzoBlock::r_solver_cg_loop_5 (CkReductionMsg * msg)
 /// - EnzoBlock accumulate global contribution to DOT(R,R)
 /// ==> solver_cg_loop_6
 {
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_solver + 2*solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
 
   EnzoSolverCg * solver = 
     static_cast<EnzoSolverCg*> (this->solver());
@@ -630,7 +649,8 @@ void EnzoBlock::r_solver_cg_loop_5 (CkReductionMsg * msg)
 
   solver -> loop_6(this);
 
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------

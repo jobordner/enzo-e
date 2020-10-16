@@ -16,7 +16,8 @@ class EnzoSolverCg : public Solver {
 
 public: // interface
 
-  EnzoSolverCg (std::string name,
+  EnzoSolverCg (int index_solver,
+                std::string name,
 		std::string field_x,
 		std::string field_b,
 		int monitor_iter,

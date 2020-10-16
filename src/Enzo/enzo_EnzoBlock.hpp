@@ -114,7 +114,7 @@ public: // interface
        dt(0.0),
        redshift(0.0)
   {
-    performance_start_(perf_block);
+    performance_start(perf_block,__FILE__,__LINE__);
     for (int i=0; i<MAX_DIMENSION; i++) {
       GridLeftEdge[i] = 0; 
       GridDimension[i] = 0; 
@@ -122,7 +122,7 @@ public: // interface
       GridEndIndex[i] = 0; 
       CellWidth[i] = 0.0;
     }
-    performance_stop_(perf_block);
+    performance_stop(perf_block,__FILE__,__LINE__);
   }
 
   /// Initialize a migrated EnzoBlock
@@ -131,7 +131,7 @@ public: // interface
       dt(0.0),
       redshift(0.0)
   {
-    performance_start_(perf_block);
+    performance_start(perf_block,__FILE__,__LINE__);
     TRACE("CkMigrateMessage");
     for (int i=0; i<MAX_DIMENSION; i++) {
       GridLeftEdge[i] = 0; 
@@ -140,7 +140,7 @@ public: // interface
       GridEndIndex[i] = 0; 
       CellWidth[i] = 0.0;
     }
-    performance_stop_(perf_block);
+    performance_stop(perf_block,__FILE__,__LINE__);
   }
 
   /// Pack / unpack the EnzoBlock in a CHARM++ program

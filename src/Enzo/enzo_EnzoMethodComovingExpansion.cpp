@@ -12,8 +12,9 @@
 //----------------------------------------------------------------------
 
 EnzoMethodComovingExpansion::EnzoMethodComovingExpansion
-( bool comoving_coordinates )
-  : Method(),
+( int index,
+  bool comoving_coordinates )
+  : Method(index),
     comoving_coordinates_(comoving_coordinates)
 {
   cello::simulation()->new_refresh_set_name(ir_post_,name());
@@ -39,51 +40,49 @@ EnzoMethodComovingExpansion::EnzoMethodComovingExpansion
 
 void EnzoMethodComovingExpansion::compute ( Block * block) throw()
 {
+  const int index_perf = perf_method + 2*index_;
+  block->performance_start(index_perf);
 
-  if (block->cycle() == 0) {
+  if (block->cycle() != 0) {
     // skip first cycle
-    block->compute_done();
-    return;
-  }
-  EnzoBlock * enzo_block = enzo::block(block);
-  Field field = enzo_block->data()->field();
 
-  Monitor * monitor = cello::monitor();
-  if (block->index().is_root()) {
-    monitor->print("Method", "%s redshift %.8f",
-		   this->name().c_str(),
-		   enzo::cosmology()->current_redshift());
-  }
+    EnzoBlock * enzo_block = enzo::block(block);
+    Field field = enzo_block->data()->field();
 
+    Monitor * monitor = cello::monitor();
+    if (block->index().is_root()) {
+      monitor->print("Method", "%s redshift %.8f",
+                     this->name().c_str(),
+                     enzo::cosmology()->current_redshift());
+    }
 
-  /* Only do this if
-     1. this is a leaf block
-     2. we are using comoving coordinates
-     3. baryon fields are present.
-  */
+    /* Only do this if
+       1. this is a leaf block
+       2. we are using comoving coordinates
+       3. baryon fields are present.
+    */
 
-  if ((block->is_leaf() &&
-       comoving_coordinates_ &&
-       field.field_count() > 0))
-    {
+    if ((block->is_leaf() &&
+         comoving_coordinates_ &&
+         field.field_count() > 0)) {
 
       EnzoPhysicsCosmology * cosmology = enzo::cosmology();
 
       ASSERT ("EnzoMethodComovingExpansion::compute()",
-  	      "comoving_coordinates enabled but missing EnzoPhysicsCosmology",
-  	      ! (comoving_coordinates_ && (cosmology == NULL)) );
+              "comoving_coordinates enabled but missing EnzoPhysicsCosmology",
+              ! (comoving_coordinates_ && (cosmology == NULL)) );
 
       /* Compute adot/a at time = t-1/2dt (time-centered). */
 
       int has_history = ((field.num_history() > 0) &&
-  			 (field.history_time(1) > 0.));
+                         (field.history_time(1) > 0.));
       enzo_float compute_time;
       if (has_history) {
-  	compute_time = 0.5 * (enzo_block->time() +
-  			      field.history_time(1));
+        compute_time = 0.5 * (enzo_block->time() +
+                              field.history_time(1));
       }
       else {
-  	compute_time = enzo_block->time();
+        compute_time = enzo_block->time();
       }
 
       //      printf ("DEBUG_VELOCITY time old new = %g %g\n",field.history_time(1),enzo_block->time());
@@ -103,7 +102,7 @@ void EnzoMethodComovingExpansion::compute ( Block * block) throw()
       rank = cello::rank();
 
       /* If we can, compute the pressure at the mid-point.
-      	 We can, because we will always have an old baryon field now. */
+         We can, because we will always have an old baryon field now. */
       const int in = cello::index_static();
 
       // hard-code hydromethod for PPM for now
@@ -115,25 +114,25 @@ void EnzoMethodComovingExpansion::compute ( Block * block) throw()
       enzo_float * cr_field_old = NULL;
 
       /* Get the necessary fields.
-  	 field.values(<field_name>, 0) is the field at the current time.
-  	 field.values(<field_name>, 1) is the field at the previous time.
+         field.values(<field_name>, 0) is the field at the current time.
+         field.values(<field_name>, 1) is the field at the previous time.
       */
 
       int i_new = 0;
       int i_old = has_history ? 1 : 0;
 
       enzo_float * density_new         =
-  	(enzo_float *) field.values("density", i_new);
+        (enzo_float *) field.values("density", i_new);
       enzo_float * density_old         =
-  	(enzo_float *) field.values("density", i_old);
+        (enzo_float *) field.values("density", i_old);
       enzo_float * total_energy_new    =
-  	(enzo_float *) field.values("total_energy", i_new);
+        (enzo_float *) field.values("total_energy", i_new);
       enzo_float * total_energy_old    =
-  	(enzo_float *) field.values("total_energy", i_old);
+        (enzo_float *) field.values("total_energy", i_old);
       enzo_float * internal_energy_new =
-  	(enzo_float *) field.values("internal_energy", i_new);
+        (enzo_float *) field.values("internal_energy", i_new);
       enzo_float * internal_energy_old =
-  	(enzo_float *) field.values("internal_energy", i_old);
+        (enzo_float *) field.values("internal_energy", i_old);
 
       enzo_float * velocity_x_new = NULL;
       enzo_float * velocity_y_new = NULL;
@@ -145,12 +144,12 @@ void EnzoMethodComovingExpansion::compute ( Block * block) throw()
       velocity_x_new   = (enzo_float *) field.values("velocity_x", i_new);
       velocity_x_old   = (enzo_float *) field.values("velocity_x", i_old);
       if (rank >= 2) {
-  	velocity_y_new = (enzo_float *) field.values("velocity_y", i_new);
-  	velocity_y_old = (enzo_float *) field.values("velocity_y", i_old);
+        velocity_y_new = (enzo_float *) field.values("velocity_y", i_new);
+        velocity_y_old = (enzo_float *) field.values("velocity_y", i_old);
       }
       if (rank >= 3) {
-  	velocity_z_new = (enzo_float *) field.values("velocity_z", i_new);
-  	velocity_z_old = (enzo_float *) field.values("velocity_z", i_old);
+        velocity_z_new = (enzo_float *) field.values("velocity_z", i_new);
+        velocity_z_old = (enzo_float *) field.values("velocity_z", i_old);
       }
 
       // Compute the pressure *now*
@@ -164,7 +163,7 @@ void EnzoMethodComovingExpansion::compute ( Block * block) throw()
 
       if (has_history) {
         EnzoComputePressure compute_pressure_old (EnzoBlock::Gamma[in],
-                                                 comoving_coordinates_);
+                                                  comoving_coordinates_);
         compute_pressure_old.set_history(i_old);
 
         pressure = new enzo_float[m];
@@ -185,23 +184,24 @@ void EnzoMethodComovingExpansion::compute ( Block * block) throw()
       /* Call fortran routine to do the real work. */
 
       FORTRAN_NAME(expand_terms)
-	(
-	 &rank, &m, &EnzoBlock::DualEnergyFormalism[in], &Coefficient,
-	 (int*) &HydroMethod, &EnzoBlock::Gamma[in],
-	 pressure,
-	 density_new, total_energy_new, internal_energy_new,
-	 velocity_x_new, velocity_y_new, velocity_z_new,
-	 density_old, total_energy_old, internal_energy_old,
-	 velocity_x_old, velocity_y_old, velocity_z_old,
-	 &CRModel, cr_field_new, cr_field_old);
+        (
+         &rank, &m, &EnzoBlock::DualEnergyFormalism[in], &Coefficient,
+         (int*) &HydroMethod, &EnzoBlock::Gamma[in],
+         pressure,
+         density_new, total_energy_new, internal_energy_new,
+         velocity_x_new, velocity_y_new, velocity_z_new,
+         density_old, total_energy_old, internal_energy_old,
+         velocity_x_old, velocity_y_old, velocity_z_old,
+         &CRModel, cr_field_new, cr_field_old);
 
 
       if (has_history){
-	delete [] pressure;
-	pressure = NULL;
+        delete [] pressure;
+        pressure = NULL;
       }
     }
-
+  }
+  block->performance_stop(index_perf);
   block->compute_done();
 }
 

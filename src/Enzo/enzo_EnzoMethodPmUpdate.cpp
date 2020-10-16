@@ -22,8 +22,8 @@
 //----------------------------------------------------------------------
 
 EnzoMethodPmUpdate::EnzoMethodPmUpdate 
-( double max_dt ) 
-  : Method(),
+(int index, double max_dt ) 
+  : Method(index),
     max_dt_(max_dt)
 {
   TRACE_PM("EnzoMethodPmUpdate()");
@@ -62,6 +62,9 @@ void EnzoMethodPmUpdate::pup (PUP::er &p)
 
 void EnzoMethodPmUpdate::compute ( Block * block) throw()
 {
+  const int index_perf = perf_method + 2*index_;
+  block->performance_start(index_perf);
+
   TRACE_PM("compute()");
 
   Particle particle = block->data()->particle();
@@ -247,7 +250,7 @@ void EnzoMethodPmUpdate::compute ( Block * block) throw()
   }
 
   block->compute_done(); 
-  
+  block->performance_stop(index_perf);
 }
 
 //----------------------------------------------------------------------

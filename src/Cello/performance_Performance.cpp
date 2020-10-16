@@ -13,6 +13,51 @@
 
 // #define TRACE_PERFORMANCE
 
+
+const char * Performance::region_names[] =
+  {
+   "unknown",
+   "perf_simulation",
+   "perf_cycle",
+   "perf_initial",
+   "perf_adapt_apply",
+   "perf_adapt_update",
+   "perf_adapt_notify",
+   "perf_adapt_end",
+   "perf_refresh_store",
+   "perf_refresh_child",
+   "perf_refresh_exit",
+   "perf_control",
+   "perf_compute",
+   "perf_output",
+   "perf_stopping",
+   "perf_block",
+   "perf_solver_0",   "perf_solver_0_charm",
+   "perf_solver_1",   "perf_solver_1_charm",
+   "perf_solver_2",   "perf_solver_2_charm",
+   "perf_solver_3",   "perf_solver_3_charm",
+   "perf_solver_4",   "perf_solver_4_charm",
+   "perf_solver_5",   "perf_solver_5_charm",
+   "perf_solver_6",   "perf_solver_6_charm",
+   "perf_solver_7",   "perf_solver_7_charm",
+   "perf_solver_8",   "perf_solver_8_charm",
+   "perf_solver_9",   "perf_solver_9_charm",
+   "perf_method_0",   "perf_method_0_charm",
+   "perf_method_1",   "perf_method_1_charm",
+   "perf_method_2",   "perf_method_2_charm",
+   "perf_method_3",   "perf_method_3_charm",
+   "perf_method_4",   "perf_method_4_charm",
+   "perf_method_5",   "perf_method_5_charm",
+   "perf_method_6",   "perf_method_6_charm",
+   "perf_method_7",   "perf_method_7_charm",
+   "perf_method_8",   "perf_method_8_charm",
+   "perf_method_9",   "perf_method_9_charm",
+#ifdef CONFIG_USE_GRACKLE
+   "perf_grackle",
+#endif
+   "perf_exit"
+  };
+
 static long long time_start[CONFIG_NODE_SIZE] = { 0 };
 
 Performance::Performance (Config * config)
@@ -29,6 +74,7 @@ Performance::Performance (Config * config)
   region_started_(),
   region_index_(),
   region_in_charm_(),
+  charm_stack_(),
 #ifdef CONFIG_USE_PAPI  
   papi_counters_(0),
 #endif
@@ -199,7 +245,7 @@ Performance::new_region (int         region_index,
 			 bool        in_charm) throw()
 { 
 #ifdef TRACE_PERFORMANCE
-  CkPrintf ("%d TRACE_PERFORMANCE Performance::new_region (%d %s)\n",CkMyPe(),
+  CkPrintf ("%d TRACE_PERFORMANCE (%d %s) Performance::new_region\n",CkMyPe(),
 	    region_index,region_name.c_str());
 #endif
   if ((size_t)region_index >= region_name_.size()) {
@@ -222,12 +268,18 @@ void
 Performance::start_region(int id_region, std::string file, int line) throw()
 {
 #ifdef TRACE_PERFORMANCE
-  CkPrintf ("%d TRACE_PERFORMANCE Performance::start_region (%d,%s) %s:%d\n",CkMyPe(),
-	    id_region,region_name_[id_region].c_str(),file.c_str(),line);
+  CkPrintf ("%d %s:%d TRACE_PERFORMANCE (%d,%s) Performance::start_region\n",
+            CkMyPe(),file.c_str(),line,
+            id_region,region_name_[id_region].c_str());
 #endif
 
-  if (region_in_charm_[index_region_current_]) {
-    stop_region(index_region_current_);
+  if (!region_in_charm_[id_region]) {
+    for (auto i=0; i<charm_stack_.size(); i++) {
+      stop_region(charm_stack_[i]);
+    }
+    charm_stack_.clear();
+  } else {
+    charm_stack_.push_back(id_region);
   }
   
   int index_region = id_region;
@@ -240,14 +292,16 @@ Performance::start_region(int id_region, std::string file, int line) throw()
 
   } else if (warnings_) {
     if (file == "") {
-      WARNING1 ("Performance::start_region",
-		"Region %s already started",
-		region_name_[id_region].c_str());
+      WARNING2 ("Performance::start_region",
+		"Region %s already started (charm %d)",
+		region_name_[id_region].c_str(),
+                region_in_charm_[id_region]);
     } else {
-      WARNING3 ("Performance::start_region",
-    		"Region %s already started %s %d",
+      WARNING4 ("Performance::start_region",
+    		"Region %s already started %s %d (charm %d)",
     		region_name_[id_region].c_str(),
-    		file.c_str(),line);
+    		file.c_str(),line,
+                region_in_charm_[id_region]);
     }
     return;
   }
@@ -271,8 +325,9 @@ Performance::stop_region(int id_region, std::string file, int line) throw()
 {
 
 #ifdef TRACE_PERFORMANCE
-  CkPrintf ("%d TRACE_PERFORMANCE Performance::stop_region (%d,%s) %s:%d\n",CkMyPe(),
-	    id_region,region_name_[id_region].c_str(),file.c_str(),line);
+  CkPrintf ("%d %s:%d TRACE_PERFORMANCE (%d,%s) Performance::stop_region\n",
+            CkMyPe(), file.c_str(),line,
+            id_region,region_name_[id_region].c_str());
 #endif
 
   int index_region = id_region;

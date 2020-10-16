@@ -26,37 +26,39 @@
 //======================================================================
 
 EnzoSolverDd::EnzoSolverDd
-  (std::string name,
-   std::string field_x,
-   std::string field_b,
-   int monitor_iter,
-   int restart_cycle,
-   int solve_type,
-   int min_level,
-   int max_level,
-   int index_solve_coarse,
-   int index_solve_domain,
-   int index_solve_smooth,
-   Restrict * restrict,
-     Prolong * prolong,
-     int coarse_level)
-    : Solver(name,
-	     field_x,
-	     field_b,
-	     monitor_iter,
-	     restart_cycle,
-	     solve_type,
-	     min_level,
-	     max_level),
-      index_solve_coarse_(index_solve_coarse),
-      index_solve_domain_(index_solve_domain),
-      index_solve_smooth_(index_solve_smooth),
-      restrict_(restrict),
-      prolong_(prolong),
-      ixc_(-1),
-      mx_(0),my_(0),mz_(0),
-      gx_(0),gy_(0),gz_(0),
-      coarse_level_(coarse_level)
+(int index_solver,
+ std::string name,
+ std::string field_x,
+ std::string field_b,
+ int monitor_iter,
+ int restart_cycle,
+ int solve_type,
+ int min_level,
+ int max_level,
+ int index_solve_coarse,
+ int index_solve_domain,
+ int index_solve_smooth,
+ Restrict * restrict,
+ Prolong * prolong,
+ int coarse_level)
+  : Solver(index_solver,
+           name,
+           field_x,
+           field_b,
+           monitor_iter,
+           restart_cycle,
+           solve_type,
+           min_level,
+           max_level),
+    index_solve_coarse_(index_solve_coarse),
+    index_solve_domain_(index_solve_domain),
+    index_solve_smooth_(index_solve_smooth),
+    restrict_(restrict),
+    prolong_(prolong),
+    ixc_(-1),
+    mx_(0),my_(0),mz_(0),
+    gx_(0),gy_(0),gz_(0),
+    coarse_level_(coarse_level)
 {
   // Initialize temporary fields
   Block * block = NULL;
@@ -82,6 +84,10 @@ EnzoSolverDd::EnzoSolverDd
 
 void EnzoSolverDd::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
 {
+  const int index_perf = perf_solver + 2*index_;
+  
+  block->performance_start(index_perf,__FILE__,__LINE__);
+  
   Solver::begin_(block);
 
   Field field = block->data()->field();
@@ -135,6 +141,8 @@ void EnzoSolverDd::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
     
     }
   }
+  block->performance_stop(index_perf,__FILE__,__LINE__);
+  block->performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------
@@ -182,7 +190,11 @@ void EnzoSolverDd::restrict_send(EnzoBlock * enzo_block) throw()
 
 void EnzoBlock::p_solver_dd_restrict_recv(FieldMsg * msg)
 {
+  const int index_perf = perf_solver + 2*this->solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
   static_cast<EnzoSolverDd*> (solver())->restrict_recv(this,msg);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------
@@ -219,17 +231,29 @@ void EnzoSolverDd::call_coarse_solver(EnzoBlock * enzo_block) throw()
 
 void EnzoBlock::p_solver_dd_solve_coarse()
 {
+  const int index_perf = perf_solver + 2*this->solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
+
   CkCallback callback(CkIndex_EnzoBlock::r_solver_dd_barrier(NULL), 
 		      enzo::block_array());
   contribute(callback);
+
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------
 
 void EnzoBlock::r_solver_dd_barrier(CkReductionMsg * msg)
 {
+  const int index_perf = perf_solver + 2*this->solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
+
   static_cast<EnzoSolverDd*> (solver())->prolong(this);
   delete msg;
+
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------
@@ -281,11 +305,19 @@ void EnzoSolverDd::prolong_send_(EnzoBlock * enzo_block) throw()
 //----------------------------------------------------------------------
 
 void EnzoBlock::p_solver_dd_prolong_recv(FieldMsg * msg)
-{  solver_dd_prolong_recv(msg); }
+{
+  const int index_perf = perf_solver + 2*this->solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
+  solver_dd_prolong_recv(msg);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
+}
 
 void EnzoBlock::solver_dd_prolong_recv(FieldMsg * msg)
 {
+
   static_cast<EnzoSolverDd*> (solver())->prolong_recv(this,msg);
+
 }
 
 //----------------------------------------------------------------------
@@ -351,7 +383,13 @@ void EnzoSolverDd::call_domain_solver(EnzoBlock * enzo_block) throw()
 
 void EnzoBlock::p_solver_dd_solve_domain()
 {
+  const int index_perf = perf_solver + 2*this->solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
+
   static_cast<EnzoSolverDd*> (solver())->continue_after_domain_solve(this);
+
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------
@@ -367,8 +405,14 @@ void EnzoSolverDd::continue_after_domain_solve(EnzoBlock * enzo_block) throw()
 
 void EnzoBlock::r_solver_dd_end(CkReductionMsg * msg)
 {
+  const int index_perf = perf_solver + 2*this->solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
+
   static_cast<EnzoSolverDd*> (solver())->call_last_smoother(this);
   delete msg;
+
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------
@@ -391,7 +435,13 @@ void EnzoSolverDd::call_last_smoother(EnzoBlock * enzo_block) throw()
 
 void EnzoBlock::p_solver_dd_last_smooth()
 {
+  const int index_perf = perf_solver + 2*this->solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
+
   static_cast<EnzoSolverDd*> (solver())->continue_after_last_smooth(this);
+
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------

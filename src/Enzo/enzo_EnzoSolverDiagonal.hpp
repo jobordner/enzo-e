@@ -17,13 +17,16 @@ class EnzoSolverDiagonal : public Solver {
 public: // interface
 
   /// Constructor
-  EnzoSolverDiagonal(std::string name,
-		     std::string field_x,
-		     std::string field_b,
-		     int monitor_iter,
-		     int restart_cycle,
-		     int solve_type) throw()
-    : Solver(name,field_x,field_b,monitor_iter,restart_cycle,solve_type)
+  EnzoSolverDiagonal
+  (int index_solver,
+   std::string name,
+   std::string field_x,
+   std::string field_b,
+   int monitor_iter,
+   int restart_cycle,
+   int solve_type) throw()
+    : Solver(index_solver,
+             name,field_x,field_b,monitor_iter,restart_cycle,solve_type)
   { }
 
   /// Charm++ PUP::able declarations

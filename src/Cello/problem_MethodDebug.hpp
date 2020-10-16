@@ -19,7 +19,8 @@ class MethodDebug : public Method
 public: // interface
 
   /// Create a new MethodDebug
-  MethodDebug (int num_fields) throw();
+  MethodDebug (int index,
+               int num_fields) throw();
 
   /// Destructor
   virtual ~MethodDebug() throw()

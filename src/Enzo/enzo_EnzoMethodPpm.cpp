@@ -32,8 +32,8 @@
 
 //----------------------------------------------------------------------
 
-EnzoMethodPpm::EnzoMethodPpm ()
-  : Method(),
+EnzoMethodPpm::EnzoMethodPpm (int index)
+  : Method(index),
     comoving_coordinates_(enzo::config()->physics_cosmology)
 {
   // Initialize default Refresh object
@@ -70,6 +70,9 @@ void EnzoMethodPpm::pup (PUP::er &p)
 
 void EnzoMethodPpm::compute ( Block * block) throw()
 {
+
+  const int index_perf = perf_method + 2*index_;
+  block->performance_start(index_perf);
   TRACE_PPM("BEGIN compute()");
 
 #ifdef COPY_FIELDS_TO_OUTPUT
@@ -163,7 +166,8 @@ void EnzoMethodPpm::compute ( Block * block) throw()
   TRACE_PPM("END compute()");
 
   block->compute_done(); 
-  
+
+  block->performance_stop(index_perf);
 }
 
 //----------------------------------------------------------------------

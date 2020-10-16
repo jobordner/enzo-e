@@ -20,7 +20,8 @@ public: // interface
 
   /// Create a new MethodFluxCorrect
   MethodFluxCorrect
-  (const std::string group, bool enable, double min_digits) throw();
+  (int index,
+   const std::string group, bool enable, double min_digits) throw();
 
   /// Destructor
   virtual ~MethodFluxCorrect() throw()

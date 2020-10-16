@@ -37,7 +37,8 @@ class EnzoSolverBiCgStab : public Solver {
 public: // interface
 
   /// normal constructor
-  EnzoSolverBiCgStab(std::string name,
+  EnzoSolverBiCgStab(int index_solver,
+                     std::string name,
 		     std::string field_x,
 		     std::string field_b,
 		     int monitor_iter,

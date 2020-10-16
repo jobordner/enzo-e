@@ -17,7 +17,8 @@ class MethodCloseFiles : public Method {
 public: // interface
 
   /// Constructor
-  MethodCloseFiles(double seconds_stagger,
+  MethodCloseFiles(int index,
+                   double seconds_stagger,
 		   double seconds_delay,
 		   int group_size) throw();
 

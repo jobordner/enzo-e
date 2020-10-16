@@ -13,8 +13,8 @@
 
 //----------------------------------------------------------------------
 
-EnzoMethodPpml::EnzoMethodPpml() 
-  : Method(),
+EnzoMethodPpml::EnzoMethodPpml(int index) 
+  : Method(index),
     comoving_coordinates_(enzo::config()->physics_cosmology)
 {
   // Initialize the default Refresh object
@@ -41,6 +41,9 @@ void EnzoMethodPpml::pup (PUP::er &p)
 void EnzoMethodPpml::compute ( Block * block ) throw()
 {
 
+  const int index_perf = perf_method + 2*index_;
+  block->performance_start(index_perf);
+
   if (!block->is_leaf()) return;
 
   EnzoBlock * enzo_block = enzo::block(block);
@@ -49,6 +52,8 @@ void EnzoMethodPpml::compute ( Block * block ) throw()
 
   enzo_block->compute_done();
 
+  block->performance_stop(index_perf);
+  
 }
 
 //----------------------------------------------------------------------

@@ -413,82 +413,72 @@ public:
 
   void p_adapt_enter() 
   {
-    performance_start_(perf_adapt_apply);
+    performance_start(perf_adapt_apply);
     adapt_enter_();
-    performance_stop_(perf_adapt_apply);
-    performance_start_(perf_adapt_apply_sync);
+    performance_stop(perf_adapt_apply);
   }
   void r_adapt_enter(CkReductionMsg * msg) 
   {
-    performance_start_(perf_adapt_apply);
+    performance_start(perf_adapt_apply);
     delete msg;
     adapt_enter_();
-    performance_stop_(perf_adapt_apply);
-    performance_start_(perf_adapt_apply_sync);
+    performance_stop(perf_adapt_apply);
   }
 
   void p_adapt_next ()
   {
-    performance_start_(perf_adapt_update);
+    performance_start(perf_adapt_update);
     adapt_next_();
-    performance_stop_(perf_adapt_update);
-    performance_start_(perf_adapt_update_sync);
+    performance_stop(perf_adapt_update);
   }
   void r_adapt_next (CkReductionMsg * msg)
   {
-    performance_start_(perf_adapt_update);
+    performance_start(perf_adapt_update);
     delete msg;    
     adapt_next_();
-    performance_stop_(perf_adapt_update);
-    performance_start_(perf_adapt_update_sync);
+    performance_stop(perf_adapt_update);
   }
 
   void p_adapt_called() 
   {
-    performance_start_(perf_adapt_notify);
+    performance_start(perf_adapt_notify);
     adapt_called_();
-    performance_stop_(perf_adapt_notify);
-    performance_start_(perf_adapt_notify_sync);
+    performance_stop(perf_adapt_notify);
   }
   void r_adapt_called(CkReductionMsg * msg) 
   {
-    performance_start_(perf_adapt_notify);
+    performance_start(perf_adapt_notify);
     delete msg;    
     adapt_called_();
-    performance_stop_(perf_adapt_notify);
-    performance_start_(perf_adapt_notify_sync);
+    performance_stop(perf_adapt_notify);
   }
 
   void p_adapt_end ()  
   {
-    performance_start_(perf_adapt_end);
+    performance_start(perf_adapt_end);
     adapt_end_();
-    performance_stop_(perf_adapt_end);
-    performance_start_(perf_adapt_end_sync);
+    performance_stop(perf_adapt_end);
   }
   void r_adapt_end (CkReductionMsg * msg)  
   {
-    performance_start_(perf_adapt_end);
+    performance_start(perf_adapt_end);
     delete msg;    
     adapt_end_();
-    performance_stop_(perf_adapt_end);
-    performance_start_(perf_adapt_end_sync);
+    performance_stop(perf_adapt_end);
   }
 
   void p_adapt_exit() 
   {
-    performance_start_(perf_adapt_end);
+    performance_start(perf_adapt_end);
     adapt_exit_();
-    performance_stop_(perf_adapt_end);
-    performance_start_(perf_adapt_end_sync);
+    performance_stop(perf_adapt_end);
   }
   void r_adapt_exit(CkReductionMsg * msg) 
   {
-    performance_start_(perf_adapt_end);
+    performance_start(perf_adapt_end);
     delete msg;
     adapt_exit_();
-    performance_stop_(perf_adapt_end);
-    performance_start_(perf_adapt_end_sync);
+    performance_stop(perf_adapt_end);
   }
 
 
@@ -533,9 +523,9 @@ public:
   /// supplied once with others count arguments 0.  
   void p_control_sync_count(int entry_point, int id, int count) 
   {
-    performance_start_(perf_control);
+    performance_start(perf_control);
     control_sync_count(entry_point,id, count);
-    performance_stop_(perf_control);
+    performance_stop(perf_control);
   }
 
   void control_sync_neighbor (int entry_point, int id,
@@ -591,18 +581,16 @@ public:
   /// Exit the refresh phase after synchronizing
   void p_refresh_exit () 
   {
-    performance_start_(perf_refresh_exit);
+    performance_start(perf_refresh_exit);
     refresh_exit_();
-    performance_stop_(perf_refresh_exit);
-    performance_start_(perf_refresh_exit_sync);
+    performance_stop(perf_refresh_exit);
   }
   void r_refresh_exit (CkReductionMsg * msg) 
   {
-    performance_start_(perf_refresh_exit);
+    performance_start(perf_refresh_exit);
     delete msg;    
     refresh_exit_();
-    performance_stop_(perf_refresh_exit);
-    performance_start_(perf_refresh_exit_sync);
+    performance_stop(perf_refresh_exit);
   }
 protected:
   void refresh_exit_ ();
@@ -688,16 +676,16 @@ public:
   /// Enter the stopping phase
   void p_stopping_enter () 
   {
-    performance_start_(perf_stopping);
+    performance_start(perf_stopping);
     stopping_enter_();
-    performance_stop_(perf_stopping);
+    performance_stop(perf_stopping);
   }
   void r_stopping_enter (CkReductionMsg * msg) 
   {
-    performance_start_(perf_stopping);
+    performance_start(perf_stopping);
     delete msg;    
     stopping_enter_();
-    performance_stop_(perf_stopping);
+    performance_stop(perf_stopping);
   }
 
   /// Quiescence before load balancing
@@ -706,17 +694,28 @@ public:
   /// Exit the stopping phase
   void p_stopping_exit () 
   {
-    performance_start_(perf_stopping);
+    performance_start(perf_stopping);
     stopping_exit_();
-    performance_stop_(perf_stopping);
+    performance_stop(perf_stopping);
   }
   void r_stopping_exit (CkReductionMsg * msg) 
   {
     delete msg;    
     stopping_exit_();
-    performance_stop_(perf_stopping);
+    performance_stop(perf_stopping);
   }
   
+  //--------------------------------------------------
+  // PERFORMANCE
+  //--------------------------------------------------
+
+  /// Start and stop measuring Block-based performance regions
+  void performance_start
+  (int index_region, std::string file="", int line=0);
+  void performance_stop
+  (int index_region, std::string file="", int line=0);
+
+
 protected:
 
   void stopping_enter_();
@@ -728,16 +727,16 @@ public:
   /// Exit the stopping phase to exit
   void p_exit () 
   {
-    performance_start_(perf_exit);
+    performance_start(perf_exit);
     exit_();
-    performance_stop_(perf_exit);
+    performance_stop(perf_exit);
   }
   void r_exit (CkReductionMsg * msg) 
   {
-    performance_start_(perf_exit);
+    performance_start(perf_exit);
     delete msg;    
     exit_();
-    performance_stop_(perf_exit);
+    performance_stop(perf_exit);
   }
 protected:
 
@@ -748,12 +747,6 @@ protected:
   //--------------------------------------------------
 
 protected:
-  /// Start and stop measuring Block-based performance regions
-  void performance_start_
-  (int index_region, std::string file="", int line=0);
-  void performance_stop_
-  (int index_region, std::string file="", int line=0);
-
   //--------------------------------------------------
   // TESTING
   //--------------------------------------------------

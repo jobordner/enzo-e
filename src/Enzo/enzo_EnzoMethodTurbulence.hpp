@@ -20,7 +20,8 @@ class EnzoMethodTurbulence : public Method {
 public: // interface
 
   /// Create a new EnzoMethodTurbulence object
-  EnzoMethodTurbulence(double edot,
+  EnzoMethodTurbulence(int index,
+                       double edot,
 		       double density_initial,
 		       double temperature_initial,
 		       double mach_number,

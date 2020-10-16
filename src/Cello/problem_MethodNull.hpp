@@ -19,14 +19,9 @@ class MethodNull : public Method {
 public: // interface
 
   /// Create a new MethodNull object
-  MethodNull ( double dt )
-    : Method(), dt_(dt)
-  {
-    init_refresh_();
-  }
-
-  MethodNull()
-    : Method(), dt_ (std::numeric_limits<double>::max())
+  MethodNull (int index,
+              double dt )
+    : Method(index), dt_(dt)
   {
     init_refresh_();
   }

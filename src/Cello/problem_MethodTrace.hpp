@@ -20,7 +20,8 @@ class MethodTrace : public Method
 public: // interface
 
   /// Create a new MethodTrace
-  MethodTrace (double courant,
+  MethodTrace (int index,
+               double courant,
 	       double timestep,
 	       std::string name) throw() ;
 

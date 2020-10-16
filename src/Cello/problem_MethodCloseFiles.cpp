@@ -23,8 +23,9 @@ void method_close_files_mutex_init()
 //----------------------------------------------------------------------
 
 MethodCloseFiles::MethodCloseFiles
-(double seconds_stagger, double seconds_delay, int group_size) throw()
-  : Method(),
+(int index,
+ double seconds_stagger, double seconds_delay, int group_size) throw()
+  : Method(index),
     seconds_stagger_(seconds_stagger),
     seconds_delay_(seconds_delay),
     group_size_(group_size)

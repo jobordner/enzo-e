@@ -12,11 +12,12 @@
 
 MethodTrace::MethodTrace 
 (
+ int index,
  double courant,
  double timestep,
  std::string name
  ) throw() 
-  : Method (courant),
+  : Method (index, courant),
     timestep_(timestep),
     name_(name)
 {

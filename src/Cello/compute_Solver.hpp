@@ -20,7 +20,8 @@ class Solver : public PUP::able
 public: // interface
 
   /// Create a new Solver
-  Solver (std::string name,
+  Solver (int index_solver,
+          std::string name,
 	  std::string field_x,
 	  std::string field_b,
 	  int monitor_iter,
@@ -79,9 +80,6 @@ public: // interface
 
   void set_callback (int callback)
   { callback_ = callback; }
-
-  void set_index (int index)
-  { index_ = index; }
 
   int index() const
   { return index_; }

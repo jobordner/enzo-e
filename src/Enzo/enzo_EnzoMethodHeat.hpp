@@ -20,13 +20,7 @@ class EnzoMethodHeat : public Method {
 public: // interface
 
   /// Create a new EnzoMethodHeat object
-  EnzoMethodHeat(double alpha, double courant);
-
-  EnzoMethodHeat()
-    : Method(),
-      alpha_(0.0),
-      courant_(0.0)
-  { }
+  EnzoMethodHeat(int index, double alpha, double courant);
 
   /// Charm++ PUP::able declarations
   PUPable_decl(EnzoMethodHeat);

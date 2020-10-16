@@ -80,7 +80,7 @@ Block::Block ( MsgRefine * msg )
     index_solver_(),
     refresh_()
 {
-  performance_start_(perf_block);
+  performance_start(perf_block,__FILE__,__LINE__);
 #ifdef DEBUG_NEW_REFRESH  
   CkPrintf ("Block(msg)\n"); fflush(stdout);
 #endif  
@@ -116,7 +116,7 @@ Block::Block ( MsgRefine * msg )
     apply_initial_();
   }
 
-  performance_stop_(perf_block);
+  performance_stop(perf_block,__FILE__,__LINE__);
 
 
 }
@@ -170,20 +170,20 @@ Block::Block ( process_type ip_source )
 }
 #endif
 
-  performance_start_(perf_block);
+  performance_start(perf_block,__FILE__,__LINE__);
 
   thisIndex.array(array_,array_+1,array_+2);
 
   proxy_simulation[ip_source].p_get_msg_refine(thisIndex);
   
-  performance_stop_(perf_block);
+  performance_stop(perf_block,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------
 
 void Block::p_set_msg_refine(MsgRefine * msg)
 {
-  performance_start_(perf_block);
+  performance_start(perf_block,__FILE__,__LINE__);
 
   init (msg->index_,
 	msg->nx_, msg->ny_, msg->nz_,
@@ -213,7 +213,7 @@ void Block::p_set_msg_refine(MsgRefine * msg)
     apply_initial_();
   } 
   
-  performance_stop_(perf_block);
+  performance_stop(perf_block,__FILE__,__LINE__);
 
 }
 
@@ -689,7 +689,7 @@ void Block::p_refresh_child
  int    ic3[3]
  )
 {
-  performance_start_(perf_refresh_child);
+  performance_start(perf_refresh_child,__FILE__,__LINE__);
   int  if3[3]  = {0,0,0};
   bool lg3[3] = {false,false,false};
   Refresh * refresh = new Refresh;
@@ -704,8 +704,7 @@ void Block::p_refresh_child
   
   field_face -> array_to_face (buffer, data()->field());
   delete field_face;
-  performance_stop_(perf_refresh_child);
-  performance_start_(perf_refresh_child_sync);
+  performance_stop(perf_refresh_child,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------
@@ -1102,7 +1101,7 @@ Index Block::neighbor_
 
 //----------------------------------------------------------------------
 
-void Block::performance_start_
+void Block::performance_start
 (int index_region, std::string file, int line)
 {
   Simulation * simulation = cello::simulation();
@@ -1112,7 +1111,7 @@ void Block::performance_start_
 
 //----------------------------------------------------------------------
 
-void Block::performance_stop_
+void Block::performance_stop
 (int index_region, std::string file, int line)
 {
   Simulation * simulation = cello::simulation();

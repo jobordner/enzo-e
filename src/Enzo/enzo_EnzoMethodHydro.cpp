@@ -11,7 +11,8 @@
 //----------------------------------------------------------------------
 
 EnzoMethodHydro::EnzoMethodHydro 
-( std::string method,
+( int index,
+  std::string method,
   enzo_float gamma,
   bool gravity,
   bool comoving_coordinates,
@@ -29,7 +30,7 @@ EnzoMethodHydro::EnzoMethodHydro
   int ppm_steepening,
   std::string riemann_solver
   )
-  : Method(),
+  : Method(index),
     method_(method),
     gamma_(gamma),
     gravity_(gravity?1:0),
@@ -85,7 +86,6 @@ void EnzoMethodHydro::pup (PUP::er &p)
 
 void EnzoMethodHydro::compute ( Block * block) throw()
 {
-
   Field field = block->data()->field();
 
   if ( ! block->is_leaf() || field.field_count() == 0 ) {

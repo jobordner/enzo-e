@@ -23,12 +23,13 @@
 //----------------------------------------------------------------------
 
 EnzoMethodTurbulence::EnzoMethodTurbulence 
-(double edot,
+(int index,
+ double edot,
  double density_initial,
  double temperature_initial,
  double mach_number,
  bool comoving_coordinates)
-  : Method(),
+  : Method(index),
     density_initial_(density_initial),
     temperature_initial_(temperature_initial),
     edot_(edot),
@@ -68,6 +69,9 @@ void EnzoMethodTurbulence::pup (PUP::er &p)
 
 void EnzoMethodTurbulence::compute ( Block * block) throw()
 {
+
+  const int index_perf = perf_method + 2*index_;
+  block->performance_start(index_perf);
   TRACE_TURBULENCE;  
 
   EnzoBlock * enzo_block = enzo::block(block);
@@ -158,6 +162,8 @@ void EnzoMethodTurbulence::compute ( Block * block) throw()
   CkCallback callback (CkIndex_EnzoBlock::p_method_turbulence_end(NULL),
 		       enzo_block->proxy_array());
   enzo_block->contribute(n*sizeof(double),g,r_method_turbulence_type,callback);
+  block->performance_stop(index_perf);
+  
 }
 
 //----------------------------------------------------------------------
@@ -194,9 +200,10 @@ CkReductionMsg * r_method_turbulence(int n, CkReductionMsg ** msgs)
 void EnzoBlock::p_method_turbulence_end(CkReductionMsg * msg)
 {
   TRACE_TURBULENCE;  
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_method + 2*method()->index();
+  performance_start(index_perf);
   method()->compute_resume (this,msg);
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf);
 }
 
 //----------------------------------------------------------------------

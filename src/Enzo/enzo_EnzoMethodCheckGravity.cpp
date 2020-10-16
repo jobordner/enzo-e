@@ -9,8 +9,10 @@
   
 //----------------------------------------------------------------------
 
-EnzoMethodCheckGravity::EnzoMethodCheckGravity ( std::string particle_type ) throw() 
-  : Method (),
+EnzoMethodCheckGravity::EnzoMethodCheckGravity
+(int index,
+ std::string particle_type ) throw() 
+  : Method (index),
     particle_type_(particle_type)
 {
   cello::simulation()->new_refresh_set_name(ir_post_,name());
@@ -23,6 +25,10 @@ EnzoMethodCheckGravity::EnzoMethodCheckGravity ( std::string particle_type ) thr
 
 void EnzoMethodCheckGravity::compute ( Block * block) throw()
 {
+  
+  const int index_perf = perf_method + 2*index_;
+  block->performance_start(index_perf);
+
   if (block->is_leaf()) {
 
     Particle particle (block->data()->particle());
@@ -247,6 +253,7 @@ void EnzoMethodCheckGravity::compute ( Block * block) throw()
     }
   }
   
+  block->performance_stop(index_perf);
   block->compute_done();
   
 }

@@ -59,14 +59,16 @@
 //----------------------------------------------------------------------
 
 EnzoSolverJacobi::EnzoSolverJacobi
-( std::string name,
-  std::string field_x,
-  std::string field_b,
-  int monitor_iter,
-  int restart_cycle,
-  int solve_type,
-  double weight, int iter_max) throw()
-  : Solver(name,
+(int index_solver,
+ std::string name,
+ std::string field_x,
+ std::string field_b,
+ int monitor_iter,
+ int restart_cycle,
+ int solve_type,
+ double weight, int iter_max) throw()
+  : Solver(index_solver,
+           name,
 	   field_x,
 	   field_b,
 	   monitor_iter,
@@ -120,6 +122,9 @@ EnzoSolverJacobi::EnzoSolverJacobi
 void EnzoSolverJacobi::apply
 ( std::shared_ptr<Matrix> A, Block * block) throw()
 {
+  const int index_perf = perf_solver + 2*index_;
+  block->performance_start(index_perf,__FILE__,__LINE__);
+  
   TRACE_JACOBI(block,this,"apply()");
 
   begin_(block);
@@ -139,24 +144,26 @@ void EnzoSolverJacobi::apply
   // Refresh X
 
   do_refresh_(block);
+  block->performance_stop(index_perf,__FILE__,__LINE__);
+  block->performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------
 
 void EnzoBlock::p_solver_jacobi_continue()
 {
+  const int index_perf = perf_solver + 2*this->solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
  
-  performance_start_(perf_compute,__FILE__,__LINE__);
-
-  EnzoSolverJacobi * solver = nullptr;  
-  TRACE_JACOBI(this,solver,"p_solver_jacobi_continue()");
-
-  solver = static_cast<EnzoSolverJacobi *> (this->solver());
+  EnzoSolverJacobi * solver =
+    static_cast<EnzoSolverJacobi *> (this->solver());
+  
   TRACE_JACOBI(this,solver,"p_solver_jacobi_continue()");
 
   solver->compute(this);
 
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------

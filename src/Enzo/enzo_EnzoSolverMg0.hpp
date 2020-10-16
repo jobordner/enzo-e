@@ -23,7 +23,8 @@ public: // interface
 
   /// Create a new EnzoSolverMg0 object
   EnzoSolverMg0
-  (std::string name,
+  (int index_solver,
+   std::string name,
    std::string field_x,
    std::string field_b,
    int monitor_iter,

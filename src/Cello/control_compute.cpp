@@ -21,9 +21,9 @@
 
 void Block::compute_enter_ ()
 {
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  performance_start(perf_compute,__FILE__,__LINE__);
   compute_begin_();
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(perf_compute,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------
@@ -76,7 +76,7 @@ void Block::compute_next_ ()
 void Block::compute_continue_ ()
 {
   //  this->debug_new_refresh(__FILE__,__LINE__);
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  performance_start(perf_compute,__FILE__,__LINE__);
 #ifdef DEBUG_COMPUTE
   if (cycle() >= CYCLE)
     CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_continue_()\n", CkMyPe(),name().c_str());
@@ -107,11 +107,11 @@ void Block::compute_continue_ ()
 
     method->compute (this);
     
-    performance_stop_(perf_compute,__FILE__,__LINE__);
+    performance_stop(perf_compute,__FILE__,__LINE__);
 
   } else {
 
-    performance_stop_(perf_compute,__FILE__,__LINE__);
+    performance_stop(perf_compute,__FILE__,__LINE__);
     compute_done();
 
   }

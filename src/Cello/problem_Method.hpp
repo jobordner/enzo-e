@@ -20,7 +20,7 @@ class Method : public PUP::able
 public: // interface
 
   /// Create a new Method
-  Method (double courant = 1.0) throw();
+  Method (int index, double courant = 1.0) throw();
 
   /// Destructor
   virtual ~Method() throw();
@@ -30,11 +30,11 @@ public: // interface
   
   Method (CkMigrateMessage *m)
     : PUP::able(m),
-    schedule_(NULL),
-    courant_(1.0),
-    ir_post_(-1),
-    neighbor_type_(neighbor_leaf)
-   
+      schedule_(NULL),
+      courant_(1.0),
+      ir_post_(-1),
+      neighbor_type_(neighbor_leaf),
+      index_(0)
   { }
       
   /// CHARM++ Pack / Unpack function
@@ -73,12 +73,15 @@ public: // virtual functions
   /// Set schedule
   void set_schedule (Schedule * schedule) throw();
 
-  double courant() const throw ()
+  inline double courant() const throw ()
   { return courant_; }
 
-  void set_courant(double courant) throw ()
+  inline void set_courant(double courant) throw ()
   { courant_ = courant; }
 
+  inline int index() const
+  { return index_; }
+  
 protected: // functions
 
   /// Perform vector copy X <- Y
@@ -109,6 +112,10 @@ protected: // attributes
 
   /// Default refresh type
   int neighbor_type_;
+
+  /// Index of this Method
+  int index_;
+
 };
 
 #endif /* PROBLEM_METHOD_HPP */

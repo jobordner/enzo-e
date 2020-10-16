@@ -21,11 +21,12 @@
 //----------------------------------------------------------------------
 
 EnzoMethodGravity::EnzoMethodGravity
-(int index_solver,
+(int index,
+ int index_solver,
  double grav_const,
  int order,
  bool accumulate)
-  : Method(),
+  : Method(index),
     index_solver_(index_solver),
     grav_const_(grav_const),
     order_(order),
@@ -64,6 +65,9 @@ EnzoMethodGravity::EnzoMethodGravity
 
 void EnzoMethodGravity::compute(Block * block) throw()
 {
+  const int index_perf = perf_method + 2*index_;
+  block->performance_start(index_perf);
+
   // Initialize the linear system
 
   Field field = block->data()->field();
@@ -137,6 +141,8 @@ void EnzoMethodGravity::compute(Block * block) throw()
   solver->set_field_b(ib);
   
   solver->apply (A, block);
+
+  block->performance_stop(index_perf);
 }
 
 //----------------------------------------------------------------------
@@ -148,8 +154,12 @@ void EnzoBlock::p_method_gravity_continue()
   // refresh ("Charm++ fatal error: mis-matched client callbacks in
   // reduction messages")
 
+  const int index_perf = perf_method + 2*this->method()->index();
+  performance_start(index_perf);
   EnzoMethodGravity * method = static_cast<EnzoMethodGravity*> (this->method());
   method->refresh_potential(this);
+  performance_stop(index_perf);
+  
 
 }
 
@@ -164,10 +174,13 @@ void EnzoMethodGravity::refresh_potential (EnzoBlock * enzo_block) throw()
 
 void EnzoBlock::p_method_gravity_end()
 {
+  const int index_perf = perf_method + 2*this->method()->index();
+  performance_start(index_perf);
   EnzoMethodGravity * method = static_cast<EnzoMethodGravity*> (this->method());
   method->compute_accelerations(this);
   // wait for all Blocks before continuing
   compute_done();
+  performance_stop(index_perf);
 }
 
 void EnzoMethodGravity::compute_accelerations (EnzoBlock * enzo_block) throw()

@@ -15,8 +15,9 @@
 // #define WRITE_FILES_CYCLE_STOP 95
 //----------------------------------------------------------------------
 
-MethodDebug::MethodDebug (int num_fields) throw() 
-  : Method (),
+MethodDebug::MethodDebug (int index,
+                          int num_fields) throw() 
+  : Method (index),
     field_sum_(),
     field_min_(),
     field_max_(),

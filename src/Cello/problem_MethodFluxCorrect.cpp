@@ -12,8 +12,9 @@
 //----------------------------------------------------------------------
 
 MethodFluxCorrect::MethodFluxCorrect
-(std::string group, bool enable, double min_digits) throw() 
-  : Method (),
+(int index,
+ std::string group, bool enable, double min_digits) throw() 
+  : Method (index),
     group_(group),
     enable_(enable),
     min_digits_(min_digits),
@@ -53,19 +54,28 @@ MethodFluxCorrect::MethodFluxCorrect
 
 void MethodFluxCorrect::compute ( Block * block) throw()
 {
+  
+  const int index_perf = perf_method + 2*index_;
+  block->performance_start(index_perf);
+
   cello::refresh(ir_pre_)->set_active(block->is_leaf());
 
   block->new_refresh_start
     (ir_pre_, CkIndex_Block::p_method_flux_correct_refresh());
+
+  block->performance_stop(index_perf);
  
 }
 
 //----------------------------------------------------------------------
 
-void Block::Block::p_method_flux_correct_refresh()
+void Block::p_method_flux_correct_refresh()
 {
+  const int index_perf = perf_method + 2*this->method()->index();
+  performance_start(index_perf);
   static_cast<MethodFluxCorrect*>
     (this->method())->compute_continue_refresh(this);
+  performance_stop(index_perf);
 }
 
 //----------------------------------------------------------------------
@@ -147,10 +157,13 @@ void MethodFluxCorrect::compute_continue_refresh( Block * block ) throw()
 
 //----------------------------------------------------------------------
 
-void Block::Block::r_method_flux_correct_sum_fields(CkReductionMsg * msg)
+void Block::r_method_flux_correct_sum_fields(CkReductionMsg * msg)
 {
+  const int index_perf = perf_method + 2*this->method()->index();
+  performance_start(index_perf);
   static_cast<MethodFluxCorrect*>
     (this->method())->compute_continue_sum_fields(this,msg);
+  performance_stop(index_perf);
 }
 
 //----------------------------------------------------------------------

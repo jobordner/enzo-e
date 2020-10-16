@@ -86,7 +86,7 @@ void Block::p_refresh_store (MsgRefresh * msg)
 {
 
   
-  performance_start_(perf_refresh_store);
+  performance_start(perf_refresh_store,__FILE__,__LINE__);
 
   msg->update(data());
 
@@ -98,8 +98,7 @@ void Block::p_refresh_store (MsgRefresh * msg)
   ERROR("p_refresh_store()",
         "p_refresh_store() called with NEW_REFRESH");
   
-  performance_stop_(perf_refresh_store);
-  performance_start_(perf_refresh_store_sync);
+  performance_stop(perf_refresh_store,__FILE__,__LINE__);
 }
 
 

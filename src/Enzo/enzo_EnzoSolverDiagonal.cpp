@@ -27,6 +27,9 @@
 
 void EnzoSolverDiagonal::apply (std::shared_ptr<Matrix> A, Block * block) throw()
 {
+  const int index_perf = perf_solver + 2*index_;
+  block->performance_start(index_perf,__FILE__,__LINE__);
+
   Solver::begin_(block);
 
   TRACE_SOLVER("apply()");
@@ -42,6 +45,9 @@ void EnzoSolverDiagonal::apply (std::shared_ptr<Matrix> A, Block * block) throw(
   }
   
   Solver::end_(block);
+
+  block->performance_stop(index_perf,__FILE__,__LINE__);
+  block->performance_start(index_perf+1);
 }
 
 //======================================================================

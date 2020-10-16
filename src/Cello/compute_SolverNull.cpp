@@ -7,7 +7,8 @@
 
 #include "compute.hpp"
 
-SolverNull::SolverNull (std::string name,
+SolverNull::SolverNull (int index_solver,
+                        std::string name,
 			std::string field_x,
 			std::string field_b,
 			int monitor_iter,
@@ -15,7 +16,8 @@ SolverNull::SolverNull (std::string name,
 			int solve_type,
 			int min_level,
 			int max_level) throw()
-  : Solver(name,
+  : Solver(index_solver,
+           name,
 	   field_x,
 	   field_b,
 	   monitor_iter,

@@ -13,8 +13,8 @@
 
 //----------------------------------------------------------------------
 
-EnzoMethodCosmology::EnzoMethodCosmology() throw()
-: Method ()
+EnzoMethodCosmology::EnzoMethodCosmology(int index) throw()
+  : Method (index)
 {
 }
 
@@ -22,6 +22,9 @@ EnzoMethodCosmology::EnzoMethodCosmology() throw()
 
 void EnzoMethodCosmology::compute(Block * block) throw()
 {
+  const int index_perf = perf_method + 2*index_;
+  block->performance_start(index_perf);
+
   auto cosmology = enzo::cosmology();
 
 #ifdef DEBUG_COSMO  
@@ -35,6 +38,7 @@ void EnzoMethodCosmology::compute(Block * block) throw()
 		   this->name().c_str(),
 		   cosmology->current_redshift());
   }
-  
+
+  block->performance_stop(index_perf);
   block->compute_done(); 
 }

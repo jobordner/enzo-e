@@ -184,7 +184,8 @@ void mutex_init_bcg_iter()
 //----------------------------------------------------------------------
 
 EnzoSolverBiCgStab::EnzoSolverBiCgStab
-(std::string name,
+(int index_solver,
+ std::string name,
  std::string field_x, std::string field_b,
  int monitor_iter, int restart_cycle,
  int solve_type,
@@ -193,7 +194,8 @@ EnzoSolverBiCgStab::EnzoSolverBiCgStab
  int index_precon,
  int coarse_level
  ) 
-  : Solver(name,
+  : Solver(index_solver,
+           name,
 	   field_x,
 	   field_b,
 	   monitor_iter,
@@ -337,6 +339,9 @@ void EnzoSolverBiCgStab::apply
 ( std::shared_ptr<Matrix> A, Block * block) throw()
 {
 
+  const int index_perf = perf_solver + 2*index_;
+  block->performance_start(index_perf);
+
   TRACE_BCG(block,this,"apply");
   
   Solver::begin_(block);
@@ -375,6 +380,8 @@ void EnzoSolverBiCgStab::apply
 
     compute_ (enzo_block);
   }
+  block->performance_stop(index_perf);
+  block->performance_start(index_perf+1);
 }
 
 //======================================================================
@@ -503,11 +510,13 @@ void EnzoSolverBiCgStab::compute_(EnzoBlock* block) throw() {
 
 void EnzoBlock::r_solver_bicgstab_start_1(CkReductionMsg* msg) {
 
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_solver + 2*solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
 
   static_cast<EnzoSolverBiCgStab*> (solver())->start_2(this,msg);
 
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 
 }
 
@@ -621,11 +630,13 @@ void EnzoSolverBiCgStab::start_2(EnzoBlock* block,
 
 void EnzoBlock::r_solver_bicgstab_start_3(CkReductionMsg* msg) {
 
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_solver + 2*solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
 
   static_cast<EnzoSolverBiCgStab*> (solver())->loop_0a(this,msg);
   
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------
@@ -879,11 +890,13 @@ void EnzoSolverBiCgStab::loop_2(EnzoBlock* block) throw() {
 void EnzoBlock::p_solver_bicgstab_loop_2() {
   TRACE_BCG(this,static_cast<EnzoSolverBiCgStab*> (solver()),"p_loop_2");
 
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_solver + 2*solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
 
   static_cast<EnzoSolverBiCgStab*> (solver())->loop_25(this);
   
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 
 }
 
@@ -911,11 +924,13 @@ void EnzoSolverBiCgStab::loop_25 (EnzoBlock * block) throw() {
 void EnzoBlock::p_solver_bicgstab_loop_3() {
   TRACE_BCG(this,static_cast<EnzoSolverBiCgStab*> (solver()),"p_loop_3");
 
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_solver + 2*solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
 
   static_cast<EnzoSolverBiCgStab*> (solver())->loop_4(this);
   
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
   
 }
 
@@ -1017,11 +1032,13 @@ void EnzoSolverBiCgStab::loop_4(EnzoBlock* block) throw() {
 
 void EnzoBlock::r_solver_bicgstab_loop_5(CkReductionMsg* msg) {
 
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_solver + 2*solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
 
   static_cast<EnzoSolverBiCgStab*> (solver())->loop_6(this,msg);
 
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------
@@ -1185,11 +1202,13 @@ void EnzoSolverBiCgStab::loop_8(EnzoBlock* block) throw() {
 void EnzoBlock::p_solver_bicgstab_loop_8() {
   TRACE_BCG(this,static_cast<EnzoSolverBiCgStab*> (solver()),"p_loop_8");
 
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_solver + 2*solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
 
   static_cast<EnzoSolverBiCgStab*> (solver())->loop_85(this);
   
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 
 }
 
@@ -1217,11 +1236,13 @@ void EnzoSolverBiCgStab::loop_85 (EnzoBlock * block) throw() {
 void EnzoBlock::p_solver_bicgstab_loop_9() {
 
   TRACE_BCG(this,static_cast<EnzoSolverBiCgStab*> (solver()),"p_loop_9");
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_solver + 2*solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
   
   static_cast<EnzoSolverBiCgStab*> (solver())->loop_10(this);
   
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
   
 }
 
@@ -1332,11 +1353,13 @@ void EnzoSolverBiCgStab::loop_10(EnzoBlock* block) throw() {
 
 void EnzoBlock::r_solver_bicgstab_loop_11(CkReductionMsg* msg) {
 
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_solver + 2*solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
 
   static_cast<EnzoSolverBiCgStab*> (solver())->loop_12(this,msg);
   
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------
@@ -1499,11 +1522,13 @@ void EnzoSolverBiCgStab::loop_12(EnzoBlock* block,
 
 void EnzoBlock::r_solver_bicgstab_loop_13(CkReductionMsg* msg) {
 
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_solver + 2*solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
 
   static_cast<EnzoSolverBiCgStab*> (solver())->loop_14(this,msg);
 
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------
@@ -1587,11 +1612,13 @@ void EnzoSolverBiCgStab::loop_14(EnzoBlock* block,
 
 void EnzoBlock::r_solver_bicgstab_loop_15(CkReductionMsg* msg) {
 
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  const int index_perf = perf_solver + 2*solver()->index();
+  performance_start(index_perf,__FILE__,__LINE__);
 
   static_cast<EnzoSolverBiCgStab*> (solver())->loop_0b(this,msg);
 
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  performance_stop(index_perf,__FILE__,__LINE__);
+  performance_start(index_perf+1);
 }
 
 //----------------------------------------------------------------------

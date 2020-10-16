@@ -24,17 +24,11 @@ class EnzoMethodGravity : public Method {
 public: // interface
 
   /// Create a new EnzoMethodGravity object
-  EnzoMethodGravity(int index_solver,
-		    double grav_const,
-		    int order,
-		    bool accumulate);
-
-  EnzoMethodGravity()
-    : index_solver_(-1),
-      grav_const_(0.0),
-      order_(4),
-      ir_exit_(-1)
-  {};
+  EnzoMethodGravity(int index,
+                    int index_solver,
+                    double grav_const,
+                    int order,
+                    bool accumulate);
 
   /// Destructor
   virtual ~EnzoMethodGravity() throw() {}

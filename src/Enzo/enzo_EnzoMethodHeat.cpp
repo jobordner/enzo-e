@@ -11,8 +11,9 @@
 
 //----------------------------------------------------------------------
 
-EnzoMethodHeat::EnzoMethodHeat (double alpha, double courant) 
-  : Method(),
+EnzoMethodHeat::EnzoMethodHeat
+(int index, double alpha, double courant) 
+  : Method(index),
     alpha_(alpha),
     courant_(courant)
 {
@@ -43,6 +44,8 @@ void EnzoMethodHeat::pup (PUP::er &p)
 void EnzoMethodHeat::compute ( Block * block) throw()
 {
 
+  const int index_perf = perf_method + 2*index_;
+  block->performance_start(index_perf);
   if (block->is_leaf()) {
 
     Field field = block->data()->field();
@@ -51,7 +54,7 @@ void EnzoMethodHeat::compute ( Block * block) throw()
 
     compute_ (block,T);
   }
-
+  block->performance_stop(index_perf);
   block->compute_done();
 }
 

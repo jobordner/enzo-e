@@ -31,8 +31,8 @@ extern "C" void  FORTRAN_NAME(dep_grid_cic)
 
 //----------------------------------------------------------------------
 
-EnzoMethodPmDeposit::EnzoMethodPmDeposit ( double alpha)
-  : Method(),
+EnzoMethodPmDeposit::EnzoMethodPmDeposit (int index, double alpha)
+  : Method(index),
     alpha_(alpha)
 {
   // Initialize default Refresh object
@@ -64,6 +64,9 @@ void EnzoMethodPmDeposit::pup (PUP::er &p)
 
 void EnzoMethodPmDeposit::compute ( Block * block) throw()
 {
+
+  const int index_perf = perf_method + 2*index_;
+  block->performance_start(index_perf);
 
   if (block->is_leaf()) {
 
@@ -414,7 +417,8 @@ void EnzoMethodPmDeposit::compute ( Block * block) throw()
 
     
   block->compute_done(); 
-  
+
+  block->performance_stop(index_perf);
 }
 
 //----------------------------------------------------------------------

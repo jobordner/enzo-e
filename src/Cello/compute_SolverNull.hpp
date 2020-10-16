@@ -19,7 +19,8 @@ class SolverNull : public Solver
 public: // interface
 
   /// Create a new SolverNull
-  SolverNull (std::string name,
+  SolverNull (int index_solver,
+              std::string name,
 	      std::string field_x,
 	      std::string field_b,
 	      int monitor_iter,

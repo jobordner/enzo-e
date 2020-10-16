@@ -84,6 +84,7 @@ void Simulation::r_initialize_block_array(CkReductionMsg * msg)
   delete msg;
   
   initialize_block_array_();
+  performance_->stop_region(perf_initial);
 }
 
 //----------------------------------------------------------------------

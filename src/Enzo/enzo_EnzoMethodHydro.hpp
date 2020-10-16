@@ -121,7 +121,8 @@ class EnzoMethodHydro : public Method {
 public: // interface
 
   /// Create a new EnzoMethodHydro object
-  EnzoMethodHydro(std::string method,
+  EnzoMethodHydro(int index,
+                  std::string method,
 		  enzo_float gamma,
 		  bool gravity,
 		  bool comoving_coordinates,

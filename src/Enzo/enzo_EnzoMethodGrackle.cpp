@@ -14,10 +14,11 @@
 
 EnzoMethodGrackle::EnzoMethodGrackle
 (
-  const double physics_cosmology_initial_redshift,
+ int index,
+ const double physics_cosmology_initial_redshift,
   const double time
 )
-  : Method(),
+  : Method(index),
     grackle_units_(),
     grackle_rates_(),
     time_grackle_data_initialized_(ENZO_FLOAT_UNDEFINED)
@@ -140,6 +141,8 @@ EnzoMethodGrackle::EnzoMethodGrackle
 
 void EnzoMethodGrackle::compute ( Block * block) throw()
 {
+  const int index_perf = perf_method + 2*index_;
+  block->performance_start(index_perf);
 
   if (block->is_leaf()){
 
@@ -165,6 +168,7 @@ void EnzoMethodGrackle::compute ( Block * block) throw()
   #endif
   }
 
+  block->performance_stop(index_perf);
   block->compute_done();
 
   return;

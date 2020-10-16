@@ -1208,7 +1208,7 @@ void Config::read_performance_ (Parameters * p) throw()
   }
 #endif  
 
-  performance_warnings = p->value_logical("Performance:warnings",false);
+  performance_warnings = p->value_logical("Performance:warnings",true);
 
 #ifdef CONFIG_USE_PROJECTIONS
   

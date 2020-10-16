@@ -447,7 +447,7 @@ void Problem::initialize_method ( Config * config ) throw()
 
   Method::courant_global = config->method_courant_global;
 
-  method_list_.push_back(new MethodNull(config->method_null_dt)); 
+  method_list_.push_back(new MethodNull(0, config->method_null_dt)); 
   
   for (size_t index_method=0; index_method < num_method ; index_method++) {
 
@@ -746,7 +746,8 @@ Solver * Problem::create_solver_
 
   if (type == "null") {
     solver = new SolverNull
-      (config->solver_list         [index_solver],
+      (index_solver,
+       config->solver_list         [index_solver],
        config->solver_field_x      [index_solver],
        config->solver_field_b      [index_solver],
        config->solver_monitor_iter [index_solver],
@@ -754,8 +755,6 @@ Solver * Problem::create_solver_
        config->solver_max_level    [index_solver]);
   }
 
-  if (solver) solver->set_index(index_solver);
-  
   return solver;
 }
 
@@ -821,33 +820,33 @@ Method * Problem::create_method_
   Method * method = NULL;
 
   if (name == "trace") {
-    method = new MethodTrace(config->method_courant[index_method],
-			     config->method_timestep[index_method],
-			     config->method_trace_name[index_method]);
+    method = new MethodTrace(index_method,
+                             config->method_courant[index_method],
+                             config->method_timestep[index_method],
+                             config->method_trace_name[index_method]);
   } else if (name == "null") {
 
     method = new MethodNull
-      (config->method_null_dt);
+      (index_method, config->method_null_dt);
 
   } else if (name == "flux_correct") {
 
     method = new MethodFluxCorrect
-      (config->method_flux_correct_group[index_method],
+      (index_method,
+       config->method_flux_correct_group[index_method],
        config->method_flux_correct_enable[index_method],
        config->method_flux_correct_min_digits[index_method]);
-
-  } else if (name == "debug") {
-
-    method = new MethodDebug (config->num_fields);
 
   } else if (name == "close_files") {
 
     method = new MethodCloseFiles
-      (config->method_close_files_seconds_stagger[index_method],
+      (index_method,
+       config->method_close_files_seconds_stagger[index_method],
        config->method_close_files_seconds_delay[index_method],
        config->method_close_files_group_size[index_method]);
       
   }
+
   return method;
 }
 
@@ -895,7 +894,7 @@ Output * Problem::create_output_
     int         image_face_rank  = config->output_image_face_rank[index];
     int         min_level        = config->output_min_level[index];
     int         max_level        = std::min(config->output_max_level[index],
-					    config->mesh_max_level);
+                                            config->mesh_max_level);
     bool        leaf_only        = config->output_leaf_only[index];
     std::string image_reduce_type = config->output_image_reduce_type[index];
     std::string image_mesh_color  = config->output_image_mesh_color[index];
@@ -905,45 +904,45 @@ Output * Problem::create_output_
     double      image_max = config->output_image_max[index];
 
     double image_lower[3] = { config->output_image_lower[index][0],
-			      config->output_image_lower[index][1],
-			      config->output_image_lower[index][2] };
+                              config->output_image_lower[index][1],
+                              config->output_image_lower[index][2] };
     double image_upper[3] = { config->output_image_upper[index][0],
-			      config->output_image_upper[index][1],
-			      config->output_image_upper[index][2] };
+                              config->output_image_upper[index][1],
+                              config->output_image_upper[index][2] };
     // AXIS
 
     int image_axis = config->output_axis[index][0] - 'x';
 
     output = new OutputImage (index,factory,
-			      CkNumPes(),
-			      nx,ny,nz, 
-			      nbx,nby,nbz,
-			      min_level,
-			      max_level,
-			      leaf_only,
-			      image_type,
-			      image_size_x,image_size_y,
-			      image_reduce_type,
-			      image_mesh_color,
-			      image_color_particle_attribute,
-			      image_block_size,
-			      image_lower, image_upper,
-			      image_face_rank,
-			      image_axis,
-			      image_log,
-			      image_abs,
-			      image_ghost,
-			      image_min, image_max);
+                              CkNumPes(),
+                              nx,ny,nz, 
+                              nbx,nby,nbz,
+                              min_level,
+                              max_level,
+                              leaf_only,
+                              image_type,
+                              image_size_x,image_size_y,
+                              image_reduce_type,
+                              image_mesh_color,
+                              image_color_particle_attribute,
+                              image_block_size,
+                              image_lower, image_upper,
+                              image_face_rank,
+                              image_axis,
+                              image_log,
+                              image_abs,
+                              image_ghost,
+                              image_min, image_max);
 
   } else if (name == "data") {
 
     output = new OutputData (index,factory,
-			     config);
+                             config);
 
   } else if (name == "checkpoint") {
 
     output = new OutputCheckpoint (index,factory,
-				   config,CkNumPes());
+                                   config,CkNumPes());
 
   }
 
@@ -954,7 +953,7 @@ Output * Problem::create_output_
 //----------------------------------------------------------------------
 
 Prolong * Problem::create_prolong_ ( std::string  name ,
-				     Config * config) throw ()
+                                     Config * config) throw ()
 {
   Prolong * prolong = 0;
 
@@ -969,7 +968,7 @@ Prolong * Problem::create_prolong_ ( std::string  name ,
   } else {
     
     ERROR1("Problem::create_prolong_",
-	  "Unrecognized Field:prolong parameter %s",name.c_str());
+          "Unrecognized Field:prolong parameter %s",name.c_str());
 
   }
 
@@ -980,7 +979,7 @@ Prolong * Problem::create_prolong_ ( std::string  name ,
 //----------------------------------------------------------------------
 
 Restrict * Problem::create_restrict_ ( std::string  name ,
-				     Config * config) throw ()
+                                     Config * config) throw ()
 {
   Restrict * restrict = 0;
 
@@ -991,7 +990,7 @@ Restrict * Problem::create_restrict_ ( std::string  name ,
   } else {
     
     ERROR1("Problem::create_restrict_",
-	  "Unrecognized Field:restrict parameter %s",name.c_str());
+          "Unrecognized Field:restrict parameter %s",name.c_str());
 
   }
 

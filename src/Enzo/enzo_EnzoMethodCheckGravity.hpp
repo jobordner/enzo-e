@@ -17,7 +17,8 @@ class EnzoMethodCheckGravity : public Method
 public: // interface
 
   /// Create a new EnzoMethodCheckGravity
-  EnzoMethodCheckGravity (std::string particle_type) throw() ;
+  EnzoMethodCheckGravity
+  (int index, std::string particle_type) throw() ;
 
   /// Destructor
   virtual ~EnzoMethodCheckGravity() throw()

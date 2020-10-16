@@ -118,7 +118,7 @@ void Block::stopping_begin_()
 
 void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 {
-  performance_start_(perf_stopping);
+  performance_start(perf_stopping,__FILE__,__LINE__);
   
   TRACE_STOPPING("Block::r_stopping_compute_timestep");
   
@@ -174,7 +174,7 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 
   stopping_balance_();
 
-  performance_stop_(perf_stopping);
+  performance_stop(perf_stopping,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------
@@ -207,7 +207,7 @@ void Block::stopping_balance_()
 
 void Block::p_stopping_balance()
 {
-  performance_start_(perf_stopping);
+  performance_start(perf_stopping,__FILE__,__LINE__);
   TRACE_STOPPING("Block::p_stopping_balance");
   cello::simulation()->set_phase (phase_balance);
 
@@ -218,7 +218,7 @@ void Block::p_stopping_balance()
   // monitor->set_mode(mode_saved);
 
   AtSync();
-  performance_stop_(perf_stopping);
+  performance_stop(perf_stopping,__FILE__,__LINE__);
 }
  
 //----------------------------------------------------------------------

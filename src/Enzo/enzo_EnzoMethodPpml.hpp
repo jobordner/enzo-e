@@ -17,7 +17,7 @@ class EnzoMethodPpml : public Method {
 public: // interface
 
   /// Creae a new EnzoMethodPpml object
-  EnzoMethodPpml();
+  EnzoMethodPpml(int index);
 
   /// Charm++ PUP::able declarations
   PUPable_decl(EnzoMethodPpml);

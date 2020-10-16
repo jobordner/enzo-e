@@ -484,7 +484,7 @@ void Block::p_adapt_recv_level
  int level_face_new
  )
 {
-  performance_start_(perf_adapt_update);
+  performance_start(perf_adapt_update,__FILE__,__LINE__);
   
   if (index_send.level() != level_face_curr) {
     PARALLEL_PRINTF 
@@ -516,8 +516,7 @@ void Block::p_adapt_recv_level
 #endif
 
   if (skip_face_update) {
-    performance_stop_(perf_adapt_update);
-    performance_start_(perf_adapt_update_sync);
+    performance_stop(perf_adapt_update,__FILE__,__LINE__);
     return;
   }
 
@@ -626,8 +625,7 @@ void Block::p_adapt_recv_level
     level_next_ = level_next;
     adapt_send_level();
   }
-  performance_stop_(perf_adapt_update);
-  performance_start_(perf_adapt_update_sync);
+  performance_stop(perf_adapt_update,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------
@@ -773,7 +771,7 @@ void Block::adapt_coarsen_()
 void Block::p_adapt_recv_child (MsgCoarsen * msg)
 {
 
-  performance_start_(perf_adapt_update);
+  performance_start(perf_adapt_update,__FILE__,__LINE__);
 
   msg->update(data());
 
@@ -815,8 +813,7 @@ void Block::p_adapt_recv_child (MsgCoarsen * msg)
 
   delete msg;
 
-  performance_stop_(perf_adapt_update);
-  performance_start_(perf_adapt_update_sync);
+  performance_stop(perf_adapt_update,__FILE__,__LINE__);
 }
 
 
@@ -826,13 +823,12 @@ void Block::p_adapt_recv_child (MsgCoarsen * msg)
 
 void Block::p_adapt_delete()
 {
-  performance_start_(perf_adapt_end);
+  performance_start(perf_adapt_end,__FILE__,__LINE__);
 #ifdef DEBUG_ADAPT
   CkPrintf ("%s DELETING\n",name().c_str());
 #endif
   delete_ = true;
-  performance_stop_(perf_adapt_end);
-  performance_start_(perf_adapt_end_sync);
+  performance_stop(perf_adapt_end,__FILE__,__LINE__);
 }
 
 //======================================================================

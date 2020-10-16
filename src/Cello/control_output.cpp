@@ -26,13 +26,11 @@
 void Block::output_enter_ ()
 {
   TRACE_OUTPUT("Block::output_enter_()");
-  performance_start_(perf_output);
 #ifdef NEW_OUTPUT
   new_output_begin_();
 #else /* NEW_OUTPUT */
   output_begin_();
 #endif  
-  performance_stop_(perf_output);
 }
 
 //======================================================================
@@ -227,7 +225,7 @@ void Simulation::r_output_barrier(CkReductionMsg * msg)
 void Block::p_output_write (int index_output, int step)
 {
   TRACE_OUTPUT("Simulation::p_output_write()");
-  performance_start_ (perf_output);
+  performance_start (perf_output,__FILE__,__LINE__);
 
   FieldDescr    * field_descr    = cello::field_descr();
   ParticleDescr * particle_descr = cello::particle_descr();
@@ -241,7 +239,8 @@ void Block::p_output_write (int index_output, int step)
   output->write_block(this);
 
   simulation->write_();
-  performance_stop_ (perf_output);
+
+  performance_stop (perf_output,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------
@@ -261,11 +260,9 @@ void Simulation::write_()
 
 void Simulation::r_write(CkReductionMsg * msg)
 {
-  performance_->start_region(perf_output);
   TRACE_OUTPUT("Simulation::r_write()");
   delete msg;
   problem()->output_wait(this);
-  performance_->stop_region(perf_output);
 }
 
 //----------------------------------------------------------------------
@@ -381,9 +378,9 @@ void Simulation::output_exit()
 
 void Block::p_output_end()
 {
-  performance_start_(perf_output);
+  performance_start(perf_output,__FILE__,__LINE__);
   TRACE_OUTPUT("Block::p_output_end()");
-  performance_stop_(perf_output);
+  performance_stop(perf_output,__FILE__,__LINE__);
   output_exit_();
 }
 

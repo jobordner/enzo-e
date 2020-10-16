@@ -24,7 +24,8 @@ const char * solve_string[] = {
 
 //======================================================================
 
-Solver::Solver (std::string name,
+Solver::Solver (int index_solver,
+                std::string name,
 		std::string field_x,
 		std::string field_b,
 		int monitor_iter,
@@ -38,13 +39,25 @@ Solver::Solver (std::string name,
   monitor_iter_(monitor_iter),
   restart_cycle_(restart_cycle),
   callback_(0),
-  index_(0),
+  index_(index_solver),
   min_level_(min_level),
   max_level_(max_level),
   id_sync_(0),
   solve_type_(solve_type),
   ir_post_(-1)
 {
+  Performance * performance = cello::simulation()->performance();
+  const std::string name_perf = std::string("perf_solver_") + cello::config()->solver_list[index_];
+  ASSERT2 ("Solver::Solver",
+           "Solver index %d greater than PERFORMANCE_MAX_SOLVER_COUNT %d: increase limit in performance_Performance.hpp",
+           index_,PERFORMANCE_MAX_SOLVER_COUNT,
+           (index_ < PERFORMANCE_MAX_SOLVER_COUNT));
+  const int index_perf = perf_solver+2*index_;
+  const int index_perf_charm = perf_solver+2*index_+1;
+  performance->set_region_name(index_perf,name_perf);
+  performance->set_region_name(index_perf_charm,name_perf+"_charm");
+  performance->set_region_in_charm(index_perf_charm);
+
   FieldDescr * field_descr = cello::field_descr();
   ix_ = field_descr->field_id(field_x);
   ib_ = field_descr->field_id(field_b);
@@ -137,7 +150,6 @@ void Solver::begin_(Block * block)
     CkPrintf ("%s TRACE_SOLVER %d Solver::begin_(%s)\n",
 	    block->name().c_str(),index_,name_.c_str());
 #endif  
-	    
   block->push_solver(index_);
 }
 

@@ -48,9 +48,10 @@ class EnzoMethodGrackle : public Method {
 public: // interface
 
   /// Create a new EnzoMethodGrackle object
-  EnzoMethodGrackle(
-                    const double physics_cosmology_initial_redshift,
-                    const double time);
+  EnzoMethodGrackle
+  ( int index,
+    const double physics_cosmology_initial_redshift,
+    const double time);
 
   // Destructor
   virtual ~EnzoMethodGrackle() throw() { deallocate_grackle_rates_(); }

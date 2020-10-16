@@ -403,34 +403,9 @@ void Simulation::initialize_performance_() throw()
 
   const bool in_charm = true;
   Performance * p = performance_;
-  p->new_region(perf_unknown,            "unknown");
-  p->new_region(perf_simulation,         "simulation");
-  p->new_region(perf_cycle,              "cycle");
-  p->new_region(perf_initial,            "initial");
-  p->new_region(perf_adapt_apply,        "adapt_apply");
-  p->new_region(perf_adapt_apply_sync,   "adapt_apply_sync",in_charm);
-  p->new_region(perf_adapt_notify,       "adapt_notify");
-  p->new_region(perf_adapt_notify_sync,  "adapt_notify_sync",in_charm);
-  p->new_region(perf_adapt_update,       "adapt_update");
-  p->new_region(perf_adapt_update_sync,  "adapt_update_sync",in_charm);
-  p->new_region(perf_adapt_end,          "adapt_end");
-  p->new_region(perf_adapt_end_sync,     "adapt_end_sync",in_charm);
-  p->new_region(perf_refresh_store,      "refresh_store");
-  p->new_region(perf_refresh_child,      "refresh_child");
-  p->new_region(perf_refresh_exit,       "refresh_exit");
-  p->new_region(perf_refresh_store_sync, "refresh_store_sync",in_charm);
-  p->new_region(perf_refresh_child_sync, "refresh_child_sync",in_charm);
-  p->new_region(perf_refresh_exit_sync,  "refresh_exit_sync",in_charm);
-  p->new_region(perf_compute,            "compute");
-  p->new_region(perf_control,            "control");
-  p->new_region(perf_output,             "output");
-  p->new_region(perf_stopping,           "stopping");
-  p->new_region(perf_block,              "block");
-  p->new_region(perf_exit,               "exit");
-#ifdef CONFIG_USE_GRACKLE
-  p->new_region(perf_grackle,            "grackle");
-#endif
-
+  for (int index_region=0; index_region < num_perf_regions; ++index_region) {
+    p->new_region(index_region, Performance::region_names[index_region]);
+  }
   timer_.start();
 
 #ifdef CONFIG_USE_PAPI  
@@ -1054,7 +1029,8 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   for (int ir = 0; ir < num_regions; ir++) {
     for (int ic = 0; ic < num_counters; ic++, m++) {
       bool do_print =
-	(ir != perf_unknown) && (
+	(counters_reduce[m]!= 0)  &&
+        (ir != perf_unknown) && (
 	(performance_->counter_type(ic) != counter_type_abs) ||
 	(ir == index_region_cycle));
       if (do_print) {

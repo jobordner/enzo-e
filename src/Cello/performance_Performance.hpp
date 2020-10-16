@@ -33,35 +33,33 @@ enum index_enum {
   
 /// @enum    perf_region
 /// @brief   region ID's for the Simulation performance object
+#define PERFORMANCE_MAX_SOLVER_COUNT 10
+#define PERFORMANCE_MAX_METHOD_COUNT 10
+
 enum perf_region {
   perf_unknown,
   perf_simulation,
   perf_cycle,
   perf_initial,
   perf_adapt_apply,
-  perf_adapt_apply_sync,
   perf_adapt_update,
-  perf_adapt_update_sync,
   perf_adapt_notify,
-  perf_adapt_notify_sync,
   perf_adapt_end,
-  perf_adapt_end_sync,
   perf_refresh_store,
   perf_refresh_child,
   perf_refresh_exit,
-  perf_refresh_store_sync,
-  perf_refresh_child_sync,
-  perf_refresh_exit_sync,
   perf_control,
   perf_compute,
   perf_output,
   perf_stopping,
   perf_block,
-  perf_exit,
 #ifdef CONFIG_USE_GRACKLE
   perf_grackle,
 #endif
-  num_perf_region
+  perf_solver,
+  perf_method = perf_solver + 2*PERFORMANCE_MAX_SOLVER_COUNT,
+  perf_exit   = perf_method + 2*PERFORMANCE_MAX_METHOD_COUNT,
+  num_perf_regions
 };
 
 class Performance {
@@ -73,6 +71,8 @@ class Performance {
 
 public: // interface
 
+  static const char * region_names[];
+  
   Performance()
     :
 #ifdef CONFIG_USE_PAPI  
@@ -87,6 +87,7 @@ public: // interface
      region_started_(),
      region_index_(),
      region_in_charm_(),
+     charm_stack_(),
 #ifdef CONFIG_USE_PAPI     
      papi_counters_(0),
 #endif
@@ -118,6 +119,7 @@ public: // interface
     p | region_started_;
     p | region_index_;
     p | region_in_charm_;
+    p | charm_stack_;
 #ifdef CONFIG_USE_PAPI  
     WARNING("Performance::pup",
 	    "skipping Performance:papi_counters_");
@@ -165,11 +167,18 @@ public: // interface
   std::string region_name (int index_region) const throw()
   { return region_name_[index_region]; }
 
+  void set_region_name (int index_region, std::string region_name)
+  { region_name_[index_region] = region_name; }
+
   /// Return the index of the given region
   int region_index (std::string name) const throw();
 
   /// Return whether the code region is outside the scope of Cello
   bool region_in_charm (std::string name) const throw();
+
+  /// Set region to be in Charm++
+  void set_region_in_charm (int index_region) throw()
+  { region_in_charm_[index_region] = true; }
 
   /// Add a new region, returning the id
   void new_region(int index_region, std::string region, bool in_charm=false) throw();
@@ -248,6 +257,9 @@ private: // attributes
   /// which regions are outside scope of Cello
   std::vector<char> region_in_charm_;
 
+  /// Stack of active charm counters
+  std::vector<int> charm_stack_;
+
 #ifdef CONFIG_USE_PAPI  
   /// Array for storing PAPI counter values
   long long * papi_counters_;
@@ -258,6 +270,7 @@ private: // attributes
 
   /// Last region index started
   int index_region_current_;
+
 };
 
 #endif /* PERFORMANCE_PERFORMANCE_HPP */

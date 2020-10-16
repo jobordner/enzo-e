@@ -293,7 +293,8 @@ Solver * EnzoProblem::create_solver_
   if (solver_type == "cg") {
 
     solver = new EnzoSolverCg
-      (enzo_config->solver_list[index_solver],
+      (index_solver,
+       enzo_config->solver_list[index_solver],
        enzo_config->solver_field_x[index_solver],
        enzo_config->solver_field_b[index_solver],
        enzo_config->solver_monitor_iter[index_solver],
@@ -313,7 +314,8 @@ Solver * EnzoProblem::create_solver_
       create_prolong_  (enzo_config->solver_prolong[index_solver],config);
 
     solver = new EnzoSolverDd
-      (enzo_config->solver_list[index_solver],
+      (index_solver,
+       enzo_config->solver_list[index_solver],
        enzo_config->solver_field_x[index_solver],
        enzo_config->solver_field_b[index_solver],
        enzo_config->solver_monitor_iter[index_solver],
@@ -330,7 +332,8 @@ Solver * EnzoProblem::create_solver_
   } else if (solver_type == "bicgstab") {
 
       solver = new EnzoSolverBiCgStab
-      (enzo_config->solver_list[index_solver],
+      (index_solver,
+       enzo_config->solver_list[index_solver],
        enzo_config->solver_field_x[index_solver],
        enzo_config->solver_field_b[index_solver],
        enzo_config->solver_monitor_iter[index_solver],
@@ -346,7 +349,8 @@ Solver * EnzoProblem::create_solver_
   } else if (solver_type == "diagonal") {
 
     solver = new EnzoSolverDiagonal
-      (enzo_config->solver_list[index_solver],
+      (index_solver,
+       enzo_config->solver_list[index_solver],
        enzo_config->solver_field_x[index_solver],
        enzo_config->solver_field_b[index_solver],
        enzo_config->solver_monitor_iter[index_solver],
@@ -356,7 +360,8 @@ Solver * EnzoProblem::create_solver_
   } else if (solver_type == "jacobi") {
 
     solver = new EnzoSolverJacobi
-      (enzo_config->solver_list[index_solver],
+      (index_solver,
+       enzo_config->solver_list[index_solver],
        enzo_config->solver_field_x[index_solver],
        enzo_config->solver_field_b[index_solver],
        enzo_config->solver_monitor_iter[index_solver],
@@ -373,7 +378,8 @@ Solver * EnzoProblem::create_solver_
       create_prolong_  (enzo_config->solver_prolong[index_solver],config);
 
     solver = new EnzoSolverMg0
-      (enzo_config->solver_list[index_solver],
+      (index_solver,
+       enzo_config->solver_list[index_solver],
        enzo_config->solver_field_x[index_solver],
        enzo_config->solver_field_b[index_solver],
        enzo_config->solver_monitor_iter[index_solver],
@@ -399,8 +405,6 @@ Solver * EnzoProblem::create_solver_
 	   "Unknown solver %s",
 	   solver_type.c_str(),
 	   solver != NULL);
-
-  solver->set_index(index_solver);
 
   return solver;
 }
@@ -472,12 +476,13 @@ Method * EnzoProblem::create_method_
 
   if (name == "ppm") {
 
-    method = new EnzoMethodPpm;
+    method = new EnzoMethodPpm(index_method);
 
   } else if (name == "hydro") {
 
     method = new EnzoMethodHydro
-      (enzo_config->method_hydro_method,
+      (index_method,
+       enzo_config->method_hydro_method,
        enzo_config->field_gamma,
        enzo_config->physics_gravity,
        enzo_config->physics_cosmology,
@@ -498,21 +503,25 @@ Method * EnzoProblem::create_method_
 
   } else if (name == "ppml") {
 
-    method = new EnzoMethodPpml;
+    method = new EnzoMethodPpml(index_method);
 
   } else if (name == "pm_deposit") {
 
-    method = new EnzoMethodPmDeposit (enzo_config->method_pm_deposit_alpha);
+    method = new EnzoMethodPmDeposit
+      (index_method,
+       enzo_config->method_pm_deposit_alpha);
 
   } else if (name == "pm_update") {
 
     method = new EnzoMethodPmUpdate
-      (enzo_config->method_pm_update_max_dt);
+      (index_method,
+       enzo_config->method_pm_update_max_dt);
 
   } else if (name == "heat") {
 
     method = new EnzoMethodHeat
-      (enzo_config->method_heat_alpha,
+      (index_method,
+       enzo_config->method_heat_alpha,
        config->method_courant[index_method]);
 
 #ifdef CONFIG_USE_GRACKLE
@@ -520,7 +529,8 @@ Method * EnzoProblem::create_method_
   } else if (name == "grackle") {
 
     method = new EnzoMethodGrackle
-      (enzo_config->physics_cosmology_initial_redshift,
+      (index_method,
+       enzo_config->physics_cosmology_initial_redshift,
        enzo_config->initial_time);
 
 #endif /* CONFIG_USE_GRACKLE */
@@ -528,7 +538,8 @@ Method * EnzoProblem::create_method_
   } else if (name == "turbulence") {
 
     method = new EnzoMethodTurbulence
-      (enzo_config->method_turbulence_edot,
+      (index_method,
+       enzo_config->method_turbulence_edot,
        enzo_config->initial_turbulence_density,
        enzo_config->initial_turbulence_temperature,
        enzo_config->method_turbulence_mach_number,
@@ -537,17 +548,19 @@ Method * EnzoProblem::create_method_
   } else if (name == "check_gravity") {
 
     method = new EnzoMethodCheckGravity
-      (enzo_config->method_check_gravity_particle_type);
+      (index_method,
+       enzo_config->method_check_gravity_particle_type);
 
   } else if (name == "cosmology") {
 
-    method = new EnzoMethodCosmology;
+    method = new EnzoMethodCosmology(index_method);
 
   } else if (name == "comoving_expansion") {
 
     bool comoving_coordinates = enzo_config->physics_cosmology;
 
-    method = new EnzoMethodComovingExpansion ( comoving_coordinates );
+    method = new EnzoMethodComovingExpansion
+      (index_method, comoving_coordinates );
 
   } else if (name == "gravity") {
 
@@ -561,7 +574,7 @@ Method * EnzoProblem::create_method_
 	     0 <= index_solver && index_solver < enzo_config->num_solvers);
 
   method = new EnzoMethodGravity
-      (
+      (index_method,
        enzo_config->solver_index.at(solver_name),
        enzo_config->method_gravity_grav_const,
        enzo_config->method_gravity_order,
