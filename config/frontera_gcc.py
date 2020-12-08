@@ -4,7 +4,7 @@ is_arch_valid = 1
 
 #python_lt_27 = 1
 
-flags_arch = '-O3 -Wall -g -ffast-math -funroll-loops -fPIC' # -march=cascadelake
+flags_arch = '-O3 -Wall -g -ffast-math -funroll-loops -fPIC -march=cascadelake'
 #flags_arch = '-Wall -g'
 flags_link  = '-rdynamic'
 
