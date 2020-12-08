@@ -4,7 +4,7 @@ is_arch_valid = 1
 
 #python_lt_27 = 1
 
-flags_arch = '-O3 -Wall -g -ffast-math -funroll-loops' # -march=cascadelake
+flags_arch = '-O3 -Wall -g -ffast-math -funroll-loops -fPIC' # -march=cascadelake
 #flags_arch = '-Wall -g'
 flags_link  = '-rdynamic'
 
@@ -15,7 +15,7 @@ f90  = 'gfortran'
 flags_prec_single = ''
 flags_prec_double = '-fdefault-real-8 -fdefault-double-8'
 
-
+flags_arch_fortran = '-ffixed-line-length-132'
 libpath_fortran = ''
 libs_fortran    = ['gfortran']
 
