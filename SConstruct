@@ -253,6 +253,7 @@ if   (arch == "gordon_gnu"):   from gordon_gnu   import *
 elif (arch == "gordon_intel"): from gordon_intel import *
 elif (arch == "gordon_pgi"):   from gordon_pgi   import *
 elif (arch == "comet_gnu"):    from comet_gnu    import *
+elif (arch == "expanse_gcc"):  from expanse_gcc    import *
 elif (arch == "linux_gnu"):    from linux_gnu    import *
 elif (arch == "linux_gcc"):    from linux_gcc  import *
 elif (arch == "linux_gcc_smp"):from linux_gcc_smp  import *
