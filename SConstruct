@@ -254,6 +254,7 @@ elif (arch == "gordon_intel"): from gordon_intel import *
 elif (arch == "gordon_pgi"):   from gordon_pgi   import *
 elif (arch == "comet_gnu"):    from comet_gnu    import *
 elif (arch == "expanse_gcc"):  from expanse_gcc    import *
+elif (arch == "expanse_gcc_smp"): from expanse_gcc_smp    import *
 elif (arch == "linux_gnu"):    from linux_gnu    import *
 elif (arch == "linux_gcc"):    from linux_gcc  import *
 elif (arch == "linux_gcc_smp"):from linux_gcc_smp  import *
@@ -269,6 +270,8 @@ elif (arch == "faraday_gnu"):  from faraday_gnu  import *
 elif (arch == "faraday_gnu_debug"):  from faraday_gnu_debug  import *
 elif (arch == "frontera_gcc"): from frontera_gcc import *
 elif (arch == "frontera_icc"): from frontera_icc import *
+elif (arch == "frontera_gcc_smp"): from frontera_gcc_smp import *
+elif (arch == "frontera_icc_smp"): from frontera_icc_smp import *
 elif (arch == "mf_gnu"):       from mf_gnu       import *
 elif (arch == "mf_gnu_debug"): from mf_gnu_debug import *
 elif (arch == "stampede_gnu"): from stampede_gnu import *
