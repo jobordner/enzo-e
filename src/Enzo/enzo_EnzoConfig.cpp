@@ -184,6 +184,7 @@ EnzoConfig::EnzoConfig() throw ()
   method_check_gravity_particle_type(),
   // EnzoMethodHeat
   method_heat_alpha(0.0),
+
   // EnzoMethodHydro
   method_hydro_method(""),
   method_hydro_dual_energy(false),
@@ -597,9 +598,7 @@ void EnzoConfig::pup (PUP::er &p)
   p | units_length;
   p | units_time;
 
-  p  | method_grackle_use_grackle;
-  p  | method_grackle_use_cooling_timestep;
-  p  | method_grackle_radiation_redshift;
+  p | method_grackle_use_grackle;
 
 #ifdef CONFIG_USE_GRACKLE
   if (method_grackle_use_grackle) {
