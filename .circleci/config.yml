@@ -29,6 +29,11 @@ commands:
             sudo apt-get install -y bc csh libhdf5-serial-dev gfortran libtool-bin libpapi-dev libpng-dev libboost-all-dev
             # apt-get installs hdf5 libraries with _serial
             sudo ln -s /usr/lib/x86_64-linux-gnu/libhdf5_serial.so /usr/lib/x86_64-linux-gnu/libhdf5.so
+            # install scons
+            python3 -m venv $HOME/venv
+            source $HOME/venv/bin/activate
+            pip install --upgrade pip
+            pip install scons
             # Install charm++
             mkdir -p $HOME/local
             if [ ! -f $HOME/local/charm-v$CHARM_VER/bin/charmrun ]; then
@@ -39,6 +44,13 @@ commands:
               cd charm-v$CHARM_VER
               ./build charm++ netlrts-linux-x86_64 -j4 --with-production
             fi
+            # prepare testing dependencies
+            python3 -m venv $HOME/venv
+            source $HOME/venv/bin/activate
+            pip install --upgrade pip
+            pip install --upgrade wheel
+            pip install --upgrade setuptools
+            pip install Cython numpy h5py matplotlib==3.3.3 libconf yt==3.6.1
 
   install-grackle:
     description: "Install grackle."
@@ -84,10 +96,15 @@ commands:
           name: "Compile enzo-e and run tests."
           command: |
             source $BASH_ENV
+            source $HOME/venv/bin/activate
             if [ ! -f << parameters.skipfile >> ]; then
               git checkout << parameters.tag >>
               export CELLO_PREC=<< parameters.prec >>
               make
+              source $HOME/venv/bin/activate
+              # the following environment variable indicates that the parallel
+              # vlct test(s) are to be skipped
+              export VL_PARALLEL_TEST_IP_CHARM=0
               make test
             fi
 
@@ -108,7 +125,7 @@ jobs:
         type: string
 
     docker:
-      - image: circleci/python:3.7.2
+      - image: cimg/python:3.7
 
     working_directory: ~/enzo-e
 
@@ -118,13 +135,13 @@ jobs:
 
       - restore_cache:
           name: "Restore dependencies cache."
-          key: dependencies-v1
+          key: dependencies-v2
 
       - install-dependencies
 
       - save_cache:
           name: "Save dependencies cache"
-          key: dependencies-v1
+          key: dependencies-v2
           paths:
             - ~/local
 
