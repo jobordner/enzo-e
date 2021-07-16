@@ -75,6 +75,7 @@ module enzo {
   PUPable EnzoMatrixLaplace;
   PUPable EnzoMatrixDiagonal;
   PUPable EnzoMatrixIdentity;
+  PUPable IoEnzoBlock;
 
   PUPable EnzoMethodCheckGravity;
   PUPable EnzoMethodComovingExpansion;
@@ -105,6 +106,8 @@ module enzo {
   PUPable EnzoRiemannImpl<HLLImpl<EinfeldtWavespeed<MHDLUT>>>;
   PUPable EnzoRiemannImpl<HLLCImpl>; //EnzoRiemannHLLC
   PUPable EnzoRiemannImpl<HLLDImpl>; //EnzoRiemannHLLD
+
+  PUPable EnzoBfieldMethodCT;
 
   PUPable EnzoPhysicsCosmology;
 
