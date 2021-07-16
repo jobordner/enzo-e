@@ -39,6 +39,11 @@ module mesh {
   PUPable InitialValue;
   PUPable InitialHdf5;
   PUPable InputData;
+  PUPable Io;
+  PUPable IoBlock;
+  PUPable IoFieldData;
+  PUPable IoHierarchy;
+  PUPable IoParticleData;
   PUPable ItIndexList;
   PUPable ItIndexRange;
   PUPable MaskExpr;
