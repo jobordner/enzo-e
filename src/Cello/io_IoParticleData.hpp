@@ -26,8 +26,10 @@ public: // interface
   virtual ~IoParticleData() throw()
   {}
 
+  /// CHARM++ PUP::able declaration
   PUPable_decl(IoParticleData);
 
+  /// CHARM++ migration constructor
   IoParticleData(CkMigrateMessage *m) : Io(m) {}
 
   /// CHARM++ Pack / Unpack function

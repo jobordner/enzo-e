@@ -85,7 +85,6 @@ void Output::pup (PUP::er &p)
 
 }
 
-
 //----------------------------------------------------------------------
 
 void Output::set_schedule (Schedule * schedule) throw()
