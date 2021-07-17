@@ -10,11 +10,11 @@
 #include "main.hpp"
 #include "charm_simulation.hpp"
 
-// #define TRACE_BLOCK
+//#define TRACE_BLOCK
 
 // #define DEBUG_ADAPT
-// #define DEBUG_FIELD_FACE
 // #define DEBUG_FACE
+// #define DEBUG_FIELD_FACE
 
 #ifdef DEBUG_FACE
 #   define DEBUG_FACES(MSG) debug_faces_(MSG)
@@ -95,6 +95,7 @@ Block::Block ( MsgRefine * msg )
 
   apply_initial_(msg);
 
+  delete msg;
   performance_stop_(perf_block);
 
 
@@ -162,13 +163,18 @@ void Block::p_set_msg_refine(MsgRefine * msg)
 	msg->num_face_level_, msg->face_level_);
 
 #ifdef TRACE_BLOCK
-  {
-  CkPrintf ("%d %s index TRACE_BLOCK p_set_msg_refine(MsgRefine)\n",  CkMyPe(),name().c_str());
-  }
+  int v3[3];
+  index_.values(v3);
+  CkPrintf ("%d index TRACE_BLOCK p_set_msg_refine(MsgRefine)  %d %d %d \n",  CkMyPe(),
+    //name().c_str(), 
+    v3[0],v3[1],v3[2]);
+  msg->print();
 #endif
 
   apply_initial_(msg);
-  
+
+  delete msg;
+
   performance_stop_(perf_block);
 
 }
@@ -1121,6 +1127,42 @@ void Block::check_delete_()
 	     name_.c_str());
     return;
   }
+}
+
+//----------------------------------------------------------------------
+
+bool Block::check_position_in_block(const double &x, const double &y,
+                                    const double &z,
+                                    bool include_ghost // default - false
+                                   )
+{
+
+  double xm,ym,zm;
+  lower(&xm,&ym,&zm);
+  double xp,yp,zp;
+  upper(&xp,&yp,&zp);
+
+  bool result = false;
+
+  if (include_ghost){
+    int gx, gy, gz;
+    double hx,hy,hz;
+    data()->field().ghost_depth(0,&gx,&gy,&gz);
+    cell_width(&hx,&hy,&hz);
+
+    xm -= gx*hx;
+    ym -= gy*hy;
+    zm -= gz*hz;
+    xp += gx*hx;
+    yp += gy*hy;
+    zp += gz*hz;
+  }
+
+  if (  ((x >= xm) && (x < xp)) &&
+        ((y >= ym) && (y < yp)) &&
+        ((z >= zm) && (z < zp))) result = true;
+
+  return result;
 }
 
 //----------------------------------------------------------------------
