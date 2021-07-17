@@ -133,6 +133,8 @@ Initial * EnzoProblem::create_initial_
   } else if (type == "grackle_test") {
     initial = new EnzoInitialGrackleTest(enzo_config);
 #endif /* CONFIG_USE_GRACKLE */
+  } else if (type == "feedback_test") {
+    initial = new EnzoInitialFeedbackTest(enzo_config);
   } else if (type == "vlct_bfield") {
     initial = new EnzoInitialBCenter(parameters, cycle, time,
 				     enzo_config->initial_bcenter_update_etot);
@@ -226,6 +228,18 @@ Initial * EnzoProblem::create_initial_
        enzo_config->initial_soup_density,
        enzo_config->initial_soup_pressure_in,
        enzo_config->initial_soup_pressure_out);
+  } else if (type == "burkertbodenheimer") {
+    initial = new EnzoInitialBurkertBodenheimer
+      (cycle,time,
+       enzo_config->initial_burkertbodenheimer_rank,
+       enzo_config->initial_burkertbodenheimer_array,
+       enzo_config->initial_burkertbodenheimer_radius_relative,
+       enzo_config->initial_burkertbodenheimer_particle_ratio,
+       enzo_config->initial_burkertbodenheimer_mass,
+       enzo_config->initial_burkertbodenheimer_temperature,
+       enzo_config->initial_burkertbodenheimer_densityprofile);
+  } else if (type == "isolated_galaxy") {
+    initial = new EnzoInitialIsolatedGalaxy (enzo_config);
   } else {
     initial = Problem::create_initial_
       (type,index,config,parameters);
@@ -264,7 +278,7 @@ Refine * EnzoProblem::create_refine_
 
   if (type == "shock") {
 
-    return new EnzoRefineShock 
+    return new EnzoRefineShock
       (config->adapt_min_refine[index],
        config->adapt_max_coarsen[index],
        config->adapt_min_refine2[index],
@@ -314,7 +328,9 @@ Solver * EnzoProblem::create_solver_
   const EnzoConfig * enzo_config = enzo::config();
 
   Solver * solver = NULL;
-  
+
+  int rank = config->mesh_root_rank;
+
   // Set solve type if not default "on_leaves" (solve_leaf)
 
   std::string solve_type_name=enzo_config->solver_solve_type[index_solver];
@@ -377,7 +393,7 @@ Solver * EnzoProblem::create_solver_
        enzo_config->solver_domain_solve[index_solver],
        enzo_config->solver_last_smooth[index_solver],
        enzo_config->solver_coarse_level[index_solver]);
-       
+
   } else if (solver_type == "bicgstab") {
 
     solver = new EnzoSolverBiCgStab
@@ -580,7 +596,7 @@ Method * EnzoProblem::create_method_
     std::string solver_name = enzo_config->method_gravity_solver;
 
     int index_solver = enzo_config->solver_index.at(solver_name);
-    
+
     ASSERT1 ("EnzoProblem::create_solver_()",
 	     "Cannot find solver \"%s\"",
 	     solver_name.c_str(),
@@ -614,6 +630,36 @@ Method * EnzoProblem::create_method_
        enzo_config->method_vlct_mhd_choice,
        enzo_config->method_vlct_dual_energy,
        enzo_config->method_vlct_dual_energy_eta);
+
+  } else if (name == "background_acceleration") {
+
+    // If self-gravity is calculated, we do not need to zero
+    // out the acceleration field from the previous time step
+    // before adding the background accelerations
+    bool zero_acceleration = true;
+    for (int index = 0; index < method_list_.size(); index++){
+      if (method_list_[index]->name() == "gravity"){
+        zero_acceleration = false;
+        break;
+      }
+    }
+
+    method = new EnzoMethodBackgroundAcceleration
+          (zero_acceleration);
+
+  } else if (name == "star_maker") {
+
+    // should generalize this to enable multiple maker types
+    if (enzo_config->method_star_maker_type == "stochastic"){
+      method = new EnzoMethodStarMakerStochasticSF();
+    } else{ // does not do anything
+      method = new EnzoMethodStarMaker();
+    }
+
+  } else if (name == "feedback") {
+
+    // need a similar type swtich as in star maker
+    method = new EnzoMethodDistributedFeedback();
 
   } else {
 
@@ -693,7 +739,6 @@ Physics * EnzoProblem::create_physics_
 
     physics = Problem::create_physics_
       (type,index,config,parameters);
-
   }
 
   return physics;
