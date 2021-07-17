@@ -32,7 +32,7 @@ public: // interface
   /// CHARM++ Pack / Unpack function
   inline void pup (PUP::er &p)
   {
-
+    PUP::able::pup(p);
     TRACEPUP;
 
     p | meta_name_;
