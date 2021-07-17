@@ -65,6 +65,7 @@ OutputImage::OutputImage(int index,
     {root_size_in[0], root_size_in[1], root_size_in[2]};
   int root_blocks[3] =
     {root_blocks_in[0], root_blocks_in[1], root_blocks_in[2]};
+
   image_size_[0] = image_size[0];
   image_size_[1] = image_size[1];
   if      (image_reduce_type=="min") { op_reduce_ = reduce_min; } 
@@ -104,7 +105,7 @@ OutputImage::OutputImage(int index,
     image_size_[0] += 2*root_blocks[0]*ngx;
     image_size_[1] += 2*root_blocks[1]*ngy;
   }
-  
+
   // Override default Output::stride_write_: only root writes
   set_stride_write (process_count);
   // Let all processes contribute data when its available
@@ -233,9 +234,9 @@ void OutputImage::open () throw()
     std::string file_name = expand_name_ (&file_name_,&file_args_);
 
     std::string dir_name = directory();
-    
+
     // Create png object
-    Monitor::instance()->print ("Output","writing image file %s", 
+    Monitor::instance()->print ("Output","writing image file %s",
 				(dir_name + "/" + file_name).c_str());
     png_create_(dir_name + "/" + file_name);
     if (chmod (dir_name.c_str(),0755) == -1) {
@@ -273,7 +274,7 @@ void OutputImage::write_block ( const Block *  block ) throw()
   if (! is_active_(block) ) return;
 
   Field field = ((Data *)block->data())->field();
-  
+
   const int rank = cello::rank();
 
   ASSERT("OutputImage::write_block",
@@ -298,7 +299,7 @@ void OutputImage::write_block ( const Block *  block ) throw()
 
   it_field_index_->first();
 
-  int index_field = (it_field_index_->size() > 0) 
+  int index_field = (it_field_index_->size() > 0)
     ? it_field_index_->value() : -1;
 
   // extents of domain
@@ -328,7 +329,7 @@ void OutputImage::write_block ( const Block *  block ) throw()
 
   double h3[3];
   block->cell_width(h3,h3+1,h3+2);
-  
+
   if (type_is_data_()) {
 
     if (index_field >= 0) {
@@ -352,10 +353,9 @@ void OutputImage::write_block ( const Block *  block ) throw()
 
       // add block contribution to image
 
-      const char * field_values;
-      field_values = (include_ghost_) ? 
-        field.values(index_field) :
-        field.unknowns(index_field);
+      const char * field_values = (ghost_) ?
+	field.values(index_field) :
+	field.unknowns(index_field);
 
       float  * field_float  = (float*)field_values;
       double * field_double = (double*)field_values;
@@ -364,7 +364,7 @@ void OutputImage::write_block ( const Block *  block ) throw()
 
       double factor = (nb3[IZ] > 1) ? 1.0 / pow(2.0,1.0*level) : 1.0;
       if (rank >= 2 && (std::abs(dm3[IZ] - dp3[IZ]) < h3[IZ])) factor = 1.0;
-      
+
       int m3[3];
       m3[0] = include_ghost_ ? nd3[0] : nb3[0];
       m3[1] = include_ghost_ ? nd3[1] : nb3[1];
@@ -536,7 +536,7 @@ void OutputImage::write_block ( const Block *  block ) throw()
 
 void OutputImage::write_field_data
 (
- const FieldData * field_data,  
+ const FieldData * field_data,
  int index_field) throw()
 {
   WARNING("OutputImage::write_field_data",
@@ -547,7 +547,7 @@ void OutputImage::write_field_data
 
 void OutputImage::write_particle_data
 (
- const ParticleData * particle_data,  
+ const ParticleData * particle_data,
  int index_particle) throw()
 {
   WARNING("OutputImage::write_particle_data",
@@ -586,7 +586,7 @@ void OutputImage::prepare_remote (int * n, char ** buffer) throw()
 
   for (int k=0; k<nx*ny; k++) *p.d++ = image_data_[k];
   for (int k=0; k<nx*ny; k++) *p.d++ = image_mesh_[k];
-  
+
 }
 
 //----------------------------------------------------------------------
@@ -605,7 +605,7 @@ void OutputImage::update_remote  ( int m, char * buffer) throw()
   const int ny = *p.i++;
 
   const int n = nx*ny;
-  
+
   if (op_reduce_ == reduce_min) {
     for (int k=0; k<n; k++) image_data_[k] = std::min(image_data_[k],*p.d++);
     for (int k=0; k<n; k++) image_mesh_[k] = std::min(image_mesh_[k],*p.d++);
@@ -711,17 +711,17 @@ void OutputImage::image_create_ () throw()
   double value0;
 
   switch (op_reduce_) {
-  case reduce_min: 
+  case reduce_min:
     value0 = min;
     break;
-  case reduce_max: 
+  case reduce_max:
     value0 = max;
     break;
-  case reduce_avg: 
-  case reduce_sum: 
+  case reduce_avg:
+  case reduce_sum:
   case reduce_set:
-  default:         
-    value0 = 0; 
+  default:
+    value0 = 0;
     break;
   }
 
@@ -813,7 +813,7 @@ void OutputImage::image_write_ () throw()
 	png_->plot      (ix+1, iy+1, r,g,b);
 
       } else {
-	
+
 	// red if out of bounds
 	png_->plot(ix+1, iy+1, 1.0, 0.0, 0.0);
 
@@ -821,7 +821,7 @@ void OutputImage::image_write_ () throw()
 
       // Plot pixel
     }
-  }      
+  }
 
 }
 
@@ -831,9 +831,9 @@ double OutputImage::data_(int index) const
 {
   if (type_is_mesh_() && type_is_data_())
     return (image_data_[index] + 0.2*image_mesh_[index])/1.2;
-  else if (type_is_data_()) 
+  else if (type_is_data_())
     return image_data_[index];
-  else  if (type_is_mesh_()) 
+  else  if (type_is_mesh_())
     return image_mesh_[index];
   else {
     ERROR ("OutputImage::data_()",
@@ -861,7 +861,7 @@ void OutputImage::image_close_ () throw()
 
 //----------------------------------------------------------------------
 
-void OutputImage::reduce_point_ 
+void OutputImage::reduce_point_
 (double * data, int ix, int iy, double value, double alpha) throw()
 {
   if ( ! (0 <= ix && ix < image_size_[0])) return;
@@ -875,15 +875,15 @@ void OutputImage::reduce_point_
   const int i = ix + image_size_[0]*iy;
 
   double value_new = 0.0;
-  
+
   switch (op_reduce_) {
   case reduce_min:
     value_new = alpha*value + (1-alpha)*(data[i]);
-    data[i] = std::min(data[i],value_new); 
+    data[i] = std::min(data[i],value_new);
     break;
   case reduce_max:
     value_new = alpha*value + (1-alpha)*(data[i]);
-    data[i] = std::max(data[i],value_new); 
+    data[i] = std::max(data[i],value_new);
     break;
   case reduce_avg:
   case reduce_sum:
@@ -899,9 +899,9 @@ void OutputImage::reduce_point_
 //----------------------------------------------------------------------
 
 void OutputImage::reduce_line_
-(double * data, 
- int ix0, int ix1, 
- int iy0, int iy1, 
+(double * data,
+ int ix0, int ix1,
+ int iy0, int iy1,
  double value, double alpha)
 {
   if (ix1 < ix0) { int t = ix1; ix1 = ix0; ix0 = t; }
@@ -910,7 +910,7 @@ void OutputImage::reduce_line_
   int dx = ix1 - ix0;
   int dy = iy1 - iy0;
   double err = 0.0;
-  
+
   if (dx >= dy) {
     double derr = fabs(1.0*dy/dx);
     int iy = iy0;
@@ -939,7 +939,7 @@ void OutputImage::reduce_line_
 //----------------------------------------------------------------------
 
 void OutputImage::reduce_line_x_
-(double * data, 
+(double * data,
  int ixm, int ixp,
  int iy,
  double value, double alpha)
@@ -974,7 +974,7 @@ void OutputImage::reduce_line_y_
 void OutputImage::reduce_box_
 (double * data,
  int ixm, int ixp,
- int iym, int iyp, 
+ int iym, int iyp,
  double value, reduce_type reduce, double alpha)
 {
   reduce_type reduce_save = op_reduce_;
@@ -989,9 +989,9 @@ void OutputImage::reduce_box_
 //----------------------------------------------------------------------
 
 void OutputImage::reduce_box_filled_
-(double * data, 
+(double * data,
  int ixm, int ixp,
- int iym, int iyp, 
+ int iym, int iyp,
  double value, double alpha)
 {
   for (int ix=ixm; ix<=ixp; ++ix) {

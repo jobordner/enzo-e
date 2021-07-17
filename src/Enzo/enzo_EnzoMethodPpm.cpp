@@ -38,6 +38,18 @@ EnzoMethodPpm::EnzoMethodPpm ()
   : Method(),
     comoving_coordinates_(enzo::config()->physics_cosmology)
 {
+
+  const int rank = cello::rank();
+
+  this->required_fields_ = std::vector<std::string> {"density","total_energy",
+                                         "internal_energy","pressure"};
+
+  if (rank >= 0) this->required_fields_.insert(this->required_fields_.end(),{"velocity_x","acceleration_x"});
+  if (rank >= 1) this->required_fields_.insert(this->required_fields_.end(),{"velocity_y","acceleration_y"});
+  if (rank >= 2) this->required_fields_.insert(this->required_fields_.end(),{"velocity_z","acceleration_z"});
+
+  this->define_fields();
+
   // Initialize default Refresh object
 
   cello::simulation()->refresh_set_name(ir_post_,name());
@@ -52,6 +64,12 @@ EnzoMethodPpm::EnzoMethodPpm ()
   refresh->add_field("acceleration_x");
   refresh->add_field("acceleration_y");
   refresh->add_field("acceleration_z");
+
+  FieldDescr * field_descr = cello::field_descr();
+
+  // add all color fields to refresh
+  refresh->add_all_fields("color");
+
    // PPM parameters initialized in EnzoBlock::initialize()
 }
 
@@ -163,11 +181,11 @@ void EnzoMethodPpm::compute ( Block * block) throw()
   COPY_FIELD(block,"acceleration_x","acceleration_x_out");
   COPY_FIELD(block,"acceleration_y","acceleration_y_out");
   if (rank >= 3) COPY_FIELD(block,"acceleration_z","acceleration_z_out");
-#endif  
+#endif
   TRACE_PPM("END compute()");
 
-  block->compute_done(); 
-  
+  block->compute_done();
+
 }
 
 //----------------------------------------------------------------------
@@ -191,7 +209,7 @@ double EnzoMethodPpm::timestep ( Block * block ) throw()
 
     cosmology->compute_expansion_factor
       (&cosmo_a, &cosmo_dadt,(enzo_float)enzo_block->time());
-    
+
   }
 
   enzo_float dtBaryons = ENZO_HUGE_VAL;
@@ -209,34 +227,34 @@ double EnzoMethodPpm::timestep ( Block * block ) throw()
   int rank = cello::rank();
 
   enzo_float * density    = (enzo_float *)field.values("density");
-  enzo_float * velocity_x = (rank >= 1) ? 
+  enzo_float * velocity_x = (rank >= 1) ?
     (enzo_float *)field.values("velocity_x") : NULL;
-  enzo_float * velocity_y = (rank >= 2) ? 
+  enzo_float * velocity_y = (rank >= 2) ?
     (enzo_float *)field.values("velocity_y") : NULL;
-  enzo_float * velocity_z = (rank >= 3) ? 
+  enzo_float * velocity_z = (rank >= 3) ?
     (enzo_float *)field.values("velocity_z") : NULL;
   enzo_float * pressure = (enzo_float *) field.values("pressure");
-   
+
   /* calculate minimum timestep */
 
-  FORTRAN_NAME(calc_dt)(&rank, 
-			enzo_block->GridDimension, 
+  FORTRAN_NAME(calc_dt)(&rank,
+			enzo_block->GridDimension,
 			enzo_block->GridDimension+1,
 			enzo_block->GridDimension+2,
-			enzo_block->GridStartIndex, 
+			enzo_block->GridStartIndex,
 			enzo_block->GridEndIndex,
-			enzo_block->GridStartIndex+1, 
+			enzo_block->GridStartIndex+1,
 			enzo_block->GridEndIndex+1,
-			enzo_block->GridStartIndex+2, 
+			enzo_block->GridStartIndex+2,
 			enzo_block->GridEndIndex+2,
-			&enzo_block->CellWidth[0], 
-			&enzo_block->CellWidth[1], 
+			&enzo_block->CellWidth[0],
+			&enzo_block->CellWidth[1],
 			&enzo_block->CellWidth[2],
 			&EnzoBlock::Gamma[in], &EnzoBlock::PressureFree[in], &cosmo_a,
 			density, pressure,
-			velocity_x, 
-			velocity_y, 
-			velocity_z, 
+			velocity_x,
+			velocity_y,
+			velocity_z,
 			&dtBaryons);
 
   TRACE1 ("dtBaryons: %f",dtBaryons);
