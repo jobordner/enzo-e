@@ -43,6 +43,24 @@ EnzoConfig::EnzoConfig() throw ()
   physics_cosmology_initial_redshift(0.0),
   physics_cosmology_final_redshift(0.0),
   physics_gravity(false),
+  // EnzoInitialBCenter
+  initial_bcenter_update_etot(false),
+  // EnzoInitialCloud
+  initial_cloud_subsample_n(0),
+  initial_cloud_radius(0.),
+  initial_cloud_center_x(0.0),
+  initial_cloud_center_y(0.0),
+  initial_cloud_center_z(0.0),
+  initial_cloud_density_cloud(0.0),
+  initial_cloud_density_wind(0.0),
+  initial_cloud_velocity_wind(0.0),
+  initial_cloud_etot_wind(0.0),
+  initial_cloud_eint_wind(0.0),
+  initial_cloud_metal_mass_frac(0.0),
+  initial_cloud_initialize_uniform_bfield(false),
+  initial_cloud_perturb_stddev(0.0),
+  initial_cloud_trunc_dev(0.0),
+  initial_cloud_perturb_seed(0),
   // EnzoInitialCosmology
   initial_cosmology_temperature(0.0),
   // EnzoInitialCollapse
@@ -71,6 +89,14 @@ EnzoConfig::EnzoConfig() throw ()
   initial_hdf5_particle_coords(),
   initial_hdf5_particle_types(),
   initial_hdf5_particle_attributes(),
+  // EnzoInitialInclinedWave
+  initial_inclinedwave_alpha(0.0),
+  initial_inclinedwave_beta(0.0),
+  initial_inclinedwave_amplitude(0.0),
+  initial_inclinedwave_lambda(0.0),
+  initial_inclinedwave_parallel_vel(std::numeric_limits<double>::min()),
+  initial_inclinedwave_positive_vel(true),
+  initial_inclinedwave_wave_type(""),
   // EnzoInitialMusic
   initial_music_field_files(),
   initial_music_field_datasets(),
@@ -107,6 +133,12 @@ EnzoConfig::EnzoConfig() throw ()
   initial_sedov_random_pressure_out(0.0),
   initial_sedov_random_density(0.0),
   initial_sedov_random_te_multiplier(0),
+  // EnzoInitialShockTube
+  initial_shock_tube_setup_name(""),
+  initial_shock_tube_aligned_ax(""),
+  initial_shock_tube_axis_velocity(0.0),
+  initial_shock_tube_trans_velocity(0.0),
+  initial_shock_tube_flip_initialize(false),
   // EnzoInitialSoup
   initial_soup_rank(0),
   initial_soup_file(""),
@@ -138,6 +170,15 @@ EnzoConfig::EnzoConfig() throw ()
   method_pm_deposit_alpha(0.5),
   /// EnzoMethodPmUpdate
   method_pm_update_max_dt(std::numeric_limits<double>::max()),
+  /// EnzoMethodMHDVlct
+  method_vlct_riemann_solver(""),
+  method_vlct_half_dt_reconstruct_method(""),
+  method_vlct_full_dt_reconstruct_method(""),
+  method_vlct_theta_limiter(0.0),
+  method_vlct_density_floor(0.0),
+  method_vlct_pressure_floor(0.0),
+  method_vlct_dual_energy(false),
+  method_vlct_dual_energy_eta(0.0),
   /// EnzoProlong
   prolong_enzo_type(),
   prolong_enzo_positive(true),
@@ -158,6 +199,7 @@ EnzoConfig::EnzoConfig() throw ()
 
 {
   for (int i=0; i<3; i++) {
+    initial_cloud_uniform_bfield[i] = 0;
     initial_sedov_array[i] = 0;
     initial_soup_array[i]  = 0;
     initial_soup_d_pos[i]  = 0.0;
@@ -224,6 +266,25 @@ void EnzoConfig::pup (PUP::er &p)
 
   p | physics_gravity;
 
+  p | initial_bcenter_update_etot;
+
+  p | initial_cloud_subsample_n;
+  p | initial_cloud_radius;
+  p | initial_cloud_center_x;
+  p | initial_cloud_center_y;
+  p | initial_cloud_center_z;
+  p | initial_cloud_density_cloud;
+  p | initial_cloud_density_wind;
+  p | initial_cloud_velocity_wind;
+  p | initial_cloud_etot_wind;
+  p | initial_cloud_eint_wind;
+  p | initial_cloud_metal_mass_frac;
+  p | initial_cloud_initialize_uniform_bfield;
+  PUParray(p,initial_cloud_uniform_bfield,3);
+  p | initial_cloud_perturb_stddev;
+  p | initial_cloud_trunc_dev;
+  p | initial_cloud_perturb_seed;
+
   p | initial_cosmology_temperature;
 
   p | initial_collapse_rank;
@@ -242,6 +303,14 @@ void EnzoConfig::pup (PUP::er &p)
   p | initial_grackle_test_maximum_metallicity;
   p | initial_grackle_test_reset_energies;
 #endif /* CONFIG_USE_GRACKLE */
+
+  p | initial_inclinedwave_alpha;
+  p | initial_inclinedwave_beta;
+  p | initial_inclinedwave_amplitude;
+  p | initial_inclinedwave_lambda;
+  p | initial_inclinedwave_parallel_vel;
+  p | initial_inclinedwave_positive_vel;
+  p | initial_inclinedwave_wave_type;
 
   p | initial_sedov_rank;
   PUParray(p,initial_sedov_array,3);
@@ -295,6 +364,12 @@ void EnzoConfig::pup (PUP::er &p)
   p | initial_pm_mpp;
   p | initial_pm_level;
 
+  p | initial_shock_tube_setup_name;
+  p | initial_shock_tube_aligned_ax;
+  p | initial_shock_tube_axis_velocity;
+  p | initial_shock_tube_trans_velocity;
+  p | initial_shock_tube_flip_initialize;
+
   p | initial_soup_rank;
   p | initial_soup_file;
   p | initial_soup_rotate;
@@ -316,6 +391,15 @@ void EnzoConfig::pup (PUP::er &p)
 
   p | method_pm_deposit_alpha;
   p | method_pm_update_max_dt;
+
+  p | method_vlct_riemann_solver;
+  p | method_vlct_half_dt_reconstruct_method;
+  p | method_vlct_full_dt_reconstruct_method;
+  p | method_vlct_theta_limiter;
+  p | method_vlct_density_floor;
+  p | method_vlct_pressure_floor;
+  p | method_vlct_dual_energy;
+  p | method_vlct_dual_energy_eta;
 
   p | prolong_enzo_type;
   p | prolong_enzo_positive;
@@ -377,12 +461,17 @@ void EnzoConfig::read(Parameters * p) throw()
   read_initial_hdf5_(p);
   read_initial_music_(p);
   read_initial_pm_(p);
+  read_initial_inclined_wave_(p);
   read_initial_sedov_(p);
   read_initial_sedov_random_(p);
+  read_initial_shock_tube_(p);
+  read_initial_bcenter_(p);
+  read_initial_cloud_(p);
   read_initial_soup_(p);
   read_initial_turbulence_(p);
   
   read_method_grackle_(p);
+  read_method_vlct_(p);
   read_method_gravity_(p);
   read_method_heat_(p);
   read_method_pm_deposit_(p);
@@ -587,6 +676,28 @@ void EnzoConfig::read_initial_pm_(Parameters * p)
 
 //----------------------------------------------------------------------
 
+void EnzoConfig::read_initial_inclined_wave_(Parameters * p)
+{  
+  initial_inclinedwave_alpha          = p->value_float
+    ("Initial:inclined_wave:alpha",0.0);
+  initial_inclinedwave_beta           = p->value_float
+    ("Initial:inclined_wave:beta",0.0);
+  initial_inclinedwave_amplitude      = p->value_float
+    ("Initial:inclined_wave:amplitude",1.e-6);
+  initial_inclinedwave_lambda         = p->value_float
+    ("Initial:inclined_wave:lambda",1.0);
+  // The default vaue for parallel_vel is known by EnzoInitialInclinedWave
+  // to mean that a value was not specified
+  initial_inclinedwave_parallel_vel   = p->value_float
+    ("Initial:inclined_wave:parallel_vel", std::numeric_limits<double>::min());
+  initial_inclinedwave_positive_vel   = p->value_logical
+    ("Initial:inclined_wave:positive_vel",true);
+  initial_inclinedwave_wave_type      = p->value_string
+    ("Initial:inclined_wave:wave_type","alfven");
+}
+
+//----------------------------------------------------------------------
+
 void EnzoConfig::read_initial_sedov_(Parameters * p)
 {
   initial_sedov_rank = p->value_integer ("Initial:sedov:rank",0);
@@ -632,6 +743,85 @@ void EnzoConfig::read_initial_sedov_random_(Parameters * p)
     p->value_float   ("Initial:sedov_random:density",1.0);
   initial_sedov_random_te_multiplier =
     p->value_integer  ("Initial:sedov_random:te_multiplier",1);
+}
+
+//----------------------------------------------------------------------
+
+void EnzoConfig::read_initial_shock_tube_(Parameters * p)
+{
+  // Shock Tube Initialization
+  initial_shock_tube_setup_name = p->value_string
+    ("Initial:shock_tube:setup_name","");
+  initial_shock_tube_aligned_ax = p->value_string
+    ("Initial:shock_tube:aligned_ax","x");
+  initial_shock_tube_axis_velocity = p->value_float
+    ("Initial:shock_tube:axis_velocity",0.0);
+  initial_shock_tube_trans_velocity = p->value_float
+    ("Initial:shock_tube:transverse_velocity",0.0);
+  initial_shock_tube_flip_initialize = p -> value_logical
+    ("Initial:shock_tube:flip_initialize", false);
+}
+
+//----------------------------------------------------------------------
+
+void EnzoConfig::read_initial_bcenter_(Parameters * p)
+{
+  // VL+CT b-field initialization
+  initial_bcenter_update_etot = p->value_logical
+    ("Initial:vlct_bfield:update_etot",false);
+}
+
+//----------------------------------------------------------------------
+
+void EnzoConfig::read_initial_cloud_(Parameters * p)
+{
+  // Cloud Crush Initialization
+  initial_cloud_subsample_n     = p->value_integer
+    ("Initial:cloud:subsample_n",0);
+  initial_cloud_radius          = p->value_float
+    ("Initial:cloud:cloud_radius",0.0);
+  initial_cloud_center_x        = p->value_float
+    ("Initial:cloud:cloud_center_x",0.0);
+  initial_cloud_center_y        = p->value_float
+    ("Initial:cloud:cloud_center_y",0.0);
+  initial_cloud_center_z        = p->value_float
+    ("Initial:cloud:cloud_center_z",0.0);
+  initial_cloud_density_cloud   = p->value_float
+    ("Initial:cloud:cloud_density",0.0);
+  initial_cloud_density_wind    = p->value_float
+    ("Initial:cloud:wind_density",0.0);
+  initial_cloud_velocity_wind   = p->value_float
+    ("Initial:cloud:wind_velocity",0.0);
+  initial_cloud_etot_wind       = p->value_float
+    ("Initial:cloud:wind_total_energy",0.0);
+  initial_cloud_eint_wind       = p->value_float
+    ("Initial:cloud:wind_internal_energy",0.0);
+  initial_cloud_metal_mass_frac = p->value_float
+    ("Initial:cloud:metal_mass_fraction",0.0);
+  initial_cloud_perturb_stddev  = p->value_float
+    ("Initial:cloud:perturb_standard_deviation",0.0);
+  initial_cloud_trunc_dev       = p->value_float
+    ("Initial:cloud:perturb_truncation_deviation",0.0);
+  int init_cloud_perturb_seed_  = p->value_integer
+    ("Initial:cloud:perturb_seed",0);
+  ASSERT("EnzoConfig::read()", "Initial:cloud:perturb_seed must be >=0",
+	 init_cloud_perturb_seed_ >= 0);
+  initial_cloud_perturb_seed = (unsigned int) init_cloud_perturb_seed_;
+
+  int initial_cloud_uniform_bfield_length = p->list_length
+    ("Initial:cloud:uniform_bfield");
+  if (initial_cloud_uniform_bfield_length == 0){
+    initial_cloud_initialize_uniform_bfield = false;
+  } else if (initial_cloud_uniform_bfield_length == 3){
+    initial_cloud_initialize_uniform_bfield = true;
+    for (int i = 0; i <3; i++){
+      initial_cloud_uniform_bfield[i] = p->list_value_float
+	(i,"Initial:cloud:uniform_bfield");
+    }
+  } else {
+    ERROR("EnzoConfig::read",
+	  "Initial:cloud:uniform_bfield must contain 0 or 3 entries.");
+  }
 }
 
 //----------------------------------------------------------------------
@@ -848,6 +1038,29 @@ void EnzoConfig::read_method_grackle_(Parameters * p)
 
   }
 #endif /* CONFIG_USE_GRACKLE */
+}
+
+//----------------------------------------------------------------------
+
+void EnzoConfig::read_method_vlct_(Parameters * p)
+{
+
+  method_vlct_riemann_solver = p->value_string
+    ("Method:mhd_vlct:riemann_solver","hlld");
+  method_vlct_half_dt_reconstruct_method = p->value_string
+    ("Method:mhd_vlct:half_dt_reconstruct_method","nn");
+  method_vlct_full_dt_reconstruct_method = p->value_string
+    ("Method:mhd_vlct:full_dt_reconstruct_method","plm");
+  method_vlct_theta_limiter = p->value_float
+    ("Method:mhd_vlct:theta_limiter", 1.5);
+  method_vlct_density_floor = p->value_float
+    ("Method:mhd_vlct:density_floor", 0.0);
+  method_vlct_pressure_floor = p->value_float
+    ("Method:mhd_vlct:pressure_floor", 0.0);
+  method_vlct_dual_energy = p->value_logical
+    ("Method:mhd_vlct:dual_energy", false);
+  method_vlct_dual_energy_eta = p->value_float
+    ("Method:mhd_vlct:dual_energy_eta", 0.001);
 }
 
 //----------------------------------------------------------------------
