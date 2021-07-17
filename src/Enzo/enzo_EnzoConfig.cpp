@@ -180,6 +180,7 @@ EnzoConfig::EnzoConfig() throw ()
   initial_IG_recent_SF_seed(12345),
   // EnzoMethodHeat
   method_heat_alpha(0.0),
+
   // EnzoMethodHydro
   method_hydro_method(""),
   method_hydro_dual_energy(false),
@@ -591,9 +592,7 @@ void EnzoConfig::pup (PUP::er &p)
   p | units_length;
   p | units_time;
 
-  p  | method_grackle_use_grackle;
-  p  | method_grackle_use_cooling_timestep;
-  p  | method_grackle_radiation_redshift;
+  p | method_grackle_use_grackle;
 
 #ifdef CONFIG_USE_GRACKLE
   if (method_grackle_use_grackle) {
@@ -1401,7 +1400,7 @@ void EnzoConfig::read(Parameters * p) throw()
     /* this must be set AFTER default values are set */
     method_grackle_chemistry->use_grackle = method_grackle_use_grackle;
 
-    // Copy over parameters from Enzo-P to Grackle
+    // Copy over parameters from Enzo-E to Grackle
     method_grackle_chemistry->Gamma = field_gamma;
 
     //
@@ -1529,9 +1528,9 @@ void EnzoConfig::read(Parameters * p) throw()
       method_grackle_chemistry->UVbackground_redshift_drop);
 
     // When radiative transfer is eventually included, make
-    // sure to set the below parameter to match the Enzo-P
+    // sure to set the below parameter to match the Enzo-E
     // parameter for turning RT on / off:
-    //   method_grackle_chemistry->use_radiative_transfer = ENZO_P_PARAMETER_NAME;
+    //   method_grackle_chemistry->use_radiative_transfer = ENZO_E_PARAMETER_NAME;
 
   }
 #endif /* CONFIG_USE_GRACKLE */
