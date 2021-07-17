@@ -78,7 +78,7 @@ if [ "$#" -ge 1 ]; then
       echo
       echo "Usage: $0 [clean|compile|test]"
       echo
-      echo "       $0 bin/enzo-p"
+      echo "       $0 bin/enzo-e"
       echo
       echo "       $0 bin/test_Foo"
       echo
@@ -91,15 +91,15 @@ if [ "$#" -ge 1 ]; then
 	echo "Remove $target"
    fi
 else
-   # assume enzo-p
+   # assume enzo-e
    k_switch=""
-   target="bin/enzo-p"
+   target="bin/enzo-e"
 fi
 
-if [ $target == "bin/enzo-p" ]; then
+if [ $target == "bin/enzo-e" ]; then
    if [ -e $target ]; then
-       echo "Saving existing bin/enzo-p to bin/enzo-p.prev"
-       mv bin/enzo-p bin/enzo-p.prev
+       echo "Saving existing bin/enzo-e to bin/enzo-e.prev"
+       mv bin/enzo-e bin/enzo-e.prev
    fi
 fi
     
@@ -110,7 +110,7 @@ date=`date +"%Y-%m-%d"`
 start=`date +"%H:%M:%S"`
 echo "$date $start BEGIN"
 
-echo "BEGIN Enzo-P/Cello ${0}"
+echo "BEGIN enzo-e/Cello ${0}"
 echo "arch=$arch"
 echo "prec=$prec"
 echo "target=$target"
@@ -212,7 +212,7 @@ S1=`date +"%S"`
 
 t=`echo "scale=2; (( $S1 - $S0 ) + 60 * ( ( $M1 - $M0 ) + 60 * ( $H1 - $H0) ))/60.0" | bc`
 
-echo "END   Enzo-P/Cello ${0}: arch = $arch  prec = $prec  target = $target time = ${t} min"
+echo "END   enzo-e/Cello ${0}: arch = $arch  prec = $prec  target = $target time = ${t} min"
 
 d=`date "+%H:%M:%S"`
 
