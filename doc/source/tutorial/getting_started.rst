@@ -164,6 +164,19 @@ using the ``CHARM_HOME`` environment variable.
   ``export CHARM_HOME=$HOME/Charm/charm.6.10``  Set directory of Charm++ used
   ============================================  =============================
 
+4. Specify Grackle directory
+----------------------------
+
+At compile time, Enzo-E will try to automatically find your Grackle installation.
+If compilation fails because ``grackle.h`` cannot be included, it is possible
+that the directory was incorrectly identified. You can specify
+Grackle's installation directory with the ``GRACKLE_HOME`` environment variable:
+
+  =================================== =====================================
+  =================================== =====================================
+  ``export GRACKLE_HOME=$HOME/local`` Set directory of Grackle installation
+  =================================== =====================================
+
 Porting
 =======
 
@@ -225,16 +238,18 @@ fragment below may differ due to the file being updated.)
 Building
 ========
 
-After configuring Cello for your computer, the Cello framework and
-Enzo-E application can be compiled using "make", which in turn calls
-the included ``./build.sh`` script.  Other options are available for
-generating useful `https://orgmode.org/ <org-mode>`_ files, generating
-doxygen documentation, running
-regression tests, and running code analysis tools.
+After configuring Cello for your computer, the Cello framework and Enzo-E
+application can be compiled using "make", which in turn calls the included
+``./build.sh`` script.  By default, the build system will use all available
+cores.  To specify the number of cores to compile Cello, either set the ``proc``
+variable in ``./build.sh`` or set the environment variable ``CELLO_BUILD_NCORE``
+to the desired value.  Other options are available for generating useful
+`https://orgmode.org/ <org-mode>`_ files, generating doxygen documentation,
+running regression tests, and running code analysis tools.
 
         ==================  ===============================================================
         ==================  ===============================================================
-	``make``            *Compile Enzo-E as* ``./bin/enzo-p``
+	``make``            *Compile Enzo-E as* ``./bin/enzo-e``
 	``make clean``      *Remove object and test files*
 	``make reset``      *Clear any settings from an incomplete build*
 	``make doc``        *Generate doxygen documentation from source in* ``src-html`` *(requires* ``doxygen`` *)*
@@ -258,12 +273,12 @@ and take a look at Enzo-E's output.
 An included "Hello World" problem can be run using the following
 from the ``$CELLO_HOME`` directory:
 
-     ``charmrun +p4 bin/enzo-p input/HelloWorld/Hi.in``
+     ``charmrun +p4 bin/enzo-e input/HelloWorld/Hi.in``
 
 This assumes that the ``charmrun`` command is in your path.  If it
 is not, then you will need to include the path name as well, e.g.:
 
-     ``~/Charm/bin/charmrun +p4 bin/enzo-p input/HelloWorld/Hi.in``
+     ``~/Charm/bin/charmrun +p4 bin/enzo-e input/HelloWorld/Hi.in``
 
 This also assumes that local connections can be established passwordless.
 If errors like
@@ -276,7 +291,16 @@ If errors like
 are displayed a node local run (i.e., no "remote" connections even to the local host)
 could be used instead by add ``++local`` to ``charmrun``, e.g.:
 
-     ``~/Charm/bin/charmrun ++local +p4 bin/enzo-p input/HelloWorld/Hi.in``
+     ``~/Charm/bin/charmrun ++local +p4 bin/enzo-e input/HelloWorld/Hi.in``
+
+If you receive an error like
+
+..  code-block:: bash
+
+    Charmrun> Timeout waiting for node-program to connect
+
+trying running ``./bin/enzo-e`` without ``charmrun`` as crashes due to, e.g.,
+libraries not being found may not be displaying.
 
 If all goes well, Enzo-E will run the Hello World problem.  Below are
 some of the generated images from the longer-running "HelloWorld.in"
