@@ -383,6 +383,7 @@ Export('test_path')
 Export('ip_charm')
 Export('smp')
 Export('prec')
+Export('use_valgrind')
 
 
 cpppath     = [inc_path]
@@ -600,7 +601,7 @@ Clean('.','src-html')
 Clean('.','src-latex')
 Clean('.','src-xml')
 
-# files left behind by enzo-p
+# files left behind by enzo-e
 Clean('.','Checkpoint')
 Clean('.','parameters.out')
 Clean('.','parameters.libconfig')
@@ -610,7 +611,7 @@ Clean('.','parameters.libconfig')
 #======================================================================
 
 # env = Environment(tools=['default', 'packaging'])
-# title = 'Enzo-P / Cello Extreme AMR Astrophysics and Cosmology'
+# title = 'Enzo-E / Cello Extreme AMR Astrophysics and Cosmology'
 # env.Package( NAME           = 'cello',
 #              VERSION        = '0.5.0',
 #              PACKAGEVERSION = 0,
