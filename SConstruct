@@ -8,7 +8,6 @@ import socket
 # USER CONFIGURATION
 #======================================================================
 
-
 #----------------------------------------------------------------------
 # Maximum number of procesess per shared-memory node (can be larger than needed)
 #----------------------------------------------------------------------
@@ -247,6 +246,7 @@ elif (arch == "gordon_pgi"):   from gordon_pgi   import *
 elif (arch == "comet_gnu"):    from comet_gnu    import *
 elif (arch == "linux_gnu"):    from linux_gnu    import *
 elif (arch == "linux_clang"):  from linux_clang  import *
+elif (arch == "linux_illium"): from linux_illium import *
 elif (arch == "linux_gcc_9"):  from linux_gcc_9  import *
 elif (arch == "linux_intel"):  from linux_intel  import *
 elif (arch == "linux_yt"):     from linux_yt     import *
@@ -490,7 +490,7 @@ cello_def.write ("#define CELLO_ARCH "
 cello_def.write ("#define CELLO_PREC "
 		"\""+prec+"\"\n")
 cello_def.write ("#define CELLO_CC "
-		"\""+cc+"\"\n")	
+		"\""+cc+"\"\n")
 cello_def.write ("#define CELLO_CFLAGS "
 		"\""+cflags+"\"\n")
 cello_def.write ("#define CELLO_CPPDEFINES "
@@ -498,7 +498,7 @@ cello_def.write ("#define CELLO_CPPDEFINES "
 cello_def.write ("#define CELLO_CPPPATH "
 		"\""+" ".join(map(str,cpppath))+"\"\n")
 cello_def.write ("#define CELLO_CXX "
-		"\""+cxx+"\"\n")	
+		"\""+cxx+"\"\n")
 cello_def.write ("#define CELLO_CXXFLAGS "
 		"\""+cxxflags+"\"\n")
 cello_def.write ("#define CELLO_FORTRANFLAGS "
@@ -529,12 +529,12 @@ cello_def.write ("#define CHARM_PATH \"" + charm_path + "\"\n" )
 #----------
 
 if (have_git):
-      
+
    git_changeset = str(subprocess.check_output(["git", "rev-parse", "HEAD"]).rstrip())
    cello_def.write ("#define CELLO_CHANGESET \""+git_changeset+"\"\n" )
 
 else:
-        
+
    cello_def.write ("#define CELLO_CHANGESET \"unknown\"\n" )
 
 #----------
