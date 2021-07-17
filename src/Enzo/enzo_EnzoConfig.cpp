@@ -191,6 +191,7 @@ EnzoConfig::EnzoConfig() throw ()
   initial_IG_recent_SF_seed(12345),
   // EnzoMethodHeat
   method_heat_alpha(0.0),
+
   // EnzoMethodHydro
   method_hydro_method(""),
   method_hydro_dual_energy(false),
