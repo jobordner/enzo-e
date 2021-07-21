@@ -166,9 +166,8 @@ void EnzoMethodGrackle::define_required_grackle_fields()
     if (added_fields) field_descr->reset_history(config->field_history);
 
   }
-
-#endif /* CONFIG_USE_GRACKLE */
 }
+#endif /* CONFIG_USE_GRACKLE */
 
 
 #ifdef CONFIG_USE_GRACKLE
