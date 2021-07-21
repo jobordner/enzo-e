@@ -625,9 +625,9 @@ void EnzoMethodFire2Feedback::deposit_feedbak (EnzoBlock * enzo_block,
   return;
 }
 
+//----------------------------------------------------------------------
 
-
-double EnzoMethodFire2Feedback::timestep (Block * block) const throw()
+double EnzoMethodFire2Feedback::timestep (Block * block) throw()
 {
   // In general this is not needed, but could imagine putting timestep
   // limiters in situations where, for example, one would want

@@ -33,7 +33,7 @@ public:
   /// Apply method
   virtual void compute ( Block * block) throw();
 
-  //virtual double timestep (Block * block) const throw();
+  //virtual double timestep (Block * block) throw();
 
   virtual std::string particle_type () throw()
   { return "star";}

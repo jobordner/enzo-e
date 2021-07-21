@@ -32,10 +32,10 @@ EnzoMethodGrackle::EnzoMethodGrackle
   // Method function that can be called to obtain a list of
   // needed field
 
-  EnzoMethodGrackle::define_required_grackle_fields();
+  define_required_grackle_fields();
 
   /// Initialize default Refresh
-  cello::simulation()->new_refresh_set_name(ir_post_,name());
+  cello::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_all_fields();
 
@@ -64,13 +64,16 @@ void EnzoMethodGrackle::define_required_grackle_fields()
   Config   * config  = (Config *) cello::config();  
 
   // special container for ensuring color fields are properly grouped
-  const int rank = cello::rank();
+
+  std::vector<std::string> fields_to_define;
   std::vector<std::string> color_fields;
+
   chemistry_data * grackle_chemistry =
     enzo::config()->method_grackle_chemistry;
 
   std::vector<std::string> required_fields = std::vector<std::string> {"density","internal_energy",
                                                                        "total_energy"};
+  const int rank = cello::rank();
   if (rank>=0) required_fields.push_back("velocity_x");
   if (rank>=1) required_fields.push_back("velocity_y");
   if (rank>=2) required_fields.push_back("velocity_z");
@@ -82,7 +85,7 @@ void EnzoMethodGrackle::define_required_grackle_fields()
 
   // Define primordial chemistry fields
   if (grackle_chemistry->primordial_chemistry > 0){
-    std::string pc1_fields[6] = {"HI_density","HII_density",
+    std::vector<std::string> pc1_fields = {"HI_density","HII_density",
                                  "HeI_density","HeII_density","HeIII_density",
                                  "e_density"};
     int numfields = 6;
@@ -164,15 +167,6 @@ void EnzoMethodGrackle::define_required_grackle_fields()
 
   }
 
-  /// Initialize default Refresh
-  cello::simulation()->refresh_set_name(ir_post_,name());
-  Refresh * refresh = cello::refresh(ir_post_);
-  refresh->add_all_fields();
-
-  /// Define Grackle's internal data structures
-  time_grackle_data_initialized_ = ENZO_FLOAT_UNDEFINED;
-  this->initialize_grackle_chemistry_data(time);
-
 #endif /* CONFIG_USE_GRACKLE */
 }
 
@@ -214,7 +208,8 @@ void EnzoMethodGrackle::compute ( Block * block) throw()
 }
 
 
-void EnzoMethodGrackle::initialize_grackle_chemistry_data(double current_time)
+void EnzoMethodGrackle::initialize_grackle_chemistry_data(double current_time,
+                                                          bool preinitialized_units)
 {
 
   /* Define Grackle's chemistry data if not yet defined */
@@ -297,7 +292,7 @@ void EnzoMethodGrackle::setup_grackle_fields(EnzoBlock * enzo_block,
   // into Grackle. Initialize fields, if true, will also assign values to
   // the fields (equal to uniform background values). This is meant to be
   // used at initialization, and is by default false.
-                                             grackle_field_data * grackle_fields_,
+                                             grackle_field_data * grackle_fields,
                                              int i_hist /*default 0 */
                                              ) throw()
   {
@@ -492,9 +487,9 @@ void EnzoMethodGrackle::compute_ ( EnzoBlock * enzo_block) throw()
 
   /* Correct total energy for changes in internal energy */
   gr_float * v3[3];
-  v3[0] = grackle_fields_.x_velocity;
-  v3[1] = grackle_fields_.y_velocity;
-  v3[2] = grackle_fields_.z_velocity;
+  v3[0] = grackle_fields.x_velocity;
+  v3[1] = grackle_fields.y_velocity;
+  v3[2] = grackle_fields.z_velocity;
 
   const bool mhd = field.is_field("bfield_x");
   enzo_float * b3[3] = {NULL, NULL, NULL};
@@ -506,10 +501,10 @@ void EnzoMethodGrackle::compute_ ( EnzoBlock * enzo_block) throw()
 
   enzo_float * total_energy    = (enzo_float *) field.values("total_energy");
   for (int i = 0; i < ngx*ngy*ngz; i++){
-    total_energy[i] = grackle_fields_.internal_energy[i];
+    total_energy[i] = grackle_fields.internal_energy[i];
 
     enzo_float inv_density;
-    if (mhd) inv_density = 1.0 / grackle_fields_.density[i];
+    if (mhd) inv_density = 1.0 / grackle_fields.density[i];
     for (int dim = 0; dim < rank; dim++){
       total_energy[i] += 0.5 * v3[dim][i] * v3[dim][i];
       if (mhd) total_energy[i] += 0.5 * b3[dim][i] * b3[dim][i] * inv_density;
@@ -521,7 +516,7 @@ void EnzoMethodGrackle::compute_ ( EnzoBlock * enzo_block) throw()
     this->ResetEnergies(enzo_block);
   }
 
-  delete_grackle_fields(&grackle_fields_);
+  delete_grackle_fields(&grackle_fields);
 
   return;
 }

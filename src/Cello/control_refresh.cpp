@@ -894,7 +894,8 @@ int Block::particle_load_faces_ (int npa,
 				 ParticleData * particle_list[],
 				 ParticleData * particle_array[],
 				 Index index_list[],
-				 Refresh *refresh)
+				 Refresh *refresh,
+                                 const bool copy)
 {
   // Array elements correspond to child-sized blocks to
   // the left, inside, and right of the main Block.  Particles
@@ -972,7 +973,8 @@ int Block::particle_create_array_neighbors_
 (Refresh * refresh, 
  ParticleData * particle_array[],
  ParticleData * particle_list[],
- Index index_list[])
+ Index index_list[],
+ const bool copy)
 { 
   const int rank = cello::rank();
   const int level = this->level();
@@ -1153,7 +1155,8 @@ void Block::particle_scatter_neighbors_
 (int npa,
  ParticleData * particle_array[],
  std::vector<int> & type_list,
- Particle particle)
+ Particle particle,
+ const bool copy )
 {
   const int rank = cello::rank();
 
@@ -1255,6 +1258,67 @@ void Block::particle_scatter_neighbors_
 
   cello::simulation()->data_delete_particles(count);
 
+}
+
+//----------------------------------------------------------------------
+
+int Block::refresh_delete_particle_copies_ (Refresh * refresh){
+
+  Particle particle (cello::particle_descr(),
+		     data()->particle_data());
+
+  std::vector<int> type_list;
+  if (refresh->all_particles()) {
+    const int nt = particle.num_types();
+    type_list.resize(nt);
+    for (int i=0; i<nt; i++) type_list[i] = i;
+  } else {
+    type_list = refresh->particle_list();
+  }
+
+  int count = 0;
+  for (auto it_type=type_list.begin(); it_type != type_list.end(); it_type++){
+    int it = *it_type;
+
+    count += delete_particle_copies_(it);
+  }
+
+  cello::simulation()->data_delete_particles(count);
+
+  return count;
+}
+
+//----------------------------------------------------------------------
+
+int Block::delete_particle_copies_ (int it){
+
+  Particle particle (cello::particle_descr(),
+		     data()->particle_data());
+
+  if (!(particle.is_attribute(it, "is_local"))) return 0;
+
+  const int ia_c = particle.attribute_index(it,"is_local");
+  const int cd   = particle.stride(it, ia_c);
+
+  const int nb = particle.num_batches(it);
+
+  int64_t * is_local=0;
+  int count = 0;
+  for (int ib = 0; ib<nb; ib++){
+    const int np = particle.num_particles(it,ib);
+    is_local = (int64_t *) particle.attribute_array(it, ia_c, ib);
+
+    bool * mask = new bool[np];
+    for( int ip=0; ip<np; ip++){
+      mask[ip] = ! (is_local[ip*cd]);
+    }
+
+    count += particle.delete_particles(it,ib,mask);
+
+    delete [] mask;
+  }
+
+  return count;
 }
 
 //----------------------------------------------------------------------

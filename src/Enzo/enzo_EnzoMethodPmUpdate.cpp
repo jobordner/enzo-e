@@ -29,6 +29,7 @@ EnzoMethodPmUpdate::EnzoMethodPmUpdate
   TRACE_PM("EnzoMethodPmUpdate()");
 
   const int rank = cello::rank();
+
   if (rank >= 0) this->required_fields_.push_back("acceleration_x");
   if (rank >= 1) this->required_fields_.push_back("acceleration_y");
   if (rank >= 2) this->required_fields_.push_back("acceleration_z");
@@ -40,8 +41,6 @@ EnzoMethodPmUpdate::EnzoMethodPmUpdate
 
   cello::simulation()->refresh_set_name(ir_post_,name());
   
-  const int rank = cello::rank();
-
   Refresh * refresh = cello::refresh(ir_post_);
   if (rank >= 1) refresh->add_field("acceleration_x");
   if (rank >= 2) refresh->add_field("acceleration_y");

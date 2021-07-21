@@ -111,7 +111,7 @@ public: // interface
 
 #ifdef CONFIG_USE_GRACKLE
 
-  static void define_required_grackle_fields();
+  void define_required_grackle_fields();
 
   void initialize_grackle_chemistry_data(double current_time,
                                          bool preinitialized_units = false);

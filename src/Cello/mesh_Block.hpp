@@ -561,9 +561,10 @@ public:
   void p_refresh_recv (MsgRefresh * msg);
 
   int refresh_load_field_faces_ (Refresh & refresh);
-  /// Scatter particles in ghost zones to neighbors
 
+  /// Scatter particles in ghost zones to neighbors
   int refresh_load_particle_faces_ (Refresh & refresh);
+
   /// Send flux data to neighbors
   int refresh_load_flux_faces_ (Refresh & refresh);
   
@@ -573,19 +574,9 @@ public:
   void particle_send_(Refresh & refresh, int nl,Index index_list[], 
                       ParticleData * particle_list[]);
 
-  int new_refresh_load_particle_faces_ (Refresh & refresh, const bool copy = false);
-  int new_refresh_delete_particle_copies_   (Refresh * refresh);
+  int refresh_delete_particle_copies_   (Refresh * refresh);
 
   int delete_particle_copies_ (int it);
-
-  /// Send flux data to neighbors
-  int new_refresh_load_flux_faces_ (Refresh & refresh);
-
-  void new_refresh_load_field_face_
-  (Refresh & refresh, int refresh_type, Index index, int if3[3], int ic3[3]);
-  /// Send particles in list to corresponding indices
-  void new_particle_send_(Refresh & refresh, int nl,Index index_list[],
-			  ParticleData * particle_list[]);
 
   void refresh_load_flux_face_
   (Refresh & refresh, int refresh_type, Index index, int if3[3], int ic3[3]);
@@ -655,7 +646,8 @@ protected:
   (Refresh * refresh,
    ParticleData * particle_array[],
    ParticleData * particle_list[],
-   Index index_list[], const bool copy = false);
+   Index index_list[],
+   const bool copy = false);
 
   /// Computes updates to positions (dpx[i],dpy[i],dpz[i]) for faces that
   /// cross periodic domain boundaries
@@ -668,7 +660,8 @@ protected:
   /// particle_array ParticleData elements
   void particle_scatter_neighbors_
   (int npa, ParticleData * particle_array[],
-   std::vector<int> & type_list, Particle particle_src, const bool copy = false);
+   std::vector<int> & type_list, Particle particle_src,
+   const bool copy = false);
 
   /// Scatter particles to appropriate partictle_list elements
   void particle_scatter_children_ (ParticleData * particle_list[],
@@ -684,7 +677,7 @@ protected:
 			    ParticleData * particle_array[],
 			    Index index_list[],
 			    Refresh * refresh,
-          const bool copy = false);
+                            const bool copy = false);
 
   //--------------------------------------------------
   // STOPPING

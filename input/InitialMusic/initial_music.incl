@@ -222,7 +222,6 @@
        field_list = ["density"];
        image_size = [ 256,256];
        schedule { var =  "cycle"; step = 1;  }
-       include "input/colormap_blackbody.incl"
        image_specify_bounds = true;
        include "input/Colormap/colormap_blackbody.incl"
     }

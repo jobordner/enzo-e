@@ -31,11 +31,6 @@ public: // interface
   virtual ~IoHierarchy () throw()
   {}
 
-
-  PUPable_decl(IoHierarchy);
-
-  IoHierarchy(CkMigrateMessage *m) : Io(m) {}
-
   /// CHARM++ Pack / Unpack function
   inline void pup (PUP::er &p)
   {

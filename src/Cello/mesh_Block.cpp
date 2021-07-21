@@ -95,7 +95,6 @@ Block::Block ( MsgRefine * msg )
 
   apply_initial_(msg);
 
-  delete msg;
   performance_stop_(perf_block);
 
 
@@ -172,8 +171,6 @@ void Block::p_set_msg_refine(MsgRefine * msg)
 #endif
 
   apply_initial_(msg);
-
-  delete msg;
 
   performance_stop_(perf_block);
 
