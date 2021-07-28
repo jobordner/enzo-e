@@ -17,8 +17,7 @@ EnzoMethodHeat::EnzoMethodHeat (double alpha, double courant)
     courant_(courant)
 {
 
-  this->required_fields_ = std::vector<std::string> {"temperature"};
-  this->define_fields();
+  cello::define_field ("temperature");
 
   // Initialize default Refresh object
 

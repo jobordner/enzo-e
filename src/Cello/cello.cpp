@@ -288,6 +288,32 @@ namespace cello {
     
   //---------------------------------------------------------------------- 
 
+  int define_field (std::string field_name, int cx, int cy, int cz)
+  {
+    FieldDescr * field_descr = cello::field_descr();
+    Config   * config  = (Config *) cello::config();
+    if( ! field_descr->is_field( field_name )){
+      const int id_field = field_descr->insert_permanent( field_name );
+
+      field_descr->set_precision(id_field, config->field_precision);
+
+      if ( cx != 0 || cy != 0 || cz != 0 ) {
+        field_descr->set_centering(id_field, cx, cy, cz);
+      }
+    }
+    return field_descr->field_id(field_name);
+  }
+
+  //---------------------------------------------------------------------- 
+
+  void finalize_fields ()
+  {
+    FieldDescr * field_descr = cello::field_descr();
+    Config   * config  = (Config *) cello::config();
+    field_descr->reset_history(config->field_history);
+  }
+  //---------------------------------------------------------------------- 
+
   Monitor * monitor()
   {
     return simulation() ? simulation()->monitor() : Monitor::instance();

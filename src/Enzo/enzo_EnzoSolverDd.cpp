@@ -60,7 +60,7 @@ EnzoSolverDd::EnzoSolverDd
       gx_(0),gy_(0),gz_(0),
       coarse_level_(coarse_level)
 {
-  ixc_ = cello::field_descr()->insert_temporary();
+  ixc_ = cello::define_field("X_c");
 
   /// Initialize default Refresh
 

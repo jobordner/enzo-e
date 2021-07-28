@@ -56,6 +56,8 @@ void Simulation::initialize() throw()
   problem_->initialize_stopping(config_);
   problem_->initialize_output  (config_,factory());
 
+  cello::finalize_fields();
+  
   initialize_hierarchy_();
 
   // initialize_block_array() is called in charm_initialize

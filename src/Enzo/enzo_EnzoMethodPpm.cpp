@@ -41,14 +41,22 @@ EnzoMethodPpm::EnzoMethodPpm ()
 
   const int rank = cello::rank();
 
-  this->required_fields_ = std::vector<std::string> {"density","total_energy",
-                                         "internal_energy","pressure"};
-
-  if (rank >= 0) this->required_fields_.insert(this->required_fields_.end(),{"velocity_x","acceleration_x"});
-  if (rank >= 1) this->required_fields_.insert(this->required_fields_.end(),{"velocity_y","acceleration_y"});
-  if (rank >= 2) this->required_fields_.insert(this->required_fields_.end(),{"velocity_z","acceleration_z"});
-
-  this->define_fields();
+  cello::define_field("density");
+  cello::define_field("total_energy");
+  cello::define_field("internal_energy");
+  cello::define_field("pressure");
+  if (rank >= 1) {
+      cello::define_field("velocity_x");
+      cello::define_field("acceleration_x");
+  }
+  if (rank >= 2) {
+      cello::define_field("velocity_y");
+      cello::define_field("acceleration_y");
+  }
+  if (rank >= 3) {
+      cello::define_field("velocity_z");
+      cello::define_field("acceleration_z");
+  }
 
   // Initialize default Refresh object
 

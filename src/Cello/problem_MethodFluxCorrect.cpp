@@ -22,7 +22,6 @@ MethodFluxCorrect::MethodFluxCorrect
     min_digits_map_(),
     field_sum_(),
     field_sum_0_(),
-    ir_pre_(-1),
     scratch_()
 {
   // Set up post-refresh to refresh all conserved fields in group_

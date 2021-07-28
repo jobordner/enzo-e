@@ -36,17 +36,16 @@ EnzoMethodPmDeposit::EnzoMethodPmDeposit ( double alpha)
     alpha_(alpha)
 {
 
-  this->required_fields_ = std::vector<std::string>
-                             {"density",
-                              "density_total","density_particle",
-                              "density_particle_accumulate"};
+  cello::define_field ("density");
+  cello::define_field ("density_total");
+  cello::define_field ("density_particle");
+  cello::define_field ("density_particle_accumulate");
+  
   const int rank = cello::rank();
 
-  if (rank >= 0) this->required_fields_.push_back("velocity_x");
-  if (rank >= 1) this->required_fields_.push_back("velocity_y");
-  if (rank >= 2) this->required_fields_.push_back("velocity_z");
-
-  this->define_fields();
+  if (rank >= 1) cello::define_field ("velocity_x");
+  if (rank >= 2) cello::define_field ("velocity_y");
+  if (rank >= 3) cello::define_field ("velocity_z");
 
   // Initialize default Refresh object
 
@@ -55,9 +54,9 @@ EnzoMethodPmDeposit::EnzoMethodPmDeposit ( double alpha)
   Refresh * refresh = cello::refresh(ir_post_);
 
   refresh->add_field("density");
-  refresh->add_field("velocity_x");
-  refresh->add_field("velocity_y");
-  refresh->add_field("velocity_z");
+  if (rank >= 1) refresh->add_field("velocity_x");
+  if (rank >= 2) refresh->add_field("velocity_y");
+  if (rank >= 3) refresh->add_field("velocity_z");
 }
 
 //----------------------------------------------------------------------

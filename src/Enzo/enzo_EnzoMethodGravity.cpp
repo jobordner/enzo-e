@@ -37,34 +37,34 @@ EnzoMethodGravity::EnzoMethodGravity
 
   // Change this if fields used in this routine change
   // declare required fields
-  this->required_fields_ = std::vector<std::string>
-                           {"density","density_total","B","potential",
-                            "acceleration_x","acceleration_y","acceleration_z"};
+  cello::define_field ("density");
+  cello::define_field ("density_total");
+  cello::define_field ("B");
+  cello::define_field ("potential");
+  cello::define_field ("acceleration_x");
+  cello::define_field ("acceleration_y");
+  cello::define_field ("acceleration_z");
 #ifdef DEBUG_FIELD_FACE
-  this->required_fields_.insert(this->required_fields_.end(),
-                                {"debug_1","debug_2"});
+  cello::define_field ("debug_1");
+  cello::define_field ("debug_2");
 #endif
 #ifdef DEBUG_COPY_B
-  this->required_fields_.push_back("B_copy");
+  cello::define_field ("B_copy");
 #endif
 #ifdef DEBUG_COPY_POTENTIAL
-  this->required_fields_.push_back("potential_copy");
+  cello::define_field ("potential_copy");
 #endif
 #ifdef DEBUG_COPY_DENSITY
-  this->required_fields_.push_back("density_total_copy");
+  cello::define_field ("density_total_copy");
 #endif
 #ifdef READ_ENZO_POTENTIAL
-  this->required_fields_.push_back({"potential_enzo","potential_dff"});
+  cello::define_field ("potential_enzo");
+  cello::define_field ("potential_dff");
 #endif
-
   if (accumulate){
-    this->required_fields_.insert(this->required_fields_.end(),
-                                  {"density_particle","density_particle_accumulate"});
+    cello::define_field ("density_particle");
+    cello::define_field ("density_particle_accumulate");
   }
-
-  // now define fields if they do not exist
-  this->define_fields();
-
 
   // Refresh adds density_total field faces and one layer of ghost
   // zones to "B" field

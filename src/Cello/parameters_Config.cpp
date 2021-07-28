@@ -843,19 +843,6 @@ void Config::read_method_ (Parameters * p) throw()
           p->value_logical (full_name + ":single_array",true);
       }
 
-    // Field and particle lists if needed by MethodRefresh
-    int n = p->list_length(full_name + ":field_list");
-    method_field_list[index_method].resize(n);
-    for (int i=0; i<n; i++) {
-      method_field_list[index_method][i] =
-        p->list_value_string(i,full_name+":field_list");
-    }
-    n = p->list_length(full_name + ":particle_list");
-    method_particle_list[index_method].resize(n);
-    for (int i=0; i<n; i++) {
-      method_particle_list[index_method][i] =
-        p->list_value_string(i,full_name+":particle_list");
- 
     std::string min_digits_name = full_name + ":min_digits";
     if (p->type(min_digits_name) == parameter_float){
       // backwards compatibility
@@ -878,6 +865,20 @@ void Config::read_method_ (Parameters * p) throw()
     } else if (p->param(min_digits_name) != nullptr){
       ERROR1("Config::read", "%s has an invalid type", min_digits_name.c_str());
     }
+    
+    // Field and particle lists if needed by MethodRefresh
+    int n = p->list_length(full_name + ":field_list");
+    method_field_list[index_method].resize(n);
+    for (int i=0; i<n; i++) {
+      method_field_list[index_method][i] =
+        p->list_value_string(i,full_name+":field_list");
+    }
+    n = p->list_length(full_name + ":particle_list");
+    method_particle_list[index_method].resize(n);
+    for (int i=0; i<n; i++) {
+      method_particle_list[index_method][i] =
+        p->list_value_string(i,full_name+":particle_list");
+    } 
 
     for (int i=0; i<3; i++) {
       method_output_blocking[i][index_method] =

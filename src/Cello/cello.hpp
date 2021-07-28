@@ -678,6 +678,11 @@ namespace cello {
   FieldDescr *    field_descr();
   /// Return a pointer to the Groupings object defining field groups
   Grouping *      field_groups();
+  /// Define field needed by method or solver
+  int define_field (std::string field_name, int cx=0, int cy=0, int cz=0);
+  /// Call after adding all fields, temporary or permanent
+  void finalize_fields ();
+  
   /// Return a pointer to the ParticledDescr object defining particles on Blocks
   ParticleDescr * particle_descr();
   /// Return a pointer to the Groupings object defining particle groups

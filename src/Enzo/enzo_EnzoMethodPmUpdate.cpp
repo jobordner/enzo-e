@@ -30,11 +30,9 @@ EnzoMethodPmUpdate::EnzoMethodPmUpdate
 
   const int rank = cello::rank();
 
-  if (rank >= 0) this->required_fields_.push_back("acceleration_x");
-  if (rank >= 1) this->required_fields_.push_back("acceleration_y");
-  if (rank >= 2) this->required_fields_.push_back("acceleration_z");
-
-  this->define_fields();
+  if (rank >= 1) cello::define_field("acceleration_x");
+  if (rank >= 2) cello::define_field("acceleration_y");
+  if (rank >= 3) cello::define_field("acceleration_z");
 
   // Initialize default Refresh object
 

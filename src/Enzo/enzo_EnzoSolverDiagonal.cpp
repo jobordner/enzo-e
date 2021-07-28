@@ -38,7 +38,7 @@ EnzoSolverDiagonal::EnzoSolverDiagonal
      index_prolong,
      index_restrict)
 {
-  id_ = cello::field_descr()->insert_temporary("diagonal");
+  id_ = cello::field_descr()->insert_temporary();
 }
 
 //======================================================================

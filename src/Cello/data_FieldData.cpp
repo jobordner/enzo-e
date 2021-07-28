@@ -405,7 +405,6 @@ void FieldData::allocate_permanent
   };
 
   // Allocate any "temporary" fields for history
-
   const int np = field_descr->num_permanent();
   const int nh = field_descr->num_history();
   for (int ih=0; ih<nh; ih++) {

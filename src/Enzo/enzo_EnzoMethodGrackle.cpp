@@ -121,7 +121,6 @@ void EnzoMethodGrackle::define_required_grackle_fields()
     required_fields.push_back("volumetric_heating_rate");
 
   // Define fields and assign fields to correct
-  //this->define_fields();
   bool added_fields = false;
 
   for (int ifield = 0; ifield < required_fields.size(); ifield++){
