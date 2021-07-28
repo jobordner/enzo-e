@@ -108,34 +108,37 @@ void Config::pup (PUP::er &p)
   // Method
 
   p | num_method;
-  p | method_courant_global;
-  p | method_list;
-  p | method_schedule_index;
-  p | method_file_name;
-  p | method_path_name;
-  p | method_close_files_seconds_stagger;
-  p | method_close_files_seconds_delay;
-  p | method_close_files_group_size;
-  p | method_courant;
-  p | method_debug_print;
-  p | method_debug_coarse;
-  p | method_debug_ghost;
-  p | method_flux_correct_group;
-  p | method_flux_correct_enable;
-  p | method_flux_correct_min_digits;
-  p | method_flux_correct_single_array;
-  p | method_field_list;
-  p | method_particle_list;
-  PUParray (p,method_output_blocking,3);
-  p | method_output_all_blocks;
-  p | method_prolong;
-  p | method_ghost_depth;
-  p | method_min_face_rank;
+
   p | method_all_fields;
   p | method_all_particles;
+  p | method_close_files_group_size;
+  p | method_close_files_seconds_delay;
+  p | method_close_files_seconds_stagger;
+  p | method_courant;
+  p | method_courant_global;
+  p | method_debug_coarse;
+  p | method_debug_ghost;
+  p | method_debug_print;
+  p | method_field_list;
+  p | method_file_name;
+  p | method_flux_correct_enable;
+  p | method_flux_correct_group;
+  p | method_flux_correct_min_digits;
+  p | method_flux_correct_min_digits_fields;
+  p | method_flux_correct_min_digits_values;
+  p | method_flux_correct_single_array;
+  p | method_ghost_depth;
+  p | method_list;
+  p | method_min_face_rank;
+  p | method_null_dt;
+  p | method_output_all_blocks;
+  PUParray (p,method_output_blocking,3);
+  p | method_particle_list;
+  p | method_path_name;
+  p | method_prolong;
+  p | method_schedule_index;
   p | method_timestep;
   p | method_trace_name;
-  p | method_null_dt;
 
   // Monitor
 
@@ -733,6 +736,7 @@ void Config::read_method_ (Parameters * p) throw()
   method_debug_ghost.resize(num_method);
   method_flux_correct_group.resize(num_method);
   method_flux_correct_enable.resize(num_method);
+
   method_flux_correct_min_digits.resize(num_method);
   method_field_list.resize(num_method);
   method_particle_list.resize(num_method);
@@ -745,6 +749,8 @@ void Config::read_method_ (Parameters * p) throw()
   method_min_face_rank.resize(num_method);
   method_all_fields.resize(num_method);
   method_all_particles.resize(num_method);
+  method_flux_correct_min_digits_fields.resize(num_method);
+  method_flux_correct_min_digits_values.resize(num_method);
   method_timestep.resize(num_method);
   method_schedule_index.resize(num_method);
   method_close_files_seconds_stagger.resize(num_method);
@@ -828,6 +834,7 @@ void Config::read_method_ (Parameters * p) throw()
       p->value_string (full_name + ":group","conserved");
     method_flux_correct_enable[index_method] =
       p->value_logical (full_name + ":enable",true);
+
     method_flux_correct_min_digits[index_method] =
       p->value_float (full_name + ":min_digits",0.0);
     if (name == "flux_correct") 
@@ -848,6 +855,28 @@ void Config::read_method_ (Parameters * p) throw()
     for (int i=0; i<n; i++) {
       method_particle_list[index_method][i] =
         p->list_value_string(i,full_name+":particle_list");
+ 
+    std::string min_digits_name = full_name + ":min_digits";
+    if (p->type(min_digits_name) == parameter_float){
+      // backwards compatibility
+      method_flux_correct_min_digits_fields[index_method] = {"density"};
+      method_flux_correct_min_digits_values[index_method].push_back
+        (p->value_float (min_digits_name, 0.0));
+    } else if (p->type(min_digits_name) == parameter_list){
+      // load pairs of fields and min_digits
+      int list_length = p->list_length(min_digits_name);
+      ASSERT1("Config::read",
+              "The list assigned to %s must have a non-negative, even length",
+              min_digits_name.c_str(),
+              (list_length >= 0) && (list_length % 2 == 0));
+      for (int i =0; i < list_length; i+=2){
+        method_flux_correct_min_digits_fields[index_method].push_back
+          (p->list_value_string(i, min_digits_name));
+        method_flux_correct_min_digits_values[index_method].push_back
+          (p->list_value_float (i+1, min_digits_name, 0.0));
+      }
+    } else if (p->param(min_digits_name) != nullptr){
+      ERROR1("Config::read", "%s has an invalid type", min_digits_name.c_str());
     }
 
     for (int i=0; i<3; i++) {
