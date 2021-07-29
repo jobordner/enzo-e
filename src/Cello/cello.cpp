@@ -306,6 +306,15 @@ namespace cello {
 
   //---------------------------------------------------------------------- 
 
+  int define_field_in_group
+  (std::string field_name, std::string group_name,
+   int cx, int cy, int cz)
+  {
+    define_field (field_name,cx,cy,cz);
+    field_groups()->add(field_name,group_name);
+  }
+
+  //---------------------------------------------------------------------- 
   void finalize_fields ()
   {
     FieldDescr * field_descr = cello::field_descr();

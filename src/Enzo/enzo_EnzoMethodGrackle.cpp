@@ -71,100 +71,61 @@ void EnzoMethodGrackle::define_required_grackle_fields()
   chemistry_data * grackle_chemistry =
     enzo::config()->method_grackle_chemistry;
 
-  std::vector<std::string> required_fields = std::vector<std::string> {"density","internal_energy",
-                                                                       "total_energy"};
   const int rank = cello::rank();
-  if (rank>=0) required_fields.push_back("velocity_x");
-  if (rank>=1) required_fields.push_back("velocity_y");
-  if (rank>=2) required_fields.push_back("velocity_z");
 
-  if (grackle_chemistry->metal_cooling > 0){
-    required_fields.push_back("metal_density");
-    color_fields.push_back("metal_density");
+  cello::define_field ("density");
+  cello::define_field ("internal_energy");
+  cello::define_field ("total_energy");
+
+  if (rank>=1) cello::define_field ("velocity_x");
+  if (rank>=2) cello::define_field ("velocity_y");
+  if (rank>=3) cello::define_field ("velocity_z");
+
+  // Get Grackle parameters defining fields to define
+  
+  const int metal_cooling      = grackle_chemistry->metal_cooling;
+  const int chemistry_level    = grackle_chemistry->primordial_chemistry;
+  const int specific_heating   = grackle_chemistry->use_specific_heating_rate;
+  const int volumetric_heating = grackle_chemistry->use_volumetric_heating_rate;
+
+  // Metal cooling fields
+  
+  if (metal_cooling > 0) {
+    cello::define_field_in_group ("metal_density", "color");
   }
 
-  // Define primordial chemistry fields
-  if (grackle_chemistry->primordial_chemistry > 0){
-    std::vector<std::string> pc1_fields = {"HI_density","HII_density",
-                                 "HeI_density","HeII_density","HeIII_density",
-                                 "e_density"};
-    int numfields = 6;
+  // Primordial chemistry fields
 
-    for(int ifield = 0; ifield < numfields; ifield++){
-      if (! (field_descr->is_field( pc1_fields[ifield] ))){
-        fields_to_define.push_back( pc1_fields[ifield] );
-      }
-      color_fields.push_back( pc1_fields[ifield] );
-    }
-
-    required_fields.insert(required_fields.end(), pc1_fields.begin(), pc1_fields.end());
-    color_fields.insert(color_fields.end(), pc1_fields.begin(), pc1_fields.end());
-
-    if(grackle_chemistry->primordial_chemistry > 1){
-
-      std::vector<std::string> pc2_fields {"HM_density", "H2I_density", "H2II_density"};
-      required_fields.insert(required_fields.end(), pc2_fields.begin(), pc2_fields.end());
-      color_fields.insert(color_fields.end(), pc2_fields.begin(), pc2_fields.end());
-
-      if(grackle_chemistry->primordial_chemistry > 2){
-        std::vector<std::string> pc3_fields {"DI_density", "DII_density", "HDI_density"};
-        required_fields.insert(required_fields.end(), pc3_fields.begin(), pc3_fields.end());
-        color_fields.insert(color_fields.end(), pc3_fields.begin(), pc3_fields.end());
-      } // endif primordial_chemistry > 2
-    } // endif primordial_chemistry > 1
-  } // endif primordial chemistry is on
-
-  if (grackle_chemistry->use_specific_heating_rate)
-    required_fields.push_back("specific_heating_rate");
-
-  if (grackle_chemistry->use_volumetric_heating_rate)
-    required_fields.push_back("volumetric_heating_rate");
-
-  // Define fields and assign fields to correct
-  bool added_fields = false;
-
-  for (int ifield = 0; ifield < required_fields.size(); ifield++){
-    std::string field = required_fields[ifield];
-    if( ! field_descr->is_field( field )){
-      int id_field = field_descr->insert_permanent( field );
-
-      field_descr->set_precision(id_field, config->field_precision);
-      added_fields = true;
-    }
+  if (chemistry_level >= 1) {
+    cello::define_field_in_group ("density",       "color");
+    cello::define_field_in_group ("HI_density",    "color");
+    cello::define_field_in_group ("HII_density",   "color");
+    cello::define_field_in_group ("HeI_density",   "color");
+    cello::define_field_in_group ("HeII_density",  "color");
+    cello::define_field_in_group ("HeIII_density", "color");
+    cello::define_field_in_group ("e_density",     "color");
   }
 
-  //this->define_group_fields(color_fields, "color");
-  for (int ifield = 0; ifield < color_fields.size(); ifield++){
-
-    // Maybe just throw error here to keep this fully separate from above
-    if( ! field_descr->is_field( required_fields[ifield] )){
-      int field_id = field_descr->insert_permanent( required_fields[ifield] );
-      field_descr->set_precision(field_id, config->field_precision);
-      added_fields = true;
-    }
-
-    if (!(field_descr->groups()->is_in( color_fields[ifield], "color")) ){
-      field_descr->groups()->add( color_fields[ifield], "color");
-    }
+  if (chemistry_level >= 2) {
+    cello::define_field_in_group ("HM_density",   "color");
+    cello::define_field_in_group ("H2I_density",  "color");
+    cello::define_field_in_group ("H2II_density", "color");
   }
 
-
-  for (size_t ifield = 0; ifield < fields_to_define.size(); ifield++){
-    //    WARNING(fields_to_define[ifield].c_str() );
-    field_descr->insert_permanent( fields_to_define[ifield] );
+  if (chemistry_level >= 3) {
+    cello::define_field_in_group ("DI_density",  "color");
+    cello::define_field_in_group ("DII_density", "color" );
+    cello::define_field_in_group ("HDI_density", "color");
   }
 
-  // Set these fields to color if they exist
-  //    list of fields belonging to this method that are color
-  for (size_t ifield=0; ifield < color_fields.size(); ifield++){
-    if (   field_descr->is_permanent(  color_fields[ifield] ) &&
-           !(field_descr->groups()->is_in( color_fields[ifield], "color")) ){
-    }
-
-    // Need to reconstruct history if new fields added
-    if (added_fields) field_descr->reset_history(config->field_history);
-
+  if (specific_heating) {
+    cello::define_field("specific_heating_rate");
   }
+
+  if (volumetric_heating) {
+    cello::define_field("volumetric_heating_rate");
+  }    
+
 }
 #endif /* CONFIG_USE_GRACKLE */
 

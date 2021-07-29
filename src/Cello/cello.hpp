@@ -680,6 +680,12 @@ namespace cello {
   Grouping *      field_groups();
   /// Define field needed by method or solver
   int define_field (std::string field_name, int cx=0, int cy=0, int cz=0);
+
+  /// Define field needed by method or solver, and also add to a group
+  int define_field_in_group (std::string field_name,
+                             std::string group_name,
+                             int cx=0, int cy=0, int cz=0);
+  
   /// Call after adding all fields, temporary or permanent
   void finalize_fields ();
   

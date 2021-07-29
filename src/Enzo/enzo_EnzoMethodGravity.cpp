@@ -34,6 +34,7 @@ EnzoMethodGravity::EnzoMethodGravity
     index_prolong_(index_prolong)
 {
 
+  const int rank = cello::rank();
 
   // Change this if fields used in this routine change
   // declare required fields
@@ -41,9 +42,9 @@ EnzoMethodGravity::EnzoMethodGravity
   cello::define_field ("density_total");
   cello::define_field ("B");
   cello::define_field ("potential");
-  cello::define_field ("acceleration_x");
-  cello::define_field ("acceleration_y");
-  cello::define_field ("acceleration_z");
+  if (rank >= 1) cello::define_field ("acceleration_x");
+  if (rank >= 2) cello::define_field ("acceleration_y");
+  if (rank >= 3) cello::define_field ("acceleration_z");
 #ifdef DEBUG_FIELD_FACE
   cello::define_field ("debug_1");
   cello::define_field ("debug_2");
@@ -73,10 +74,11 @@ EnzoMethodGravity::EnzoMethodGravity
 
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->set_prolong(index_prolong_);
-  refresh->add_field("acceleration_x");
-  refresh->add_field("acceleration_y");
-  refresh->add_field("acceleration_z");
-  //  refresh->add_field("density");
+  
+  if (rank >= 1) refresh->add_field("acceleration_x");
+  if (rank >= 2) refresh->add_field("acceleration_y");
+  if (rank >= 3) refresh->add_field("acceleration_z");
+
   // Accumulate is used when particles are deposited into density_total
 
   if (accumulate) {
