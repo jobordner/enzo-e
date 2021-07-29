@@ -837,11 +837,8 @@ void Config::read_method_ (Parameters * p) throw()
 
     method_flux_correct_min_digits[index_method] =
       p->value_float (full_name + ":min_digits",0.0);
-    if (name == "flux_correct") 
-      {
-        method_flux_correct_single_array =
-          p->value_logical (full_name + ":single_array",true);
-      }
+    method_flux_correct_single_array =
+      p->value_logical (full_name + ":single_array",true);
 
     std::string min_digits_name = full_name + ":min_digits";
     if (p->type(min_digits_name) == parameter_float){
