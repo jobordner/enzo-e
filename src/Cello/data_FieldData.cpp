@@ -654,12 +654,6 @@ void FieldData::coarse_dimensions
   //    get block size (nx,ny,nz)
   int nx,ny,nz;
   size (&nx,&ny,&nz);
-  ASSERT3 ("FieldData::coarse_dimensions()",
-          "Block axis sizes (%d %d %d) must be even (or one)",
-          nx,ny,nz,
-          ((nx%2)==0) &&
-          (((ny%2)==0) || (ny==1)) &&
-          (((nz%2)==0) || (nz==1)));
 
   //    get ghost size (gx,gy,gz)
   int gx,gy,gz;
