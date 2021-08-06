@@ -240,36 +240,38 @@ parallel_run = ""
 parallel_arg = ""
 smp = 0
 
-if   (arch == "gordon_gnu"):   from gordon_gnu   import *
-elif (arch == "gordon_intel"): from gordon_intel import *
-elif (arch == "gordon_pgi"):   from gordon_pgi   import *
-elif (arch == "comet_gnu"):    from comet_gnu    import *
-elif (arch == "linux_gnu"):    from linux_gnu    import *
-elif (arch == "linux_clang"):  from linux_clang  import *
-elif (arch == "linux_illium"): from linux_illium import *
-elif (arch == "linux_gcc_9"):  from linux_gcc_9  import *
-elif (arch == "linux_intel"):  from linux_intel  import *
-elif (arch == "linux_yt"):     from linux_yt     import *
-elif (arch == "linux_gprof"):  from linux_gprof  import *
-elif (arch == "linux_mpe"):    from linux_mpe    import *
-elif (arch == "linux_tau"):    from linux_tau    import *
-elif (arch == "ncsa_bw"):      from ncsa_bw      import *
-elif (arch == "ncsa_bw_net"):  from ncsa_bw_net  import *
-elif (arch == "ncsa_bw_smp"):  from ncsa_bw_smp  import *
+if (arch == "comet_gnu"):    from comet_gnu    import *
+elif (arch == "darwin_gnu"):   from darwin_gnu   import *
+elif (arch == "darwin_homebrew"):   from darwin_homebrew   import *
+elif (arch == "davros_gnu"):   from davros_gnu   import *
+elif (arch == "davros_gnu_debug"):  from davros_gnu_debug  import *
 elif (arch == "faraday_gnu"):  from faraday_gnu  import *
 elif (arch == "faraday_gnu_debug"):  from faraday_gnu_debug  import *
 elif (arch == "frontera_gcc"): from frontera_gcc import *
 elif (arch == "frontera_icc"): from frontera_icc import *
+elif (arch == "frontera_intel"): from frontera_intel import *
+elif (arch == "gordon_gnu"):   from gordon_gnu   import *
+elif (arch == "gordon_intel"): from gordon_intel import *
+elif (arch == "gordon_pgi"):   from gordon_pgi   import *
+elif (arch == "linux_clang"):  from linux_clang  import *
+elif (arch == "linux_gcc_9"):  from linux_gcc_9  import *
+elif (arch == "linux_gnu"):    from linux_gnu    import *
+elif (arch == "linux_gprof"):  from linux_gprof  import *
+elif (arch == "linux_illium"): from linux_illium import *
+elif (arch == "linux_intel"):  from linux_intel  import *
+elif (arch == "linux_mpe"):    from linux_mpe    import *
+elif (arch == "linux_tau"):    from linux_tau    import *
+elif (arch == "linux_yt"):     from linux_yt     import *
 elif (arch == "mf_gnu"):       from mf_gnu       import *
 elif (arch == "mf_gnu_debug"): from mf_gnu_debug import *
+elif (arch == "msu_hpcc_gcc"): from msu_hpcc_gcc   import *
+elif (arch == "nasa_pleiades_gcc"): from nasa_pleiades_gcc import *
+elif (arch == "nasa_pleiades_icc"): from nasa_pleiades_icc import *
+elif (arch == "ncsa_bw"):      from ncsa_bw      import *
+elif (arch == "ncsa_bw_net"):  from ncsa_bw_net  import *
+elif (arch == "ncsa_bw_smp"):  from ncsa_bw_smp  import *
 elif (arch == "stampede_gnu"): from stampede_gnu import *
 elif (arch == "stampede_intel"): from stampede_intel import *
-elif (arch == "frontera_intel"): from frontera_intel import *
-elif (arch == "davros_gnu"):   from davros_gnu   import *
-elif (arch == "davros_gnu_debug"):  from davros_gnu_debug  import *
-elif (arch == "darwin_gnu"):   from darwin_gnu   import *
-elif (arch == "darwin_homebrew"):   from darwin_homebrew   import *
-elif (arch == "msu_hpcc_gcc"): from msu_hpcc_gcc   import *
 
 #======================================================================
 # END ARCHITECTURE SETTINGS
