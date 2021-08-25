@@ -68,9 +68,7 @@ Block::Block ( MsgRefine * msg )
     child_face_level_next_(),
     count_coarsen_(0),
     adapt_step_(0),
-    adapt_(adapt_unknown),
     coarsened_(false),
-    delete_(false),
     is_leaf_(true),
     age_(0),
     face_level_last_(),
@@ -122,9 +120,7 @@ Block::Block ( process_type ip_source )
     child_face_level_next_(),
     count_coarsen_(0),
     adapt_step_(0),
-    adapt_(adapt_unknown),
     coarsened_(false),
-    delete_(false),
     is_leaf_(true),
     age_(0),
     face_level_last_(),
@@ -194,7 +190,6 @@ void Block::init
   time_ = time;
   dt_ = dt;
   adapt_step_ = num_adapt_steps;
-  adapt_ = adapt_unknown;
 
   // Enable Charm++ AtSync() dynamic load balancing
 
@@ -379,9 +374,7 @@ void Block::pup(PUP::er &p)
   p | child_face_level_next_;
   p | count_coarsen_;
   p | adapt_step_;
-  p | adapt_;
   p | coarsened_;
-  p | delete_;
   p | is_leaf_;
   p | age_;
   p | face_level_last_;
@@ -496,9 +489,7 @@ void Block::print () const
   CkPrintf ("child_face_level_next_.size() = %lu\n",child_face_level_next_.size());
   CkPrintf ("count_coarsen_ = %d\n",count_coarsen_);
   CkPrintf ("adapt_step_ = %d\n",adapt_step_);
-  CkPrintf ("adapt_ = %d\n",adapt_);
   CkPrintf ("coarsened_ = %d\n",coarsened_);
-  CkPrintf ("delete_ = %d\n",delete_);
   CkPrintf ("is_leaf_ = %d\n",is_leaf_);
   CkPrintf ("age_ = %d\n",age_);
   CkPrintf ("face_level_last_.size() = %lu\n",face_level_last_.size());
@@ -709,9 +700,7 @@ Block::Block ()
     child_face_level_next_(),
     count_coarsen_(0),
     adapt_step_(0),
-    adapt_(0),
     coarsened_(false),
-    delete_(false),
     is_leaf_(true),
     age_(0),
     face_level_last_(),
@@ -747,9 +736,7 @@ Block::Block (CkMigrateMessage *m)
     child_face_level_next_(),
     count_coarsen_(0),
     adapt_step_(0),
-    adapt_(adapt_unknown),
     coarsened_(false),
-    delete_(false),
     is_leaf_(true),
     age_(0),
     face_level_last_(),
@@ -1056,9 +1043,7 @@ void Block::copy_(const Block & block) throw()
   dt_         = block.dt_;
   stop_       = block.stop_;
   adapt_step_ = block.adapt_step_;
-  adapt_      = block.adapt_;
   coarsened_  = block.coarsened_;
-  delete_     = block.delete_;
 }
 
 //----------------------------------------------------------------------
@@ -1113,18 +1098,6 @@ void Block::check_leaf_()
   }
 }
 
-
-//----------------------------------------------------------------------
-
-void Block::check_delete_()
-{
-  if (delete_) {
-    WARNING1("Block::check_delete_()",
-	     "%s: Block exists but is marked for deletion",
-	     name_.c_str());
-    return;
-  }
-}
 
 //----------------------------------------------------------------------
 
