@@ -108,11 +108,11 @@ fields
    * - ``"velocity_y"``
      - ``enzo_float``
      - [rw]
-     - if rank ≥ 2
+     - if rank >= 2
    * - ``"velocity_z"``
      - ``enzo_float``
      -  [rw]
-     - if rank ≥ 3
+     - if rank >= 3
    * - ``"total_energy"``
      - ``enzo_float``
      - [rw]
@@ -124,11 +124,11 @@ fields
    * - ``"acceleration_y"``
      - ``enzo_float``
      - [r]
-     - if gravity and rank ≥ 2
+     - if gravity and rank >= 2
    * - ``"acceleration_z"``
      - ``enzo_float``
      - [r]
-     - if gravity and rank ≥ 3
+     - if gravity and rank >= 3
    * - ``"pressure"``
      - ``enzo_float``
      - [w]

@@ -17,7 +17,7 @@
 :Default: :d:`1.0`
 :Scope:     :c:`Cello`
 
-:e:`Units scaling factor for mass.  Only one of mass and density Units parameters can be initialized to	≠ 0.`
+:e:`Units scaling factor for mass.  Only one of mass and density Units parameters can be initialized to	be non-zero.`
 
 ----
 
@@ -39,5 +39,5 @@
 :Default: :d:`1.0`
 :Scope:     :c:`Cello`
 
-:e:`Units scaling factor for density.  Only one of mass and density Units parameters can be initialized to	≠ 0.`
+:e:`Units scaling factor for density.  Only one of mass and density Units parameters can be initialized to be non-zero.`
 

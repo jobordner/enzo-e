@@ -38,7 +38,7 @@
 :Scope:     :c:`Cello`
 :Assumes:   :g:`<file_set>` is of :p:`type` :t:`"image"`
 
-:e:`For the "image" output type, a list of the form` [r\ :sub:`0`\, g\ :sub:`0`\, b\ :sub:`0`\, r\ :sub:`1`\, g\ :sub:`1`\, b\ :sub:`1`\, ...], :e:`where` 0.0 ≤ r\ :sub:`i`\,g\ :sub:`i`\,b\ :sub:`i`\ ≤ :e:`1.0 are RGB values.`
+:e:`For the "image" output type, a list of the form` [r\ :sub:`0`\, g\ :sub:`0`\, b\ :sub:`0`\, r\ :sub:`1`\, g\ :sub:`1`\, b\ :sub:`1`\, ...], :e:`where` 0.0 <= r\ :sub:`i`\,g\ :sub:`i`\,b\ :sub:`i`\ <= :e:`1.0 are RGB values.`
 
 ----
 

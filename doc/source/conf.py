@@ -44,7 +44,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Enzo-E / Cello'
-copyright = u'2019, James Bordner'
+copyright = u'2021, Enzo Development Community'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -184,7 +184,7 @@ htmlhelp_basename = 'Enzo-ECellodoc'
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'Enzo-ECello.tex', u'Enzo-E / Cello Documentation',
-   u'James Bordner', 'manual'),
+   u'Enzo Development Community', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -217,7 +217,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'enzo-ecello', u'Enzo-E / Cello Documentation',
-     [u'James Bordner'], 1)
+     [u'Enzo Development Community'], 1)
 ]
 
 
@@ -225,9 +225,9 @@ man_pages = [
 
 # Bibliographic Dublin Core info.
 epub_title = u'Enzo-E / Cello'
-epub_author = u'James Bordner'
-epub_publisher = u'James Bordner'
-epub_copyright = u'2019, James Bordner'
+epub_author = u'Enzo Development Community'
+epub_publisher = u'Enzo Development Community'
+epub_copyright = u'2021, Enzo Development Community'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
