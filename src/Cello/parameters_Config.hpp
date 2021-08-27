@@ -104,6 +104,7 @@ public: // interface
     method_prolong(),
     method_timestep(),
     method_trace_name(),
+    method_type(),
   // MethodNull
     method_null_dt(0.0),
     monitor_debug(false),
@@ -278,6 +279,7 @@ public: // interface
       method_prolong(),
       method_timestep(),
       method_trace_name(),
+      method_type(),
       method_null_dt(0.0),
       monitor_debug(false),
       monitor_verbose(false),
@@ -507,6 +509,7 @@ public: // attributes
 
   std::vector<double>        method_timestep;
   std::vector<std::string>   method_trace_name;
+  std::vector<std::string>   method_type;
   double                     method_null_dt;
 
 
