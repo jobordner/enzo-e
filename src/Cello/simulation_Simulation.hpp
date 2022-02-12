@@ -535,7 +535,7 @@ protected: // attributes
   std::vector < std::string > refresh_name_;
 
   /// Saved latest checkpoint directory for creating symlink
-  char dir_checkpoint_[256];
+  char dir_checkpoint_[255+1];
 
   std::map<Index,MsgRefine *> msg_refine_map_;
 

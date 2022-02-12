@@ -120,6 +120,9 @@ protected: // attributes
   /// Whether destination is local or remote
   bool is_local_;
 
+  /// Saved Charm++ buffers for deleting after unpack()
+  void * buffer_;
+
   /// Type of data, field or particle
   std::string data_type_;
 
@@ -144,9 +147,6 @@ protected: // attributes
   /// If positive, the expected count of number of messages (including
   /// this one) that will be received
   int count_;
-
-  /// Saved Charm++ buffers for deleting after unpack()
-  void * buffer_;
 
   /// Random hex tag for tracking messages for debugging
   char tag_[TAG_LEN+1];

@@ -189,7 +189,6 @@ void MethodFluxCorrect::compute_continue_sum_fields
   
   if (block->index().is_root()) {
 
-    const int index_density = field.field_id("density");
     // for each conserved field
     for (int i_f=0; i_f<nf; i_f++) {
 
@@ -237,7 +236,7 @@ static void flux_correct_helper_(cello_float * const field_array,
 {
   int ix,iy,iz;
 
-  int axis,face,level_face;
+  int axis,face;
 
   axis=0;
   // X axis

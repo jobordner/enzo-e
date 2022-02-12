@@ -41,21 +41,6 @@ public: // interface
     particle_data_ = particle.particle_data_;
   }
 
-  /// Assignment operator
-  Particle & operator= (const Particle & particle) throw()
-  {
-    particle_descr_ = particle.particle_descr_;
-    particle_data_ = particle.particle_data_;
-    return *this;
-  }
-
-  /// Comparison operator
-  bool operator== (const Particle & particle) throw ()
-  {
-    return (particle_descr_ == particle.particle_descr_) &&
-      (*particle_data_ == *particle.particle_data_);
-  }
-
   /// Destructor
   ~Particle() throw()
   {}
@@ -351,6 +336,13 @@ public: // interface
   { particle_data_->compress(particle_descr_); }
   void compress (int it)
   { particle_data_->compress(particle_descr_,it); }
+
+  /// Remove any empty batches created after deleting particles. Must
+  /// be called by user code /after/ deleting particles
+  void cull_empty_batches()
+  { particle_data_->cull_empty_batches(particle_descr_); }
+  void cull_empty_batches(int it)
+  { particle_data_->cull_empty_batches(particle_descr_,it); }
 
   /// Return the storage "efficiency" for particles of the given type
   /// and in the given batch, or average if batch or type not specified.

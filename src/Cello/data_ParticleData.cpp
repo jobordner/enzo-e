@@ -25,19 +25,32 @@ ParticleData::ParticleData()
 
 //----------------------------------------------------------------------
 
-bool ParticleData::operator== (const ParticleData & particle_data) throw ()
-{
-  return
-    (attribute_array_ == particle_data.attribute_array_) &&
-    (attribute_align_ == particle_data.attribute_align_) &&
-    (particle_count_  == particle_data.particle_count_);
-}
-
-//----------------------------------------------------------------------
-
 void ParticleData::pup (PUP::er &p)
 {
-  p | attribute_array_;
+
+  const bool up = p.isUnpacking();
+
+  // determine number of types and allocate dimension
+  int nt = (!up) ? attribute_array_.size() : 0;
+  p | nt;
+  if (up) attribute_array_.resize(nt);
+  // for each type
+  for (int it=0; it<nt; it++) {
+    // determine number of blocks and allocate dimension
+    int nb = (!up) ? attribute_array_[it].size() : 0;
+    p | nb;
+    if (up) attribute_array_[it].resize(nb);
+    for (int ib=0; ib<nb; ib++) {
+      // determine block size and allocate the vector pointer
+      int nap = (!up) ? attribute_array_[it][ib]->size() : 0;
+      p | nap;
+      if (up) {
+        attribute_array_[it][ib] = new std::vector<char>;
+        attribute_array_[it][ib]->resize(nap);
+      }
+      p | *attribute_array_[it][ib];
+    }
+  }
   p | attribute_align_;
   p | particle_count_;
 }
@@ -50,8 +63,9 @@ ParticleData::~ParticleData()
 }
 //----------------------------------------------------------------------
 
-char * ParticleData::attribute_array (ParticleDescr * particle_descr,
-				      int it,int ia,int ib)
+char * ParticleData::attribute_array
+(const ParticleDescr * particle_descr,
+ int it,int ia,int ib)
 {
 
   bool in_range =        (0 <= it && it < particle_descr->num_types());
@@ -62,7 +76,7 @@ char * ParticleData::attribute_array (ParticleDescr * particle_descr,
   if ( in_range ) {
     int offset = particle_descr->attribute_offset(it,ia);
     int align =  attribute_align_[it][ib];
-    array = &attribute_array_[it][ib][0] + (offset + align);
+    array = &(*attribute_array_[it][ib])[0] + (offset + align);
   }
   return array;
 }
@@ -79,7 +93,7 @@ int ParticleData::num_batches (int it) const
 //----------------------------------------------------------------------
 
 int ParticleData::num_particles
-(ParticleDescr * particle_descr) const
+(const ParticleDescr * particle_descr) const
 {
   const int nt = particle_descr->num_types();
   int np = 0;
@@ -92,7 +106,7 @@ int ParticleData::num_particles
 //----------------------------------------------------------------------
 
 int ParticleData::num_particles
-(ParticleDescr * particle_descr,int it) const
+(const ParticleDescr * particle_descr,int it) const
 {
   int nb = num_batches(it);
   int np = 0;
@@ -105,7 +119,7 @@ int ParticleData::num_particles
 //----------------------------------------------------------------------
 
 int ParticleData::num_particles
-(ParticleDescr * particle_descr, int it, int ib) const
+(const ParticleDescr * particle_descr, int it, int ib) const
 {
   if ( !(0 <= it && it < particle_descr->num_types()) ) return 0;
   if ( !(0 <= ib && ib < num_batches(it)) ) return 0;
@@ -116,7 +130,7 @@ int ParticleData::num_particles
 //----------------------------------------------------------------------
 
 int ParticleData::num_local_particles
-(ParticleDescr * particle_descr) const
+(const ParticleDescr * particle_descr) const
 {
   const int nt = particle_descr->num_types();
   int np = 0;
@@ -129,7 +143,7 @@ int ParticleData::num_local_particles
 //----------------------------------------------------------------------
 
 int ParticleData::num_local_particles
-(ParticleDescr * particle_descr,int it) const
+(const ParticleDescr * particle_descr,int it) const
 {
   int nb = num_batches(it);
   int np = 0;
@@ -142,7 +156,7 @@ int ParticleData::num_local_particles
 //----------------------------------------------------------------------
 
 int ParticleData::num_local_particles
-(ParticleDescr * particle_descr, int it, int ib) const
+(const ParticleDescr * particle_descr, int it, int ib) const
 {
   if ( !(0 <= it && it < particle_descr->num_types()) ) return 0;
   if ( !(0 <= ib && ib < num_batches(it)) ) return 0;
@@ -175,7 +189,7 @@ int ParticleData::num_local_particles
 //----------------------------------------------------------------------
 
 int ParticleData::insert_particles
-(ParticleDescr * particle_descr,
+(const ParticleDescr * particle_descr,
  int it, int np,
  const bool copy  // default = false
 )
@@ -220,7 +234,12 @@ int ParticleData::insert_particles
 	     "Trying to insert negative particles: ib_this = %d",
 	      ib_this, ib_this >= 0);
 
-      attribute_array_[it].resize(ib_this+1);
+      attribute_array_[it].resize(ib_this+1,nullptr);
+      for (int ib=0; ib<ib_this+1; ib++) {
+        if (attribute_array_[it][ib] == nullptr) {
+          attribute_array_[it][ib] = new std::vector<char>;
+        }
+      }
       attribute_align_[it].resize(ib_this+1);
       particle_count_ [it].resize(ib_this+1);
     }
@@ -243,7 +262,7 @@ int ParticleData::insert_particles
 //----------------------------------------------------------------------
 
 int ParticleData::delete_particles
-(ParticleDescr * particle_descr,
+(const ParticleDescr * particle_descr,
  int it, int ib, const bool * mask)
 {
   check_arrays_(particle_descr,__FILE__,__LINE__);
@@ -288,7 +307,7 @@ int ParticleData::delete_particles
 //----------------------------------------------------------------------
 
 void ParticleData::scatter
-(ParticleDescr * particle_descr,
+(const ParticleDescr * particle_descr,
  int it, int ib,
  int np, const bool * mask, const int * index,
  int n, ParticleData * particle_array[],
@@ -421,7 +440,7 @@ void ParticleData::scatter
 //----------------------------------------------------------------------
 
 int ParticleData::gather
-(ParticleDescr * particle_descr, int it,
+(const ParticleDescr * particle_descr, int it,
  int n, ParticleData * particle_array[])
 {
   int count = 0;
@@ -488,7 +507,7 @@ int ParticleData::gather
 
 //----------------------------------------------------------------------
 
-void ParticleData::compress (ParticleDescr * particle_descr)
+void ParticleData::compress (const ParticleDescr * particle_descr)
 {
   const int nt = particle_descr->num_types();
   for (int it=0; it<nt; it++) {
@@ -498,7 +517,7 @@ void ParticleData::compress (ParticleDescr * particle_descr)
 
 //----------------------------------------------------------------------
 
-void ParticleData::compress (ParticleDescr * particle_descr, int it)
+void ParticleData::compress (const ParticleDescr * particle_descr, int it)
 {
   const int nb = num_batches(it);
   const int mb = particle_descr->batch_size();
@@ -515,13 +534,12 @@ void ParticleData::compress (ParticleDescr * particle_descr, int it)
   int np_src; // number of particles in ib_src batch
 
   // find destination: first empty spot
-
-  ib_dst=0;
-  np_dst=(ib_dst<nb) ? num_particles(particle_descr,it,ib_dst) : 0;
-  while (ib_dst<nb && np_dst == mb) {
-    ib_dst++;
-  } // assert ib_dst == nb || np_dst < mb
-  ip_dst = np_dst;
+  ib_dst = 0;
+  ip_dst = 0;
+  if (next_particle_space_(particle_descr,it,&ib_dst,&ip_dst)) {
+    // return if already compressed
+    return;
+  }
 
   // first source: next non-empty spot
   ib_src = ib_dst + 1;
@@ -564,13 +582,14 @@ void ParticleData::compress (ParticleDescr * particle_descr, int it)
 
   }
 
-  // deallocate empty batches?
+  // remove any remaining empty batches
+  cull_empty_batches(particle_descr,it);
 }
 
 
 //----------------------------------------------------------------------
 
-float ParticleData::efficiency (ParticleDescr * particle_descr)
+float ParticleData::efficiency (const ParticleDescr * particle_descr)
 {
   int64_t bytes_min=0,bytes_used=0;
   const int mb = particle_descr->batch_size();
@@ -591,7 +610,7 @@ float ParticleData::efficiency (ParticleDescr * particle_descr)
 
 //----------------------------------------------------------------------
 
-float ParticleData::efficiency (ParticleDescr * particle_descr, int it)
+float ParticleData::efficiency (const ParticleDescr * particle_descr, int it)
 {
   int64_t bytes_min=0,bytes_used=0;
   const int mb = particle_descr->batch_size();
@@ -608,7 +627,7 @@ float ParticleData::efficiency (ParticleDescr * particle_descr, int it)
 
 //----------------------------------------------------------------------
 
-float ParticleData::efficiency (ParticleDescr * particle_descr, int it, int ib)
+float ParticleData::efficiency (const ParticleDescr * particle_descr, int it, int ib)
 {
 
   const int mp = particle_descr->particle_bytes(it);
@@ -626,7 +645,7 @@ float ParticleData::efficiency (ParticleDescr * particle_descr, int it, int ib)
 
 bool ParticleData::position
 (
- ParticleDescr * particle_descr,
+ const ParticleDescr * particle_descr,
  int it, int ib,
  double * x, double * y, double * z)
 {
@@ -672,7 +691,7 @@ bool ParticleData::position
 
 bool ParticleData::velocity
 (
- ParticleDescr * particle_descr,
+ const ParticleDescr * particle_descr,
  int it, int ib,
  double * vx, double * vy, double * vz)
 {
@@ -704,8 +723,48 @@ bool ParticleData::velocity
 
 //----------------------------------------------------------------------
 
+void ParticleData::cull_empty_batches(const ParticleDescr * particle_descr)
+{
+  const int nt = particle_descr->num_types();
+  for (int it=0; it<nt; it++) {
+    cull_empty_batches(particle_descr,it);
+  }
+}
+
+//----------------------------------------------------------------------
+
+void ParticleData::cull_empty_batches(const ParticleDescr * particle_descr, int it)
+{
+  const int nb = num_batches(it);
+  int ib_last = 0;
+  for (int ib=0; ib<nb; ib++) {
+    const int np = num_particles(particle_descr,it,ib);
+    if (np != 0) {
+      if (ib != ib_last) {
+        attribute_array_[it][ib_last] = attribute_array_[it][ib];
+        attribute_align_[it][ib_last] = attribute_align_[it][ib];
+        particle_count_[it][ib_last] = particle_count_[it][ib];
+      }
+      ib_last++;
+    }
+  }
+  if (ib_last != nb) {
+    // delete extra remaining empty batches
+    for (int ib=ib_last; ib<nb; ib++) {
+      delete attribute_array_[it][ib];
+    }
+    // resize arrays
+    attribute_array_[it].resize(ib_last);
+    attribute_align_[it].resize(ib_last);
+    particle_count_[it].resize(ib_last);
+    // *** update array lengths to ib_last
+  }
+}
+
+//----------------------------------------------------------------------
+
 void ParticleData::position_update
-(ParticleDescr * particle_descr,int it, int ib,
+(const ParticleDescr * particle_descr,int it, int ib,
  long double dx, long double dy, long double dz)
 {
   const int ia_x = particle_descr->attribute_position(it,0);
@@ -742,7 +801,7 @@ void ParticleData::position_update
 //----------------------------------------------------------------------
 
 void ParticleData::copy_attribute_float_
-(ParticleDescr * particle_descr,
+(const ParticleDescr * particle_descr,
  int type, int it, int ib, int ia, double * coord)
 {
 
@@ -767,7 +826,7 @@ void ParticleData::copy_attribute_float_
 //----------------------------------------------------------------------
 
 void ParticleData::update_attribute_float_
-(ParticleDescr * particle_descr,
+(const ParticleDescr * particle_descr,
  int type, int it, int ib, int ia, long double da)
 {
   const int dx = particle_descr->stride(it,ia);
@@ -792,7 +851,7 @@ void ParticleData::update_attribute_float_
 //----------------------------------------------------------------------
 
 void ParticleData::copy_position_int_
-(ParticleDescr * particle_descr,
+(const ParticleDescr * particle_descr,
  int type, int it, int ib, int ia, double * coord)
 {
   const int dx = particle_descr->stride(it,ia);
@@ -821,7 +880,7 @@ void ParticleData::copy_position_int_
 //----------------------------------------------------------------------
 
 void ParticleData::update_position_int_
-(ParticleDescr * particle_descr,
+(const ParticleDescr * particle_descr,
  int type, int it, int ib, int ia, int64_t da)
 {
   const int dx = particle_descr->stride(it,ia);
@@ -852,7 +911,7 @@ void ParticleData::update_position_int_
 
 //----------------------------------------------------------------------
 
-int ParticleData::data_size (ParticleDescr * particle_descr) const
+int ParticleData::data_size (const ParticleDescr * particle_descr) const
 {
 
   int size = 0;
@@ -882,7 +941,7 @@ int ParticleData::data_size (ParticleDescr * particle_descr) const
       size += sizeof(int);
 
       // attribute_array_[it][ib] values
-      const int mp = attribute_array_[it][ib].size();
+      const int mp = attribute_array_[it][ib]->size();
       size += mp * sizeof(char);
     }
   }
@@ -891,7 +950,7 @@ int ParticleData::data_size (ParticleDescr * particle_descr) const
 
 //----------------------------------------------------------------------
 
-char * ParticleData::save_data (ParticleDescr * particle_descr,
+char * ParticleData::save_data (const ParticleDescr * particle_descr,
 				char * buffer) const
 {
   union {
@@ -921,7 +980,7 @@ char * ParticleData::save_data (ParticleDescr * particle_descr,
 
       // ...store particle attribute array lengths
 
-      (*pi++) = attribute_array_[it][ib].size();
+      (*pi++) = attribute_array_[it][ib]->size();
 
     }
   }
@@ -949,9 +1008,10 @@ char * ParticleData::save_data (ParticleDescr * particle_descr,
   for (int it=0; it<nt; it++) {
     const int nb = attribute_array_[it].size();
     for (int ib=0; ib<nb; ib++) {
-      const int n = attribute_array_[it][ib].size();
+      const int n = attribute_array_[it][ib]->size();
+      char * pc_src = &(*attribute_array_[it][ib])[0];
       for (int k=0; k<n; k++) {
-	(*pc++) = attribute_array_[it][ib][k];
+	(*pc++) = (*pc_src++);
       }
     }
   }
@@ -966,7 +1026,7 @@ char * ParticleData::save_data (ParticleDescr * particle_descr,
 
 //----------------------------------------------------------------------
 
-char * ParticleData::load_data (ParticleDescr * particle_descr,
+char * ParticleData::load_data (const ParticleDescr * particle_descr,
 				char * buffer)
 {
   // NOTE: integers stored first, then char's, to avoid alignment issues
@@ -1008,7 +1068,13 @@ char * ParticleData::load_data (ParticleDescr * particle_descr,
 	    "Trying to allocate negative particle batches: nb = %d",
 	    nb, nb >= 0);
 
-    attribute_array_[it].resize(nb);
+    attribute_array_[it].resize(nb,nullptr);
+    // allocate new batch vectors
+    for (int ib=0; ib<nb; ib++) {
+      if (attribute_array_[it][ib] == nullptr) {
+        attribute_array_[it][ib] = new std::vector<char>;
+      }
+    }
     attribute_align_[it].resize(nb);
     particle_count_[it].resize(nb);
 
@@ -1022,7 +1088,7 @@ char * ParticleData::load_data (ParticleDescr * particle_descr,
 	      "Trying to allocate negative particles: np = %d",
 	      np, np >= 0);
 
-      attribute_array_[it][ib].resize(np);
+      attribute_array_[it][ib]->resize(np);
 
     }
   }
@@ -1050,9 +1116,10 @@ char * ParticleData::load_data (ParticleDescr * particle_descr,
   for (int it=0; it<nt; it++) {
     const int nb = attribute_array_[it].size();
     for (int ib=0; ib<nb; ib++) {
-      const int n = attribute_array_[it][ib].size();
+      const int n = attribute_array_[it][ib]->size();
+      char * pc_dst = &(*attribute_array_[it][ib])[0];
       for (int k=0; k<n; k++) {
-	attribute_array_[it][ib][k] = (*pc++);
+	(*pc_dst++) = (*pc++);
       }
     }
   }
@@ -1066,7 +1133,7 @@ char * ParticleData::load_data (ParticleDescr * particle_descr,
 
 //----------------------------------------------------------------------
 
-void ParticleData::debug (ParticleDescr * particle_descr)
+void ParticleData::debug (const ParticleDescr * particle_descr)
 {
   const int nt = particle_descr->num_types();
 
@@ -1074,38 +1141,42 @@ void ParticleData::debug (ParticleDescr * particle_descr)
     int nb = num_batches(it);
     int na = particle_descr->num_attributes(it);
     int np = num_particles(particle_descr,it);
+    int mb = particle_descr->batch_size();
     std::string name = particle_descr->type_name(it);
 
-    printf ("particle %p: type name         %d %s\n", (void*)this,it,
+    CkPrintf ("particle %p: type name         %d %s\n", (void*)this,it,
             name.c_str());
-    printf ("particle %p:    num_attributes %d %d\n", (void*)this,it,na);
+    CkPrintf ("particle %p:    num_attributes %d %d\n", (void*)this,it,na);
     for (int ia=0; ia<na; ia++)
-      printf ("particle %p:       %s\n",
+      CkPrintf ("particle %p:       %s\n",
 	    (void*)this,particle_descr->attribute_name(it,ia).c_str());
-    printf ("particle %p:    num_particles  %d %d\n", (void*)this,it,np);
-    printf ("particle %p:    num_batches    %d %d\n", (void*)this,it,nb);
+    CkPrintf ("particle %p:    num_particles  %d %d\n", (void*)this,it,np);
+    CkPrintf ("particle %p:    num_batches    %d %d\n", (void*)this,it,nb);
+    CkPrintf ("particle %p:    batch_size     %d %d\n", (void*)this,it,mb);
     for (int ib=0; ib<nb; ib++) {
-      printf ("particle %p:      ",(void*)this);
-      for (int ip=0; ip<np; ip++) {
+      CkPrintf ("particle %p:      ",(void*)this);
+      for (int ip=0; ip<mb; ip++) {
 	for (int ia=0; ia<na; ia++) {
 	  int d = particle_descr->stride(it,ia);
 	  char * a = attribute_array(particle_descr,it,ia,ib);
 	  int type = particle_descr->attribute_type (it,ia);
 	  if (type==type_double) {
-	    printf ("%10.5f ",((double*)a)[ip*d]);
+	    CkPrintf ("%10.5f ",((double*)a)[ip*d]);
 	  } else if (type==type_float) {
-	    printf ("%10.5f ",((float*)a)[ip*d]);
+	    CkPrintf ("%10.5f ",((float*)a)[ip*d]);
+	  } else if (type==type_int16) {
+	    CkPrintf ("%6d ",((int16_t*)a)[ip*d]);
 	  } else if (type==type_int32) {
-	    printf ("%6d ",((int32_t*)a)[ip*d]);
+	    CkPrintf ("%6d ",((int32_t*)a)[ip*d]);
 	  } else if (type==type_int64) {
-	    printf ("%6ld ",((int64_t*)a)[ip*d]);
+	    CkPrintf ("%6ld ",((int64_t*)a)[ip*d]);
 	  } else {
 	    ERROR1("ParticleData::debug()",
 		   "Unknown particle attribute type %d",
 		   type);
 	  }
 	}
-	printf ("\n");
+	CkPrintf ("\n");
       }
     }
 
@@ -1116,7 +1187,7 @@ void ParticleData::debug (ParticleDescr * particle_descr)
 
 //----------------------------------------------------------------------
 
-void ParticleData::write_ifrite (ParticleDescr * particle_descr,
+void ParticleData::write_ifrite (const ParticleDescr * particle_descr,
 				 int it, std::string file_name,
 				 double xm, double ym, double zm,
 				 double xp, double yp, double zp)
@@ -1145,9 +1216,23 @@ void ParticleData::write_ifrite (ParticleDescr * particle_descr,
 
 //======================================================================
 
+bool ParticleData::next_particle_space_
+(const ParticleDescr * particle_descr,int it,int *ib, int *ip)
+{
+  const int nb = num_batches(it);
+  const int mb = particle_descr->batch_size();
+  (*ip)=((*ib)<nb) ? num_particles(particle_descr,it,(*ib)) : 0;
+  while ((*ib)<nb && (*ip) == mb) {
+    (*ib)++;
+    (*ip)=((*ib)<nb) ? num_particles(particle_descr,it,(*ib)) : 0;
+  } // assert ib == nb || np < mb
+  return ((*ib) == nb);
+}
+
+//----------------------------------------------------------------------
 
 void ParticleData::resize_attribute_array_
-(ParticleDescr * particle_descr,int it, int ib, int np)
+(const ParticleDescr * particle_descr,int it, int ib, int np)
 {
   // store number of particles allocated
   particle_count_[it][ib] = np;
@@ -1160,14 +1245,13 @@ void ParticleData::resize_attribute_array_
 
   long unsigned new_size = mp*(np) + (PARTICLE_ALIGN - 1) ;
 
-  if (attribute_array_[it][ib].size() != new_size) {
+  if (attribute_array_[it][ib]->size() != new_size) {
 
     ASSERT1("ParticleData::resize_attribute_array_",
 	    "Trying to allocate negative particles: new_size = %ld",
 	    new_size, new_size >= 0);
-
-    attribute_array_[it][ib].resize(new_size);
-    char * array = &attribute_array_[it][ib][0];
+    attribute_array_[it][ib]->resize(new_size);
+    char * array = &(*attribute_array_[it][ib])[0];
     uintptr_t iarray = (uintptr_t) array;
     int defect = (iarray % PARTICLE_ALIGN);
     attribute_align_[it][ib] = (defect == 0) ? 0 : PARTICLE_ALIGN-defect;
@@ -1176,8 +1260,9 @@ void ParticleData::resize_attribute_array_
 
 //----------------------------------------------------------------------
 
-void ParticleData::check_arrays_ (ParticleDescr * particle_descr,
-		    std::string file, int line) const
+void ParticleData::check_arrays_
+(const ParticleDescr * particle_descr,
+ std::string file, int line) const
 {
   size_t nt = particle_descr->num_types();
   ASSERT4 ("ParticleData::check_arrays_",

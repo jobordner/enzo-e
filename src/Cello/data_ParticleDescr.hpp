@@ -143,7 +143,7 @@ public: // interface
 
   /// Return the attribute corresponding to the given position
   /// coordinate, -1 if none
-  int attribute_position (int it, int axis)
+  int attribute_position (int it, int axis) const
   {
     ASSERT1("ParticleDescr::attribute_position()",
 	    "Trying to access unknown particle type %d",
@@ -154,7 +154,7 @@ public: // interface
 
   /// Return the attribute corresponding to the given velocity
   /// coordinate, -1 if none
-  int attribute_velocity (int it, int axis)
+  int attribute_velocity (int it, int axis) const
   {
     ASSERT1("ParticleDescr::attribute_velocity()",
 	    "Trying to access unknown particle type %d",

@@ -416,7 +416,9 @@ void Block::particle_scatter_children_ (ParticleData * particle_list[],
       count += particle.delete_particles (it,ib,mask);
 
       delete [] mask;
-    }
+    } // ib
+    // Remove any empty batches after deleting particles
+    particle.cull_empty_batches(it);
   }
   cello::simulation()->data_delete_particles(count);
 }

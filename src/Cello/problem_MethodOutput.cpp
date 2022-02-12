@@ -318,7 +318,6 @@ void MethodOutput::compute_done (Block * block)
 void Block::r_method_output_done(CkReductionMsg *msg)
 {
   delete msg;
-  MethodOutput * method = static_cast<MethodOutput*> (this->method());
   this->compute_done();
 }
 
@@ -449,7 +448,7 @@ void MethodOutput::file_write_block_
 
   FieldData * field_data = data->field_data();
 
-  for (int i_f=0; i_f<field_list_.size(); i_f++) {
+  for (size_t i_f=0; i_f<field_list_.size(); i_f++) {
     const int index_field = field_list_[i_f];
     IoFieldData * io_field_data = factory_->create_io_field_data();
 
@@ -483,7 +482,7 @@ void MethodOutput::file_write_block_
 
   Particle particle = data->particle();
 
-  for (int i_p=0; i_p<particle_list_.size(); i_p++) {
+  for (size_t i_p=0; i_p<particle_list_.size(); i_p++) {
 
     // Get particle type for it'th element of the particle output list
     const int it = particle_list_[i_p];

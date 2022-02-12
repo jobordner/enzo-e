@@ -11,6 +11,18 @@
 
 #include "data.hpp"
 
+void print_particle(Particle particle, int it)
+{
+  const int nb = particle.num_batches(it);
+  CkPrintf ("Batches %d sizes: ",nb);
+  for (int ib=0; ib<nb; ib++) {
+    CkPrintf ("%3d ",particle.num_particles(it,ib));
+  }
+  CkPrintf ("\n");
+}
+
+//----------------------------------------------------------------------
+
 PARALLEL_MAIN_BEGIN
 {
 
@@ -556,6 +568,9 @@ PARALLEL_MAIN_BEGIN
     for (int ip=0; ip<np; ip++) if (mask[ip]) count_delete++;
     particle.delete_particles(it_dark,ib,mask);
   }
+
+  particle.cull_empty_batches(it_dark);
+
   unit_assert(particle.num_particles(it_dark) == 30000 - count_delete);
 
   count_delete = 0;
@@ -565,7 +580,8 @@ PARALLEL_MAIN_BEGIN
     for (int ip=0; ip<np; ip++) if (mask[ip]) count_delete++;
     particle.delete_particles(it_trace,ib,mask);
   }
-  
+  particle.cull_empty_batches(it_trace);
+
   unit_assert(particle.num_particles(it_trace) == 30000 - count_delete);
 
   //--------------------------------------------------
@@ -705,6 +721,7 @@ PARALLEL_MAIN_BEGIN
     for (int ip=0; ip<np; ip++) if (mask[ip]) count_delete++;
     particle.delete_particles(it_dark,ib,mask);
   }
+  particle.cull_empty_batches(it_dark);
 
   unit_assert (count_particles - count_delete
 	       == particle.num_particles(it_dark));
@@ -1050,7 +1067,6 @@ PARALLEL_MAIN_BEGIN
   if (buffer_next - buffer != n)
     printf ("buffer size mismatch: %ld %d\n",buffer_next - buffer,n);
   unit_assert (buffer_next - buffer == n);
-  unit_assert (p_dst == new_p);
 
   delete [] buffer;
   // printf ("error_gather_int %d\n",error_gather_int);
@@ -1060,6 +1076,76 @@ PARALLEL_MAIN_BEGIN
   //--------------------------------------------------
 
   // See test_Grouping.cpp
+
+  //--------------------------------------------------
+  //   "Empty batch" bug tests
+  //--------------------------------------------------
+
+  {
+    ParticleDescr * p_descr = new ParticleDescr;
+    ParticleData * p_data = new ParticleData;
+    Particle particle (p_descr, p_data);
+
+    p_descr->set_batch_size (10);
+    const int it_test = particle.new_type ("test");
+
+    const int ia_x = particle.new_attribute (it_test,"x",type_double);
+    const int ia_y = particle.new_attribute (it_test,"y",type_double);
+    const int ia_z = particle.new_attribute (it_test,"z",type_double);
+    const int ia_vx = particle.new_attribute (it_test,"vx",type_double);
+    const int ia_vy = particle.new_attribute (it_test,"vy",type_double);
+    const int ia_vz = particle.new_attribute (it_test,"vz",type_double);
+
+    particle.set_position(it_test, ia_x,  ia_y,  ia_z);
+    particle.set_velocity(it_test, ia_vx, ia_vy, ia_vz);
+
+    int ibp = particle.insert_particles (it_test, 100);
+    int ib0,ip0;
+    particle.index(ibp,&ib0,&ip0);
+    for (int ip=0; ip<100; ip++) {
+      int ib,iap;
+      particle.index(ibp+ip,&ib,&iap);
+      double * x = (double*)particle.attribute_array(it_test,ia_x,ib);
+      double * y = (double*)particle.attribute_array(it_test,ia_y,ib);
+      double * z = (double*)particle.attribute_array(it_test,ia_z,ib);
+      double * vx = (double*)particle.attribute_array(it_test,ia_vx,ib);
+      double * vy = (double*)particle.attribute_array(it_test,ia_vy,ib);
+      double * vz = (double*)particle.attribute_array(it_test,ia_vz,ib);
+      double v = 10*ip+100;
+      x[iap] = v+0;
+      y[iap] = v+1;
+      z[iap] = v+2;
+      vx[iap] = v+3;
+      vy[iap] = v+4;
+      vz[iap] = v+5;
+    }
+
+    unit_func("num_batches");
+    int nb = particle.num_batches(it_test);
+    unit_assert (nb == 10);
+
+    print_particle(particle,it_test);
+
+    CkPrintf ("TRACE compress %s:%d\n",__FILE__,__LINE__); fflush(stdout);
+    particle.compress(it_test);
+
+    print_particle(particle,it_test);
+
+    CkPrintf ("TRACE delete %s:%d\n",__FILE__,__LINE__); fflush(stdout);
+    particle.delete_particles(it_test, 2);
+
+    print_particle(particle,it_test);
+
+    CkPrintf ("TRACE cull %s:%d\n",__FILE__,__LINE__); fflush(stdout);
+    particle.cull_empty_batches();
+
+    print_particle(particle,it_test);
+
+    CkPrintf ("TRACE compress %s:%d\n",__FILE__,__LINE__); fflush(stdout);
+    particle.compress(it_test);
+
+    print_particle(particle,it_test);
+  }
 
   unit_finalize();
 
