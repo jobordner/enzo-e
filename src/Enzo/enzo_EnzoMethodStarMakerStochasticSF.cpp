@@ -253,7 +253,7 @@ void EnzoMethodStarMakerStochasticSF::compute ( Block *block) throw()
         //  and the particle index (ipp)
         particle.index(my_particle, &ib, &ipp);
 
-        int io = ipp; // ipp*ps
+        int io = ipp*ps
         // pointer to mass array in block
         pmass = (enzo_float *) particle.attribute_array(it, ia_m, ib);
 

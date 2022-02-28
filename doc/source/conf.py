@@ -44,7 +44,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Enzo-E / Cello'
-copyright = u'2019, James Bordner'
+copyright = u'2022, Enzo Development Team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -226,8 +226,8 @@ man_pages = [
 # Bibliographic Dublin Core info.
 epub_title = u'Enzo-E / Cello'
 epub_author = u'James Bordner'
-epub_publisher = u'James Bordner'
-epub_copyright = u'2019, James Bordner'
+epub_publisher = u'Enzo Development Team'
+# epub_copyright = u'2019, James Bordner'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
