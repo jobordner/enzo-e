@@ -68,3 +68,74 @@ ParticleData class
 Particle class
 --------------
 
+.. code-block:: C++
+   :linenos:
+
+     // Proposed code for accessing "mass" or "density" particle attributes (as
+     // both) whether constant or not per particle type
+
+     // Get particle type and position attributes
+     const it =   particle.type_index("dark");
+     const ia_x = particle.attribute_index(it,"x");
+     const ia_y = particle.attribute_index(it,"y");
+     const ia_z = particle.attribute_index(it,"z");
+
+     // Get 'mass or density' attribute ia_mord, and scalings to convert
+     // to mass or to density. Exactly one of "mass" or "density" attribute or constant
+     // must be defined
+
+     int ia_mord;
+     enzo_float to_mass,to_density;
+
+     // Determine cell volume (assumes particle density defined in terms of
+     // containing block cells)
+     double h3[3];
+     block->cell_width(h3,h3+1,h3+2)
+     const enzo_float volume = h3[0]*h3[1]*h3[2];
+
+     // Which of mass or density attribute / constant is defined
+     const bool mass_defined    = particle.is_attribute(it,"mass");
+     const bool density_defined = particle.is_attribute(it,"density");
+
+     if (mass_defined && (! density_defined)) {
+       // "mass" constant or attribute is defined; compute scaling for
+       // density (1.0 for mass)
+       ia_mord = particle.attribute_index,"mass");
+       to_mass = 1.0;
+       to_density = 1.0/(hx*hy*hz);
+     } else if (density_defined && (! mass_defined)) {
+       // "density" constant or attribute is defined; compute scaling for
+       // mass (1.0 for density)
+       ia_mord = particle.attribute_index,"density");
+       to_mass = hx*hy*hz;
+       to_density = 1.0;
+     } else {
+       ERROR (..., "Exactly one of \"mass\" or \"density\" must be defined!");
+     }
+
+     // Get attribute index strides. This is normally 1, but may be greater
+     // than 1 if attributes are interleaved, or may be 0 if the attribute
+     // is really a constant
+     const int is_x = particle.stride(it,ia_x);
+     const int is_y = particle.stride(it,ia_y);
+     const int is_z = particle.stride(it,ia_z);
+     const int is_mord = particle.stride(it,ia_mord);
+
+     // Loop over particles batch by batch
+     int nb = particle.num_batches(it);
+     for (int ib=0; ib<nb; ib++) {
+        const int np = particle.num_particles (it,ib);
+        enzo_float * ax    = particle.attribute_array(it,ia_x,ib);
+        enzo_float * ay    = particle.attribute_array(it,ia_y,ib);
+        enzo_float * az    = particle.attribute_array(it,ia_z,ib);
+        enzo_float * amord = particle.attribute_array(it,ia_mord,ib);
+        for (int ip=0; ip<np; ip++) {
+           enzo_float x = ax[ip*is_x];
+           enzo_float y = ay[ip*is_y];
+           enzo_float z = az[ip*is_z];
+           enzo_float mass    = mord[ip*is_mord]*to_mass,,
+           enzo_float density = mord[ip*is_mord]*to_density);
+           printf ("x %g y %g z %g mass %g density %g\n",
+              x,y,z,mass,density);
+        }
+     }
