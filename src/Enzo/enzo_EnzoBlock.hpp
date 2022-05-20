@@ -121,7 +121,7 @@ public: // interface
        dt(0.0),
        redshift(0.0)
   {
-    performance_start_(perf_block);
+    perf_start_region(perf_block);
 #ifdef TRACE_BLOCK
     CkPrintf ("%d %p TRACE_BLOCK EnzoBlock()\n",CkMyPe(),(void *)this);
 #endif
@@ -132,7 +132,7 @@ public: // interface
       GridEndIndex[i] = 0;
       CellWidth[i] = 0.0;
     }
-    performance_stop_(perf_block);
+    perf_stop_region(perf_block);
   }
 
   /// Initialize a migrated EnzoBlock
@@ -145,7 +145,7 @@ public: // interface
     CkPrintf ("%d %p TRACE_BLOCK %s EnzoBlock(CkMigrateMessage)\n",
               CkMyPe(),(void *)this, name(thisIndex).c_str());
 #endif
-    performance_start_(perf_block);
+    perf_start_region(perf_block);
     TRACE("CkMigrateMessage");
     for (int i=0; i<MAX_DIMENSION; i++) {
       GridLeftEdge[i] = 0;
@@ -158,7 +158,7 @@ public: // interface
   CkPrintf ("%d %p TRACE_BLOCK EnzoBlock(CkMigrateMessage *)\n",CkMyPe(),(void *)this);
   print();
 #endif
-    performance_start_(perf_block);
+    perf_start_region(perf_block);
   }
 
   /// Pack / unpack the EnzoBlock in a CHARM++ program

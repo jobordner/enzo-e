@@ -183,21 +183,6 @@ public: // interface
   /// Write performance information to disk (all process data)
   void performance_write();
 
-#ifdef CONFIG_USE_PROJECTIONS  
-  /// Set whether performance tracing with projections is enabled or not
-  void set_projections_tracing (bool value)
-  { projections_tracing_ = value; }
-
-  bool projections_tracing() const
-  { return projections_tracing_; }
-
-  Schedule * projections_schedule_on() const
-  { return projections_schedule_on_; }
-
-  Schedule * projections_schedule_off() const
-  { return projections_schedule_off_; }
-#endif
-
 public: // virtual functions
 
   /// Update Simulation state, including cycle, time, timestep, and
@@ -459,6 +444,12 @@ protected: // functions
                                bool & already_exists);
   std::ifstream file_open_file_list_(std::string name_dir);
 
+
+public: // static attributes
+
+  static int perf_method;
+  static int perf_solver;
+
 protected: // attributes
 
 #if defined(CELLO_DEBUG) || defined(CELLO_VERBOSE)
@@ -514,15 +505,6 @@ protected: // attributes
 
   /// Simulation Performance object
   Performance * performance_;
-
-  /// Schedule for projections on / off
-
-#ifdef CONFIG_USE_PROJECTIONS
-  bool projections_tracing_;
-  Schedule * projections_schedule_on_;
-  Schedule * projections_schedule_off_;
-#endif
-
   /// Load balancing schedule
   Schedule * schedule_balance_;
 
@@ -579,6 +561,7 @@ protected: // attributes
   std::string restart_directory_;
   int         restart_num_files_;
   std::ifstream restart_stream_file_list_;
+
 };
 
 #endif /* SIMULATION_SIMULATION_HPP */

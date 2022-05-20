@@ -666,7 +666,7 @@ void Block::adapt_recv_level
 {
   bool changed = false;
   int level_min;
-  performance_start_(perf_adapt_update);
+  perf_start_region(perf_adapt_update);
   for (int i=0; i<ofv[0].size(); i++) {
 
     int if3[3] = {ofv[0][i],ofv[1][i],ofv[2][i]};
@@ -802,8 +802,8 @@ void Block::adapt_recv_level
     TRACE_ADAPT("adapt_barrier [recv_level]",this);
     adapt_barrier_();
   }
-  performance_stop_(perf_adapt_update);
-  performance_start_(perf_adapt_update_sync);
+  perf_stop_region(perf_adapt_update);
+  perf_start_region(perf_adapt_update_sync);
 }
 
 //----------------------------------------------------------------------
@@ -952,7 +952,7 @@ void Block::p_adapt_recv_child (MsgCoarsen * msg)
 {
   TRACE_ADAPT("p_adapt_recv_child",this);
 
-  performance_start_(perf_adapt_update);
+  perf_start_region(perf_adapt_update);
   msg->update(data());
   int * ic3 = msg->ic3();
   int * child_face_level_curr = msg->face_level();
@@ -990,8 +990,8 @@ void Block::p_adapt_recv_child (MsgCoarsen * msg)
 
   delete msg;
 
-  performance_stop_(perf_adapt_update);
-  performance_start_(perf_adapt_update_sync);
+  perf_stop_region(perf_adapt_update);
+  perf_start_region(perf_adapt_update_sync);
 }
 
 

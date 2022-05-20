@@ -137,7 +137,7 @@ void EnzoSolverJacobi::apply
 void EnzoBlock::p_solver_jacobi_continue()
 {
  
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  perf_start_region(perf_compute,__FILE__,__LINE__);
 
   EnzoSolverJacobi * solver = nullptr;  
   TRACE_JACOBI(this,solver,"p_solver_jacobi_continue()");
@@ -147,7 +147,7 @@ void EnzoBlock::p_solver_jacobi_continue()
 
   solver->compute(this);
 
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  perf_stop_region(perf_compute,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------

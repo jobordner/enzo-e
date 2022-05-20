@@ -147,14 +147,11 @@ void EnzoMethodGrackle::compute ( Block * block) throw()
     EnzoBlock * enzo_block = enzo::block(block);
 
     // Start timer
-    Simulation * simulation = cello::simulation();
-    if (simulation)
-      simulation->performance()->start_region(perf_grackle,__FILE__,__LINE__);
+    cello::performance()->start_region(perf_grackle,__FILE__,__LINE__);
 
     this->compute_(enzo_block);
 
-    if (simulation)
-      simulation->performance()->stop_region(perf_grackle,__FILE__,__LINE__);
+    cello::performance()->stop_region(perf_grackle,__FILE__,__LINE__);
 #endif
   }
 

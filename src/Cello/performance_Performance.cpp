@@ -17,7 +17,7 @@ static long long time_start[CONFIG_NODE_SIZE] = { 0 };
 
 Performance::Performance (Config * config)
   :
-#ifdef CONFIG_USE_PAPI  
+#ifdef CONFIG_USE_PAPI
   papi_(config ? config->performance_warnings : false),
 #endif
   counter_name_(),
@@ -29,8 +29,13 @@ Performance::Performance (Config * config)
   region_started_(),
   region_index_(),
   region_in_charm_(),
-#ifdef CONFIG_USE_PAPI  
+#ifdef CONFIG_USE_PAPI
   papi_counters_(0),
+#endif
+#ifdef CONFIG_USE_PROJECTIONS
+  projections_tracing_(true),
+  projections_schedule_on_(NULL),
+  projections_schedule_off_(NULL),
 #endif
   warnings_(config ? config->performance_warnings : false),
   index_region_current_(perf_unknown)
@@ -48,20 +53,81 @@ Performance::Performance (Config * config)
   new_counter(counter_type_abs,"bytes-highest");
   new_counter(counter_type_abs,"bytes-available");
 
-#ifdef CONFIG_USE_PAPI  
+#ifdef CONFIG_USE_PAPI
   papi_.init();
-#endif  
+#endif
 
+#ifdef CONFIG_USE_PROJECTIONS
+  int index_on = config->performance_on_schedule_index;
+  int index_off = config->performance_off_schedule_index;
+  projections_tracing_ = config->performance_projections_on_at_start;
+  if (projections_tracing_ == false) {
+    traceEnd();
+  }
+  if (index_on >= 0) {
+    projections_schedule_on_ = Schedule::create
+      ( config->schedule_var[index_on],
+	config->schedule_type[index_on],
+	config->schedule_start[index_on],
+	config->schedule_stop[index_on],
+	config->schedule_step[index_on],
+	config->schedule_list[index_on]);
+  }
+  if (index_off >= 0) {
+    projections_schedule_off_ = Schedule::create
+      ( config->schedule_var[index_off],
+	config->schedule_type[index_off],
+	config->schedule_start[index_off],
+	config->schedule_stop[index_off],
+	config->schedule_step[index_off],
+	config->schedule_list[index_off]);
+
+  }
+#endif
 }
 
 //----------------------------------------------------------------------
 
 Performance::~Performance()
 {
-#ifdef CONFIG_USE_PAPI  
+#ifdef CONFIG_USE_PAPI
   delete [] papi_counters_;
   papi_counters_ = NULL;
-#endif  
+#endif
+}
+
+//----------------------------------------------------------------------
+
+void Performance::pup (PUP::er &p)
+{
+  TRACEPUP;
+
+  // NOTE: change this function whenever attributes change
+#ifdef CONFIG_USE_PAPI
+  p | papi_;
+#endif
+  p | counter_name_;
+  p | counter_type_;
+  p | counter_values_;
+  p | counter_values_reduced_;
+  p | region_name_;
+  p | region_counters_;
+  p | region_started_;
+  p | region_index_;
+  p | region_in_charm_;
+#ifdef CONFIG_USE_PAPI
+  WARNING("Performance::pup",
+          "skipping Performance:papi_counters_");
+  //    p | papi_counters_
+#endif
+#ifdef CONFIG_USE_PROJECTIONS
+  p | projections_tracing_;
+  p | projections_schedule_on_;
+  p | projections_schedule_off_;
+#endif
+
+  p | warnings_;
+  p | index_region_current_;
 }
 
 //----------------------------------------------------------------------
@@ -79,10 +145,10 @@ Performance::begin() throw()
     region_started_[i] = false;
   }
 
-#ifdef CONFIG_USE_PAPI  
+#ifdef CONFIG_USE_PAPI
   papi_counters_ = new long long [papi_.num_events()];
   papi_.start_events();
-#endif  
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -105,7 +171,7 @@ Performance::new_counter ( int type, std::string  counter_name )
   counter_values_.push_back(0);
   counter_values_reduced_.push_back(0);
 
-#ifdef CONFIG_USE_PAPI  
+#ifdef CONFIG_USE_PAPI
   if (type == counter_type_papi) {
     papi_.add_event(counter_name);
   }
@@ -119,7 +185,7 @@ Performance::new_counter ( int type, std::string  counter_name )
 void
 Performance::refresh_counters_() throw()
 {
-#ifdef CONFIG_USE_PAPI  
+#ifdef CONFIG_USE_PAPI
   papi_.event_values(papi_counters_);
 
   int ip=0;
@@ -149,7 +215,7 @@ void
 Performance::assign_counter(int index, long long value)
 {
   if ( counter_type (index) == counter_type_user ) {
-    
+
     counter_values_[index] = value;
 
   } else if (warnings_) {
@@ -197,7 +263,7 @@ void
 Performance::new_region (int         region_index,
 			 std::string region_name,
 			 bool        in_charm) throw()
-{ 
+{
 #ifdef TRACE_PERFORMANCE
   CkPrintf ("%d TRACE_PERFORMANCE Performance::new_region (%d %s)\n",CkMyPe(),
 	    region_index,region_name.c_str());
@@ -229,7 +295,7 @@ Performance::start_region(int id_region, std::string file, int line) throw()
   if (region_in_charm_[index_region_current_]) {
     stop_region(index_region_current_);
   }
-  
+
   int index_region = id_region;
 
   index_region_current_ = index_region;
@@ -253,7 +319,7 @@ Performance::start_region(int id_region, std::string file, int line) throw()
   }
 
   refresh_counters_();
-    
+
   for (int i=0; i<num_counters(); i++) {
 
     if ( counter_type(i) == counter_type_abs ) {
@@ -318,7 +384,7 @@ Performance::is_region_active(int index_region) throw()
 
 //----------------------------------------------------------------------
 
-void 
+void
 Performance::region_counters(int index_region, long long * counters) throw()
 {
   if ( ! region_started_[index_region]) {

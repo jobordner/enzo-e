@@ -190,12 +190,12 @@ EnzoBlock::EnzoBlock( process_type ip_source,  MsgType msg_type)
 
 void EnzoBlock::p_set_msg_check(EnzoMsgCheck * msg)
 {
-  performance_start_(perf_block);
+  perf_start_region(perf_block);
 
   restart_set_data_(msg);
   initialize();
   Block::initialize();
-  performance_stop_(perf_block);
+  perf_stop_region(perf_block);
 }
 
 //----------------------------------------------------------------------

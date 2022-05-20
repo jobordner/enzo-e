@@ -312,11 +312,11 @@ void EnzoSolverMg0::compute_shift_
 
 void EnzoBlock::r_solver_mg0_begin_solve(CkReductionMsg* msg)
 {
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  perf_start_region(perf_compute,__FILE__,__LINE__);
 
   static_cast<EnzoSolverMg0*> (solver())->begin_solve(this,msg);
 
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  perf_stop_region(perf_compute,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------
@@ -432,7 +432,7 @@ void EnzoSolverMg0::monitor_output_(EnzoBlock * enzo_block)
 void EnzoBlock::p_solver_mg0_solve_coarse()
 {
   SOLVER_CONTROL(this,"*","*", "p_solve_coarse");
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  perf_start_region(perf_compute,__FILE__,__LINE__);
 
   EnzoSolverMg0 * solver =
     static_cast<EnzoSolverMg0*> (this->solver());
@@ -443,7 +443,7 @@ void EnzoBlock::p_solver_mg0_solve_coarse()
   long double data[1] = {solver->rr_local()};
 
   contribute(sizeof(long double), data,  sum_long_double_type, callback);
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  perf_stop_region(perf_compute,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------
@@ -453,7 +453,7 @@ void EnzoBlock::r_solver_mg0_barrier(CkReductionMsg* msg)
   EnzoSolverMg0 * solver =
     static_cast<EnzoSolverMg0*> (this->solver());
 
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  perf_start_region(perf_compute,__FILE__,__LINE__);
 
   long double rr = ((long double*) msg->getData())[0];
   solver->set_rr(rr);
@@ -464,7 +464,7 @@ void EnzoBlock::r_solver_mg0_barrier(CkReductionMsg* msg)
 
   solver->prolong(this);
 
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  perf_stop_region(perf_compute,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------
@@ -473,14 +473,14 @@ void EnzoBlock::p_solver_mg0_restrict()
 {
   SOLVER_CONTROL(this,"*","*", "p_restrict");
 
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  perf_start_region(perf_compute,__FILE__,__LINE__);
 
   EnzoSolverMg0 * solver =
     static_cast<EnzoSolverMg0*> (this->solver());
 
   solver->restrict(this);
 
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  perf_stop_region(perf_compute,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------
@@ -619,14 +619,14 @@ void EnzoBlock::p_solver_mg0_restrict_recv(FieldMsg * msg)
 {
   SOLVER_CONTROL(this,"*","*", "p_restrict_recv");
 
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  perf_start_region(perf_compute,__FILE__,__LINE__);
 
   EnzoSolverMg0 * solver =
     static_cast<EnzoSolverMg0*> (this->solver());
 
   solver->restrict_recv(this,msg);
 
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  perf_stop_region(perf_compute,__FILE__,__LINE__);
 
 }
 
@@ -727,9 +727,9 @@ void EnzoSolverMg0::prolong_send_(EnzoBlock * enzo_block) throw()
 void EnzoBlock::p_solver_mg0_prolong_recv(FieldMsg * msg)
 {
   SOLVER_CONTROL(this,"*","*", "p_prolong_recv");
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  perf_start_region(perf_compute,__FILE__,__LINE__);
   solver_mg0_prolong_recv(msg);
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  perf_stop_region(perf_compute,__FILE__,__LINE__);
 
 }
 
@@ -794,14 +794,14 @@ void EnzoBlock::p_solver_mg0_post_smooth()
 {
   SOLVER_CONTROL(this,"*","*", "p_post_smooth");
 
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  perf_start_region(perf_compute,__FILE__,__LINE__);
 
   EnzoSolverMg0 * solver =
     static_cast<EnzoSolverMg0*> (this->solver());
 
   solver->post_smooth(this);
 
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  perf_stop_region(perf_compute,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------
@@ -896,13 +896,13 @@ void EnzoSolverMg0::end_cycle(EnzoBlock * enzo_block) throw()
 void EnzoBlock::p_solver_mg0_last_smooth()
 {
   SOLVER_CONTROL(this,"*","*", "p_last_smooth");
-  performance_start_(perf_compute,__FILE__,__LINE__);
+  perf_start_region(perf_compute,__FILE__,__LINE__);
 
   EnzoSolverMg0 * solver = static_cast<EnzoSolverMg0*> (this->solver());
 
   solver->end(this);
 
-  performance_stop_(perf_compute,__FILE__,__LINE__);
+  perf_stop_region(perf_compute,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------

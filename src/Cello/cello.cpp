@@ -291,6 +291,13 @@ namespace cello {
 
   //---------------------------------------------------------------------- 
 
+  Performance * performance()
+  {
+    return simulation() ? simulation()->performance() : nullptr;
+  }
+
+  //---------------------------------------------------------------------- 
+
   Boundary * boundary(int i)
   {
     return problem() ? problem()->boundary(i) : nullptr;

@@ -26,9 +26,9 @@
 void Block::output_enter_ ()
 {
   TRACE_OUTPUT("Block::output_enter_()");
-  performance_start_(perf_output);
+  perf_start_region(perf_output);
   output_begin_();
-  performance_stop_(perf_output);
+  perf_stop_region(perf_output);
 }
 
 //----------------------------------------------------------------------
@@ -139,7 +139,7 @@ void Simulation::r_output_barrier(CkReductionMsg * msg)
 void Block::p_output_write (int index_output, int step)
 {
   TRACE_OUTPUT("Simulation::p_output_write()");
-  performance_start_ (perf_output);
+  perf_start_region (perf_output);
 
   Simulation    * simulation     = cello::simulation();
   Output        * output         = cello::output(index_output);
@@ -151,7 +151,7 @@ void Block::p_output_write (int index_output, int step)
   output->write_block(this);
 
   simulation->write_();
-  performance_stop_ (perf_output);
+  perf_stop_region (perf_output);
 }
 
 //----------------------------------------------------------------------
@@ -291,9 +291,9 @@ void Simulation::output_exit()
 
 void Block::p_output_end()
 {
-  performance_start_(perf_output);
+  perf_start_region(perf_output);
   TRACE_OUTPUT("Block::p_output_end()");
-  performance_stop_(perf_output);
+  perf_stop_region(perf_output);
   output_exit_();
 }
 

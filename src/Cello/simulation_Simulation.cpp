@@ -15,59 +15,16 @@
 // #define DEBUG_SIMULATION
 // #define DEBUG_MSG_REFINE
 
+int Simulation::perf_method = 0;
+int Simulation::perf_solver = 0;
+
 Simulation::Simulation
 (
  const char *   parameter_file,
  int            n
  )
 /// Initialize the Simulation object
-:
-#if defined(CELLO_DEBUG) || defined(CELLO_VERBOSE)
-  fp_debug_(NULL),
-#endif
-  factory_(NULL),
-  parameters_(&g_parameters),
-  parameter_file_(parameter_file),
-  rank_(0),
-  cycle_(0),
-  cycle_watch_(-1),
-  time_(0.0),
-  dt_(0),
-  stop_(false),
-  phase_(phase_unknown),
-  config_(&g_config),
-  problem_(NULL),
-  timer_(),
-  performance_(NULL),
-#ifdef CONFIG_USE_PROJECTIONS
-  projections_tracing_(true),
-  projections_schedule_on_(NULL),
-  projections_schedule_off_(NULL),
-#endif
-  schedule_balance_(NULL),
-  monitor_(NULL),
-  hierarchy_(NULL),
-  scalar_descr_long_double_(NULL),
-  scalar_descr_double_(NULL),
-  scalar_descr_int_(NULL),
-  scalar_descr_long_long_(NULL),
-  scalar_descr_sync_(NULL),
-  scalar_descr_void_(NULL),
-  scalar_descr_index_(NULL),
-  field_descr_(NULL),
-  particle_descr_(NULL),
-  sync_output_begin_(),
-  sync_output_write_(),
-  sync_restart_created_(),
-  sync_restart_next_(),
-  refresh_list_(),
-  index_output_(-1),
-  num_solver_iter_(),
-  max_solver_iter_(),
-  restart_directory_(),
-  restart_num_files_(),
-  restart_stream_file_list_()
-  
+  : Simulation()
 {
   for (int i=0; i<256; i++) dir_checkpoint_[i] = '\0';
 #ifdef DEBUG_SIMULATION
@@ -96,6 +53,7 @@ Simulation::Simulation()
 #if defined(CELLO_DEBUG) || defined(CELLO_VERBOSE)
   fp_debug_(NULL),
 #endif
+  CBase_Simulation(),
   factory_(NULL),
   parameters_(&g_parameters),
   parameter_file_(""),
@@ -110,11 +68,6 @@ Simulation::Simulation()
   problem_(NULL),
   timer_(),
   performance_(NULL),
-#ifdef CONFIG_USE_PROJECTIONS
-  projections_tracing_(true),
-  projections_schedule_on_(NULL),
-  projections_schedule_off_(NULL),
-#endif
   schedule_balance_(NULL),
   monitor_(NULL),
   hierarchy_(NULL),
@@ -150,53 +103,7 @@ Simulation::Simulation()
 //----------------------------------------------------------------------
 
 Simulation::Simulation (CkMigrateMessage *m)
-  : CBase_Simulation(m),
-#if defined(CELLO_DEBUG) || defined(CELLO_VERBOSE)
-    fp_debug_(NULL),
-#endif
-    factory_(NULL),
-    parameters_(&g_parameters),
-    parameter_file_(""),
-    rank_(0),
-    cycle_(0),
-    cycle_watch_(-1),
-    time_(0.0),
-    dt_(0),
-    stop_(false),
-    phase_(phase_unknown),
-    config_(&g_config),
-    problem_(NULL),
-    timer_(),
-    performance_(NULL),
-#ifdef CONFIG_USE_PROJECTIONS
-    projections_tracing_(true),
-    projections_schedule_on_(NULL),
-    projections_schedule_off_(NULL),
-#endif
-    schedule_balance_(NULL),
-    monitor_(NULL),
-    hierarchy_(NULL),
-    scalar_descr_long_double_(NULL),
-    scalar_descr_double_(NULL),
-    scalar_descr_int_(NULL),
-    scalar_descr_long_long_(NULL),
-    scalar_descr_sync_(NULL),
-    scalar_descr_void_(NULL),
-    scalar_descr_index_(NULL),
-    field_descr_(NULL),
-    particle_descr_(NULL),
-    sync_output_begin_(),
-    sync_output_write_(),
-    sync_restart_created_(),
-    sync_restart_next_(),
-    refresh_list_(),
-    index_output_(-1),
-    num_solver_iter_(),
-    max_solver_iter_(),
-    restart_directory_(),
-    restart_num_files_(),
-    restart_stream_file_list_()
-
+  : CBase_Simulation(m)
 {
   for (int i=0; i<256; i++) dir_checkpoint_[i] = '\0';
 #ifdef DEBUG_SIMULATION
@@ -289,12 +196,6 @@ void Simulation::pup (PUP::er &p)
 
   if (up) sync_output_begin_.set_stop(0);
   if (up) sync_output_write_.set_stop(0);
-
-#ifdef CONFIG_USE_PROJECTIONS
-  p | projections_tracing_;
-  p | projections_schedule_on_;
-  p | projections_schedule_off_;
-#endif
 
   p | schedule_balance_;
 
@@ -456,6 +357,22 @@ void Simulation::initialize_performance_() throw()
   p->new_region(perf_grackle,            "grackle");
 #endif
 
+  const Problem * problem = cello::problem();
+  // Add Method performance regions
+  Simulation::perf_method = p->num_regions();
+  for (int i=0; i<problem->num_methods(); i++) {
+    Method * method = problem->method(i);
+    std::string region_name = std::string("method_") + method->name();
+    p->new_region(perf_method + i, region_name);
+  }
+  // add Solver performance regions
+  Simulation::perf_solver = p->num_regions();
+  for (int i=0; i<problem->num_solvers(); i++) {
+    Solver * solver = problem->solver(i);
+    std::string region_name = std::string("solver_") + solver->name();
+    p->new_region(perf_solver + i, region_name);
+  }
+
   timer_.start();
 
 #ifdef CONFIG_USE_PAPI  
@@ -464,34 +381,6 @@ void Simulation::initialize_performance_() throw()
 		   config_->performance_papi_counters[i]);
   }
 #endif  
-
-#ifdef CONFIG_USE_PROJECTIONS
-  int index_on = config_->performance_on_schedule_index;
-  int index_off = config_->performance_off_schedule_index;
-  projections_tracing_ = config_->performance_projections_on_at_start;
-  if (projections_tracing_ == false) {
-    traceEnd();
-  }    
-  if (index_on >= 0) {
-    projections_schedule_on_ = Schedule::create
-      ( config_->schedule_var[index_on],
-	config_->schedule_type[index_on],
-	config_->schedule_start[index_on],
-	config_->schedule_stop[index_on],
-	config_->schedule_step[index_on],
-	config_->schedule_list[index_on]);
-  }
-  if (index_off >= 0) {
-    projections_schedule_off_ = Schedule::create
-      ( config_->schedule_var[index_off],
-	config_->schedule_type[index_off],
-	config_->schedule_start[index_off],
-	config_->schedule_stop[index_off],
-	config_->schedule_step[index_off],
-	config_->schedule_list[index_off]);
-    
-  }
-#endif
 
   p->begin();
 
@@ -944,7 +833,6 @@ void Simulation::monitor_performance()
   long long * counters_region = new long long [nc];
   long long * counters_reduce = new long long [n];
 
-  const int in = cello::index_static();
   
   int m=0;
   const int num_max = 4 + num_solver;
@@ -953,6 +841,7 @@ void Simulation::monitor_performance()
   
   // accumulated metrics
   
+  const int in = cello::index_static();
   counters_reduce[m++] = MsgCoarsen::counter[in];     // 2
   counters_reduce[m++] = MsgRefine::counter[in];      // 3
   counters_reduce[m++] = MsgRefresh::counter[in];     // 4
@@ -960,6 +849,7 @@ void Simulation::monitor_performance()
   counters_reduce[m++] = FieldFace::counter[in];      // 6
   counters_reduce[m++] = ParticleData::counter[in];   // 7
   counters_reduce[m++] = hierarchy_->num_particles(); // 8
+  
   for (int i=0; i<num_solver; i++) {
     counters_reduce[m++] = cello::simulation()->get_solver_num_iter(i); // 9
   }
