@@ -1045,7 +1045,6 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
     ("Performance","simulation balance-eff-blocks-node %f (%.0f/%lld)",
      avg_node_blocks / max_node_blocks,
      avg_node_blocks, max_node_blocks);
-  
 
   if (num_particles > 0) {
     const double avg_proc_particles = 1.0*num_particles/CkNumPes();
