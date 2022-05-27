@@ -226,7 +226,7 @@ void Simulation::finalize() throw()
 {
   TRACE0;
 
-  performance_->stop_region(perf_simulation);
+  PERF_STOP(perf_simulation);
 
   performance_->end();
 
@@ -327,26 +327,37 @@ void Simulation::initialize_performance_() throw()
 
   performance_ = new Performance (config_);
 
-  const bool in_charm = true;
   Performance * p = performance_;
   p->new_region(perf_unknown,            "unknown");
   p->new_region(perf_simulation,         "simulation");
   p->new_region(perf_cycle,              "cycle");
   p->new_region(perf_initial,            "initial");
-  p->new_region(perf_adapt_apply,        "adapt_apply");
-  p->new_region(perf_adapt_apply_sync,   "adapt_apply_sync",in_charm);
-  p->new_region(perf_adapt_notify,       "adapt_notify");
-  p->new_region(perf_adapt_notify_sync,  "adapt_notify_sync",in_charm);
-  p->new_region(perf_adapt_update,       "adapt_update");
-  p->new_region(perf_adapt_update_sync,  "adapt_update_sync",in_charm);
-  p->new_region(perf_adapt_end,          "adapt_end");
-  p->new_region(perf_adapt_end_sync,     "adapt_end_sync",in_charm);
+
+  p->new_region(perf_adapt_enter,           "perf_adapt_enter");
+  p->new_region(perf_adapt_enter_sync,      "perf_adapt_enter_sync");
+  p->new_region(perf_adapt_end,             "perf_adapt_end");
+  p->new_region(perf_adapt_end_sync,        "perf_adapt_end_sync");
+  p->new_region(perf_adapt_update,          "perf_adapt_update");
+  p->new_region(perf_adapt_update_sync,     "perf_adapt_update_sync");
+  p->new_region(perf_adapt_next,            "perf_adapt_next");
+  p->new_region(perf_adapt_next_sync,       "perf_adapt_next_sync");
+  p->new_region(perf_adapt_called,          "perf_adapt_called");
+  p->new_region(perf_adapt_called_sync,     "perf_adapt_called_sync");
+  p->new_region(perf_adapt_exit,            "perf_adapt_exit");
+  p->new_region(perf_adapt_exit_sync,       "perf_adapt_exit_sync");
+  p->new_region(perf_adapt_delete,          "perf_adapt_delete");
+  p->new_region(perf_adapt_delete_sync,     "perf_adapt_delete_sync");
+  p->new_region(perf_adapt_recv_level,      "perf_adapt_recv_level");
+  p->new_region(perf_adapt_recv_level_sync, "perf_adapt_recv_level_sync");
+  p->new_region(perf_adapt_recv_child,      "perf_adapt_recv_child");
+  p->new_region(perf_adapt_recv_child_sync, "perf_adapt_recv_child_sync");
+
   p->new_region(perf_refresh_store,      "refresh_store");
   p->new_region(perf_refresh_child,      "refresh_child");
   p->new_region(perf_refresh_exit,       "refresh_exit");
-  p->new_region(perf_refresh_store_sync, "refresh_store_sync",in_charm);
-  p->new_region(perf_refresh_child_sync, "refresh_child_sync",in_charm);
-  p->new_region(perf_refresh_exit_sync,  "refresh_exit_sync",in_charm);
+  p->new_region(perf_refresh_store_sync, "refresh_store_sync");
+  p->new_region(perf_refresh_child_sync, "refresh_child_sync");
+  p->new_region(perf_refresh_exit_sync,  "refresh_exit_sync");
   p->new_region(perf_compute,            "compute");
   p->new_region(perf_control,            "control");
   p->new_region(perf_output,             "output");
@@ -364,6 +375,7 @@ void Simulation::initialize_performance_() throw()
     Method * method = problem->method(i);
     std::string region_name = std::string("method_") + method->name();
     p->new_region(perf_method + i, region_name);
+    method->set_perf_index(perf_method + i);
   }
   // add Solver performance regions
   Simulation::perf_solver = p->num_regions();
@@ -371,6 +383,7 @@ void Simulation::initialize_performance_() throw()
     Solver * solver = problem->solver(i);
     std::string region_name = std::string("solver_") + solver->name();
     p->new_region(perf_solver + i, region_name);
+    solver->set_perf_index(perf_solver + i);
   }
 
   timer_.start();
@@ -384,7 +397,7 @@ void Simulation::initialize_performance_() throw()
 
   p->begin();
 
-  p->start_region(perf_simulation);
+  PERF_START(perf_simulation);
 
 }
 

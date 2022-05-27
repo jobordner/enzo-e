@@ -114,7 +114,7 @@ void EnzoSolverJacobi::apply
 {
   TRACE_JACOBI(block,this,"apply()");
 
-  begin_(block);
+  Solver::begin_(block);
 
   if (solve_type_ == solve_level && ! is_finest_(block))
     Solver::end_(block);
@@ -136,9 +136,6 @@ void EnzoSolverJacobi::apply
 
 void EnzoBlock::p_solver_jacobi_continue()
 {
- 
-  perf_start_region(perf_compute,__FILE__,__LINE__);
-
   EnzoSolverJacobi * solver = nullptr;  
   TRACE_JACOBI(this,solver,"p_solver_jacobi_continue()");
 
@@ -146,14 +143,13 @@ void EnzoBlock::p_solver_jacobi_continue()
   TRACE_JACOBI(this,solver,"p_solver_jacobi_continue()");
 
   solver->compute(this);
-
-  perf_stop_region(perf_compute,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------
 
 void EnzoSolverJacobi::compute(Block * block)
 {
+  PERF_SOLVER(this);
   TRACE_JACOBI(block,this,"compute()");
 
   if (*piter_(block) < n_) {
@@ -175,7 +171,7 @@ void EnzoSolverJacobi::compute(Block * block)
 
 void EnzoSolverJacobi::apply_(Block * block)
 {
-  TRACE_JACOBI(block,this,"apply_()");
+  PERF_SOLVER(this);
   
   Field field = block->data()->field();
 
@@ -252,13 +248,13 @@ void EnzoSolverJacobi::apply_(Block * block)
   // Refresh X
 
   do_refresh_(block);
-
 }
 
 //----------------------------------------------------------------------
 
 void EnzoSolverJacobi::do_refresh_(Block * block)
 {
+  PERF_SOLVER(this);
   TRACE_JACOBI(block,this,"do_refresh()");
   Refresh * refresh = cello::refresh(ir_smooth_);
 

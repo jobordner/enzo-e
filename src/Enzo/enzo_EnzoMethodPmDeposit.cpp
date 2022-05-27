@@ -74,7 +74,6 @@ void EnzoMethodPmDeposit::pup (PUP::er &p)
 
 void EnzoMethodPmDeposit::compute ( Block * block) throw()
 {
-
    if (enzo::simulation()->cycle() == enzo::config()->initial_cycle) {
     // Check if the gravity method is being used and that pm_deposit
     // precedes the gravity method.
@@ -419,7 +418,7 @@ void EnzoMethodPmDeposit::compute ( Block * block) throw()
     else           for (int i=0; i<m; i++) vz[i] = 0.0;
 
     
-    FORTRAN_NAME(dep_grid_cic)(de,de_gas,temp,
+ FORTRAN_NAME(dep_grid_cic)(de,de_gas,temp,
 			       vx, vy, vz,
 			       &dtf, rfield, &rank,
 			       &hxf,&hyf,&hzf,

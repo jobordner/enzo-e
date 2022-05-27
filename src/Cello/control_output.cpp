@@ -26,9 +26,8 @@
 void Block::output_enter_ ()
 {
   TRACE_OUTPUT("Block::output_enter_()");
-  perf_start_region(perf_output);
+  PERF_SWITCH(perf_output);
   output_begin_();
-  perf_stop_region(perf_output);
 }
 
 //----------------------------------------------------------------------
@@ -47,13 +46,10 @@ void Simulation::output_enter ()
 
   // Switch from Block to Simulation parallelism
   if (sync_output_begin_.next()) {
-    performance_->start_region(perf_output);
     set_phase(phase_output);
 
     problem()->output_reset();
     problem()->output_next(this);
-
-    performance_->stop_region(perf_output);
   }
 }
 
@@ -119,6 +115,7 @@ void Simulation::output_start(int index_output)
 
 void Simulation::r_output_barrier(CkReductionMsg * msg)
 {
+  PERF_SWITCH(perf_output);
   delete msg;
   Output * output = problem()->output(index_output_);
   output->write_simulation(this);
@@ -139,7 +136,7 @@ void Simulation::r_output_barrier(CkReductionMsg * msg)
 void Block::p_output_write (int index_output, int step)
 {
   TRACE_OUTPUT("Simulation::p_output_write()");
-  perf_start_region (perf_output);
+  PERF_SWITCH (perf_output);
 
   Simulation    * simulation     = cello::simulation();
   Output        * output         = cello::output(index_output);
@@ -151,7 +148,6 @@ void Block::p_output_write (int index_output, int step)
   output->write_block(this);
 
   simulation->write_();
-  perf_stop_region (perf_output);
 }
 
 //----------------------------------------------------------------------
@@ -162,31 +158,19 @@ void Simulation::write_()
 
   if (sync_output_write_.next()) {
 
-    r_write(NULL);
+    problem()->output_wait(this);
 
   }
 }
 
 //----------------------------------------------------------------------
 
-void Simulation::r_write(CkReductionMsg * msg)
-{
-  performance_->start_region(perf_output);
-  TRACE_OUTPUT("Simulation::r_write()");
-  delete msg;
-  problem()->output_wait(this);
-  performance_->stop_region(perf_output);
-}
-
-//----------------------------------------------------------------------
-
 void Simulation::r_write_checkpoint_output()
 {
-  performance_->start_region(perf_output);
+  PERF_SWITCH(perf_output);
   TRACE_OUTPUT("Simulation::r_write_checkpoint_output()");
   create_checkpoint_link();
   problem()->output_wait(this);
-  performance_->stop_region(perf_output);
 }
 
 //----------------------------------------------------------------------
@@ -234,6 +218,7 @@ void Problem::output_wait(Simulation * simulation) throw()
 
 void Simulation::p_output_write (int n, char * buffer)
 {
+  PERF_SWITCH(perf_output);
   TRACE_OUTPUT("Simulation::p_output_write()");
   problem()->output_write(this,n,buffer); 
 }
@@ -291,9 +276,7 @@ void Simulation::output_exit()
 
 void Block::p_output_end()
 {
-  perf_start_region(perf_output);
-  TRACE_OUTPUT("Block::p_output_end()");
-  perf_stop_region(perf_output);
+  PERF_SWITCH(perf_output);
   output_exit_();
 }
 

@@ -121,7 +121,7 @@ public: // interface
        dt(0.0),
        redshift(0.0)
   {
-    perf_start_region(perf_block);
+    PERF_SWITCH(perf_block);
 #ifdef TRACE_BLOCK
     CkPrintf ("%d %p TRACE_BLOCK EnzoBlock()\n",CkMyPe(),(void *)this);
 #endif
@@ -132,7 +132,6 @@ public: // interface
       GridEndIndex[i] = 0;
       CellWidth[i] = 0.0;
     }
-    perf_stop_region(perf_block);
   }
 
   /// Initialize a migrated EnzoBlock
@@ -145,7 +144,7 @@ public: // interface
     CkPrintf ("%d %p TRACE_BLOCK %s EnzoBlock(CkMigrateMessage)\n",
               CkMyPe(),(void *)this, name(thisIndex).c_str());
 #endif
-    perf_start_region(perf_block);
+    PERF_SWITCH(perf_block);
     TRACE("CkMigrateMessage");
     for (int i=0; i<MAX_DIMENSION; i++) {
       GridLeftEdge[i] = 0;
@@ -155,10 +154,9 @@ public: // interface
       CellWidth[i] = 0.0;
     }
 #ifdef DEBUG_ENZO_BLOCK
-  CkPrintf ("%d %p TRACE_BLOCK EnzoBlock(CkMigrateMessage *)\n",CkMyPe(),(void *)this);
-  print();
+    CkPrintf ("%d %p TRACE_BLOCK EnzoBlock(CkMigrateMessage *)\n",CkMyPe(),(void *)this);
+    print();
 #endif
-    perf_start_region(perf_block);
   }
 
   /// Pack / unpack the EnzoBlock in a CHARM++ program
@@ -327,7 +325,6 @@ public: /// entry methods
 
   void p_solver_dd_restrict_recv(FieldMsg * msg);
   void p_solver_dd_prolong_recv(FieldMsg * msg);
-  void solver_dd_prolong_recv(FieldMsg * msg);
   void p_solver_dd_solve_coarse();
   void p_solver_dd_solve_domain();
   void p_solver_dd_last_smooth();
@@ -347,7 +344,6 @@ public: /// entry methods
   void p_solver_mg0_last_smooth();
   void r_solver_mg0_barrier(CkReductionMsg* msg);
   void p_solver_mg0_prolong_recv(FieldMsg * msg);
-  void solver_mg0_prolong_recv(FieldMsg * msg);
   void p_solver_mg0_restrict_recv(FieldMsg * msg);
 
 

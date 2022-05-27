@@ -49,7 +49,7 @@
 
 void Block::initial_exit_()
 {
-  perf_start_region(perf_initial);
+  PERF_SWITCH(perf_initial);
   TRACE_CONTROL("initial_exit");
 
 #ifdef TRACE_CONTRIBUTE  
@@ -65,7 +65,6 @@ void Block::initial_exit_()
   } else {
     control_sync_barrier (CkIndex_Block::r_adapt_enter(NULL));
   }
-  perf_stop_region(perf_initial);
 }
 
 //----------------------------------------------------------------------
@@ -87,7 +86,7 @@ void Block::adapt_exit_()
 
 void Block::output_exit_()
 {
-  perf_start_region(perf_output);
+  PERF_SWITCH(perf_output);
 
   TRACE_CONTROL("output_exit");
 
@@ -95,15 +94,12 @@ void Block::output_exit_()
     cello::simulation()->monitor_output();
   }
 
-  perf_stop_region(perf_output);
-
 #ifdef TRACE_CONTRIBUTE  
   CkPrintf ("%s %s:%d DEBUG_CONTRIBUTE calling r_stopping_enter()\n",
 	    name().c_str(),__FILE__,__LINE__); fflush(stdout);
   fflush(stdout);
 #endif  
   control_sync_barrier (CkIndex_Block::r_stopping_enter(NULL));
-
 }
 
 //----------------------------------------------------------------------
@@ -119,7 +115,7 @@ void Block::stopping_exit_()
               name().c_str(),__FILE__,__LINE__); fflush(stdout);
     fflush(stdout);
 #endif  
-    perf_stop_region (perf_cycle,__FILE__,__LINE__);
+
     control_sync_barrier (CkIndex_Block::r_exit(NULL));
 
   } else {
@@ -129,14 +125,11 @@ void Block::stopping_exit_()
       int cycle_initial = cello::config()->initial_cycle;
       if (cycle_ > cycle_initial) {
         // stop if any previous cycle
-        perf_stop_region(perf_cycle,__FILE__,__LINE__);
       }
       // start 
-      perf_start_region (perf_cycle,__FILE__,__LINE__);
     }
 
     compute_enter_();
-
   }
 }
 

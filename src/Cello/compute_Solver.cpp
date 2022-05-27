@@ -76,7 +76,7 @@ Solver::Solver () throw()
   ir_post_ = add_refresh_();
 }
 
-//----------------------------------------------------------------------
+//======================================================================
 
 int Solver::add_refresh_ ()
 {
@@ -94,7 +94,7 @@ int Solver::add_refresh_ ()
   return cello::simulation()->new_register_refresh(refresh);
 }
 
-//======================================================================
+//----------------------------------------------------------------------
 
 void Solver::monitor_output_
 (Block * block, int iter,
@@ -137,13 +137,12 @@ bool Solver::reuse_solution_ (int cycle) const throw()
 
 void Solver::begin_(Block * block)
 {
-  block->perf_start_region(Simulation::perf_solver + index_);
-#ifdef TRACE_SOLVER  
+  PERF_SWITCH(index_perf_);
+#ifdef TRACE_SOLVER
   if (block->cycle() >= CYCLE)
     CkPrintf ("%s TRACE_SOLVER %d Solver::begin_(%s)\n",
 	    block->name().c_str(),index_,name_.c_str());
-#endif  
-	    
+#endif
   block->push_solver(index_);
 }
 
@@ -162,7 +161,6 @@ void Solver::end_(Block * block)
 	  "Solver mismatch was %d expected %d",
 	  index,index_,(index == index_));
 
-  block->perf_stop_region(Simulation::perf_solver + index_);
   CkCallback(callback_,
 	     CkArrayIndexIndex(block->index()),
 	     block->proxy_array()).send();

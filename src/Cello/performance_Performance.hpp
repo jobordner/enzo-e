@@ -11,60 +11,6 @@
 class Config;
 class Schedule;
 
-/// @enum     counter_type_enum
-/// @brief    Counter value type
-enum counter_type_enum {
-  counter_type_unknown,
-  counter_type_rel,
-  counter_type_abs,
-  counter_type_papi,
-  counter_type_user,
-  num_counter_type
-};
-
-enum index_enum {
-  perf_index_time,
-  perf_index_bytes,
-  perf_index_bytes_high,
-  perf_index_bytes_highest,
-  perf_index_bytes_available,
-  perf_index_last,
-  num_perf_index = perf_index_last
-};
-
-/// @enum    perf_region
-/// @brief   region ID's for the Simulation performance object
-enum perf_region {
-  perf_unknown,
-  perf_simulation,
-  perf_cycle,
-  perf_initial,
-  perf_adapt_apply,
-  perf_adapt_apply_sync,
-  perf_adapt_update,
-  perf_adapt_update_sync,
-  perf_adapt_notify,
-  perf_adapt_notify_sync,
-  perf_adapt_end,
-  perf_adapt_end_sync,
-  perf_refresh_store,
-  perf_refresh_child,
-  perf_refresh_exit,
-  perf_refresh_store_sync,
-  perf_refresh_child_sync,
-  perf_refresh_exit_sync,
-  perf_control,
-  perf_compute,
-  perf_output,
-  perf_stopping,
-  perf_block,
-  perf_exit,
-#ifdef CONFIG_USE_GRACKLE
-  perf_grackle,
-#endif
-  num_perf_region
-};
-
 class Performance {
 
   /// @class    Performance
@@ -87,7 +33,6 @@ public: // interface
      region_counters_(),
      region_started_(),
      region_index_(),
-     region_in_charm_(),
 #ifdef CONFIG_USE_PAPI
      papi_counters_(0),
 #endif
@@ -145,11 +90,8 @@ public: // interface
   /// Return the index of the given region
   int region_index (std::string name) const throw();
 
-  /// Return whether the code region is outside the scope of Cello
-  bool region_in_charm (std::string name) const throw();
-
   /// Add a new region, returning the id
-  void new_region(int index_region, std::string region, bool in_charm=false) throw();
+  void new_region(int index_region, std::string region) throw();
 
   /// Return whether performance monitoring is started for the region
   bool is_region_active(int index_region) throw();
@@ -159,6 +101,9 @@ public: // interface
 
   /// Stop counters for a code region
   void stop_region(int index_region,  std::string file="", int line=0) throw();
+
+  /// Switch regions, stopping previous and starting a new one
+  void switch_region (int index_region,   std::string file="", int line=0) throw();
 
   /// Clear the counters for a code region
   void clear_region(int index_region) throw();
@@ -236,9 +181,6 @@ private: // attributes
 
   /// mapping of region name to index
   std::map<std::string,int> region_index_;
-
-  /// which regions are outside scope of Cello
-  std::vector<char> region_in_charm_;
 
 #ifdef CONFIG_USE_PAPI
   /// Array for storing PAPI counter values

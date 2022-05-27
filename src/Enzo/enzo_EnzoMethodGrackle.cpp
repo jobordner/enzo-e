@@ -133,7 +133,6 @@ void EnzoMethodGrackle::define_required_grackle_fields()
 
 void EnzoMethodGrackle::compute ( Block * block) throw()
 {
-
   if (block->is_leaf()){
 
 #ifndef CONFIG_USE_GRACKLE
@@ -146,12 +145,8 @@ void EnzoMethodGrackle::compute ( Block * block) throw()
 
     EnzoBlock * enzo_block = enzo::block(block);
 
-    // Start timer
-    cello::performance()->start_region(perf_grackle,__FILE__,__LINE__);
-
     this->compute_(enzo_block);
 
-    cello::performance()->stop_region(perf_grackle,__FILE__,__LINE__);
 #endif
   }
 

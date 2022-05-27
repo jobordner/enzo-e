@@ -248,14 +248,11 @@ public: // virtual functions
   /// Reduce output, using p_output_write to send data to writing processes
   void s_write()
   {
-    performance_->start_region(perf_output);
+    performance_->start_region(perf_output,__FILE__,__LINE__);
     write_();
-    performance_->stop_region(perf_output);
+    performance_->stop_region(perf_output,__FILE__,__LINE__);
   };
   void write_();
-
-  /// Continue on to Problem::output_wait()
-  void r_write(CkReductionMsg * msg);
 
   /// Continue on to Problem::output_wait() from checkpoint
   virtual void r_write_checkpoint_output();

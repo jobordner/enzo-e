@@ -786,7 +786,7 @@ Solver * Problem::create_solver_
   }
 
   if (solver) solver->set_index(index_solver);
-  
+
   return solver;
 }
 
@@ -967,8 +967,8 @@ Method * Problem::create_method_
       (config->method_close_files_seconds_stagger[index_method],
        config->method_close_files_seconds_delay[index_method],
        config->method_close_files_group_size[index_method]);
-      
   }
+
   return method;
 }
 

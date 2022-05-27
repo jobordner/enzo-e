@@ -278,7 +278,7 @@ public: // interface
   {      compute_enter_();  }
 
   void p_compute_continue()
-  {      compute_continue_();  }
+  {    compute_continue_();  }
   void r_compute_continue(CkReductionMsg * msg)
   {
     delete msg;
@@ -399,56 +399,52 @@ public:
 
   void p_adapt_enter()
   {
-    perf_start_region(perf_adapt_apply);
+    PERF_SWITCH(perf_adapt_enter);
     adapt_enter_();
-    perf_stop_region(perf_adapt_apply);
-    perf_start_region(perf_adapt_apply_sync);
+    PERF_SWITCH(perf_adapt_enter_sync);
   }
   void r_adapt_enter(CkReductionMsg * msg)
   {
-    perf_start_region(perf_adapt_apply);
+    PERF_SWITCH(perf_adapt_enter);
     delete msg;
     adapt_enter_();
-    perf_stop_region(perf_adapt_apply);
-    perf_start_region(perf_adapt_apply_sync);
+    PERF_SWITCH(perf_adapt_enter_sync);
   }
 
   void r_adapt_next(CkReductionMsg * msg)
   {
-    perf_start_region(perf_adapt_update);
+    PERF_SWITCH(perf_adapt_next);
     adapt_changed_ = *((int * )msg->getData());
     delete msg;
     adapt_next_();
-    perf_stop_region(perf_adapt_update);
-    perf_start_region(perf_adapt_update_sync);
+    PERF_SWITCH(perf_adapt_next_sync);
   }
 
   void p_adapt_called()
   {
-    perf_start_region(perf_adapt_notify);
+    PERF_SWITCH(perf_adapt_called);
     adapt_called_();
-    perf_stop_region(perf_adapt_notify);
-    perf_start_region(perf_adapt_notify_sync);
+    PERF_SWITCH(perf_adapt_called_sync);
   }
 
   void p_adapt_end ()
   {
-    perf_start_region(perf_adapt_end);
+    PERF_SWITCH(perf_adapt_end);
     adapt_end_();
-    perf_stop_region(perf_adapt_end);
-    perf_start_region(perf_adapt_end_sync);
+    PERF_SWITCH(perf_adapt_end_sync);
   }
   void p_adapt_update()
   {
+    PERF_SWITCH(perf_adapt_update);
     adapt_update_();
+    PERF_SWITCH(perf_adapt_update_sync);
   }
 
   void p_adapt_exit()
   {
-    perf_start_region(perf_adapt_end);
+    PERF_SWITCH(perf_adapt_exit);
     adapt_exit_();
-    perf_stop_region(perf_adapt_end);
-    perf_start_region(perf_adapt_end_sync);
+    PERF_SWITCH(perf_adapt_exit_sync);
   }
 
   /// Parent tells child to delete itself
@@ -496,11 +492,8 @@ public:
 
   void r_restart_enter(CkReductionMsg * msg)
   {
-    //    perf_start_region(perf_restart);
     delete msg;
     restart_enter_();
-    //    perf_stop_region(perf_restart);
-    //    perf_start_region(perf_restart_sync);
   }
 
 protected:
@@ -680,16 +673,14 @@ public:
   /// Enter the stopping phase
   void p_stopping_enter ()
   {
-    perf_start_region(perf_stopping);
+    PERF_SWITCH(perf_stopping);
     stopping_enter_();
-    perf_stop_region(perf_stopping);
   }
   void r_stopping_enter (CkReductionMsg * msg)
   {
-    perf_start_region(perf_stopping);
+    PERF_SWITCH(perf_stopping);
     delete msg;
     stopping_enter_();
-    perf_stop_region(perf_stopping);
   }
 
   /// Quiescence before load balancing
@@ -703,15 +694,13 @@ public:
   /// Exit the stopping phase
   void p_stopping_exit ()
   {
-    perf_start_region(perf_stopping);
+    PERF_SWITCH(perf_stopping);
     stopping_exit_();
-    perf_stop_region(perf_stopping);
   }
   void r_stopping_exit (CkReductionMsg * msg)
   {
     delete msg;
     stopping_exit_();
-    perf_stop_region(perf_stopping);
   }
 
 protected:
@@ -726,32 +715,18 @@ public:
   /// Exit the stopping phase to exit
   void p_exit ()
   {
-    perf_start_region(perf_exit);
+    PERF_SWITCH(perf_exit);
     exit_();
-    perf_stop_region(perf_exit);
   }
   void r_exit (CkReductionMsg * msg)
   {
-    perf_start_region(perf_exit);
+    PERF_SWITCH(perf_exit);
     delete msg;
     exit_();
-    perf_stop_region(perf_exit);
   }
 protected:
 
   void exit_();
-
-  //--------------------------------------------------
-  // PERFORMANCE
-  //--------------------------------------------------
-
-public:
-
-  /// Start and stop measuring Block-based performance regions
-  void perf_start_region
-  (int index_region, std::string file="", int line=0);
-  void perf_stop_region
-  (int index_region, std::string file="", int line=0);
 
 protected:
 

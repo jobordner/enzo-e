@@ -76,7 +76,9 @@ Block::Block ( process_type ip_source, MsgType msg_type )
 
 #endif
 
-  perf_start_region(perf_block);
+  index_ = thisIndex;
+
+  PERF_SWITCH(perf_block);
 
   init_refresh_();
   usesAtSync = true;
@@ -86,14 +88,13 @@ Block::Block ( process_type ip_source, MsgType msg_type )
   if (msg_type == MsgType::msg_refine) {
     proxy_simulation[ip_source].p_get_msg_refine(thisIndex);
   }
-
 }
 
 //----------------------------------------------------------------------
 
 void Block::p_set_msg_refine(MsgRefine * msg)
 {
-  perf_start_region(perf_block);
+  PERF_SWITCH(perf_block);
 
   init_refine_ (msg->index_,
 	msg->nx_, msg->ny_, msg->nz_,
@@ -108,7 +109,6 @@ void Block::p_set_msg_refine(MsgRefine * msg)
 
   apply_initial_(msg);
 
-  perf_stop_region(perf_block);
 #ifdef TRACE_BLOCK
   {
   CkPrintf ("%d %s index TRACE_BLOCK p_set_msg_refine(MsgRefine) done\n",
@@ -163,7 +163,7 @@ Block::Block ( MsgRefine * msg )
 
 #endif
 
-  perf_start_region(perf_block);
+  PERF_SWITCH(perf_block);
 
   init_refresh_();
   usesAtSync = true;
@@ -185,9 +185,6 @@ Block::Block ( MsgRefine * msg )
   init_adapt_(msg->adapt_parent_);
 
   apply_initial_(msg);
-  
-  perf_stop_region(perf_block);
-
 }
 //======================================================================
 #endif /* BYPASS_CHARM_MEM_LEAK */
@@ -652,7 +649,7 @@ void Block::p_refresh_child
  int    ic3[3]
  )
 {
-  perf_start_region(perf_refresh_child);
+  PERF_SWITCH(perf_refresh_child);
   int if3[3] = {0,0,0};
   int  g3[3] = {0,0,0};
   Refresh * refresh = new Refresh;
@@ -663,8 +660,7 @@ void Block::p_refresh_child
 
   field_face -> array_to_face (buffer, data()->field());
   delete field_face;
-  perf_stop_region(perf_refresh_child);
-  perf_start_region(perf_refresh_child_sync);
+  PERF_SWITCH(perf_refresh_child_sync);
 }
 
 //----------------------------------------------------------------------
@@ -1150,26 +1146,6 @@ Index Block::neighbor_
   // const bool periodic  = simulation()->problem()->boundary()->is_periodic();
   Index in = index.index_neighbor (of3,na3);
   return in;
-}
-
-//----------------------------------------------------------------------
-
-void Block::perf_start_region
-(int index_region, std::string file, int line)
-{
-  Simulation * simulation = cello::simulation();
-  if (simulation)
-    cello::performance()->start_region(index_region,file,line);
-}
-
-//----------------------------------------------------------------------
-
-void Block::perf_stop_region
-(int index_region, std::string file, int line)
-{
-  Simulation * simulation = cello::simulation();
-  if (simulation)
-    cello::performance()->stop_region(index_region,file,line);
 }
 
 //----------------------------------------------------------------------

@@ -28,7 +28,6 @@ Performance::Performance (Config * config)
   region_counters_(),
   region_started_(),
   region_index_(),
-  region_in_charm_(),
 #ifdef CONFIG_USE_PAPI
   papi_counters_(0),
 #endif
@@ -114,7 +113,6 @@ void Performance::pup (PUP::er &p)
   p | region_counters_;
   p | region_started_;
   p | region_index_;
-  p | region_in_charm_;
 #ifdef CONFIG_USE_PAPI
   WARNING("Performance::pup",
           "skipping Performance:papi_counters_");
@@ -261,8 +259,7 @@ Performance::region_index (std::string name) const throw()
 
 void
 Performance::new_region (int         region_index,
-			 std::string region_name,
-			 bool        in_charm) throw()
+			 std::string region_name) throw()
 {
 #ifdef TRACE_PERFORMANCE
   CkPrintf ("%d TRACE_PERFORMANCE Performance::new_region (%d %s)\n",CkMyPe(),
@@ -270,12 +267,10 @@ Performance::new_region (int         region_index,
 #endif
   if ((size_t)region_index >= region_name_.size()) {
     region_name_.resize(region_index+1);
-    region_in_charm_.resize(region_index+1);
   }
 
   region_name_[region_index]    = region_name;
   region_index_[region_name]    = region_index;
-  region_in_charm_[region_index] = in_charm;
 
   std::vector <long long> counters;
   region_counters_.push_back(counters);
@@ -292,10 +287,6 @@ Performance::start_region(int id_region, std::string file, int line) throw()
 	    id_region,region_name_[id_region].c_str(),file.c_str(),line);
 #endif
 
-  if (region_in_charm_[index_region_current_]) {
-    stop_region(index_region_current_);
-  }
-
   int index_region = id_region;
 
   index_region_current_ = index_region;
@@ -306,13 +297,13 @@ Performance::start_region(int id_region, std::string file, int line) throw()
 
   } else if (warnings_) {
     if (file == "") {
-      WARNING1 ("Performance::start_region",
-		"Region %s already started",
-		region_name_[id_region].c_str());
+      WARNING2 ("Performance::start_region",
+		"Region %d %s already started",
+		id_region,region_name_[id_region].c_str());
     } else {
-      WARNING3 ("Performance::start_region",
-    		"Region %s already started %s %d",
-    		region_name_[id_region].c_str(),
+      WARNING4 ("Performance::start_region",
+    		"Region %d %s already started %s %d",
+    		id_region,region_name_[id_region].c_str(),
     		file.c_str(),line);
     }
     return;
@@ -349,13 +340,13 @@ Performance::stop_region(int id_region, std::string file, int line) throw()
 
   } else if (warnings_) {
     if (file == "") {
-      WARNING1 ("Performance::stop_region",
-		"Region %s already stopped",
-		region_name_[id_region].c_str());
+      WARNING2 ("Performance::stop_region",
+		"Region %d %s already stopped",
+		id_region,region_name_[id_region].c_str());
     } else {
-      WARNING3 ("Performance::stop_region",
-		"Region %s already stopped %s %d",
-		region_name_[id_region].c_str(),
+      WARNING4 ("Performance::stop_region",
+		"Region %d %s already stopped %s %d",
+		id_region,region_name_[id_region].c_str(),
 		file.c_str(),line);
     }
     return;
@@ -371,6 +362,22 @@ Performance::stop_region(int id_region, std::string file, int line) throw()
       region_counters_[index_region][i] += counter_values_[i];
     }
 
+  }
+}
+
+//----------------------------------------------------------------------
+
+void
+Performance::switch_region(int id_region, std::string file, int line) throw()
+{
+  if (id_region != index_region_current_) {
+#ifdef TRACE_PERFORMANCE
+    CkPrintf ("%d TRACE_PERFORMANCE Performance::switch_region (%d,%s)->(%d,%s) %s:%d\n",CkMyPe(),
+              index_region_current_,region_name_[index_region_current_].c_str(),
+              id_region,region_name_[id_region].c_str(),file.c_str(),line);
+#endif
+    stop_region (index_region_current_,file,line);
+    start_region(id_region,file,line);
   }
 }
 

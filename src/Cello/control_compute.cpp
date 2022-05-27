@@ -21,9 +21,7 @@
 
 void Block::compute_enter_ ()
 {
-  perf_start_region(perf_compute,__FILE__,__LINE__);
   compute_begin_();
-  perf_stop_region(perf_compute,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------
@@ -71,7 +69,6 @@ void Block::compute_next_ ()
 
 void Block::compute_continue_ ()
 {
-  perf_start_region(perf_compute,__FILE__,__LINE__);
 #ifdef DEBUG_COMPUTE
   if (cycle() >= CYCLE)
     CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_continue_()\n", CkMyPe(),name().c_str());
@@ -87,17 +84,15 @@ void Block::compute_continue_ ()
     (schedule==NULL) ||
     (schedule->write_this_cycle(cycle_,time_));
 
-  perf_stop_region(perf_compute,__FILE__,__LINE__);
-  perf_start_region(Simulation::perf_method + index_method_);
-
   if (is_scheduled) {
 
-    // apply the method to the Block if scheduled
+    // Apply the method to the Block
+
+    PERF_METHOD(method);
     method->compute (this);
 
   } else {
 
-    // else next method
     compute_done();
 
   }
@@ -107,7 +102,6 @@ void Block::compute_continue_ ()
 
 void Block::compute_done ()
 {
-  perf_stop_region(Simulation::perf_method + index_method_);
 #ifdef DEBUG_COMPUTE
   if (cycle() >= CYCLE)
     CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_done_()\n", CkMyPe(),name().c_str());

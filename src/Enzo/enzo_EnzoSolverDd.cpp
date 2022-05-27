@@ -59,7 +59,6 @@ EnzoSolverDd::EnzoSolverDd
       gx_(0),gy_(0),gz_(0),
       coarse_level_(coarse_level)
 {
-
   /// Define temporary field "X_c" for coarse grid correction
   ixc_ = cello::field_descr()->insert_temporary();
 
@@ -85,6 +84,8 @@ EnzoSolverDd::EnzoSolverDd
 
 void EnzoSolverDd::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
 {
+  PERF_SOLVER(this);
+
   Solver::begin_(block);
 
   Field field = block->data()->field();
@@ -148,6 +149,7 @@ void EnzoSolverDd::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
 
 void EnzoSolverDd::begin_solve(EnzoBlock * enzo_block) throw()
 {
+  PERF_SOLVER(this);
   if (enzo_block->level() == coarse_level_) {
 
     call_coarse_solver(enzo_block);
@@ -163,6 +165,7 @@ void EnzoSolverDd::begin_solve(EnzoBlock * enzo_block) throw()
 
 void EnzoSolverDd::restrict(EnzoBlock * enzo_block) throw()
 {
+  PERF_SOLVER(this);
   restrict_send(enzo_block);
 
   call_coarse_solver(enzo_block);
@@ -172,6 +175,7 @@ void EnzoSolverDd::restrict(EnzoBlock * enzo_block) throw()
 
 void EnzoSolverDd::restrict_send(EnzoBlock * enzo_block) throw()
 {
+  PERF_SOLVER(this);
   // Pack field
   Index index = enzo_block->index();
   int level   = index.level();
@@ -197,6 +201,7 @@ void EnzoBlock::p_solver_dd_restrict_recv(FieldMsg * msg)
 void EnzoSolverDd::restrict_recv
 (EnzoBlock * enzo_block, FieldMsg * msg) throw()
 {
+  PERF_SOLVER(this);
   // Unpack "B" vector data from children
 
   // Save field message from child
@@ -221,6 +226,7 @@ void EnzoSolverDd::restrict_recv
 
 void EnzoSolverDd::call_coarse_solver(EnzoBlock * enzo_block) throw()
 {
+  PERF_SOLVER(this);
   Solver * solve_coarse = cello::solver(index_solve_coarse_);
 
   solve_coarse->set_sync_id (enzo_sync_id_solver_dd_coarse);
@@ -254,6 +260,7 @@ void EnzoBlock::r_solver_dd_barrier(CkReductionMsg * msg)
 
 void EnzoSolverDd::prolong(EnzoBlock * enzo_block) throw()
 {
+  PERF_SOLVER(this);
 
   if (is_finest_(enzo_block)) {
     copy_xc_to_x_(enzo_block);
@@ -270,7 +277,7 @@ void EnzoSolverDd::prolong(EnzoBlock * enzo_block) throw()
   }
 
   if (coarse_level_ < level && level <= max_level_) {
-    enzo_block->solver_dd_prolong_recv(NULL);
+    prolong_recv(enzo_block,nullptr);
   } else {
     call_domain_solver (enzo_block);
   }
@@ -280,6 +287,7 @@ void EnzoSolverDd::prolong(EnzoBlock * enzo_block) throw()
 
 void EnzoSolverDd::prolong_send_(EnzoBlock * enzo_block) throw()
 {
+  PERF_SOLVER(this);
   if ( ! is_finest_(enzo_block) ) {
     ItChild it_child(cello::rank());
     int ic3[3];
@@ -299,9 +307,6 @@ void EnzoSolverDd::prolong_send_(EnzoBlock * enzo_block) throw()
 //----------------------------------------------------------------------
 
 void EnzoBlock::p_solver_dd_prolong_recv(FieldMsg * msg)
-{  solver_dd_prolong_recv(msg); }
-
-void EnzoBlock::solver_dd_prolong_recv(FieldMsg * msg)
 {
   static_cast<EnzoSolverDd*> (solver())->prolong_recv(this,msg);
 }
@@ -311,6 +316,7 @@ void EnzoBlock::solver_dd_prolong_recv(FieldMsg * msg)
 void EnzoSolverDd::prolong_recv
 (EnzoBlock * enzo_block, FieldMsg * msg) throw()
 {
+  PERF_SOLVER(this);
   // Unpack "X" vector data from parent
 
   // Save field message from parent
@@ -340,6 +346,7 @@ void EnzoSolverDd::prolong_recv
 
 void EnzoSolverDd::copy_xc_to_x_(EnzoBlock * enzo_block) throw()
 {
+  PERF_SOLVER(this);
 
   const int m = mx_*my_*mz_;
 
@@ -356,6 +363,7 @@ void EnzoSolverDd::copy_xc_to_x_(EnzoBlock * enzo_block) throw()
 
 void EnzoSolverDd::call_domain_solver(EnzoBlock * enzo_block) throw()
 {
+  PERF_SOLVER(this);
   Solver * solve_domain = cello::solver(index_solve_domain_);
 
   solve_domain->set_sync_id (enzo_sync_id_solver_dd_domain);
@@ -395,6 +403,7 @@ void EnzoBlock::r_solver_dd_end(CkReductionMsg * msg)
 
 void EnzoSolverDd::call_last_smoother(EnzoBlock * enzo_block) throw()
 {
+  PERF_SOLVER(this);
   Solver * smooth_last = cello::solver(index_solve_smooth_);
 
   smooth_last->set_sync_id (enzo_sync_id_solver_dd_smooth);
