@@ -547,7 +547,7 @@ void EnzoBlock::r_solver_bicgstab_start_1(CkReductionMsg* msg)
 void EnzoSolverBiCgStab::start_2(EnzoBlock* block,
 				 CkReductionMsg *msg) throw() {
 
-  PERF_SOLVER;
+  PERF_SOLVER(this);
   TRACE_BCG(block,this,"start_2");
   
   if (solve_type_ != solve_tree && msg != NULL) {
@@ -660,7 +660,7 @@ void EnzoBlock::r_solver_bicgstab_start_3(CkReductionMsg* msg)
 void EnzoSolverBiCgStab::loop_0a(EnzoBlock* block,
 				 CkReductionMsg * msg) throw() {
 
-  PERF_SOLVER;
+  PERF_SOLVER(this);
   TRACE_BCG(block,this,"loop_0a");
   
   if (solve_type_ != solve_tree && msg != NULL) {
@@ -695,7 +695,7 @@ void EnzoSolverBiCgStab::loop_0a(EnzoBlock* block,
 void EnzoSolverBiCgStab::loop_0b(EnzoBlock* block,
 				 CkReductionMsg * msg) throw() {
 
-  PERF_SOLVER;
+  PERF_SOLVER(this);
   delete msg;
 
   TRACE_BCG(block,this,"loop_0b");
@@ -708,7 +708,7 @@ void EnzoSolverBiCgStab::loop_0b(EnzoBlock* block,
 
 void EnzoSolverBiCgStab::loop_0(EnzoBlock* block) throw() {
 
-  PERF_SOLVER;
+  PERF_SOLVER(this);
   /// verify legal floating-point value for preceding reduction result
 
   TRACE_BCG(block,this,"loop_0");
@@ -847,7 +847,7 @@ void EnzoSolverBiCgStab::loop_0(EnzoBlock* block) throw() {
 
 void EnzoSolverBiCgStab::loop_2(EnzoBlock* block) throw() {
 
-  PERF_SOLVER;
+  PERF_SOLVER(this);
   /// access field container on this block
 
   TRACE_BCG(block,this,"loop_2");
@@ -922,7 +922,7 @@ void EnzoBlock::p_solver_bicgstab_loop_2() {
 
 void EnzoSolverBiCgStab::loop_25 (EnzoBlock * block) throw() {
   
-  PERF_SOLVER;
+  PERF_SOLVER(this);
   TRACE_BCG(block,this,"loop_25");
 
   Refresh * refresh = cello::refresh(ir_loop_3_);
@@ -944,7 +944,7 @@ void EnzoBlock::p_solver_bicgstab_loop_3() {
 
 void EnzoSolverBiCgStab::loop_4(EnzoBlock* block) throw() {
 
-  PERF_SOLVER;
+  PERF_SOLVER(this);
   TRACE_BCG(block,this,"loop_4");
   
   /// access field container on this block
@@ -1047,7 +1047,7 @@ void EnzoBlock::r_solver_bicgstab_loop_5(CkReductionMsg* msg)
 void EnzoSolverBiCgStab::loop_6(EnzoBlock* block,
 				CkReductionMsg * msg) throw() {
 
-  PERF_SOLVER;
+  PERF_SOLVER(this);
   TRACE_BCG(block,this,"loop_6");
 
   if (solve_type_ != solve_tree && msg != NULL) {
@@ -1137,7 +1137,7 @@ void EnzoSolverBiCgStab::loop_6(EnzoBlock* block,
 
 void EnzoSolverBiCgStab::loop_8(EnzoBlock* block) throw() {
 
-  PERF_SOLVER;
+  PERF_SOLVER(this);
   TRACE_BCG(block,this,"loop_8");
 
   /// access field container on this block
@@ -1212,7 +1212,7 @@ void EnzoBlock::p_solver_bicgstab_loop_8()
 
 void EnzoSolverBiCgStab::loop_85 (EnzoBlock * block) throw() {
   
-  PERF_SOLVER;
+  PERF_SOLVER(this);
   TRACE_BCG(block,this,"loop_85");
 
   Refresh * refresh = cello::refresh(ir_loop_9_);
@@ -1235,7 +1235,7 @@ void EnzoBlock::p_solver_bicgstab_loop_9()
 
 void EnzoSolverBiCgStab::loop_10(EnzoBlock* block) throw() {
 
-  PERF_SOLVER;
+  PERF_SOLVER(this);
   TRACE_BCG(block,this,"loop_10");
 
   /// access field container on this block
@@ -1347,7 +1347,7 @@ void EnzoBlock::r_solver_bicgstab_loop_11(CkReductionMsg* msg)
 void EnzoSolverBiCgStab::loop_12(EnzoBlock* block,
 				 CkReductionMsg * msg) throw() {
 
-  PERF_SOLVER;
+  PERF_SOLVER(this);
   TRACE_BCG(block,this,"loop_12");
 
   if (solve_type_ != solve_tree && msg != NULL) {
@@ -1511,7 +1511,7 @@ void EnzoBlock::r_solver_bicgstab_loop_13(CkReductionMsg* msg)
 void EnzoSolverBiCgStab::loop_14(EnzoBlock* block,
 				 CkReductionMsg * msg) throw() {
 
-  PERF_SOLVER;
+  PERF_SOLVER(this);
   TRACE_BCG(block,this,"loop_14");
 
   if (solve_type_ != solve_tree && msg != NULL) {
