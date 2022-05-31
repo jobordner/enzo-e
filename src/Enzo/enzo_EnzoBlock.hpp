@@ -121,7 +121,7 @@ public: // interface
        dt(0.0),
        redshift(0.0)
   {
-    PERF_SWITCH(perf_block);
+    PERF_START(perf_block);
 #ifdef TRACE_BLOCK
     CkPrintf ("%d %p TRACE_BLOCK EnzoBlock()\n",CkMyPe(),(void *)this);
 #endif
@@ -144,7 +144,7 @@ public: // interface
     CkPrintf ("%d %p TRACE_BLOCK %s EnzoBlock(CkMigrateMessage)\n",
               CkMyPe(),(void *)this, name(thisIndex).c_str());
 #endif
-    PERF_SWITCH(perf_block);
+    PERF_START(perf_block);
     TRACE("CkMigrateMessage");
     for (int i=0; i<MAX_DIMENSION; i++) {
       GridLeftEdge[i] = 0;

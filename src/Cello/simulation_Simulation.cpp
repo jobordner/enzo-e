@@ -15,8 +15,8 @@
 // #define DEBUG_SIMULATION
 // #define DEBUG_MSG_REFINE
 
-int Simulation::perf_method = 0;
-int Simulation::perf_solver = 0;
+int Simulation::perf_method_base = 0;
+int Simulation::perf_solver_base = 0;
 
 Simulation::Simulation
 (
@@ -333,57 +333,63 @@ void Simulation::initialize_performance_() throw()
   p->new_region(perf_cycle,              "cycle");
   p->new_region(perf_initial,            "initial");
 
-  p->new_region(perf_adapt_enter,           "perf_adapt_enter");
-  p->new_region(perf_adapt_enter_sync,      "perf_adapt_enter_sync");
-  p->new_region(perf_adapt_end,             "perf_adapt_end");
-  p->new_region(perf_adapt_end_sync,        "perf_adapt_end_sync");
-  p->new_region(perf_adapt_update,          "perf_adapt_update");
-  p->new_region(perf_adapt_update_sync,     "perf_adapt_update_sync");
-  p->new_region(perf_adapt_next,            "perf_adapt_next");
-  p->new_region(perf_adapt_next_sync,       "perf_adapt_next_sync");
-  p->new_region(perf_adapt_called,          "perf_adapt_called");
-  p->new_region(perf_adapt_called_sync,     "perf_adapt_called_sync");
-  p->new_region(perf_adapt_exit,            "perf_adapt_exit");
-  p->new_region(perf_adapt_exit_sync,       "perf_adapt_exit_sync");
-  p->new_region(perf_adapt_delete,          "perf_adapt_delete");
-  p->new_region(perf_adapt_delete_sync,     "perf_adapt_delete_sync");
-  p->new_region(perf_adapt_recv_level,      "perf_adapt_recv_level");
-  p->new_region(perf_adapt_recv_level_sync, "perf_adapt_recv_level_sync");
-  p->new_region(perf_adapt_recv_child,      "perf_adapt_recv_child");
-  p->new_region(perf_adapt_recv_child_sync, "perf_adapt_recv_child_sync");
-
-  p->new_region(perf_refresh_store,      "refresh_store");
-  p->new_region(perf_refresh_child,      "refresh_child");
-  p->new_region(perf_refresh_exit,       "refresh_exit");
-  p->new_region(perf_refresh_store_sync, "refresh_store_sync");
-  p->new_region(perf_refresh_child_sync, "refresh_child_sync");
-  p->new_region(perf_refresh_exit_sync,  "refresh_exit_sync");
-  p->new_region(perf_compute,            "compute");
-  p->new_region(perf_control,            "control");
-  p->new_region(perf_output,             "output");
-  p->new_region(perf_stopping,           "stopping");
-  p->new_region(perf_block,              "block");
-  p->new_region(perf_exit,               "exit");
+  const bool in_charm = true;
+  p->new_region(perf_adapt,                 "adapt");
+  p->new_region(perf_adapt_post,            "adapt_post",in_charm);
+  p->new_region(perf_adapt_enter,           "adapt_enter");
+  p->new_region(perf_adapt_enter_post,      "adapt_enter_post",in_charm);
+  p->new_region(perf_adapt_end,             "adapt_end");
+  p->new_region(perf_adapt_end_post,        "adapt_end_post",in_charm);
+  p->new_region(perf_adapt_update,          "adapt_update");
+  p->new_region(perf_adapt_update_post,     "adapt_update_post",in_charm);
+  p->new_region(perf_adapt_next,            "adapt_next");
+  p->new_region(perf_adapt_next_post,       "adapt_next_post",in_charm);
+  p->new_region(perf_adapt_called,          "adapt_called");
+  p->new_region(perf_adapt_called_post,     "adapt_called_post",in_charm);
+  p->new_region(perf_adapt_exit,            "adapt_exit");
+  p->new_region(perf_adapt_exit_post,       "adapt_exit_post",in_charm);
+  p->new_region(perf_adapt_delete,          "adapt_delete");
+  p->new_region(perf_adapt_delete_post,     "adapt_delete_post",in_charm);
+  p->new_region(perf_adapt_recv_level,      "adapt_recv_level");
+  p->new_region(perf_adapt_recv_level_post, "adapt_recv_level_post",in_charm);
+  p->new_region(perf_adapt_recv_child,      "adapt_recv_child");
+  p->new_region(perf_adapt_recv_child_post, "adapt_recv_child_post",in_charm);
+  p->new_region(perf_refresh,               "refresh");
+  p->new_region(perf_refresh_post,          "refresh_post",in_charm);
+  p->new_region(perf_refresh_recv,          "refresh_recv");
+  p->new_region(perf_refresh_recv_post,     "refresh_recv_post",in_charm);
+  p->new_region(perf_refresh_exit,          "refresh_exit");
+  p->new_region(perf_refresh_exit_post,     "refresh_exit_post",in_charm);
+  p->new_region(perf_refresh_child,          "refresh_child");
+  p->new_region(perf_refresh_child_post,     "refresh_child_post",in_charm);
+  p->new_region(perf_method,                "method");
+  p->new_region(perf_solver,                "solver");
+  p->new_region(perf_control,               "control");
+  p->new_region(perf_output,                "output");
+  p->new_region(perf_balance,               "balance");
+  p->new_region(perf_stopping,              "stopping");
+  p->new_region(perf_block,                 "block");
+  p->new_region(perf_exit,                  "exit");
 #ifdef CONFIG_USE_GRACKLE
-  p->new_region(perf_grackle,            "grackle");
+  p->new_region(perf_grackle,               "grackle");
 #endif
 
   const Problem * problem = cello::problem();
   // Add Method performance regions
-  Simulation::perf_method = p->num_regions();
+  perf_method_base = p->num_regions();
   for (int i=0; i<problem->num_methods(); i++) {
     Method * method = problem->method(i);
     std::string region_name = std::string("method_") + method->name();
-    p->new_region(perf_method + i, region_name);
-    method->set_perf_index(perf_method + i);
+    p->new_region(perf_method_base + i, region_name);
+    method->set_perf_index(perf_method_base + i);
   }
   // add Solver performance regions
-  Simulation::perf_solver = p->num_regions();
+  perf_solver_base = p->num_regions();
   for (int i=0; i<problem->num_solvers(); i++) {
     Solver * solver = problem->solver(i);
     std::string region_name = std::string("solver_") + solver->name();
-    p->new_region(perf_solver + i, region_name);
-    solver->set_perf_index(perf_solver + i);
+    p->new_region(perf_solver_base + i, region_name);
+    solver->set_perf_index(perf_solver_base + i);
   }
 
   timer_.start();
@@ -416,6 +422,8 @@ void Simulation::initialize_monitor_() throw()
   bool debug = config_->monitor_debug;
   int debug_mode = debug ? monitor_mode_all : monitor_mode_none;
   monitor_->set_mode("DEBUG",debug_mode);
+  monitor_->set_include_proc(config_->monitor_proc);
+  monitor_->set_include_time(config_->monitor_time);
   monitor_->set_verbose(config_->monitor_verbose);
 }
 
@@ -806,10 +814,17 @@ void Simulation::data_delete_particles(int64_t count)
 
 void Simulation::monitor_output()
 {
-  monitor()-> print("", "-------------------------------------");
-  monitor()-> print("Simulation", "cycle %04d", cycle_);
-  monitor()-> print("Simulation", "time-sim %15.12e",time_);
-  monitor()-> print("Simulation", "dt %15.12e", dt_);
+  Monitor * monitor = cello::monitor();
+  monitor-> print("", "-------------------------------------");
+  const bool in_p = monitor->include_proc();
+  const bool in_t = monitor->include_time();
+  monitor->set_include_proc(true);
+  monitor->set_include_time(true);
+  monitor-> print("Simulation", "cycle %04d", cycle_);
+  monitor-> print("Simulation", "time-sim %15.12e",time_);
+  monitor-> print("Simulation", "dt %15.12e", dt_);
+  monitor->set_include_proc(in_p);
+  monitor->set_include_time(in_t);
   thisProxy.p_monitor_performance();
 }
 
@@ -938,19 +953,21 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   const int num_solver = problem()->num_solvers();
   for (int i=0; i<num_solver; i++) {
     const long long num_solver_iter = counters_reduce[m++]; // 15
-    monitor()->print ("Performance","solver num-%s-iter %lld",
-                      problem()->solver(i)->name().c_str(),
-                      num_solver_iter);
+    if (num_solver_iter>0) {
+      monitor()->print ("perf:solver","num-%s-iter %lld",
+                        problem()->solver(i)->name().c_str(),
+                        num_solver_iter);
+    }
   }
 
-  monitor()->print("Performance","counter num-msg-coarsen %lld", msg_coarsen);
-  monitor()->print("Performance","counter num-msg-refine %lld", msg_refine);
-  monitor()->print("Performance","counter num-msg-refresh %lld", msg_refresh);
-  monitor()->print("Performance","counter num-data-msg %lld", data_msg);
-  monitor()->print("Performance","counter num-field-face %lld", field_face);
-  monitor()->print("Performance","counter num-particle-data %lld", particle_data);
+  monitor()->print("perf:counter","msg-coarsen %lld", msg_coarsen);
+  monitor()->print("perf:counter","msg-refine %lld", msg_refine);
+  monitor()->print("perf:counter","msg-refresh %lld", msg_refresh);
+  monitor()->print("perf:counter","data-msg %lld", data_msg);
+  monitor()->print("perf:counter","field-face %lld", field_face);
+  monitor()->print("perf:counter","particle-data %lld", particle_data);
 
-  monitor()->print("Performance","simulation num-particles total %lld",
+  monitor()->print("perf:data","num-particles total %lld",
 		   num_particles);
 
   // compute total blocks and leaf blocks
@@ -958,7 +975,7 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   long long num_leaf_blocks = 0;
   for (int i=hierarchy_->min_level(); i<=hierarchy_->max_level(); i++) {
     const long long num_blocks_level = counters_reduce[m++]; // NL
-    monitor()->print("performance","simulation num-blocks-level %d %lld",
+    monitor()->print("perf:mesh","blocks-level_%d %lld",
 		     i,num_blocks_level);
     num_total_blocks += num_blocks_level;
     // compute leaf blocks given number of blocks per level
@@ -972,9 +989,9 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   }
 
   monitor()->print
-    ("Performance","simulation num-leaf-blocks %lld",  num_leaf_blocks);
+    ("perf:mesh","leaf-blocks %lld",  num_leaf_blocks);
   monitor()->print
-    ("Performance","simulation num-total-blocks %lld", num_total_blocks);
+    ("perf:mesh","total-blocks %lld", num_total_blocks);
 
   const long long num_blocks_total   = counters_reduce[m++]; // 10
 
@@ -991,15 +1008,19 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
     for (int ic = 0; ic < num_counters; ic++, m++) {
       bool do_print =
 	(ir != perf_unknown) && (
-	(performance_->counter_type(ic) != counter_type_abs) ||
-	(ir == index_region_cycle));
+                                 (performance_->counter_type(ic) != counter_type_abs) ||
+                                 (ir == index_region_cycle));
       if (do_print) {
-	monitor()->print("Performance","%s %s %lld",
-			performance_->region_name(ir).c_str(),
-			performance_->counter_name(ic).c_str(),
-			 counters_reduce[m]);
+        monitor()->print("perf:region","%s %s %lld",
+                         performance_->region_name(ir).c_str(),
+                         performance_->counter_name(ic).c_str(),
+                         counters_reduce[m]);
+        const int multiplicity = performance_->region_multiplicity(ir);
+        if (! (0 <= multiplicity && multiplicity <= 1)) {
+          CkPrintf ("WARNING: perf:region %s %d multiplicity %d\n",
+                    performance_->region_name(ir).c_str(),ir,multiplicity);
+        }
       }
-      
     }
   }
 
@@ -1010,39 +1031,30 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
 
   for (int i=0; i<num_solver; i++) {
     const long long max_solver_iters       = counters_reduce[m++]; // 15
-    monitor()->print ("Performance","solver max-%s-iter %lld",
+    monitor()->print ("perf:solver","max-%s-iter %lld",
                       problem()->solver(i)->name().c_str(),
                       max_solver_iters);
   }
   cello::simulation()->clear_solver_iter(); // clear it for the next solve
 
-  
   monitor()->print
-    ("Performance","simulation max-proc-blocks %lld",  max_proc_blocks);
+    ("perf:balance","max-proc-blocks %lld",  max_proc_blocks);
   monitor()->print
-    ("Performance","simulation max-node-blocks %lld",  max_node_blocks);
+    ("perf:balance","simulation max-node-blocks %lld",  max_node_blocks);
   monitor()->print
-    ("Performance","simulation max-proc-particles %lld", max_proc_particles);
+    ("perf:balance","simulation max-proc-particles %lld", max_proc_particles);
   monitor()->print
-    ("Performance","simulation max-node-particles %lld", max_node_particles);
+    ("perf:balance","simulation max-node-particles %lld", max_node_particles);
 
   const double avg_proc_blocks = 1.0*num_blocks_total/CkNumPes();
   const double avg_node_blocks = 1.0*num_blocks_total/CkNumNodes();
 
-
-  // monitor()->print
-  //   ("Performance","simulation balance-blocks-core %f",
-  //    100.0*(max_proc_blocks / avg_proc_blocks - 1.0 ));
-  // monitor()->print
-  //   ("Performance","simulation balance-blocks-node %f",
-  //    100.0*(max_node_blocks / avg_node_blocks - 1.0 ));
-
   monitor()->print
-    ("Performance","simulation balance-eff-blocks-core %f (%.0f/%lld)",
+    ("perf:balance","eff-blocks-core %f (%.0f/%lld)",
      avg_proc_blocks / max_proc_blocks,
      avg_proc_blocks, max_proc_blocks);
   monitor()->print
-    ("Performance","simulation balance-eff-blocks-node %f (%.0f/%lld)",
+    ("perf:balance","eff-blocks-node %f (%.0f/%lld)",
      avg_node_blocks / max_node_blocks,
      avg_node_blocks, max_node_blocks);
 
@@ -1050,11 +1062,11 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
     const double avg_proc_particles = 1.0*num_particles/CkNumPes();
     const double avg_node_particles = 1.0*num_particles/CkNumNodes();
     monitor()->print
-      ("Performance","simulation balance-eff-particles-core %f (%.0f/%lld)",
+      ("perf:balance","eff-particles-core %f (%.0f/%lld)",
        avg_proc_particles / max_proc_particles,
        avg_proc_particles , max_proc_particles );
     monitor()->print
-      ("Performance","simulation balance-eff-particles-node %f (%.0f/%lld)",
+      ("perf:balance","eff-particles-node %f (%.0f/%lld)",
        avg_node_particles / max_node_particles,
        avg_node_particles , max_node_particles );
   }

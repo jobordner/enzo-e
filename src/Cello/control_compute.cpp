@@ -84,11 +84,11 @@ void Block::compute_continue_ ()
     (schedule==NULL) ||
     (schedule->write_this_cycle(cycle_,time_));
 
+  PERF_METHOD_START(method);
   if (is_scheduled) {
 
     // Apply the method to the Block
 
-    PERF_METHOD(method);
     method->compute (this);
 
   } else {
@@ -106,6 +106,7 @@ void Block::compute_done ()
   if (cycle() >= CYCLE)
     CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_done_()\n", CkMyPe(),name().c_str());
 #endif
+  PERF_METHOD_STOP(method());
   index_method_++;
   compute_next_();
 }

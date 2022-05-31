@@ -113,7 +113,6 @@ EnzoMethodGravity::EnzoMethodGravity
 
 void EnzoMethodGravity::compute(Block * block) throw()
 {
-  PERF_METHOD(this);
   if (enzo::simulation()->cycle() == enzo::config()->initial_cycle) {
     // Check if the pm_deposit method is being used and precedes the
     // gravity method.
@@ -218,7 +217,6 @@ void EnzoBlock::p_method_gravity_continue()
 
   // @@@
   EnzoMethodGravity * method = static_cast<EnzoMethodGravity*> (this->method());
-  PERF_METHOD(method);
   method->refresh_potential(this);
 }
 
@@ -226,7 +224,6 @@ void EnzoBlock::p_method_gravity_continue()
 
 void EnzoMethodGravity::refresh_potential (EnzoBlock * enzo_block) throw()
 {
-  PERF_METHOD(this);
   cello::refresh(ir_exit_)->set_active(enzo_block->is_leaf());
   enzo_block->refresh_start
     (ir_exit_, CkIndex_EnzoBlock::p_method_gravity_end());
@@ -237,7 +234,6 @@ void EnzoMethodGravity::refresh_potential (EnzoBlock * enzo_block) throw()
 void EnzoBlock::p_method_gravity_end()
 {
   EnzoMethodGravity * method = static_cast<EnzoMethodGravity*> (this->method());
-  PERF_METHOD(method);
   method->compute_accelerations(this);
   // wait for all Blocks before continuing
   compute_done();
@@ -247,7 +243,6 @@ void EnzoBlock::p_method_gravity_end()
 
 void EnzoMethodGravity::compute_accelerations (EnzoBlock * enzo_block) throw()
 {
-  PERF_METHOD(this);
   Field field = enzo_block->data()->field();
   int gx,gy,gz;
   int mx,my,mz;
@@ -303,7 +298,6 @@ double EnzoMethodGravity::timestep (Block * block) throw()
 
 double EnzoMethodGravity::timestep_ (Block * block) throw()
 {
-  PERF_METHOD(this);
   Field field = block->data()->field();
 
   int mx,my,mz;

@@ -224,7 +224,6 @@ void EnzoMethodTurbulence::compute_resume
  CkReductionMsg * msg) throw()
 {
   TRACE_TURBULENCE;
-  PERF_METHOD(this);
 
   double * g = (double *)msg->getData();
 

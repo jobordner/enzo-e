@@ -444,8 +444,8 @@ protected: // functions
 
 public: // static attributes
 
-  static int perf_method;
-  static int perf_solver;
+  static int perf_method_base;
+  static int perf_solver_base;
 
 protected: // attributes
 

@@ -78,7 +78,7 @@ Block::Block ( process_type ip_source, MsgType msg_type )
 
   index_ = thisIndex;
 
-  PERF_SWITCH(perf_block);
+  PERF_START(perf_block);
 
   init_refresh_();
   usesAtSync = true;
@@ -88,13 +88,14 @@ Block::Block ( process_type ip_source, MsgType msg_type )
   if (msg_type == MsgType::msg_refine) {
     proxy_simulation[ip_source].p_get_msg_refine(thisIndex);
   }
+  PERF_STOP(perf_block);
 }
 
 //----------------------------------------------------------------------
 
 void Block::p_set_msg_refine(MsgRefine * msg)
 {
-  PERF_SWITCH(perf_block);
+  PERF_START(perf_block);
 
   init_refine_ (msg->index_,
 	msg->nx_, msg->ny_, msg->nz_,
@@ -121,6 +122,7 @@ void Block::p_set_msg_refine(MsgRefine * msg)
   fflush(stdout);
 #endif
   delete msg;
+  PERF_STOP(perf_block);
 }
 
 //======================================================================
@@ -163,7 +165,7 @@ Block::Block ( MsgRefine * msg )
 
 #endif
 
-  PERF_SWITCH(perf_block);
+  PERF_START(perf_block);
 
   init_refresh_();
   usesAtSync = true;
@@ -649,7 +651,7 @@ void Block::p_refresh_child
  int    ic3[3]
  )
 {
-  PERF_SWITCH(perf_refresh_child);
+  PERF_START(perf_refresh_child);
   int if3[3] = {0,0,0};
   int  g3[3] = {0,0,0};
   Refresh * refresh = new Refresh;
@@ -660,7 +662,7 @@ void Block::p_refresh_child
 
   field_face -> array_to_face (buffer, data()->field());
   delete field_face;
-  PERF_SWITCH(perf_refresh_child_sync);
+  PERF_START(perf_refresh_child_post);
 }
 
 //----------------------------------------------------------------------

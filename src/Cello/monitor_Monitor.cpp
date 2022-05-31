@@ -19,7 +19,9 @@ Monitor::Monitor()
   : timer_(new Timer),
     mode_(monitor_mode_root),
     verbose_(false),
-    group_default_(monitor_mode_all)
+    group_default_(monitor_mode_all),
+    include_proc_(true),
+    include_time_(true)
 {
   timer_->start();
 
@@ -185,27 +187,21 @@ void Monitor::verbose
 void Monitor::write_ (FILE * fp, const char * component, const char * message) const
 {
 
-  // Get parallel process text
+  char process[10] = "";
+  if (include_proc_) sprintf (process,"%0d ",CkMyPe());
 
-  char process[MONITOR_LENGTH] = "";
-
-  sprintf (process,"%0d",CkMyPe());
-
-  // Get time
-
-  char time[10];
-
-  snprintf (time,10,"%08.2f",timer_->value());
+  char time[10] = "";
+  if (include_time_) snprintf (time,10,"%08.2f ",timer_->value());
 
   // Print
 
   const char newline = (strcmp(message,"")==0) ? ' ' : '\n';
   if (fp == stdout) {
     PARALLEL_PRINTF
-      ("%s %s %s %s%c",     process, time, component, message,newline);
+      ("%s%s%s %s%c",     process, time, component, message,newline);
   } else {
     fprintf
-      (fp,"%s %s %s %s%c",  process, time, component, message,newline);
+      (fp,"%s%s%s %s%c",  process, time, component, message,newline);
   }
 }
 

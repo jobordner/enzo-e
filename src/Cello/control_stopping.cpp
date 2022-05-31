@@ -43,7 +43,7 @@ void Block::stopping_enter_()
 
 void Block::stopping_begin_()
 {
-
+  PERF_START(perf_stopping);
   TRACE_STOPPING("Block::stopping_begin_");
 
   Simulation * simulation = cello::simulation();
@@ -110,15 +110,15 @@ void Block::stopping_begin_()
     stopping_balance_();
 
   }
-
+  PERF_STOP(perf_stopping);
 }
 
 //----------------------------------------------------------------------
 
 void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 {
-  PERF_SWITCH(perf_stopping);
   
+  PERF_START(perf_stopping);
   TRACE_STOPPING("Block::r_stopping_compute_timestep");
   
   ++age_;
@@ -171,6 +171,7 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 #endif
 
   stopping_balance_();
+  PERF_STOP(perf_stopping);
 }
 
 //----------------------------------------------------------------------
@@ -208,7 +209,7 @@ void Block::stopping_balance_()
 
 void Block::stopping_load_balance_()
 {
-  PERF_SWITCH(perf_stopping);
+  PERF_START(perf_balance);
   TRACE_STOPPING("load_balance begin");
   cello::simulation()->set_phase (phase_balance);
 
@@ -233,6 +234,7 @@ void Block::ResumeFromSync()
 
   TRACE_STOPPING("load_balance exit");
 
+  PERF_STOP(perf_balance);
   stopping_exit_();
 
 }

@@ -149,7 +149,6 @@ void EnzoBlock::p_solver_jacobi_continue()
 
 void EnzoSolverJacobi::compute(Block * block)
 {
-  PERF_SOLVER(this);
   TRACE_JACOBI(block,this,"compute()");
 
   if (*piter_(block) < n_) {
@@ -171,8 +170,6 @@ void EnzoSolverJacobi::compute(Block * block)
 
 void EnzoSolverJacobi::apply_(Block * block)
 {
-  PERF_SOLVER(this);
-  
   Field field = block->data()->field();
 
   int mx,my,mz;
@@ -254,7 +251,6 @@ void EnzoSolverJacobi::apply_(Block * block)
 
 void EnzoSolverJacobi::do_refresh_(Block * block)
 {
-  PERF_SOLVER(this);
   TRACE_JACOBI(block,this,"do_refresh()");
   Refresh * refresh = cello::refresh(ir_smooth_);
 

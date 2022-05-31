@@ -605,7 +605,7 @@ void Block::adapt_send_level()
 
 void Block::p_adapt_recv_level (MsgAdapt * msg)
 {
-  PERF_SWITCH(perf_adapt_recv_level);
+  PERF_ADAPT_START(perf_adapt_recv_level);
   if (!adapt_ready_) {
     // save message for later
     adapt_msg_list_.push_back(msg);
@@ -623,7 +623,8 @@ void Block::p_adapt_recv_level (MsgAdapt * msg)
        msg->can_coarsen_);
     delete msg;
   }
-  PERF_SWITCH(perf_adapt_recv_level_sync);
+  PERF_ADAPT_STOP (perf_adapt_recv_level);
+  PERF_ADAPT_POST (perf_adapt_recv_level_post);
 }
 
 void Block::adapt_recv_level()
@@ -953,7 +954,7 @@ void Block::p_adapt_recv_child (MsgCoarsen * msg)
 {
   TRACE_ADAPT("p_adapt_recv_child",this);
 
-  PERF_SWITCH(perf_adapt_recv_child);
+  PERF_ADAPT_START(perf_adapt_recv_child);
   msg->update(data());
   int * ic3 = msg->ic3();
   int * child_face_level_curr = msg->face_level();
@@ -991,7 +992,8 @@ void Block::p_adapt_recv_child (MsgCoarsen * msg)
 
   delete msg;
 
-  PERF_SWITCH(perf_adapt_recv_child_sync);
+  PERF_ADAPT_STOP (perf_adapt_recv_child);
+  PERF_ADAPT_POST (perf_adapt_recv_child_post);
 }
 
 
@@ -1002,7 +1004,6 @@ void Block::p_adapt_recv_child (MsgCoarsen * msg)
 void Block::p_adapt_delete()
 {
   ckDestroy();
-  PERF_SWITCH(perf_adapt_delete_sync);
 }
 
 //======================================================================

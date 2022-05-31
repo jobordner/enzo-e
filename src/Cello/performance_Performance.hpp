@@ -31,8 +31,9 @@ public: // interface
      counter_values_reduced_(),
      region_name_(),
      region_counters_(),
-     region_started_(),
      region_index_(),
+     region_multiplicity_(),
+     region_in_charm_(),
 #ifdef CONFIG_USE_PAPI
      papi_counters_(0),
 #endif
@@ -47,7 +48,40 @@ public: // interface
   ~Performance();
 
   /// CHARM++ Pack / Unpack function
-  void pup (PUP::er &p);
+//----------------------------------------------------------------------
+
+  void pup (PUP::er &p)
+  {
+    TRACEPUP;
+
+    // NOTE: change this function whenever attributes change
+#ifdef CONFIG_USE_PAPI
+    p | papi_;
+#endif
+    p | counter_name_;
+    p | counter_type_;
+    p | counter_values_;
+    p | counter_values_reduced_;
+    p | region_name_;
+    p | region_counters_;
+    p | region_index_;
+    p | region_multiplicity_;
+    p | region_in_charm_;
+#ifdef CONFIG_USE_PAPI
+    WARNING("Performance::pup",
+            "skipping Performance:papi_counters_");
+    //    p | papi_counters_
+#endif
+#ifdef CONFIG_USE_PROJECTIONS
+    p | projections_tracing_;
+    p | projections_schedule_on_;
+    p | projections_schedule_off_;
+#endif
+
+    p | warnings_;
+    p | index_region_current_;
+  }
+
 
   /// Begin collecting performance data
   void begin() throw();
@@ -90,8 +124,15 @@ public: // interface
   /// Return the index of the given region
   int region_index (std::string name) const throw();
 
+  /// Return the multiplicity (#start - #stop) of the region
+  int region_multiplicity (int index_region) const throw()
+  { return region_multiplicity_[index_region]; }
+  
+  /// Return whether the code region is outside the scope of Cello
+  bool region_in_charm (std::string name) const throw();
+
   /// Add a new region, returning the id
-  void new_region(int index_region, std::string region) throw();
+  void new_region(int index_region, std::string region, bool in_charm=false) throw();
 
   /// Return whether performance monitoring is started for the region
   bool is_region_active(int index_region) throw();
@@ -102,18 +143,11 @@ public: // interface
   /// Stop counters for a code region
   void stop_region(int index_region,  std::string file="", int line=0) throw();
 
-  /// Switch regions, stopping previous and starting a new one
-  void switch_region (int index_region,   std::string file="", int line=0) throw();
-
   /// Clear the counters for a code region
   void clear_region(int index_region) throw();
 
   /// Return counters for a code region
   void region_counters(int index_region, long long * counters) throw();
-
-  /// Return whether the given region is active
-  bool region_started(int index_region) const throw()
-  { return region_started_[index_region]; }
 
 #ifdef CONFIG_USE_PAPI
   /// Return the associated Papi object
@@ -181,6 +215,12 @@ private: // attributes
 
   /// mapping of region name to index
   std::map<std::string,int> region_index_;
+
+  /// region number of starts - number of stops
+  std::vector <int> region_multiplicity_;
+
+  /// which regions are outside scope of Cello
+  std::vector<char> region_in_charm_;
 
 #ifdef CONFIG_USE_PAPI
   /// Array for storing PAPI counter values

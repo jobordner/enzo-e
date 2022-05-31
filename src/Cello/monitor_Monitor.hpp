@@ -65,6 +65,8 @@ public: // interface
     // p |  *timer_;
     p |  mode_;
     p |  verbose_;
+    p | include_proc_;
+    p | include_time_;
     // p |  group_default_;
     // p |  group_active_;
 
@@ -114,6 +116,18 @@ public: // interface
     if (CkMyRank() == 0) verbose_ = verbose; 
   }
 
+  bool include_proc () const
+  { return include_proc_; }
+  
+  void set_include_proc (bool include_proc)
+  { include_proc_ = include_proc; }
+  
+  bool include_time () const
+  { return include_time_; }
+
+  void set_include_time (bool include_time)
+  { include_time_ = include_time; }
+  
   int is_verbose () const { return verbose_; }
 
   /// Print a message without format specifications to stdout
@@ -142,7 +156,11 @@ private: // attributes
   /// Override default of group_active_ for specific groups
   std::map<std::string,int> group_mode_;
 
-
+  /// Whether to include process in output
+  bool include_proc_;
+  
+  /// Whether to include timestamp in output
+  bool include_time_;
   //----------------------------------------------------------------------
 
 private: // static attributes

@@ -180,7 +180,6 @@ EnzoSolverMg0::EnzoSolverMg0
 
 void EnzoSolverMg0::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
 {
-  PERF_SOLVER(this);
   Solver::begin_(block);
 
   A_ = A;
@@ -301,8 +300,6 @@ void EnzoBlock::r_solver_mg0_begin_solve(CkReductionMsg* msg)
 void EnzoSolverMg0::begin_solve(EnzoBlock * enzo_block,
 				CkReductionMsg *msg) throw()
 {
-  PERF_SOLVER(this);
-
   do_shift_(enzo_block,msg);
 
   // control flow starts at leaves, even in level > max_level,
@@ -445,7 +442,6 @@ void EnzoSolverMg0::restrict(EnzoBlock * enzo_block) throw()
 ///      callback = p_restrict_send()
 ///      call refresh (X,level,"level")
 {
-  PERF_SOLVER(this);
   restrict_send (enzo_block);
 
   // All Blocks must call coarse solver since may involve
@@ -458,7 +454,6 @@ void EnzoSolverMg0::restrict(EnzoBlock * enzo_block) throw()
 
 void EnzoSolverMg0::call_coarse_solver(EnzoBlock * enzo_block) throw()
 {
-  PERF_SOLVER(this);
   Solver * solve_coarse = cello::solver(index_solve_coarse_);
 
   solve_coarse->set_min_level(min_level_);
@@ -476,7 +471,6 @@ void EnzoSolverMg0::call_coarse_solver(EnzoBlock * enzo_block) throw()
 
 void EnzoSolverMg0::call_pre_smoother(EnzoBlock * enzo_block) throw()
 {
-  PERF_SOLVER(this);
   Solver * smooth_pre = cello::solver(index_smooth_pre_);
 
   smooth_pre->set_min_level(enzo_block->level());
@@ -494,7 +488,6 @@ void EnzoSolverMg0::call_pre_smoother(EnzoBlock * enzo_block) throw()
 
 void EnzoSolverMg0::call_post_smoother(EnzoBlock * enzo_block) throw()
 {
-  PERF_SOLVER(this);
   Solver * smooth_post = cello::solver(index_smooth_post_);
 
   smooth_post->set_min_level(enzo_block->level());
@@ -512,7 +505,6 @@ void EnzoSolverMg0::call_post_smoother(EnzoBlock * enzo_block) throw()
 
 void EnzoSolverMg0::call_last_smoother(EnzoBlock * enzo_block) throw()
 {
-  PERF_SOLVER(this);
   Solver * smooth_last = cello::solver(index_smooth_last_);
 
   smooth_last->set_sync_id (enzo_sync_id_solver_mg0_last);
@@ -532,7 +524,6 @@ void EnzoSolverMg0::restrict_send(EnzoBlock * enzo_block) throw()
 ///      pack R
 ///      index_parent.p_restrict_recv(R)
 {
-  PERF_SOLVER(this);
   compute_residual_(enzo_block);
 
   FieldMsg * msg = pack_residual_(enzo_block);
@@ -583,7 +574,6 @@ void EnzoSolverMg0::restrict_recv
 ///      if (sync.next())
 ///          begin_cycle()
 {
-  PERF_SOLVER(this);
   // Unpack "B" vector data from children
 
   // Save field message from child
@@ -611,8 +601,6 @@ void EnzoSolverMg0::prolong(EnzoBlock * enzo_block) throw()
 ///      solve A X = B
 ///      end_cycle()
 {
-  PERF_SOLVER(this);
-
   /// Prolong solution to next-finer level
 
   const int level = enzo_block->level();
@@ -672,7 +660,6 @@ void EnzoSolverMg0::prolong_recv
 ///      callback = p_post_smooth()
 ///      call refresh (X,"level")
 {
-  PERF_SOLVER(this);
   // Save message
 
   // Return if not ready yet
@@ -722,8 +709,6 @@ void EnzoSolverMg0::post_smooth(EnzoBlock * enzo_block) throw()
 ///      smooth.apply (A,X,B)
 ///      end_cycle()
 {
-  PERF_SOLVER(this);
-
   if ( ! is_finest_(enzo_block) ) {
     prolong_send_ (enzo_block);
   }
@@ -741,7 +726,6 @@ void EnzoSolverMg0::end_cycle(EnzoBlock * enzo_block) throw()
 ///      else
 ///         begin_cycle()
 {
-  PERF_SOLVER(this);
   ++ (*piter(enzo_block));
 
   bool is_converged = is_converged_(enzo_block);

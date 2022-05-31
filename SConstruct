@@ -107,11 +107,10 @@ use_valgrind = 0
 
 #----------------------------------------------------------------------
 # Whether to use Cello Performance class for collecting performance
-# data (currently requires global reductions, and may not be fully
-# functional) (basic time data on root processor is still output)
+# data
 #----------------------------------------------------------------------
 
-use_performance = 1
+use_performance = 0
 
 #----------------------------------------------------------------------
 # Whether to compile the CHARM++ version for use with the Projections

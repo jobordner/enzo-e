@@ -49,7 +49,7 @@
 
 void Block::initial_exit_()
 {
-  PERF_SWITCH(perf_initial);
+  PERF_START(perf_initial);
   TRACE_CONTROL("initial_exit");
 
 #ifdef TRACE_CONTRIBUTE  
@@ -65,6 +65,7 @@ void Block::initial_exit_()
   } else {
     control_sync_barrier (CkIndex_Block::r_adapt_enter(NULL));
   }
+  PERF_STOP(perf_initial);
 }
 
 //----------------------------------------------------------------------
@@ -86,7 +87,7 @@ void Block::adapt_exit_()
 
 void Block::output_exit_()
 {
-  PERF_SWITCH(perf_output);
+  PERF_START(perf_output);
 
   TRACE_CONTROL("output_exit");
 
@@ -100,6 +101,7 @@ void Block::output_exit_()
   fflush(stdout);
 #endif  
   control_sync_barrier (CkIndex_Block::r_stopping_enter(NULL));
+  PERF_STOP(perf_output);
 }
 
 //----------------------------------------------------------------------

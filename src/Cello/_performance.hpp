@@ -58,35 +58,40 @@ enum perf_region {
   perf_simulation,
   perf_cycle,
   perf_initial,
-
+  perf_adapt,
+  perf_adapt_post,
   perf_adapt_enter,
-  perf_adapt_enter_sync,
+  perf_adapt_enter_post,
   perf_adapt_end,
-  perf_adapt_end_sync,
+  perf_adapt_end_post,
   perf_adapt_update,
-  perf_adapt_update_sync,
+  perf_adapt_update_post,
   perf_adapt_next,
-  perf_adapt_next_sync,
+  perf_adapt_next_post,
   perf_adapt_called,
-  perf_adapt_called_sync,
+  perf_adapt_called_post,
   perf_adapt_exit,
-  perf_adapt_exit_sync,
+  perf_adapt_exit_post,
   perf_adapt_delete,
-  perf_adapt_delete_sync,
+  perf_adapt_delete_post,
   perf_adapt_recv_level,
-  perf_adapt_recv_level_sync,
+  perf_adapt_recv_level_post,
   perf_adapt_recv_child,
-  perf_adapt_recv_child_sync,
-  
-
-  perf_refresh_store,
+  perf_adapt_recv_child_post,
+  perf_refresh,
+  perf_refresh_post,
+  perf_refresh_start,
+  perf_refresh_start_post,
+  perf_refresh_recv,
+  perf_refresh_recv_post,
   perf_refresh_child,
+  perf_refresh_child_post,
   perf_refresh_exit,
-  perf_refresh_store_sync,
-  perf_refresh_child_sync,
-  perf_refresh_exit_sync,
+  perf_refresh_exit_post,
+  perf_balance,
   perf_control,
-  perf_compute,
+  perf_method,
+  perf_solver,
   perf_output,
   perf_stopping,
   perf_block,
@@ -101,17 +106,55 @@ enum perf_region {
 // MACRO DECLARATIONS
 //----------------------------------------------------------------------
 
-#define PERF_START(INDEX) \
+#ifdef CONFIG_USE_PERFORMANCE
+#   define PERF_START(INDEX)                                    \
   cello::performance()->start_region(INDEX,__FILE__,__LINE__)
-#define PERF_STOP(INDEX) \
+#   define PERF_STOP(INDEX)                                     \
   cello::performance()->stop_region(INDEX,__FILE__,__LINE__)
-#define PERF_SWITCH(INDEX) \
-  cello::performance()->switch_region(INDEX,__FILE__,__LINE__)
 
-#define PERF_SOLVER(SOLVER)                                             \
-  cello::performance()->switch_region(SOLVER->index_perf(),__FILE__,__LINE__)
-#define PERF_METHOD(METHOD)                                             \
-  cello::performance()->switch_region(METHOD->index_perf(),__FILE__,__LINE__)
+#   define PERF_ADAPT_START(INDEX)                                      \
+  cello::performance()->start_region(INDEX,__FILE__,__LINE__);          \
+  cello::performance()->start_region(perf_adapt,__FILE__,__LINE__);
+#   define PERF_ADAPT_STOP(INDEX)                                       \
+  cello::performance()->stop_region(INDEX,__FILE__,__LINE__);           \
+  cello::performance()->stop_region(perf_adapt,__FILE__,__LINE__)
+#   define PERF_ADAPT_POST(INDEX)                                       \
+  cello::performance()->start_region(INDEX,__FILE__,__LINE__);          \
+  cello::performance()->start_region(perf_adapt_post,__FILE__,__LINE__);
+
+#   define PERF_REFRESH_START(INDEX)                                      \
+  cello::performance()->start_region(INDEX,__FILE__,__LINE__)
+#   define PERF_REFRESH_STOP(INDEX)                                       \
+  cello::performance()->stop_region(INDEX,__FILE__,__LINE__)
+#   define PERF_REFRESH_POST(INDEX)                                       \
+  cello::performance()->start_region(INDEX,__FILE__,__LINE__)
+
+#   define PERF_SOLVER_START(SOLVER)                                    \
+  cello::performance()->start_region((SOLVER)->index_perf(),__FILE__,__LINE__); \
+  cello::performance()->start_region(perf_solver)
+#   define PERF_SOLVER_STOP(SOLVER)                                     \
+  cello::performance()->stop_region((SOLVER)->index_perf(),__FILE__,__LINE__); \
+  cello::performance()->stop_region(perf_solver)
+#   define PERF_METHOD_START(METHOD)                                    \
+  cello::performance()->start_region((METHOD)->index_perf(),__FILE__,__LINE__); \
+  cello::performance()->start_region(perf_method)
+#   define PERF_METHOD_STOP(METHOD)                                     \
+  cello::performance()->stop_region((METHOD)->index_perf(),__FILE__,__LINE__); \
+  cello::performance()->stop_region(perf_method)
+#else
+#   define PERF_START(INDEX) /* ... */
+#   define PERF_STOP(INDEX) /* ... */
+#   define PERF_ADAPT_START(INDEX) /* ... */
+#   define PERF_ADAPT_STOP(INDEX) /* ... */
+#   define PERF_ADAPT_POST(INDEX) /* ... */
+#   define PERF_REFRESH_START(INDEX) /* ... */
+#   define PERF_REFRESH_STOP(INDEX)  /* ... */
+#   define PERF_REFRESH_POST(INDEX)  /* ... */
+#   define PERF_SOLVER_START(SOLVER) /* ... */
+#   define PERF_SOLVER_STOP(SOLVER) /* ... */
+#   define PERF_METHOD_START(METHOD) /* ... */
+#   define PERF_METHOD_STOP(METHOD) /* ... */
+#endif
 
 //----------------------------------------------------------------------
 // Component class includes
