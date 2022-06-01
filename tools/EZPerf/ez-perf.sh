@@ -17,21 +17,23 @@ topdir=$(dirname $file)
 
 input="$PWD/$1"
 
-# Get output directory if any (or "Performance" by default)
+# Get output directory if any (or "EZPerf" by default)
 
 outdir="$2"
 if [ "x$outdir" == "x" ]; then
-    outdir="Performance"
+    outdir="EZPerf"
 fi
 
 # Create the output directory if possible, else error
-if [[ ! -e $outdir ]]; then
-    mkdir $outdir
-    cd $outdir
-else
-    echo "Error: $outdir exists and will not overwrite"
-    exit 1
+if [[ -e $outdir ]]; then
+    if [[ -e $outdir.backup ]]; then
+        echo "Deleting $outdir.backup!"
+        rm -rf $outdir.backup
+    fi
+    mv $outdir $outdir.backup
 fi
+mkdir $outdir
+cd $outdir
 
 ADAPT=`awk '/perf:region adapt/{print $(NF-2)}' $input | sort | uniq`
 REFRESH=`awk '/perf:region refresh/{print $(NF-2)}' $input | sort | uniq`
@@ -41,9 +43,14 @@ MEMORY=`awk '/perf:region cycle /{print $(NF-1)}' $input | sort | uniq`
 BALANCE=`awk '/perf:balance /{print $(NF-2)}' $input | sort | uniq`
 MESH=`awk '/perf:mesh /{print $(NF-1)}' $input | sort | uniq`
 
+num_procs=`awk '/CkNumPes/  {print $5}' $input`
+num_nodes=`awk '/CkNumNodes/{print $5}' $input`
+
+echo "nodes $num_nodes procs $num_procs"
 if [[ ! -e "cycle.data" ]]; then
-    awk '/Simulation cycle/{if ($NF==0) {t0=$2}; print $NF,$2-t0}' $input > cycle.data
+    awk '/Simulation cycle/{if ($NF==0) {t0=$2}; print $NF,'"$num_procs"'*($2-t0)}' $input > cycle.data
 fi
+
 
 for adapt in $ADAPT; do
     if [[ ! -e "$adapt.data" ]]; then
