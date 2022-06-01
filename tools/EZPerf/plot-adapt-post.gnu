@@ -1,7 +1,7 @@
 set terminal png size 800,600
 set termoption noenhanced
 set output "plot-adapt-post.png"
-set title "Adapt performance: Charm++ Overhead"
+set title "Enzo-E adapt overhead"
 set xlabel "cycle"
 set ylabel "time (s)"
 set key bottom right

@@ -1,7 +1,7 @@
 set terminal png size 800,600
 set termoption noenhanced
 set output "plot-adapt.png"
-set title "Adapt performance"
+set title "Enzo-E adapt time"
 set xlabel "cycle"
 set ylabel "time (s)"
 set key bottom right

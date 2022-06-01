@@ -1,7 +1,7 @@
 set terminal png size 800,600
 set termoption noenhanced
 set output "plot-method.png"
-set title "Method performance"
+set title "Enzo-E method times"
 set xlabel "cycle"
 set ylabel "time (s)"
 set key bottom right

@@ -2,7 +2,7 @@
 
 # Check that input parameters are as expected
 if [[ ("x$1" == "x") || ("x$3" != "x") ]]; then
-    echo "Usage: $(basename file) <Enzo-E output file> [ output directory ]"
+    echo "Usage: $(basename $0) <Enzo-E output file> [ output directory ]"
     exit 1
 fi
 
@@ -121,6 +121,10 @@ fi
 if [[ ! -e "plot-method.png" ]]; then
     echo "Generating plot-method.png"
     gnuplot $topdir/plot-method.gnu
+fi
+if [[ ! -e "plot-balance.png" ]]; then
+    echo "Generating plot-balance.png"
+    gnuplot $topdir/plot-balance.gnu
 fi
 if [[ ! -e "plot-solver.png" ]]; then
     echo "Generating plot-solver.png"

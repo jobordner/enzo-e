@@ -1,7 +1,7 @@
 set terminal png size 800,600
 set termoption noenhanced
 set output "plot-solver.png"
-set title "Solver performance"
+set title "Enzo-E solver times"
 set xlabel "cycle"
 set ylabel "time (s)"
 set key bottom right

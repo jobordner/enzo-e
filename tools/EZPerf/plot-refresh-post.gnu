@@ -1,7 +1,7 @@
 set terminal png size 800,600
 set termoption noenhanced
 set output "plot-refresh-post.png"
-set title "Refresh performance: Charm++ Overhead"
+set title "Enzo-E refresh overhead"
 set xlabel "cycle"
 set ylabel "time (s)"
 set key bottom right
