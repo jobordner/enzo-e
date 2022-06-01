@@ -1007,9 +1007,10 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   for (int ir = 0; ir < num_regions; ir++) {
     for (int ic = 0; ic < num_counters; ic++, m++) {
       bool do_print =
-	(ir != perf_unknown) && (
-                                 (performance_->counter_type(ic) != counter_type_abs) ||
-                                 (ir == index_region_cycle));
+	(ir != perf_unknown) &&
+        ((performance_->counter_type(ic) != counter_type_abs) ||
+         (ir == index_region_cycle)) &&
+        (counters_reduce[m] != 0);
       if (do_print) {
         monitor()->print("perf:region","%s %s %lld",
                          performance_->region_name(ir).c_str(),

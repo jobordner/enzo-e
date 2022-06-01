@@ -110,7 +110,7 @@ use_valgrind = 0
 # data
 #----------------------------------------------------------------------
 
-use_performance = 0
+use_performance = 1
 
 #----------------------------------------------------------------------
 # Whether to compile the CHARM++ version for use with the Projections
