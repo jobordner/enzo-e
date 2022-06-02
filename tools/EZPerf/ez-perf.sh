@@ -1,36 +1,41 @@
 #!/bin/bash
 
-# Check that input parameters are as expected
+# ==============================
+# Verify input parameters
+# ==============================
+
 if [[ ("x$1" == "x") || ("x$3" != "x") ]]; then
     echo "Usage: $(basename $0) <Enzo-E output file> [ output directory ]"
     exit 1
 fi
 
-# Get path $topdir to performance directory (even if $0 is a symbolic link)
+# ==============================
+# Initialize path and file variables
+#==============================
+
+# Get performance directory $topdir
 file=$0
 while [[ -L $file ]]; do
       file=`readlink $file`
 done
 topdir=$(dirname $file)
 
-# Get input file
-
+# Get input file $input
 input="$PWD/$1"
 
-# Get output directory if any (or "EZPerf" by default)
-
+# Get output directory $outdir (EZPerf by default)
 outdir="$2"
 if [ "x$outdir" == "x" ]; then
     outdir="EZPerf"
 fi
 
-# Create the output directory if possible, else error
-if [[ -e $outdir ]]; then
-    if [[ -e $outdir.backup ]]; then
-        echo "Deleting $outdir.backup!"
-        rm -rf $outdir.backup
-    fi
-    mv $outdir $outdir.backup
+# ==============================
+# Create the output directory
+# ==============================
+
+if [[ -e "$outdir" ]]; then
+    echo "Warning deleting previous $outdir!"
+    rm -rf $outdir
 fi
 mkdir $outdir
 cd $outdir
@@ -45,6 +50,10 @@ MESH=`awk '/perf:mesh /{print $(NF-1)}' $input | sort | uniq`
 
 num_procs=`awk '/CkNumPes/  {print $5}' $input`
 num_nodes=`awk '/CkNumNodes/{print $5}' $input`
+
+# ==============================
+# Generate data files
+# ==============================
 
 echo "nodes $num_nodes procs $num_procs"
 if [[ ! -e "cycle.data" ]]; then
@@ -100,46 +109,72 @@ for balance in $BALANCE; do
        fi
 done
 
+# ==============================
+# Generate plots from data files
+# ==============================
+
 if [[ ! -e "plot-adapt.png" ]]; then
     echo "Generating plot-adapt.png"
-    gnuplot $topdir/plot-adapt.gnu
+    gnuplot $topdir/plot-adapt.gnu >& /dev/null
 fi
 if [[ ! -e "plot-adapt-post.png" ]]; then
     echo "Generating plot-adapt-post.png"
-    gnuplot $topdir/plot-adapt-post.gnu
+    gnuplot $topdir/plot-adapt-post.gnu >& /dev/null
 fi
 
-if [[ ! -e "plot-refresh.png" ]]; then
+if [[ ! -e "plot-refresh.png" ]]; then 
     echo "Generating plot-refresh.png"
-    gnuplot $topdir/plot-refresh.gnu
+    gnuplot $topdir/plot-refresh.gnu >& /dev/null
 fi
-if [[ ! -e "plot-refresh-post.png" ]]; then
-    echo "Generating plot-refresh-post.png"
-    gnuplot $topdir/plot-refresh-post.gnu
-fi
+# if [[ ! -e "plot-refresh-post.png" ]]; then
+#     echo "Generating plot-refresh-post.png"
+#     gnuplot $topdir/plot-refresh-post.gnu >& /dev/null
+# fi
 
 if [[ ! -e "plot-method.png" ]]; then
     echo "Generating plot-method.png"
-    gnuplot $topdir/plot-method.gnu
+    gnuplot $topdir/plot-method.gnu >& /dev/null
 fi
 if [[ ! -e "plot-balance.png" ]]; then
     echo "Generating plot-balance.png"
-    gnuplot $topdir/plot-balance.gnu
+    gnuplot $topdir/plot-balance.gnu >& /dev/null
 fi
 if [[ ! -e "plot-solver.png" ]]; then
     echo "Generating plot-solver.png"
-    gnuplot $topdir/plot-solver.gnu
+    gnuplot $topdir/plot-solver.gnu >& /dev/null
 fi
 if [[ ! -e "plot-memory.png" ]]; then
     echo "Generating plot-memory.png"
-    gnuplot $topdir/plot-memory.gnu
+    gnuplot $topdir/plot-memory.gnu >& /dev/null
 fi
 if [[ ! -e "plot-mesh.png" ]]; then
     echo "Generating plot-mesh.png"
-    gnuplot $topdir/plot-mesh.gnu
+    gnuplot $topdir/plot-mesh.gnu >& /dev/null
 fi
 if [[ ! -e "plot-perf.png" ]]; then
     echo "Generating plot-perf.png"
-    gnuplot $topdir/plot-perf.gnu
+    gnuplot $topdir/plot-perf.gnu >& /dev/null
 fi
 
+#====================
+# Create index.html
+#====================
+
+touch index.html
+echo "<html><body>" >> index.html
+echo "<table>"      >> index.html
+column=0
+for png in *.png; do
+    if [[ $((column % 4)) == 0 ]]; then
+        echo "<tr>" >> index.html
+    fi
+    column=$((column + 1))
+    echo "<td>" >> index.html
+    echo "<a href=\"$png\"><img width=400 src=\"$png\"></img></a>" \
+         >> index.html
+    echo "</td>" >> index.html
+    if [[ $((column % 4)) == 0 ]]; then
+        echo "</tr>" >> index.html
+    fi
+done
+echo "</table>"      >> index.html
