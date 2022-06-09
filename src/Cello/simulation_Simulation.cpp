@@ -1041,11 +1041,11 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   monitor()->print
     ("perf:balance","max-proc-blocks %lld",  max_proc_blocks);
   monitor()->print
-    ("perf:balance","simulation max-node-blocks %lld",  max_node_blocks);
+    ("perf:balance","max-node-blocks %lld",  max_node_blocks);
   monitor()->print
-    ("perf:balance","simulation max-proc-particles %lld", max_proc_particles);
+    ("perf:balance","max-proc-particles %lld", max_proc_particles);
   monitor()->print
-    ("perf:balance","simulation max-node-particles %lld", max_node_particles);
+    ("perf:balance","max-node-particles %lld", max_node_particles);
 
   const double avg_proc_blocks = 1.0*num_blocks_total/CkNumPes();
   const double avg_node_blocks = 1.0*num_blocks_total/CkNumNodes();
