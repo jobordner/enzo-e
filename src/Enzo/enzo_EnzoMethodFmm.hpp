@@ -24,7 +24,7 @@ public: // interface
   
   /// Charm++ PUP::able migration constructor
   EnzoMethodFmm (CkMigrateMessage *m)
-    : Method (m), theta_(0), min_level_(0), is_volume_(0)
+    : Method (m), theta_(0), min_level_(0)
   {}
 
   /// CHARM++ Pack / Unpack function
@@ -54,10 +54,6 @@ protected: // attributes
 
   /// Minimum mesh refinement level (saved for efficiency)
   int min_level_;
-
-  /// Block ScalarData index for counting volume of all "approximate"
-  /// and "direct" blocks, used to terminate dual tree walk
-  int is_volume_;
 };
 
 #endif /* ENZO_ENZO_METHOD_FMM_HPP */

@@ -15,15 +15,11 @@
 //----------------------------------------------------------------------
 
 EnzoMethodFmm::EnzoMethodFmm (double theta)
-  : Method(), theta_(theta),
-    min_level_(0), // actual initialization deferred to compute() to
+  : Method(),
+    theta_(theta),
+    min_level_(0) // actual initialization deferred to compute() to
                   // avoid dependency issues
-    is_volume_(-1)
 {
-  // Initialize Scalar data
-  ScalarDescr * scalar_descr = cello::scalar_descr_long_long();
-  is_alpha_ =  scalar_descr->new_value("method_fmm_volume");
-  // Initialize refresh
   cello::simulation()->refresh_set_name(ir_post_,name());
 
   Refresh * refresh = cello::refresh(ir_post_);
@@ -50,9 +46,6 @@ void EnzoMethodFmm::pup (PUP::er &p)
 
 void EnzoMethodFmm::compute ( Block * block) throw()
 {
-  // Initialize block volume for termination
-  long long * pvol = block->data()->scalar_int().value(is_iter_);
-  *pvol = 0;
   min_level_ = cello::hierarchy()->min_level();
   Index index = block->index();
   if (block->level() == min_level_) {
@@ -92,25 +85,24 @@ void EnzoMethodFmm::traverse
   // is_leaf values: 0 no, 1 yes -1 unknown
   const bool is_leaf_b = (type_b == 1);
 
-
   ItChild it_child_a(cello::rank());
   ItChild it_child_b(cello::rank());
   int ica3[3],icb3[3];
- 
+  
   if (mac) {
 
 #ifdef PRINT_APPROX
-    std::cout << "APPROX "
-              << enzo_block->name() << " "
-              << enzo_block->name(index_b) << "\n";
+    CkPrintf ("APPROX %s %s\n",
+              enzo_block->name().c_str(),
+              enzo_block->name(index_b).c_str());
 #endif
 
   } else if (is_leaf_a && is_leaf_b) {
 
 #ifdef PRINT_DIRECT
-    std::cout << "DIRECT "
-              << enzo_block->name() << " "
-              << enzo_block->name(index_b) << "\n";
+    CkPrintf ("DIRECT %s %s\n",
+              enzo_block->name().c_str(),
+              enzo_block->name(index_b).c_str());
 #endif
 
   } else if (is_leaf_a) {
