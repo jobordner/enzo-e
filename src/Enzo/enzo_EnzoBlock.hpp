@@ -235,6 +235,11 @@ public: /// entry methods
 
   //--------------------------------------------------
 
+  /// Traverse the mesh hierarchy using a dual-tree walk
+  void p_method_fmm_traverse (Index index, int type);
+
+  //--------------------------------------------------
+
   /// EnzoSolverCg entry method: DOT ==> refresh P
   void r_solver_cg_loop_0a (CkReductionMsg * msg);
 

@@ -270,6 +270,8 @@ EnzoConfig::EnzoConfig() throw ()
   method_vlct_mhd_choice(""),
   method_vlct_dual_energy(false),
   method_vlct_dual_energy_eta(0.0),
+// EnzoMethodFmm
+  method_fmm_theta(3.0),
   /// EnzoMethodMergeStars
   method_merge_stars_merging_radius_cells(0.0),
   /// EnzoProlong
@@ -599,6 +601,7 @@ void EnzoConfig::pup (PUP::er &p)
   p | method_vlct_dual_energy;
   p | method_vlct_dual_energy_eta;
 
+  p | method_fmm_theta;
   p | method_merge_stars_merging_radius_cells;
 
   p | prolong_enzo_type;
@@ -673,29 +676,30 @@ void EnzoConfig::read(Parameters * p) throw()
   read_initial_isolated_galaxy_(p);
   read_initial_feedback_test_(p);
   read_initial_merge_stars_test_(p);
-  
-  read_method_grackle_(p);
-  read_method_feedback_(p);
-  read_method_star_maker_(p);
+
+  read_method_fmm_(p);
   read_method_background_acceleration_(p);
-  read_method_vlct_(p);
+  read_method_feedback_(p);
+  read_method_grackle_(p);
   read_method_gravity_(p);
   read_method_heat_(p);
+  read_method_merge_stars_(p);
   read_method_pm_deposit_(p);
   read_method_pm_update_(p);
   read_method_ppm_(p);
+  read_method_star_maker_(p);
   read_method_turbulence_(p);
-  read_method_merge_stars_(p);
-  
-  read_physics_(p);
-  
-  read_prolong_enzo_(p);
-  
-  read_solvers_(p);
-  
-  read_stopping_(p);
-  
+  read_method_vlct_(p);
 
+  read_physics_(p);
+
+  read_prolong_enzo_(p);
+
+  read_solvers_(p);
+
+  read_stopping_(p);
+
+  
   TRACE("END   EnzoConfig::read()");
 }
 
@@ -1225,11 +1229,19 @@ void EnzoConfig::read_initial_merge_stars_test_(Parameters * p)
     ("Initial:merge_stars_test:particle_data_filename","");
 }
 
-void EnzoConfig::read_method_grackle_(Parameters * p)
+//----------------------------------------------------------------------
 
+void EnzoConfig::read_method_fmm_(Parameters * p)
+{
+  method_fmm_theta = p->value_float ("Method:fmm:theta", 3.0);
+}
+
+//----------------------------------------------------------------------
+
+void EnzoConfig::read_method_grackle_(Parameters * p)
 {
   method_grackle_use_grackle = false;
-  
+
 #ifdef CONFIG_USE_GRACKLE
 
   /// Grackle parameters
@@ -1576,6 +1588,8 @@ void EnzoConfig::read_method_heat_(Parameters * p)
   method_heat_alpha = p->value_float
     ("Method:heat:alpha",1.0);
 }
+
+//----------------------------------------------------------------------
 
 void EnzoConfig::read_method_merge_stars_(Parameters * p)
 {

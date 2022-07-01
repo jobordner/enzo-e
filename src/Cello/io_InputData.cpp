@@ -107,7 +107,7 @@ Block * InputData::read_block
   Input::read_meta_group (io_block());
 
   int ibx,iby,ibz;
-  block->index_array(&ibx,&iby,&ibz);
+  block->index().array(&ibx,&iby,&ibz);
 
   // // Call read_block() on base Input object
 

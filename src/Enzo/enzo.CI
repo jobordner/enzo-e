@@ -94,6 +94,7 @@ module enzo {
   PUPable EnzoMethodHeat;
   PUPable EnzoMethodPmDeposit;
   PUPable EnzoMethodPmUpdate;
+  PUPable EnzoMethodFmm;
   PUPable EnzoMethodPpm;
   PUPable EnzoMethodPpml;
   PUPable EnzoMethodTurbulence;
@@ -174,6 +175,9 @@ module enzo {
     // EnzoMethodGravity synchronization entry methods
     entry void p_method_gravity_continue();
     entry void p_method_gravity_end();
+
+    // EnzoMethodFmm
+    entry void p_method_fmm_traverse (Index index, int type);
 
     // EnzoSolverCg synchronization entry methods
 

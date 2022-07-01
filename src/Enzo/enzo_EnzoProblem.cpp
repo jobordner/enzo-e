@@ -597,6 +597,10 @@ Method * EnzoProblem::create_method_
     method = new EnzoMethodPmUpdate
       (enzo_config->method_pm_update_max_dt);
 
+  } else if (name == "fmm") {
+
+    method = new EnzoMethodFmm(enzo_config->method_fmm_theta);
+
   } else if (name == "heat") {
 
     method = new EnzoMethodHeat

@@ -373,6 +373,8 @@ public: // interface
       method_vlct_mhd_choice(""),
       method_vlct_dual_energy(false),
       method_vlct_dual_energy_eta(0.0),
+      // EnzoMethodFmm
+      method_fmm_theta(3.0),
       // EnzoMethodMergeStars
       method_merge_stars_merging_radius_cells(0.0),
       // EnzoProlong
@@ -444,18 +446,19 @@ protected: // methods
   void read_initial_feedback_test_(Parameters *);
   void read_initial_merge_stars_test_(Parameters *);
   
-  void read_method_grackle_(Parameters *);
-  void read_method_feedback_(Parameters *);
-  void read_method_star_maker_(Parameters *);
   void read_method_background_acceleration_(Parameters *);
-  void read_method_vlct_(Parameters *);
+  void read_method_feedback_(Parameters *);
+  void read_method_fmm_ (Parameters *);
+  void read_method_grackle_(Parameters *);
   void read_method_gravity_(Parameters *);
   void read_method_heat_(Parameters *);
+  void read_method_merge_stars_(Parameters *);
   void read_method_pm_deposit_(Parameters *);
   void read_method_pm_update_(Parameters *);
   void read_method_ppm_(Parameters *);
+  void read_method_star_maker_(Parameters *);
   void read_method_turbulence_(Parameters *);
-  void read_method_merge_stars_(Parameters *);
+  void read_method_vlct_(Parameters *);
   
   void read_physics_(Parameters *);
 
@@ -791,6 +794,9 @@ public: // attributes
   // unlike ppm, only use a single eta value. It should have a default value
   // closer to method_ppm_dual_energy_eta1
   double                     method_vlct_dual_energy_eta;
+
+  /// EnzoMethodFmm
+  double                     method_fmm_theta;
 
   /// EnzoMethodMergeStars
   double                     method_merge_stars_merging_radius_cells;

@@ -92,10 +92,6 @@ public: // interface
   inline const Data * child_data() const throw()
   { return child_data_; };
 
-  /// Return the index of the root block containing this block
-  inline void index_array (int * ix, int * iy, int * iz) const throw ()
-  { index_.array(ix,iy,iz); }
-
   /// Return the current cycle number
   int cycle() const throw()
   { return cycle_; };
@@ -168,14 +164,17 @@ public: // interface
   void size_array (int * nx, int * ny = 0, int * nz = 0) const throw();
 
   /// Compute the lower extent of the Block in the domain
-  void lower(double * xm, double * ym = 0, double * zm = 0) const throw ();
+  void lower(double * xm, double * ym = 0, double * zm = 0,
+             const Index * index = nullptr) const throw ();
 
   /// Compute the upper extent of the Block in the domain
-  void upper(double * xp, double * yp = 0, double * zp = 0) const throw ();
+  void upper(double * xp, double * yp = 0, double * zp = 0,
+             const Index * index = nullptr) const throw ();
 
   /// Return the index of this Block in global coordinates for its level
   void index_global
-  ( int *ix, int *iy, int *iz,  int *nx, int *ny, int *nz ) const;
+  ( int *ix, int *iy, int *iz,  int *nx, int *ny, int *nz,
+    const Index * index = nullptr) const;
 
   /// Return which block faces lie along a domain boundary
   void is_on_boundary (bool boundary[3][2]) const throw();
