@@ -170,7 +170,6 @@ EnzoSolverMg0::EnzoSolverMg0
   ir_ = cello::field_descr()->insert_temporary();
   ic_ = cello::field_descr()->insert_temporary();
 
-
   Refresh * refresh = cello::refresh(ir_post_);
   cello::simulation()->refresh_set_name(ir_post_,name);
 
@@ -178,6 +177,8 @@ EnzoSolverMg0::EnzoSolverMg0
   refresh->add_field (ir_);
   refresh->add_field (ic_);
 
+  refresh->set_min_face_rank(2);
+  
   ScalarDescr * scalar_descr_int  = cello::scalar_descr_int();
   i_iter_  = scalar_descr_int ->new_value(name + ":iter");
 
@@ -229,7 +230,6 @@ void EnzoSolverMg0::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
   Sync * sync_prolong = psync_prolong(block);
 
   sync_prolong->set_stop(1 + 1); // self and parent
-
   enter_solver_ (enzo_block);
 }
 
@@ -279,7 +279,6 @@ void EnzoSolverMg0::enter_solver_ (EnzoBlock * enzo_block) throw()
 
     enzo_block->contribute(2*sizeof(long double), &reduce,
 			   sum_long_double_2_type, callback);
-
   } else {
 
     SOLVER_CONTROL(enzo_block,"min","max","2 calling begin_solve_2 (no shift)");
@@ -314,7 +313,6 @@ void EnzoSolverMg0::compute_shift_
 void EnzoBlock::r_solver_mg0_begin_solve(CkReductionMsg* msg)
 {
   performance_start_(perf_compute,__FILE__,__LINE__);
-
   static_cast<EnzoSolverMg0*> (solver())->begin_solve(this,msg);
 
   performance_stop_(perf_compute,__FILE__,__LINE__);
@@ -927,6 +925,7 @@ FieldMsg * EnzoSolverMg0::pack_residual_(EnzoBlock * enzo_block) throw()
   refresh->set_prolong(index_prolong_);
   refresh->set_restrict(index_restrict_);
   refresh->add_field(ir_);
+  refresh->set_min_face_rank(2);
 
   // copy data from EnzoBlock to array via FieldFace
 
@@ -975,6 +974,7 @@ void EnzoSolverMg0::unpack_residual_
   refresh->set_prolong(index_prolong_);
   refresh->set_restrict(index_restrict_);
   refresh->add_field(ib_);
+  refresh->set_min_face_rank(2);
 
   // copy data from msg to this EnzoBlock
 
@@ -1010,7 +1010,7 @@ FieldMsg * EnzoSolverMg0::pack_correction_
   refresh->set_prolong(index_prolong_);
   refresh->set_restrict(index_restrict_);
   refresh->add_field(ix_);
-
+  refresh->set_min_face_rank(2);
   // copy data from EnzoBlock to array via FieldFace
 
   FieldFace * field_face = enzo_block->create_face
@@ -1056,6 +1056,7 @@ void EnzoSolverMg0::unpack_correction_
   refresh->set_prolong(index_prolong_);
   refresh->set_restrict(index_restrict_);
   refresh->add_field(ic_);
+  refresh->set_min_face_rank(2);
 
   // copy data from msg to this EnzoBlock
 

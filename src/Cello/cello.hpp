@@ -38,6 +38,7 @@
 
 #include "pup_stl.h"
 
+#include "cello_defines.hpp"
 #include "cello_Sync.hpp"
 
 // #define DEBUG_CHECK
@@ -46,8 +47,9 @@ class Block;
 class Boundary;
 class Config;
 class CProxy_Block;
-class FieldDescr;
+class Factory;
 class Field;
+class FieldDescr;
 class Grouping;
 class Hierarchy;
 class Monitor;
@@ -221,6 +223,10 @@ enum type_enum {
 #   error Multiple CONFIG_PRECISION_[SINGLE|DOUBLE|QUAD] defined
 #endif
 
+
+#ifdef BYPASS_CHARM_MEM_LEAK
+enum class MsgType { msg_refine, msg_check };
+#endif
 
 /// Length of hex message tags used for debugging
 #define TAG_LEN 8
@@ -416,18 +422,18 @@ enum type_enum {
 
 //--------------------------------------------------
 
-#define SIZE_VECTOR_TYPE(COUNT,TYPE,VECTOR)     \
-  {						\
-    (COUNT) += sizeof(int);			\
-    (COUNT) += sizeof(TYPE)*(VECTOR).size();    \
-  }
-#define SAVE_VECTOR_TYPE(POINTER,TYPE,VECTOR)                   \
+#define SIZE_VECTOR_TYPE(COUNT,TYPE,VECTOR)                     \
   {                                                             \
-    int size = (VECTOR).size();                                 \
-    memcpy(POINTER,&size, sizeof(int));                         \
-    (POINTER) += sizeof(int);                                   \
-    memcpy(POINTER,(TYPE*)&(VECTOR)[0],size*sizeof(TYPE));      \
-    (POINTER) += size*sizeof(TYPE);                           \
+    (COUNT) += sizeof(int);                                     \
+    (COUNT) += sizeof(TYPE)*(VECTOR).size();                    \
+  }
+#define SAVE_VECTOR_TYPE(POINTER,TYPE,VECTOR)                           \
+  {                                                                     \
+  int size = (VECTOR).size();                                           \
+  memcpy(POINTER,&size, sizeof(int));                                   \
+  (POINTER) += sizeof(int);                                             \
+  memcpy(POINTER,(TYPE*)&(VECTOR)[0],size*sizeof(TYPE));                \
+  (POINTER) += size*sizeof(TYPE);                                       \
   }
 #define LOAD_VECTOR_TYPE(POINTER,TYPE,VECTOR)                   \
   {                                                             \
@@ -573,51 +579,6 @@ namespace cello {
   // pi
   const double pi = 3.14159265358979324;
 
-  // ergs per eV
-  const double erg_eV = 1.60217653E-12;
-
-  // eV per erg
-  const double eV_erg = 6.24150948E11;
-
-  // Boltzman constant in CGS
-  const double kboltz = 1.3806504e-16;
-
-  // Solar mass in CGS
-  const double mass_solar = 1.98841586e33;
-
-  // Hydrogen mass in CGS
-  const double mass_hydrogen = 1.67262171e-24;
-
-  // Electron mass in CGS
-  const double mass_electron = 9.10938291E-28;
-
-  // parsec in CGS
-  const double pc_cm  = 3.0856775809623245E18;
-
-  // Kiloparsec in CGS
-  const double kpc_cm = 3.0856775809623245E21;
-
-  // Megaparsec in CGS
-  const double Mpc_cm = 3.0856775809623245E24;
-
-  // speed of light in CGS
-  const double clight = 29979245800.0;
-
-  // Gravitational constant in CGS
-  const double grav_constant = 6.67384E-8;
-
-  // year in seconds
-  const double yr_s = 3.1556952E7;
-
-  // kyr in seconds
-  const double kyr_s = 3.1556952E10;
-
-  // Myr in seconds
-  const double Myr_s = 3.1556952E13;
-
-  // Approximate mean molecular weight of metals
-  const double mu_metal = 16.0;
-
   // precision functions
   double machine_epsilon     (int);
   template <class T>
@@ -740,6 +701,8 @@ namespace cello {
 
   /// Return a pointer to the Simulation object on this process
   Simulation *    simulation();
+  /// Return a pointer to the Factory object on this process
+  const Factory * factory();
   /// Return a proxy for the Block chare array of Blocks
   CProxy_Block    block_array();
   /// Return a pointor to the Problem object defining the problem being solved
@@ -782,12 +745,16 @@ namespace cello {
   ScalarDescr *   scalar_descr_double();
   /// Return the ScalarDescr object defining Block int Scalar data values
   ScalarDescr *   scalar_descr_int();
+  /// Return the ScalarDescr object defining Block long long Scalar data values
+  ScalarDescr *   scalar_descr_long_long();
   /// Return the ScalarDescr object defining Block Sync counter Scalar
   /// data values
   ScalarDescr *   scalar_descr_sync();
   /// Return the ScalarDescr object defining Block pointer Scalar data
   /// values
   ScalarDescr *   scalar_descr_void();
+  /// Return the ScalarDescr object defining Block index Scalar data values
+  ScalarDescr *   scalar_descr_index();
 
   /// Return the ith Output object
   Output *        output (int index);
@@ -806,12 +773,14 @@ namespace cello {
 
   /// Return the file name for the format and given arguments
   std::string expand_name
-  (const std::vector <std::string> * file_name, int counter, Block * block);
+  (const std::vector <std::string> * file_name,
+   int counter, int cycle, double time);
 
   /// Return the path for this file group output.  Creates
   /// the subdirectories if they don't exist
-  std::string directory
-  (const std::vector <std::string> * path_name, int counter, Block * block);
+  std::string create_directory
+  (const std::vector <std::string> * path_name,
+   int counter, int cycle, double time, bool & already_exists);
 
   
 }

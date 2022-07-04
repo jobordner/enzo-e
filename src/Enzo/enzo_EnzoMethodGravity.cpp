@@ -13,7 +13,7 @@
 
 // #define DEBUG_COPY_B
 // #define DEBUG_COPY_DENSITIES
-// #dfeine DEBUG_COPY_POTENTIAL
+// #define DEBUG_COPY_POTENTIAL
 // #define DEBUG_COPY_ACCELERATION
 
 #define NEW_TIMESTEP
@@ -79,7 +79,6 @@ EnzoMethodGravity::EnzoMethodGravity
   refresh->add_field("acceleration_x");
   refresh->add_field("acceleration_y");
   refresh->add_field("acceleration_z");
-
   // Accumulate is used when particles are deposited into density_total
 
   if (accumulate) {
@@ -87,13 +86,13 @@ EnzoMethodGravity::EnzoMethodGravity
     // EnzoProlong does not work with accumulate!
     std::string prolong_name =
       cello::problem()->prolong(index_prolong_)->name();
-    
+
     ASSERT1("EnzoMethodGravity::EnzoMethodGravity()",
            "Requesting accumulated particle mass refresh: "
            "rerun with parameter Method : %s : prolong = \"linear\"",
             name().c_str(),
             (prolong_name != "enzo"));
-    
+
     refresh->set_accumulate(true);
     refresh->add_field_src_dst
       ("density_particle","density_particle_accumulate");
@@ -123,7 +122,6 @@ void EnzoMethodGravity::compute(Block * block) throw()
   // Initialize the linear system
 
   Field field = block->data()->field();
-
   /// access problem-defining fields for eventual RHS and solution
   const int ib  = field.field_id ("B");
   const int id  = field.field_id("density");
@@ -140,7 +138,6 @@ void EnzoMethodGravity::compute(Block * block) throw()
   field.ghost_depth(0,&gx,&gy,&gz);
 
   const int m = mx*my*mz;
-
   enzo_float * B = (enzo_float*) field.values (ib);
 #ifdef DEBUG_COPY_B
   const int ib_copy = field.field_id ("B_copy");
@@ -162,7 +159,6 @@ void EnzoMethodGravity::compute(Block * block) throw()
 
   if (block->is_leaf()) {
     if (cosmology) {
-
       int gx,gy,gz;
       field.ghost_depth(0,&gx,&gy,&gz);
       gx=gy=gz=0;
@@ -170,6 +166,11 @@ void EnzoMethodGravity::compute(Block * block) throw()
 	for (int iy=gy; iy<my-gy; iy++) {
 	  for (int ix=gx; ix<mx-gx; ix++) {
 	    int i = ix + mx*(iy + my*iz);
+	    // In cosmological simulations, density units are defined such that `rho_bar_m` is
+	    // 1.0, and time units are defined such that `4 * pi * G * rho_bar_m` is 1.0, where
+	    // `G` is the gravitational constant, and `rho_bar_m` is the mean matter density
+	    // of the universe. These choices of units result in Poisson's equation having a
+	    // much simplified form.
 	    D[i]=-(D[i]-1.0);
 	    B[i]  = D[i];
 	  }
@@ -192,7 +193,6 @@ void EnzoMethodGravity::compute(Block * block) throw()
 
   const int ix = field.field_id ("potential");
   std::shared_ptr<Matrix> A (std::make_shared<EnzoMatrixLaplace>(order_));
-
   solver->set_field_x(ix);
   solver->set_field_b(ib);
 #ifdef DEBUG_COPY_B
@@ -203,7 +203,6 @@ void EnzoMethodGravity::compute(Block * block) throw()
   if (DT_copy) for (int i=0; i<m; i++) DT_copy[i] = DT[i];
   if (D_copy) for (int i=0; i<m; i++) D_copy[i] = D[i];
 #endif	
-
   solver->apply (A, block);
 }
 
