@@ -206,6 +206,8 @@ module enzo {
 
     // EnzoMethodFmm
     entry void p_method_fmm_traverse (Index index, int type);
+    entry void p_method_fmm_update_volume (Index index, int volume);
+    entry void r_method_fmm_traverse_complete (CkReductionMsg * msg);
 
     // checkpoint
     entry void p_check_write_first

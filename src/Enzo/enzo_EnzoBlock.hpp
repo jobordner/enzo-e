@@ -221,6 +221,8 @@ public: /// entry methods
 
   /// Traverse the mesh hierarchy using a dual-tree walk
   void p_method_fmm_traverse (Index index, int type);
+  void p_method_fmm_update_volume (Index index, int volume);
+  void r_method_fmm_traverse_complete(CkReductionMsg * msg);
 
   /// Synchronize after potential solve and before accelerations
   void p_method_gravity_continue();

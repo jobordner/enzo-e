@@ -50,7 +50,6 @@ void Simulation::initialize() throw()
   problem_->initialize_prolong (config_);
   problem_->initialize_restrict (config_);
   problem_->initialize_initial(config_,parameters_);
-  problem_->initialize_method  (config_,factory());
   problem_->initialize_solver  (config_);
   problem_->initialize_refine  (config_,parameters_);
   problem_->initialize_stopping(config_);
@@ -59,6 +58,8 @@ void Simulation::initialize() throw()
   cello::finalize_fields();
 
   initialize_hierarchy_();
+
+  problem_->initialize_method  (config_,factory());
 
   // initialize_block_array() is called in charm_initialize
   // using QD to ensure that initialize_hierarchy() is called
