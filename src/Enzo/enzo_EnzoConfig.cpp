@@ -311,8 +311,6 @@ EnzoConfig::EnzoConfig() throw ()
   method_vlct_full_dt_reconstruct_method(""),
   method_vlct_theta_limiter(0.0),
   method_vlct_mhd_choice(""),
-// EnzoMethodFmm
-  method_fmm_theta(3.0),
   /// EnzoMethodMergeSinks
   method_merge_sinks_merging_radius_cells(0.0),
   /// EnzoMethodAccretion
@@ -344,8 +342,10 @@ EnzoConfig::EnzoConfig() throw ()
   solver_precondition(),
   solver_coarse_level(),
   solver_is_unigrid(),
+  /// EnzoSolverFmm
+  solver_fmm_theta(),
+  /// Stopping
   stopping_redshift()
-
 {
   for (int i=0; i<3; i++) {
     initial_cloud_uniform_bfield[i] = 0;
@@ -703,7 +703,6 @@ void EnzoConfig::pup (PUP::er &p)
   p | method_vlct_theta_limiter;
   p | method_vlct_mhd_choice;
 
-  p | method_fmm_theta;
   p | method_merge_sinks_merging_radius_cells;
 
   p | method_accretion_accretion_radius_cells;
@@ -733,6 +732,7 @@ void EnzoConfig::pup (PUP::er &p)
   p | solver_precondition;
   p | solver_coarse_level;
   p | solver_is_unigrid;
+  p | solver_fmm_theta;
 
   p | stopping_redshift;
 
@@ -795,7 +795,6 @@ void EnzoConfig::read(Parameters * p) throw()
   read_initial_shu_collapse_(p);
   read_initial_soup_(p);
   read_initial_turbulence_(p);
-  read_method_fmm_(p);
 
   // it's important for read_physics_ to precede read_method_grackle_
   read_physics_(p);
@@ -1456,13 +1455,6 @@ void EnzoConfig::read_initial_bb_test_(Parameters * p)
 
   initial_bb_test_external_density = p->value_float
     ("Initial:bb_test:external_density",1.0e-6);
-}
-
-//----------------------------------------------------------------------
-
-void EnzoConfig::read_method_fmm_(Parameters * p)
-{
-  method_fmm_theta = p->value_float ("Method:fmm:theta", 3.0);
 }
 
 //----------------------------------------------------------------------
@@ -2352,6 +2344,7 @@ void EnzoConfig::read_solvers_(Parameters * p)
   solver_precondition.resize(num_solvers);
   solver_coarse_level.resize(num_solvers);
   solver_is_unigrid.resize(num_solvers);
+  solver_fmm_theta.resize(num_solvers);
 
   for (int index_solver=0; index_solver<num_solvers; index_solver++) {
 
@@ -2415,6 +2408,8 @@ void EnzoConfig::read_solvers_(Parameters * p)
     solver_is_unigrid[index_solver] =
       p->value_logical (solver_name + ":is_unigrid",false);
 
+    solver_fmm_theta[index_solver] =
+      p->value_float (solver_name + ":theta", 3.0);
   }
 }
 

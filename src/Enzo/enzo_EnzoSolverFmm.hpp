@@ -1,30 +1,31 @@
 // See LICENSE_CELLO file for license and copyright information
 
-/// @file     enzo_EnzoMethodFmm.hpp
+/// @file     enzo_EnzoSolverFmm.hpp
 /// @author   James Bordner (jobordner@ucsd.edu) 
 /// @date     2022-06-27
-/// @brief    [\ref Enzo] Implementation of Enzo FMM hydro method
+/// @brief    [\ref Enzo] Implementation of Enzo FMM hydro solver
 
-#ifndef ENZO_ENZO_METHOD_FMM_HPP
-#define ENZO_ENZO_METHOD_FMM_HPP
+#ifndef ENZO_ENZO_SOLVER_FMM_HPP
+#define ENZO_ENZO_SOLVER_FMM_HPP
 
-class EnzoMethodFmm : public Method {
+class EnzoSolverFmm : public Solver {
 
-  /// @class    EnzoMethodFmm
+  /// @class    EnzoSolverFmm
   /// @ingroup  Enzo
-  /// @brief    [\ref Enzo] Encapsulate Enzo's FMM hydro method
+  /// @brief    [\ref Enzo] Encapsulate Enzo's FMM hydro solver
 
 public: // interface
 
-  /// Create a new EnzoMethodFmm object
-  EnzoMethodFmm(double theta);
+  /// Create a new EnzoSolverFmm object
+  EnzoSolverFmm(double theta);
 
   /// Charm++ PUP::able declarations
-  PUPable_decl(EnzoMethodFmm);
+  PUPable_decl(EnzoSolverFmm);
   
   /// Charm++ PUP::able migration constructor
-  EnzoMethodFmm (CkMigrateMessage *m)
-    : Method (m),
+  EnzoSolverFmm (CkMigrateMessage *m)
+    : Solver (m),
+      A_(nullptr),
       theta_(0),
       min_level_(0),
       max_level_(0),
@@ -50,13 +51,13 @@ public: // interface
 
   void update_volume (EnzoBlock * enzo_block, Index index, int volume);
 
-public: // virtual methods
+public: // virtual solvers
 
-  /// Apply the method to advance a block one timestep 
-  virtual void compute( Block * block) throw();
+  /// Apply the solver to advance a block one timestep 
+  virtual void apply( std::shared_ptr<Matrix> A, Block * block) throw();
 
-  virtual std::string name () throw () 
-  { return "fmm"; }
+  /// Type of this solver
+  virtual std::string type() const { return "fmm"; }
 
   
 protected: // interface
@@ -69,6 +70,9 @@ protected: // interface
   }
 
 protected: // attributes
+
+  /// Matrix
+  std::shared_ptr<Matrix> A_;
 
   /// Parameter controlling the multipole acceptance criterion, defined
   /// as distance(A,B) > theta * (radius(A) + radius(B))
@@ -88,4 +92,4 @@ protected: // attributes
   long long max_volume_;
 };
 
-#endif /* ENZO_ENZO_METHOD_FMM_HPP */
+#endif /* ENZO_ENZO_SOLVER_FMM_HPP */

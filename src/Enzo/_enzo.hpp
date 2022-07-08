@@ -254,7 +254,6 @@ extern "C" {
 #include "enzo_EnzoMethodFeedback.hpp"
 #include "enzo_EnzoMethodFeedbackSTARSS.hpp"
 #include "enzo_EnzoMethodFluxAccretion.hpp"
-#include "enzo_EnzoMethodFmm.hpp"
 #include "enzo_EnzoMethodGrackle.hpp"
 #include "enzo_EnzoMethodGravity.hpp"
 #include "enzo_EnzoMethodHeat.hpp"
@@ -290,6 +289,7 @@ extern "C" {
 #include "enzo_EnzoSolverCg.hpp"
 #include "enzo_EnzoSolverDd.hpp"
 #include "enzo_EnzoSolverDiagonal.hpp"
+#include "enzo_EnzoSolverFmm.hpp"
 #include "enzo_EnzoSolverJacobi.hpp"
 #include "enzo_EnzoSolverMg0.hpp"
 

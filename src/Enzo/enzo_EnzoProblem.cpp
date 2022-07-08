@@ -468,6 +468,11 @@ Solver * EnzoProblem::create_solver_
        index_prolong,
        index_restrict);
 
+  } else if (solver_type == "fmm") {
+
+    solver = new EnzoSolverFmm
+      (enzo_config->solver_fmm_theta[index_solver]);
+
   } else if (solver_type == "jacobi") {
 
     solver = new EnzoSolverJacobi
@@ -623,10 +628,6 @@ Method * EnzoProblem::create_method_
 
     method = new EnzoMethodPmUpdate
       (enzo_config->method_pm_update_max_dt);
-
-  } else if (name == "fmm") {
-
-    method = new EnzoMethodFmm(enzo_config->method_fmm_theta);
 
   } else if (name == "heat") {
 

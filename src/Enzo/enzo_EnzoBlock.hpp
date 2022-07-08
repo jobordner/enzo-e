@@ -219,11 +219,6 @@ public: /// entry methods
 
   //--------------------------------------------------
 
-  /// Traverse the mesh hierarchy using a dual-tree walk
-  void p_method_fmm_traverse (Index index, int type);
-  void p_method_fmm_update_volume (Index index, int volume);
-  void r_method_fmm_traverse_complete(CkReductionMsg * msg);
-
   /// Synchronize after potential solve and before accelerations
   void p_method_gravity_continue();
 
@@ -324,7 +319,7 @@ public: /// entry methods
 			   std::vector<int> is_array,
 			   int i_function);
 
-/// EnzoSolverDd
+  /// EnzoSolverDd
 
   void p_solver_dd_restrict_recv(FieldMsg * msg);
   void p_solver_dd_prolong_recv(FieldMsg * msg);
@@ -334,6 +329,12 @@ public: /// entry methods
   void p_solver_dd_last_smooth();
   void r_solver_dd_barrier(CkReductionMsg* msg);
   void r_solver_dd_end(CkReductionMsg* msg);
+
+  // EnzoSolverFmm
+
+  void p_solver_fmm_traverse (Index index, int type);
+  void p_solver_fmm_update_volume (Index index, int volume);
+  void r_solver_fmm_traverse_complete(CkReductionMsg * msg);
 
   // EnzoSolverJacobi
 

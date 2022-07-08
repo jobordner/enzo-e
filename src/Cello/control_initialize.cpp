@@ -32,6 +32,16 @@
 void Simulation::initialize() throw()
 {
   TRACE_INITIAL_SIM("Simulation::initialize()");
+
+  // Some initialization methods require others to be performed before
+  // them. These are marked as "DEPEND: dependee < depender",
+  // indicating that "initialize_dependee_()" needs to be before
+  // "initialize_depender_()".
+  //
+  // Not all dependencies are guaranteed to be noted, but if you find
+  // any, please add them. Better yet, get rid of dependencies when
+  // possible.
+
   set_phase(phase_initial);
 
   initialize_config_();
@@ -47,18 +57,22 @@ void Simulation::initialize() throw()
   problem_->initialize_units (config_);
   problem_->initialize_physics (config_,parameters_);
   problem_->initialize_boundary(config_,parameters_);
+
+  // DEPEND: boundary < hierarchy
+  initialize_hierarchy_();
+
   problem_->initialize_prolong (config_);
   problem_->initialize_restrict (config_);
   problem_->initialize_initial(config_,parameters_);
+  // DEPEND hierarchy < method
   problem_->initialize_method  (config_,factory());
   problem_->initialize_solver  (config_);
   problem_->initialize_refine  (config_,parameters_);
   problem_->initialize_stopping(config_);
   problem_->initialize_output  (config_,factory());
 
+  // DEPEND method < finalize_fields()
   cello::finalize_fields();
-
-  initialize_hierarchy_();
 
   // initialize_block_array() is called in charm_initialize
   // using QD to ensure that initialize_hierarchy() is called
@@ -72,25 +86,25 @@ void Simulation::initialize() throw()
     thisProxy.p_set_block_array(block_array);
   }
 
-  CkCallback callback 
+  CkCallback callback
     (CkIndex_Simulation::r_initialize_block_array(NULL), thisProxy);
 
   // --------------------------------------------------
-#ifdef TRACE_CONTRIBUTE  
+#ifdef TRACE_CONTRIBUTE
   CkPrintf ("%s:%d DEBUG_CONTRIBUTE r_initialize_block_array()\n",__FILE__,__LINE__); fflush(stdout);
-#endif  
+#endif
   contribute(0,0,CkReduction::concat,callback);
   // --------------------------------------------------
 }
 
 //----------------------------------------------------------------------
 
-void Simulation::r_initialize_block_array(CkReductionMsg * msg) 
+void Simulation::r_initialize_block_array(CkReductionMsg * msg)
 {
   TRACE_INITIAL_SIM("Simulation::r_initialize_block_array_()");
   performance_->start_region(perf_initial);
   delete msg;
-  
+
   initialize_block_array_();
 }
 
@@ -103,7 +117,7 @@ void  Block::initial_new_begin_(int level)
   TRACE_INITIAL("initial_new_begin_",this);
   index_initial_ = 0;
 
-  CkCallback callback 
+  CkCallback callback
     (CkIndex_Block::r_initial_new_next(nullptr), thisProxy);
 
   contribute(0,0,CkReduction::concat,callback);

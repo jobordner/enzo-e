@@ -1,10 +1,10 @@
 // See LICENSE_CELLO file for license and copyright information
 
-/// @file     enzo_EnzoMethodFmm.cpp
+/// @file     enzo_EnzoSolverFmm.cpp
 /// @author   
 /// @author   James Bordner (jobordner@ucsd.edu)
 /// @date     2022-06-27
-/// @brief    Implements the EnzoMethodFmm class
+/// @brief    Implements the EnzoSolverFmm class
 
 #include <iostream>
 #include "cello.hpp"
@@ -14,8 +14,9 @@
 
 //----------------------------------------------------------------------
 
-EnzoMethodFmm::EnzoMethodFmm (double theta)
-  : Method(),
+EnzoSolverFmm::EnzoSolverFmm (double theta)
+  : Solver(),
+    A_(nullptr),
     theta_(theta),
     min_level_(cello::hierarchy()->min_level()),
     max_level_(cello::hierarchy()->max_level()),
@@ -31,7 +32,7 @@ EnzoMethodFmm::EnzoMethodFmm (double theta)
   refresh->add_field("density");
 
   // Declare long long Block Scalar for volume and save scalar index
-  is_volume_ = cello::scalar_descr_long_long()->new_value("method_fmm_volume");
+  is_volume_ = cello::scalar_descr_long_long()->new_value("solver_fmm_volume");
 
   // Allocate and initialize block_volume_[level - min_level] to store
   // weighted volume of blocks in different levels relative to the finest
@@ -51,13 +52,13 @@ EnzoMethodFmm::EnzoMethodFmm (double theta)
 
 //----------------------------------------------------------------------
 
-void EnzoMethodFmm::pup (PUP::er &p)
+void EnzoSolverFmm::pup (PUP::er &p)
 {
   // NOTE: change this function whenever attributes change
 
   TRACEPUP;
 
-  Method::pup(p);
+  Solver::pup(p);
 
   p | theta_;
   p | min_level_;
@@ -69,19 +70,23 @@ void EnzoMethodFmm::pup (PUP::er &p)
 
 //----------------------------------------------------------------------
 
-void EnzoMethodFmm::compute ( Block * block) throw()
+void EnzoSolverFmm::apply ( std::shared_ptr<Matrix> A,  Block * block) throw()
 {
+  Solver::begin_(block);
+
+  A_ = A;
+
   *volume_(block) = 0;
   Index index = block->index();
   if (block->level() == min_level_) {
     int type = block->is_leaf() ? 1 : 0;
-    enzo::block_array()[index].p_method_fmm_traverse(index,type);
+    enzo::block_array()[index].p_solver_fmm_traverse(index,type);
   }
   if (! block->is_leaf()) {
     // traverse terminates when all leaf blocks done. Since we use a
     // barrier on all blocks, we call the barrier now on all non-leaf
     // blocks
-    CkCallback callback(CkIndex_EnzoBlock::r_method_fmm_traverse_complete(nullptr),
+    CkCallback callback(CkIndex_EnzoBlock::r_solver_fmm_traverse_complete(nullptr),
 			enzo::block_array());
     enzo::block(block)->contribute(callback);
   }
@@ -89,15 +94,15 @@ void EnzoMethodFmm::compute ( Block * block) throw()
 
 //----------------------------------------------------------------------
 
-void EnzoBlock::p_method_fmm_traverse(Index index, int type)
+void EnzoBlock::p_solver_fmm_traverse(Index index, int type)
 {
-  EnzoMethodFmm * method = static_cast<EnzoMethodFmm*> (this->method());
-  method->traverse(this, index, type);
+  EnzoSolverFmm * solver = static_cast<EnzoSolverFmm*> (this->solver());
+  solver->traverse(this, index, type);
 }
 
 //----------------------------------------------------------------------
 
-void EnzoMethodFmm::traverse
+void EnzoSolverFmm::traverse
 (EnzoBlock * enzo_block, Index index_b, int type_b)
 {
   Index index_a = enzo_block->index();
@@ -106,7 +111,7 @@ void EnzoMethodFmm::traverse
 
   if (! known_leaf_b) {
     // If unknown wether B is leaf or not, flip arguments and send to B
-    enzo::block_array()[index_b].p_method_fmm_traverse
+    enzo::block_array()[index_b].p_solver_fmm_traverse
       (index_a, is_leaf_a ? 1 : 0);
     return;
   }
@@ -148,7 +153,7 @@ void EnzoMethodFmm::traverse
     while (it_child_a.next(ica3)) {
 
       Index index_a_child = index_a.index_child(ica3,min_level_);
-      enzo::block_array()[index_a_child].p_method_fmm_traverse
+      enzo::block_array()[index_a_child].p_solver_fmm_traverse
         (index_b,type_b);
     }
   } else if (index_a == index_b) {
@@ -164,7 +169,7 @@ void EnzoMethodFmm::traverse
         // avoid calling both traverse (A,B) and traverse (B,A)
         if (ica <= icb) {
           // call traverse on child 1 and child 2
-          enzo::block_array()[index_a_child].p_method_fmm_traverse
+          enzo::block_array()[index_a_child].p_solver_fmm_traverse
             (index_b_child,-1);
         }
       }
@@ -184,7 +189,7 @@ void EnzoMethodFmm::traverse
 
 //----------------------------------------------------------------------
 
-void EnzoMethodFmm::traverse_approx_pair
+void EnzoSolverFmm::traverse_approx_pair
 (EnzoBlock * enzo_block,
  Index index_a, int volume_a,
  Index index_b, int volume_b)
@@ -192,7 +197,7 @@ void EnzoMethodFmm::traverse_approx_pair
 
   // update volumes for each block to detect when to terminate traverse
   update_volume (enzo_block,index_b,volume_b);
-  enzo::block_array()[index_b].p_method_fmm_update_volume (index_a,volume_a);
+  enzo::block_array()[index_b].p_solver_fmm_update_volume (index_a,volume_a);
 
 #ifdef PRINT_TRAVERSE_PAIRS
   CkPrintf ("approx_pair %s %s\n",
@@ -203,7 +208,7 @@ void EnzoMethodFmm::traverse_approx_pair
 
 //----------------------------------------------------------------------
 
-void EnzoMethodFmm::traverse_direct_pair
+void EnzoSolverFmm::traverse_direct_pair
 (EnzoBlock * enzo_block,
  Index index_a, int volume_a,
  Index index_b, int volume_b)
@@ -212,7 +217,7 @@ void EnzoMethodFmm::traverse_direct_pair
   update_volume (enzo_block,index_b,volume_b);
   if (index_a != index_b) {
     // (note blocks may be equal, so don't double-count)
-    enzo::block_array()[index_b].p_method_fmm_update_volume (index_a,volume_a);
+    enzo::block_array()[index_b].p_solver_fmm_update_volume (index_a,volume_a);
   }
 
 #ifdef PRINT_TRAVERSE_PAIRS
@@ -224,13 +229,13 @@ void EnzoMethodFmm::traverse_direct_pair
 
 //----------------------------------------------------------------------
 
-void EnzoBlock::p_method_fmm_update_volume (Index index, int volume)
+void EnzoBlock::p_solver_fmm_update_volume (Index index, int volume)
 {
-  EnzoMethodFmm * method = static_cast<EnzoMethodFmm*> (this->method());
-  method->update_volume (this, index, volume);
+  EnzoSolverFmm * solver = static_cast<EnzoSolverFmm*> (this->solver());
+  solver->update_volume (this, index, volume);
 }
 
-void EnzoMethodFmm::update_volume
+void EnzoSolverFmm::update_volume
 (EnzoBlock * enzo_block, Index index, int volume)
 {
   if (enzo_block->is_leaf()) {
@@ -239,7 +244,7 @@ void EnzoMethodFmm::update_volume
 
     if (*volume_(enzo_block) == max_volume_) {
 
-      CkCallback callback(CkIndex_EnzoBlock::r_method_fmm_traverse_complete(nullptr),
+      CkCallback callback(CkIndex_EnzoBlock::r_solver_fmm_traverse_complete(nullptr),
 			enzo::block_array());
       enzo_block->contribute(callback);
 
@@ -251,7 +256,7 @@ void EnzoMethodFmm::update_volume
     int ic3[3];
     while (it_child.next(ic3)) {
       Index index_child = enzo_block->index().index_child(ic3,min_level);
-      enzo::block_array()[index_child].p_method_fmm_update_volume (index,volume);
+      enzo::block_array()[index_child].p_solver_fmm_update_volume (index,volume);
     }
   }
 }
@@ -259,21 +264,21 @@ void EnzoMethodFmm::update_volume
 
 //----------------------------------------------------------------------
 
-void EnzoBlock::r_method_fmm_traverse_complete(CkReductionMsg * msg)
+void EnzoBlock::r_solver_fmm_traverse_complete(CkReductionMsg * msg)
 {
   delete msg;
-  EnzoMethodFmm * method = static_cast<EnzoMethodFmm*> (this->method());
-  method->traverse_done(this);
+  EnzoSolverFmm * solver = static_cast<EnzoSolverFmm*> (this->solver());
+  solver->traverse_done(this);
 }
 
-void EnzoMethodFmm::traverse_done (EnzoBlock * enzo_block)
+void EnzoSolverFmm::traverse_done (EnzoBlock * enzo_block)
 {
-  enzo_block->compute_done();
+  Solver::end_(enzo_block);
 }
 
 //======================================================================
 
-bool EnzoMethodFmm::is_far_ (EnzoBlock * enzo_block,
+bool EnzoSolverFmm::is_far_ (EnzoBlock * enzo_block,
                              Index index_b, double *ra, double *rb) const
 {
   double iam3[3],iap3[3],ibm3[3],ibp3[3],na3[3],nb3[3];

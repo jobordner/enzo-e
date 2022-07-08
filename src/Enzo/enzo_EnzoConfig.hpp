@@ -349,9 +349,6 @@ public: // interface
       // EnzoMethodCheckGravity
       method_check_gravity_particle_type(),
 
-      // EnzoMethodFmm
-      method_fmm_theta(3.0),
-
       // EnzoMethodHeat
       method_heat_alpha(0.0),
       // EnzoMethodHydro
@@ -464,6 +461,8 @@ public: // interface
       solver_precondition(),
       solver_coarse_level(),
       solver_is_unigrid(),
+      // EnzoSolverFmm
+      solver_fmm_theta(),
       // EnzoStopping
       stopping_redshift()
 
@@ -532,7 +531,6 @@ protected: // methods
   void read_method_background_acceleration_(Parameters *);
   void read_method_check_(Parameters *);
   void read_method_feedback_(Parameters *);
-  void read_method_fmm_ (Parameters *);
   void read_method_grackle_(Parameters *);
   void read_method_gravity_(Parameters *);
   void read_method_heat_(Parameters *);
@@ -938,9 +936,6 @@ public: // attributes
   double                     method_vlct_theta_limiter;
   std::string                method_vlct_mhd_choice;
 
-  /// EnzoMethodFmm
-  double                     method_fmm_theta;
-
   /// EnzoMethodMergeSinks
   double                     method_merge_sinks_merging_radius_cells;
 
@@ -1004,6 +999,9 @@ public: // attributes
 
   std::vector<int>           solver_coarse_level;
   std::vector<int>           solver_is_unigrid;
+
+  /// EnzoSolverFmm
+  std::vector<double>        solver_fmm_theta;
 
   /// Stop at specified redshift for cosmology
   double                     stopping_redshift;
