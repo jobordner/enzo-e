@@ -161,6 +161,10 @@ public: // interface
 
   /// Return the name of the block
   std::string name () const throw();
+
+  /// Return a short variation of the Block name based on octal digits
+  std::string name8() const throw();
+
   /// Return the name of the block with the given index
   std::string name(Index index) const throw();
 

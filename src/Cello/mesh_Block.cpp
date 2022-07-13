@@ -864,6 +864,33 @@ std::string Block::name(Index index) const throw()
 
 //----------------------------------------------------------------------
 
+std::string Block::name8() const throw()
+{
+  int a3[3];
+  int t3[3];
+  index_.array(a3,a3+1,a3+2);
+  index_.tree(t3,t3+1,t3+2);
+
+  const int min_level = cello::config()->mesh_min_level;
+
+  std::string name8 = "z";
+  for (int level=min_level; level<=0; level++) {
+    int ax = (a3[0] >> level) & 1;
+    int ay = (a3[1] >> level) & 1;
+    int az = (a3[2] >> level) & 1;
+    name8 += '0' + ax+2*(ay+2*az);
+  }
+  for (int level=1; level<=index_.level(); level++) {
+    int tx = (t3[0] >> (INDEX_BITS_TREE-level)) & 1;
+    int ty = (t3[1] >> (INDEX_BITS_TREE-level)) & 1;
+    int tz = (t3[2] >> (INDEX_BITS_TREE-level)) & 1;
+    name8 += '0' + tx+2*(ty+2*tz);
+  }
+  return name8;
+}
+
+//----------------------------------------------------------------------
+
 void Block::size_array (int * nx, int * ny, int * nz) const throw ()
 {
   cello::hierarchy()->root_blocks(nx,ny,nz);
