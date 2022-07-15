@@ -7,15 +7,14 @@ import re
 import numpy as np
 
 def decode_block(block_name):
-    prefix="B"
     lower=np.array([0,0,0])
     size=np.array([1,1,1])
-    max_level = len(block_name) - 1
+    max_level = len(block_name) - 2
     factor = 1
     level = 0
     while level < max_level:
         size = 0.5*size
-        d=block_name[level+1]
+        d=block_name[level+2]
         n=ord(d)-ord('0')
         c = np.array([n&1,(n&2)>>1,(n&4)>>2])
         lower = lower + size*c
@@ -47,7 +46,7 @@ for plotlevel in range(0,max_level):
       for line in lines:
           line_list = line.split();
           for word in line_list:
-              if (re.search(r'^Z[0-7]+',word)):
+              if (re.search(r'^b#[0-7]+',word)):
 
                   [level,lower, upper] = decode_block(word)
 

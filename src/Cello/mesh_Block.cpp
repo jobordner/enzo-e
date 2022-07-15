@@ -873,7 +873,7 @@ std::string Block::name8() const throw()
 
   const int min_level = cello::config()->mesh_min_level;
 
-  std::string name8 = "z";
+  std::string name8 = "b#";
   for (int level=min_level; level<=0; level++) {
     int ax = (a3[0] >> level) & 1;
     int ay = (a3[1] >> level) & 1;
