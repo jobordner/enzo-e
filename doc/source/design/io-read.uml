@@ -36,7 +36,7 @@
    b0 o-> r0 : p_block_ready()
    b0 o-> r1
    hnote over r0,r1 : sync
-   r0 -> s0 : r_restart_next_level()
+   r0 -> s0 : p_restart_next_level()
    r1 -> s0
    hnote over s0 : sync
 
@@ -62,7 +62,7 @@
    bkp1 o-> r0 : p_block_ready()
    bkp1 o-> r1
    hnote over r0,r1 : sync
-   r0 -> s0 : r_restart_next_level()
+   r0 -> s0 : p_restart_next_level()
    r1 -> s0
    hnote over s0 : sync
    end

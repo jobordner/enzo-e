@@ -1,0 +1,110 @@
+   @startuml
+
+   box "Simulation array" #Pink
+   participant simulation_0 as s0
+   end box
+
+   box "IoWriter array" #LightBlue
+   participant writer_0 as w0
+   participant writer_1 as w1
+   end box
+
+   box "Block array" #LightGreen
+   participant block_0 as b0
+   participant "block_k-1" as bk
+   participant "block_k" as bkp1
+   end box
+
+   == startup ==
+
+   b0 -> s0 : r_method_check_enter()
+   bk -> s0
+   bkp1 -> s0
+   hnote over s0 : block-sync
+
+   s0 -> b0 : p_check_write_first()
+   s0 -> bk
+   s0 -> bkp1
+
+   b0 -> w0 : p_write()
+   b0 -> w1
+
+   w0 -> bk : p_check_write_next()
+   w1 -> bk
+
+   bk -> w0 : p_write()
+   bk -> w1
+
+   w0 -> bkp1 : p_check_write_next()
+   w1 -> bkp1
+
+   bkp1 -> w0 : p_write()
+   bkp1 -> w1
+
+   w0 -> s0 : p_check_done()
+   w1 -> s0
+
+   hnote over s0 : write-sync
+
+   s0 -> b0 : p_check_done()
+   s0 -> bk
+   s0 -> bkp1
+
+'   s0 -> w0 ** : ckNew()
+'   s0 -> w1 **
+'   w0 -> s0 : p_io_writer_created()
+'   w1 -> s0
+'   hnote over s0 : sync
+'   s0 <-> sk : p_set_io_writer()
+'   hnote over s0,sk : r_restart_start()
+
+'    == level 0 ==
+' 
+'    s0 -> w0 : p_init_root()
+'    s0 -> w1
+'    w0 ->o b0 : p_restart_set_data()
+'    w1 ->o b0
+'    b0 o-> w0 : p_block_ready()
+'    b0 o-> w1
+'    hnote over w0,w1 : sync
+'    w0 -> s0 : p_restart_next_level()
+'    w1 -> s0
+'    hnote over s0 : sync
+' 
+'    == level k ==
+'    loop for k=1 to L
+'    s0 -> bk **
+'    s0 -> w0 : p_create_level(k)
+'    s0 -> w1
+'    w0 ->o bk : p_restart_refine()
+'    w1 ->o bk
+'    bk o-> bkp1 ** : insert
+'    bkp1 o-> w0 : p_block_created()
+'    bkp1 o-> w1
+' 
+'    hnote over w0,w1 : sync
+'    w0 -> s0 : p_restart_level_created()
+'    w1 -> s0
+'    hnote over s0 : sync
+'    s0 -> w0 : p_init_level(k)
+'    s0 -> w1
+'    w0 ->o bkp1 : p_restart_set_data()
+'    w1 ->o bkp1
+'    bkp1 o-> w0 : p_block_ready()
+'    bkp1 o-> w1
+'    hnote over w0,w1 : sync
+'    w0 -> s0 : p_restart_next_level()
+'    w1 -> s0
+'    hnote over s0 : sync
+'    end
+'    == cleanup ==
+'    s0 -> s0 : doneInserting()
+'    s0 -> w0 : delete
+'    destroy w0
+'    s0 -> w1
+'    destroy w1
+'    s0 ->o b0 : p_restart_done()
+'    s0 ->o bk
+'    s0 ->o bkp1
+' 
+    @enduml

@@ -107,7 +107,7 @@ Components of the new I/O approach include
 Output: checkpoint
 ------------------
 
-.. image:: io-output.png
+.. image:: io-write.png
            :width: 800
 
 --------------
