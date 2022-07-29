@@ -135,7 +135,7 @@ void EnzoInitialMusic::enforce_block
         FileHdf5::file_list[file_name] = new FileHdf5 ("./",file_name);
 #ifdef DEBUG_THROTTLE      
         CkPrintf ("%d %g DEBUG_THROTTLE opening %s\n",
-                  CkMyPe(),cello::simulation()->timer(),file_name.c_str());
+                  CkMyPe(),enzo::simulation()->timer(),file_name.c_str());
         fflush(stdout);
 #endif
         FileHdf5::file_list[file_name]->file_open();
@@ -146,7 +146,7 @@ void EnzoInitialMusic::enforce_block
       file =  new FileHdf5 ("./",file_name);
 #ifdef DEBUG_THROTTLE      
       CkPrintf ("%d %g DEBUG_THROTTLE opening %s\n",
-                CkMyPe(),cello::simulation()->timer(),file_name.c_str());
+                CkMyPe(),enzo::simulation()->timer(),file_name.c_str());
       fflush(stdout);
 #endif      
       file->file_open();
@@ -258,7 +258,7 @@ void EnzoInitialMusic::enforce_block
       FileHdf5::file_list.erase(file_name);
 #ifdef DEBUG_THROTTLE
       CkPrintf ("%d %g DEBUG_THROTTLE closed %s\n",
-                CkMyPe(),cello::simulation()->timer(),file_name.c_str());
+                CkMyPe(),enzo::simulation()->timer(),file_name.c_str());
       fflush(stdout);
 #endif    
     }    
@@ -287,7 +287,7 @@ void EnzoInitialMusic::enforce_block
         FileHdf5::file_list[file_name] = new FileHdf5 ("./",file_name);
 #ifdef DEBUG_THROTTLE      
         CkPrintf ("%d %g DEBUG_THROTTLE opening %s\n",
-                  CkMyPe(),cello::simulation()->timer(),file_name.c_str());
+                  CkMyPe(),enzo::simulation()->timer(),file_name.c_str());
         fflush(stdout);
 #endif      
         FileHdf5::file_list[file_name]->file_open();
@@ -302,7 +302,7 @@ void EnzoInitialMusic::enforce_block
 
 #ifdef DEBUG_THROTTLE      
       CkPrintf ("%d %g DEBUG_THROTTLE opening %s\n",
-                CkMyPe(),cello::simulation()->timer(),file_name.c_str());
+                CkMyPe(),enzo::simulation()->timer(),file_name.c_str());
 #endif      
       file->file_open();
       throttle_delay_();
@@ -395,7 +395,7 @@ void EnzoInitialMusic::enforce_block
       FileHdf5::file_list.erase(file_name);
 #ifdef DEBUG_THROTTLE
       CkPrintf ("%d %g DEBUG_THROTTLE closed %s\n",
-                CkMyPe(),cello::simulation()->timer(),file_name.c_str());
+                CkMyPe(),enzo::simulation()->timer(),file_name.c_str());
       fflush(stdout);
 #endif    
     } 
@@ -561,13 +561,13 @@ void EnzoInitialMusic::throttle_stagger_()
       int ms = 1000*((CkMyPe() / node_size) % throttle_group_size_) * throttle_seconds_stagger_;
 #ifdef DEBUG_THROTTLE  
       CkPrintf ("%d %g DEBUG_THROTTLE %d ms stagger start\n",
-		CkMyPe(),cello::simulation()->timer(),ms);
+		CkMyPe(),enzo::simulation()->timer(),ms);
       fflush(stdout);
 #endif      
       std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 #ifdef DEBUG_THROTTLE  
       CkPrintf ("%d %g DEBUG_THROTTLE %d ms stagger stop\n",
-		CkMyPe(),cello::simulation()->timer(),ms);
+		CkMyPe(),enzo::simulation()->timer(),ms);
       fflush(stdout);
 #endif      
     }
@@ -582,13 +582,13 @@ void EnzoInitialMusic::throttle_delay_()
     int ms = 1000*throttle_seconds_delay_;
 #ifdef DEBUG_THROTTLE  
     CkPrintf ("%d %g DEBUG_THROTTLE %d ms delay start\n",
-	      CkMyPe(),cello::simulation()->timer(),ms);
+	      CkMyPe(),enzo::simulation()->timer(),ms);
     fflush(stdout);
 #endif      
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 #ifdef DEBUG_THROTTLE  
     CkPrintf ("%d %g DEBUG_THROTTLE %d ms delay stop\n",
-	      CkMyPe(),cello::simulation()->timer(),ms);
+	      CkMyPe(),enzo::simulation()->timer(),ms);
     fflush(stdout);
 #endif      
   }

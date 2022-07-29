@@ -16,7 +16,7 @@ EnzoMethodComovingExpansion::EnzoMethodComovingExpansion
   : Method(),
     comoving_coordinates_(comoving_coordinates)
 {
-  cello::simulation()->refresh_set_name(ir_post_,name());
+  enzo::simulation()->refresh_set_name(ir_post_,name());
 
   const int rank = cello::rank();
 

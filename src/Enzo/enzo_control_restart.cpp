@@ -115,7 +115,10 @@ void Simulation::p_restart_enter (std::string name_dir)
   TRACE_SYNC(sync_restart_created_,"sync_restart_created_ set_stop()");
   sync_restart_created_.set_stop(restart_num_files_);
   TRACE_SYNC(sync_restart_next_,"sync_restart_next_ set_stop()");
-  sync_restart_next_.set_stop(restart_num_files_);
+
+  // Synchronize after all files are done reading AND all EnzoMsgRestart
+  // objects received
+  sync_restart_next_.set_stop(restart_num_files_ + CkNumPes());
 
   // Create new empty IoEnzoReader chare array and distribute to other processing elements
   CProxy_MappingIo io_map  = CProxy_MappingIo::ckNew(restart_num_files_);
@@ -138,7 +141,6 @@ IoEnzoReader::IoEnzoReader()
     sync_blocks_(),
     io_msg_check_()
 {
-  
   proxy_enzo_simulation.p_io_reader_created();
 }
 
@@ -341,10 +343,17 @@ void IoEnzoReader::block_ready_()
 
 void EnzoSimulation::p_restart_next_level()
 {
+  restart_next_level_();
+}
+
+void EnzoSimulation::restart_next_level_()
+{
   // [ Called on root process only ]
   TRACE_SIMULATION("EnzoSimulation::p_restart_next_level()",this);
   TRACE_SYNC(sync_restart_next_,"sync_restart_next_ next()");
   if (sync_restart_next_.next()) {
+    // initialize sync stop to count restart_num_files_
+    sync_restart_next_.set_stop(restart_num_files_);
     const int max_level = cello::config()->mesh_max_level;
     if (++restart_level_ <= max_level) {
       proxy_io_enzo_reader.p_create_level(restart_level_);
@@ -408,7 +417,7 @@ void EnzoBlock::p_restart_refine(int ic3[3],int io_reader)
   data_msg -> set_field_face (field_face,is_new=false);
   data_msg -> set_field_data (field_data,is_new=false);
 
-  const Factory * factory = cello::simulation()->factory();
+  const Factory * factory = enzo::simulation()->factory();
 
   // Create the child object with interpolated data
 
@@ -428,7 +437,7 @@ void EnzoBlock::p_restart_refine(int ic3[3],int io_reader)
      27,
      &child_face_level_curr_.data()[27*IC3(ic3)],
      &adapt_,
-     cello::simulation(),
+     enzo::simulation(),
      io_reader);
 
   delete [] array;
@@ -543,40 +552,54 @@ std::ifstream IoEnzoReader::stream_open_blocks_
 
 void IoEnzoReader::file_read_hierarchy_()
 {
-  // Simulation data
-  IoSimulation io_simulation = (cello::simulation());
-  for (size_t i=0; i<io_simulation.meta_count(); i++) {
+  // Reader 0 reads and distributes Simulation/Hierarchy data
+  if (thisIndex == 0) {
 
-    void * buffer;
-    std::string name;
-    int type_scalar;
-    int nx,ny,nz;
+    // Read EnzoSimulation data
+    IoEnzoSimulation io_simulation (enzo::simulation());
 
-    // Get object's ith metadata
-    io_simulation.meta_value(i,& buffer, &name, &type_scalar, &nx,&ny,&nz);
+    for (size_t i=0; i<io_simulation.meta_count(); i++) {
 
-    // Read object's ith metadata
-    file_->file_read_meta(buffer,name.c_str(),&type_scalar,&nx,&ny,&nz);
+      void * buffer;
+      std::string name;
+      int type_scalar;
+      int nx,ny,nz;
+
+      // Get object's ith metadata
+      io_simulation.meta_value(i,& buffer, &name, &type_scalar, &nx,&ny,&nz);
+
+      // Read object's ith metadata
+      file_->file_read_meta(buffer,name.c_str(),&type_scalar,&nx,&ny,&nz);
+    }
+
+    // Read Hierarchy data
+    IoHierarchy io_hierarchy = (cello::hierarchy());
+    for (size_t i=0; i<io_hierarchy.meta_count(); i++) {
+
+      void * buffer;
+      std::string name;
+      int type_scalar;
+      int nx,ny,nz;
+
+      // Get object's ith metadata
+      io_hierarchy.meta_value(i,& buffer, &name, &type_scalar, &nx,&ny,&nz);
+
+      // Read object's ith metadata
+      file_->file_read_meta(buffer,name.c_str(),&type_scalar,&nx,&ny,&nz);
+    }
+
+    // Broadcast EnzoSimulation and Hierarchy data to all processes
+    int n = io_simulation.data_size() + io_hierarchy.data_size();
+
+    char * const buffer = new char[n];
+    char * p = buffer;
+    p = io_simulation.save_data(p);
+    p = io_hierarchy. save_data(p);
+    io_simulation.save_to((void *) enzo::simulation());
+    io_hierarchy.save_to ((void *)cello::hierarchy());
+    proxy_enzo_simulation.p_restart_get_io_simulation(n, buffer);
+    delete [] buffer;
   }
-
-  io_simulation.save_to(cello::simulation());
-
-  // Hierarchy data
-  IoHierarchy io_hierarchy = (cello::hierarchy());
-  for (size_t i=0; i<io_hierarchy.meta_count(); i++) {
-
-    void * buffer;
-    std::string name;
-    int type_scalar;
-    int nx,ny,nz;
-
-    // Get object's ith metadata
-    io_hierarchy.meta_value(i,& buffer, &name, &type_scalar, &nx,&ny,&nz);
-
-    // Read object's ith metadata
-    file_->file_read_meta(buffer,name.c_str(),&type_scalar,&nx,&ny,&nz);
-  }
-  io_hierarchy.save_to(cello::hierarchy());
 }
 
 //----------------------------------------------------------------------

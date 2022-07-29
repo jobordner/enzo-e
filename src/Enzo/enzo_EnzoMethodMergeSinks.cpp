@@ -50,7 +50,7 @@ EnzoMethodMergeSinks::EnzoMethodMergeSinks(double merging_radius_cells)
 	 (enzo_config->mesh_root_blocks[2] > 2));
 
   // Refresh copies all sink particles from neighbouring blocks
-  cello::simulation()->refresh_set_name(ir_post_,name());
+  enzo::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   ParticleDescr * particle_descr = cello::particle_descr();
   refresh->add_particle(particle_descr->type_index("sink"));
@@ -370,7 +370,7 @@ void EnzoMethodMergeSinks::compute_(Block * block)
   // Now we delete non-local particles, i.e. particles with positions out-of-bounds
   // of the block.
   int delete_count = enzo_block->delete_non_local_particles_(it);
-  cello::simulation()->data_delete_particles(delete_count);
+  enzo::simulation()->data_delete_particles(delete_count);
 
 #ifdef DEBUG_MERGESINKS
   CkPrintf("Block %s: After deletion, num_particles = %d \n",

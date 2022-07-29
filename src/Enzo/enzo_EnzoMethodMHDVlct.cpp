@@ -130,7 +130,7 @@ EnzoMethodMHDVlct::EnzoMethodMHDVlct (std::string rsolver,
   scratch_space_ = nullptr;
 
   // Finally, initialize the default Refresh object
-  cello::simulation()->refresh_set_name(ir_post_,name());
+  enzo::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   // Need to refresh all fields because the fields holding passively advected
   // scalars won't necessarily be known until after all Methods have been

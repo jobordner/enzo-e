@@ -72,7 +72,7 @@ EnzoMethodGravity::EnzoMethodGravity
   // Refresh adds density_total field faces and one layer of ghost
   // zones to "B" field
 
-  cello::simulation()->refresh_set_name(ir_post_,name());
+  enzo::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->set_prolong(index_prolong_);
 
@@ -100,7 +100,7 @@ EnzoMethodGravity::EnzoMethodGravity
   }
 
   ir_exit_ = add_refresh_();
-  cello::simulation()->refresh_set_name(ir_exit_,name()+":exit");
+  enzo::simulation()->refresh_set_name(ir_exit_,name()+":exit");
   Refresh * refresh_exit = cello::refresh(ir_exit_);
   refresh_exit->set_prolong(index_prolong_);
   refresh_exit->add_field("potential");

@@ -544,7 +544,7 @@ void EnzoInitialHdf5::read_dataset_
 {
 
   // Get the grid size at level_
-  Hierarchy * hierarchy = cello::simulation()->hierarchy();
+  Hierarchy * hierarchy = enzo::simulation()->hierarchy();
   double lower_domain[3];
   double upper_domain[3];
   hierarchy->lower(lower_domain, lower_domain+1, lower_domain+2);

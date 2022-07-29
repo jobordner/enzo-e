@@ -84,7 +84,7 @@ EnzoMethodTurbulenceOU::EnzoMethodTurbulenceOU
 {
   // Initialize default Refresh object
 
-  cello::simulation()->refresh_set_name(ir_post_,name());
+  enzo::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
 
   cello::define_field("jacobian");
@@ -229,8 +229,8 @@ void EnzoMethodTurbulenceOU::compute ( Block * block) throw()
     int cello_apply_injection_rate;
     double r_gv[4] = {0.0,0.0,0.0,0.0};
 
-    double time = cello::simulation()->time();
-    double dt   = cello::simulation()->dt();
+    double time = enzo::simulation()->time();
+    double dt   = enzo::simulation()->dt();
 
     double * field_density = (double *)field.values("density");
     CHECK_FIELD(field_density,"density");
@@ -564,7 +564,7 @@ void EnzoMethodTurbulenceOU::compute_update
   for (int i=0; i<n; i++) r_avld0[i] = data[id++];
   delete msg;
 
-  double dt   = cello::simulation()->dt();
+  double dt   = enzo::simulation()->dt();
   int iupdate_sol = update_solution_ ? 1 : 0;
   int iapply_cooling = apply_cooling_ ? 1 : 0;
   int iapply_forcing = apply_forcing_ ? 1 : 0;

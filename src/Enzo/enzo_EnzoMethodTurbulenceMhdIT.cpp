@@ -70,7 +70,7 @@ EnzoMethodTurbulenceMhdIT::EnzoMethodTurbulenceMhdIT
   // Initialize default Refresh object
 
   Refresh * refresh_post = cello::refresh(ir_post_);
-  cello::simulation()->refresh_set_name(ir_post_,name());
+  enzo::simulation()->refresh_set_name(ir_post_,name());
   refresh_post->add_all_fields();
 
   // TURBULENCE parameters initialized in EnzoBlock::initialize()

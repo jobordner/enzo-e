@@ -42,7 +42,7 @@ EnzoMethodBackgroundAcceleration::EnzoMethodBackgroundAcceleration
   // Do not need to refresh acceleration fields in this method
   // since we do not need to know any ghost zone information
   //
-  cello::simulation()->refresh_set_name(ir_post_,name());
+  enzo::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_field(iax);
   refresh->add_field(iay);

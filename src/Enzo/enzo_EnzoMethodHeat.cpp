@@ -21,7 +21,7 @@ EnzoMethodHeat::EnzoMethodHeat (double alpha, double courant)
 
   // Initialize default Refresh object
 
-  cello::simulation()->refresh_set_name(ir_post_,name());
+  enzo::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_field("temperature");
 

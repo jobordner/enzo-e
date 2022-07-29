@@ -64,7 +64,7 @@ EnzoMethodSinkMaker::EnzoMethodSinkMaker
 	 "0.1 (inclusive).",
 	 (max_offset_cell_fraction_ >= 0.0) && (max_offset_cell_fraction_ <= 0.1));
 
-  cello::simulation()->refresh_set_name(ir_post_,name());
+  enzo::simulation()->refresh_set_name(ir_post_,name());
 
   Refresh * refresh = cello::refresh(ir_post_);
   ParticleDescr * particle_descr = cello::particle_descr();

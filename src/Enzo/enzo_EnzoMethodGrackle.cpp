@@ -34,7 +34,7 @@ EnzoMethodGrackle::EnzoMethodGrackle
   define_required_grackle_fields();
 
   /// Initialize default Refresh
-  cello::simulation()->refresh_set_name(ir_post_,name());
+  enzo::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_all_fields();
 
@@ -140,7 +140,7 @@ void EnzoMethodGrackle::compute ( Block * block) throw()
 #else /* CONFIG_USE_GRACKLE */
 
     // Start timer
-    Simulation * simulation = cello::simulation();
+    Simulation * simulation = enzo::simulation();
     if (simulation)
       simulation->performance()->start_region(perf_grackle,__FILE__,__LINE__);
 

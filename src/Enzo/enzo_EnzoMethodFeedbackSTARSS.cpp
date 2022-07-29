@@ -266,7 +266,7 @@ EnzoMethodFeedbackSTARSS::EnzoMethodFeedbackSTARSS
   cello::define_field_in_group("metal_density","color");
 
   // Initialize refresh object
-  cello::simulation()->refresh_set_name(ir_post_,name());
+  enzo::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_all_fields();
   
@@ -303,7 +303,7 @@ EnzoMethodFeedbackSTARSS::EnzoMethodFeedbackSTARSS
   // copied back to the original field. 
   
   ir_feedback_ = add_refresh_();
-  cello::simulation()->refresh_set_name(ir_feedback_,name()+":add");
+  enzo::simulation()->refresh_set_name(ir_feedback_,name()+":add");
   Refresh * refresh_fb = cello::refresh(ir_feedback_); 
 
   refresh_fb->set_accumulate(true);

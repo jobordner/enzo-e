@@ -773,7 +773,7 @@ void EnzoSolverBiCgStab::loop_0(EnzoBlock* block) throw() {
   if (is_converged) {
     if (block->level() == coarse_level_) {
       CmiLock(bcg_iter_node_lock);
-      cello::simulation()->set_solver_iter(index_,iter);
+      enzo::simulation()->set_solver_iter(index_,iter);
       CmiUnlock(bcg_iter_node_lock);
     }
   }
@@ -1878,7 +1878,7 @@ void EnzoSolverBiCgStab::dot_done_(EnzoBlock * block,
 void EnzoSolverBiCgStab::new_register_refresh_()
 {
   Refresh * refresh_post = cello::refresh(ir_post_);
-  cello::simulation()->refresh_set_name(ir_post_,name());
+  enzo::simulation()->refresh_set_name(ir_post_,name());
   
   if (solve_type_ == solve_tree)
     refresh_post->set_root_level (coarse_level_);
@@ -1888,7 +1888,7 @@ void EnzoSolverBiCgStab::new_register_refresh_()
   //--------------------------------------------------
 
   ir_loop_3_ = add_refresh_();
-  cello::simulation()->refresh_set_name(ir_post_,name()+":loop_3");
+  enzo::simulation()->refresh_set_name(ir_post_,name()+":loop_3");
 
   Refresh * refresh_loop_3 = cello::refresh(ir_loop_3_);
   
@@ -1902,7 +1902,7 @@ void EnzoSolverBiCgStab::new_register_refresh_()
   //--------------------------------------------------
 
   ir_loop_9_ = add_refresh_();
-  cello::simulation()->refresh_set_name(ir_post_,name()+":loop_9");
+  enzo::simulation()->refresh_set_name(ir_post_,name()+":loop_9");
 
   Refresh * refresh_loop_9 = cello::refresh(ir_loop_9_);
   

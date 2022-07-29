@@ -97,14 +97,14 @@ EnzoSolverCg::EnzoSolverCg
   if (! local_) {
 
     Refresh * refresh = cello::refresh(ir_post_);
-    cello::simulation()->refresh_set_name(ir_post_,name);
+    enzo::simulation()->refresh_set_name(ir_post_,name);
 
     refresh->add_field (ix_);
 
   //--------------------------------------------------
 
     ir_matvec_ = add_refresh_();
-    cello::simulation()->refresh_set_name(ir_post_,name+":matvec");
+    enzo::simulation()->refresh_set_name(ir_post_,name+":matvec");
 
     Refresh * refresh_matvec = cello::refresh(ir_matvec_);
 
@@ -115,7 +115,7 @@ EnzoSolverCg::EnzoSolverCg
   //--------------------------------------------------
 
     ir_loop_2_ = add_refresh_();
-    cello::simulation()->refresh_set_name(ir_post_,name+":loop_2");
+    enzo::simulation()->refresh_set_name(ir_post_,name+":loop_2");
 
     Refresh * refresh_loop_2 = cello::refresh(ir_loop_2_);
 

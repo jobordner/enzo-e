@@ -67,7 +67,7 @@ EnzoMethodAccretion::EnzoMethodAccretion
 
   // Initial refresh: refresh all fields and sink particles
   int it = cello::particle_descr()->type_index("sink");
-  cello::simulation()->refresh_set_name(ir_post_,name());
+  enzo::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_all_fields();
   refresh->add_particle(it);
@@ -75,7 +75,7 @@ EnzoMethodAccretion::EnzoMethodAccretion
   // Second refresh: add source fields values in ghost zones to source_accumulate fields
   // values in active cells in neighbouring blocks
   ir_accretion_ = add_refresh_();
-  cello::simulation()->refresh_set_name(ir_accretion_,name()+":add");
+  enzo::simulation()->refresh_set_name(ir_accretion_,name()+":add");
   Refresh * refresh_accretion = cello::refresh(ir_accretion_);
 
   refresh_accretion->set_accumulate(true);

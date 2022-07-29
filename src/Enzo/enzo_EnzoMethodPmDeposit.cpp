@@ -70,7 +70,7 @@ EnzoMethodPmDeposit::EnzoMethodPmDeposit ( double alpha)
 
   // Initialize default Refresh object
 
-  cello::simulation()->refresh_set_name(ir_post_,name());
+  enzo::simulation()->refresh_set_name(ir_post_,name());
 
   Refresh * refresh = cello::refresh(ir_post_);
 

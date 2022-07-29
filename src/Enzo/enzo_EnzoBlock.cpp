@@ -420,7 +420,7 @@ void EnzoBlock::set_time (double time) throw ()
 {
   Block::set_time (time);
 
-  Simulation * simulation = cello::simulation();
+  Simulation * simulation = enzo::simulation();
   EnzoUnits * units = (EnzoUnits * )simulation->problem()->units();
   EnzoPhysicsCosmology * cosmology = units->cosmology();
 

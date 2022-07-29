@@ -42,7 +42,7 @@ EnzoMethodCheck::EnzoMethodCheck
 {
   TRACE_CHECK("[1] EnzoMethodCheck::EnzoMethodCheck()");
   Refresh * refresh = cello::refresh(ir_post_);
-  cello::simulation()->refresh_set_name(ir_post_,name());
+  enzo::simulation()->refresh_set_name(ir_post_,name());
   refresh->add_field("density");
   // Create IO writer
   if (CkMyPe() == 0) {
@@ -372,8 +372,8 @@ std::string Simulation::file_create_dir_
 (std::vector<std::string> directory_format, bool & already_exists)
 {
   const int counter = Simulation::file_counter_++;
-  const int cycle = cello::simulation()->cycle();
-  const double time = cello::simulation()->time();
+  const int cycle = enzo::simulation()->cycle();
+  const double time = enzo::simulation()->time();
 
   cello::create_directory
     (&directory_format, counter,cycle,time,already_exists);
@@ -403,7 +403,7 @@ FileHdf5 * IoEnzoWriter::file_open_
 
 void IoEnzoWriter::file_write_hierarchy_()
 {
-  IoSimulation io_simulation = (cello::simulation());
+  IoEnzoSimulation io_simulation (enzo::simulation());
 
   for (size_t i=0; i<io_simulation.meta_count(); i++) {
 
@@ -419,7 +419,7 @@ void IoEnzoWriter::file_write_hierarchy_()
     file_->file_write_meta(buffer,name.c_str(),type_scalar,nx,ny,nz);
   }
 
-  io_simulation.save_to(cello::simulation());
+  io_simulation.save_to(enzo::simulation());
 
   IoHierarchy io_hierarchy = (cello::hierarchy());
 

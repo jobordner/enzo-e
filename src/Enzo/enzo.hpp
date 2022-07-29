@@ -58,8 +58,8 @@ class EnzoUnits;
 /// Namespace for Enzo global constants and accessor functions
 namespace enzo {
 
-
   const EnzoConfig *        config();
+  IoEnzoSimulation *        io_simulation();
   const EnzoFactory *       factory();
   EnzoProblem *             problem();
   EnzoSimulation *          simulation();

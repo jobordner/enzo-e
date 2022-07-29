@@ -310,7 +310,7 @@ EnzoMethodDistributedFeedback::EnzoMethodDistributedFeedback
   // const int ir = add_refresh(4,0,neighbor_leaf,sync_barrier,
   //                           enzo_sync_id_method_feedback);
   // refresh(ir)->add_all_fields();
-  cello::simulation()->refresh_set_name(ir_post_,name());
+  enzo::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_all_fields();
 
@@ -776,7 +776,7 @@ void EnzoMethodDistributedFeedback::compute_ (Block * block)
     CkPrintf("DistributedFeedback (%s) ------------1------------ Number of local / total particles : %i %i\n",enzo_block->name().c_str(),particle.num_local_particles(it), particle.num_particles(it));
 #endif
     int delete_count = enzo_block->delete_non_local_particles_(it);
-    cello::simulation()->data_delete_particles(delete_count);
+    enzo::simulation()->data_delete_particles(delete_count);
 #ifdef DEBUG_FEEDBACK
     CkPrintf("DistributedFeedback (%s) ------------2------------ Number of local / total particles : %i %i\n",enzo_block->name().c_str(),particle.num_local_particles(it), particle.num_particles(it));
 #endif

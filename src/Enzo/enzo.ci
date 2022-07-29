@@ -66,6 +66,7 @@ module enzo {
   PUPable EnzoInitialTurbulenceMhdIT;
 
   PUPable IoEnzoBlock;
+  PUPable IoEnzoSimulation;
 
   // EnzoRefine
   PUPable EnzoRefineShock;
@@ -109,6 +110,7 @@ module enzo {
   PUPable EnzoMethodPmUpdate;
   PUPable EnzoMethodPpm;
   PUPable EnzoMethodPpml;
+  PUPable EnzoMethodPpmlIG;
   PUPable EnzoMethodSinkMaker;
   PUPable EnzoMethodThresholdAccretion;
   PUPable EnzoMethodTurbulence;

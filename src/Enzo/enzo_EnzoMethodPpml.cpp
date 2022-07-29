@@ -18,7 +18,7 @@ EnzoMethodPpml::EnzoMethodPpml()
     comoving_coordinates_(enzo::config()->physics_cosmology)
 {
   // Initialize the default Refresh object
-  cello::simulation()->refresh_set_name(ir_post_,name());
+  enzo::simulation()->refresh_set_name(ir_post_,name());
 
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_all_fields();
