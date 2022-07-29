@@ -581,6 +581,31 @@ void IoEnzoReader::file_read_hierarchy_()
 
 //----------------------------------------------------------------------
 
+void EnzoSimulation::p_restart_get_io_simulation(int n, char * const buffer)
+
+{
+  char * p = buffer;
+
+  IoEnzoSimulation io_simulation (enzo::simulation());
+  p = io_simulation.load_data(p);
+  io_simulation.save_to((void *)this);
+
+  IoHierarchy io_hierarchy (cello::hierarchy());
+  p = io_hierarchy.load_data(p);
+  io_hierarchy.save_to((void *)this);
+
+  // Synchronize at root EnzoSimulation
+  if (thisIndex == 0) {
+    TRACE_SIMULATION("p_restart_get_io_simulation() calling restart_next_level",this);
+    restart_next_level_();
+  } else {
+    TRACE_SIMULATION("p_restart_get_io_simulation() calling p_restart_next_level",this);
+    proxy_enzo_simulation[0].p_restart_next_level();
+  }
+}
+
+//----------------------------------------------------------------------
+
 void IoEnzoReader::file_read_block_
 (EnzoMsgCheck * msg_check,
  std::string    name_block,

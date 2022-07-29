@@ -29,7 +29,7 @@ if(NOT __processedUserDefaults)
 else()
 
   if (USE_DOUBLE_PREC)
-    string(APPEND CMAKE_Fortran_FLAGS " -fdefault-real-8 -fdefault-double-8")
+    string(APPEND CMAKE_Fortran_FLAGS " -fdefault-real-8 -fdefault-double-8 -std=\"legacy\"")
   endif()
 
 endif()

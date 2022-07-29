@@ -8,6 +8,7 @@
 module enzo {
 
   initnode void register_method_turbulence(void);
+  initnode void register_method_turbulence_mhd_it(void);
   initnode void mutex_init();
   initnode void mutex_init_bcg_iter();
 
@@ -62,6 +63,7 @@ module enzo {
   PUPable EnzoInitialShuCollapse;
   PUPable EnzoInitialSoup;
   PUPable EnzoInitialTurbulence;
+  PUPable EnzoInitialTurbulenceMhdIT;
 
   PUPable IoEnzoBlock;
 
@@ -110,6 +112,8 @@ module enzo {
   PUPable EnzoMethodSinkMaker;
   PUPable EnzoMethodThresholdAccretion;
   PUPable EnzoMethodTurbulence;
+  PUPable EnzoMethodTurbulenceMhdIT;
+  PUPable EnzoMethodTurbulenceOU;
 
   PUPable EnzoEOSIdeal;
   PUPable EnzoIntegrationQuanUpdate;
@@ -176,6 +180,7 @@ module enzo {
     entry void p_io_reader_created();
     entry void p_restart_next_level();
     entry void p_restart_level_created();
+    entry void p_restart_get_io_simulation(int n, char buffer[n]);
 }
 
   //----------------------------------------------------------------------%
@@ -196,6 +201,9 @@ module enzo {
   
     // EnzoMethodTurbulence synchronization entry methods
     entry void r_method_turbulence_end(CkReductionMsg *msg);
+    entry void r_method_turbulence_mhd_it_end(CkReductionMsg *msg);
+    entry void r_method_turbulence_ou_shift(CkReductionMsg *msg);
+    entry void r_method_turbulence_ou_update(CkReductionMsg *msg);
 
     entry void p_initial_hdf5_recv(MsgInitial * msg_initial);
 

@@ -46,14 +46,14 @@ void EnzoMethodPpml::pup (PUP::er &p)
 
 void EnzoMethodPpml::compute ( Block * block ) throw()
 {
+  if (block->is_leaf()) {
 
-  if (!block->is_leaf()) return;
+    EnzoBlock * enzo_block = enzo::block(block);
+    enzo_block->SolveMHDEquations ( block->dt() );
 
-  EnzoBlock * enzo_block = enzo::block(block);
+  }
 
-  enzo_block->SolveMHDEquations ( block->dt() );
-
-  enzo_block->compute_done();
+  block->compute_done();
 
 }
 
@@ -168,7 +168,6 @@ double EnzoMethodPpml::timestep (Block * block) throw()
   dt = std::numeric_limits<enzo_float>::max();
 
   dt = MIN(dt, dtBaryons);
-
 
   return dt;
 }

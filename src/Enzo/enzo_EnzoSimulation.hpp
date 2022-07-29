@@ -23,6 +23,8 @@ class EnzoSimulation : public CBase_EnzoSimulation
   /// @ingroup  Enzo
   /// @brief    [\ref Enzo] Simulation class for CHARM++ Enzo-E
 
+  friend class IoEnzoSimulation;
+  
 public: // functions
 
   /// CHARM++ Constructor
@@ -69,6 +71,14 @@ public: // functions
   void p_restart_next_level();
   void p_restart_level_created();
 
+  void p_restart_get_io_simulation(int n, char * const buffer);
+
+  /// Save or restore state for EnzoMethodTurbulenceOU for
+  /// checkpoint/restart (implementation in
+  /// enzo_EnzoMethodTurbulenceOU.cpp)
+  void get_turbou_state();
+  void put_turbou_state();
+
 public: // virtual functions
 
   /// Initialize the Enzo Simulation
@@ -79,6 +89,7 @@ public: // virtual functions
 
 private: // functions
 
+  void restart_next_level_();
 
 private: // virtual functions
 
@@ -95,6 +106,12 @@ private: // attributes
 
   /// Current restart level
   int restart_level_; 
+
+  /// Turbulence state for checkpoint/restart
+  /// (should be moved to a Simulation Scalar object)
+  std::vector<double> turbou_real_state_;
+  std::vector<int>    turbou_int_state_;
+
 #ifdef BYPASS_CHARM_MEM_LEAK
   std::map<Index,EnzoMsgCheck *> msg_check_map_;
 #endif

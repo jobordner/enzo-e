@@ -179,6 +179,7 @@ extern "C" {
 #include "enzo_EnzoBlock.hpp"
 
 #include "enzo_IoEnzoBlock.hpp"
+#include "enzo_IoEnzoSimulation.hpp"
 #include "enzo_IoEnzoReader.hpp"
 #include "enzo_IoEnzoWriter.hpp"
 
@@ -202,6 +203,7 @@ extern "C" {
 #include "enzo_EnzoInitialShockTube.hpp"
 #include "enzo_EnzoInitialSoup.hpp"
 #include "enzo_EnzoInitialTurbulence.hpp"
+#include "enzo_EnzoInitialTurbulenceMhdIT.hpp"
 #include "enzo_EnzoInitialIsolatedGalaxy.hpp"
 #include "enzo_EnzoInitialBurkertBodenheimer.hpp"
 #include "enzo_EnzoInitialMergeSinksTest.hpp"
@@ -264,12 +266,15 @@ extern "C" {
 #include "enzo_EnzoMethodPmUpdate.hpp"
 #include "enzo_EnzoMethodPpm.hpp"
 #include "enzo_EnzoMethodPpml.hpp"
+#include "enzo_EnzoMethodPpmlIG.hpp"
 #include "enzo_EnzoMethodSinkMaker.hpp"
 #include "enzo_EnzoMethodStarMaker.hpp"
 #include "enzo_EnzoMethodStarMakerSTARSS.hpp"
 #include "enzo_EnzoMethodStarMakerStochasticSF.hpp"
 #include "enzo_EnzoMethodThresholdAccretion.hpp"
 #include "enzo_EnzoMethodTurbulence.hpp"
+#include "enzo_EnzoMethodTurbulenceMhdIT.hpp"
+#include "enzo_EnzoMethodTurbulenceOU.hpp"
 
 #include "enzo_EnzoMatrixDiagonal.hpp"
 #include "enzo_EnzoMatrixIdentity.hpp"
