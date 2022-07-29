@@ -55,6 +55,7 @@ module mesh {
   PUPable MethodFluxCorrect;
   PUPable MethodNull;
   PUPable MethodOrderMorton;
+  PUPable MethodOrderUnigrid;
   PUPable MethodOutput;
   PUPable MethodRefresh;
   PUPable MethodTrace;
