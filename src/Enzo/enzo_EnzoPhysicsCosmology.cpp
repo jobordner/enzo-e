@@ -78,12 +78,12 @@ void EnzoPhysicsCosmology::compute_expansion_factor
  
   enzo_float omega_curvature_now_ = 1 - omega_matter_now_ - omega_lambda_now_;
  
-  /* Convert the time from code units to Time * H0 (c.f. CosmologyGetUnits). */
- 
-  enzo_float time_units = 2.52e17/sqrt(omega_matter_now_)/hubble_constant_now_/
-                    pow(1 + initial_redshift_,enzo_float(1.5));
+  /* Convert the time from code units to Time * H0 (c.f. CosmologyGetUnits).
+     - Do NOT try to load code units from enzo::units()->time() since
+       enzo::units() is allowed to be a nullptr in unit tests */
 
-  enzo_float time_hubble_0 = time * time_units * (hubble_constant_now_*3.24e-18);
+  enzo_float time_hubble_0 = time * this->time_units() *
+    hubble_constant_now_ * enzo_constants::H0_over_h;
  
   /* 1) For a flat universe with omega_matter_now_ = 1, it's easy. */
  

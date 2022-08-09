@@ -54,7 +54,7 @@ void Block::initial_exit_()
 
 #ifdef TRACE_CONTRIBUTE  
   CkPrintf ("%s %s:%d DEBUG_CONTRIBUTE calling r_adapt_enter\n",
-	    name().c_str(),__FILE__,__LINE__); fflush(stdout);
+	    name().c_str(),__FILE__,__LINE__);
   fflush(stdout);
 #endif
 
@@ -97,7 +97,7 @@ void Block::output_exit_()
 
 #ifdef TRACE_CONTRIBUTE  
   CkPrintf ("%s %s:%d DEBUG_CONTRIBUTE calling r_stopping_enter()\n",
-	    name().c_str(),__FILE__,__LINE__); fflush(stdout);
+	    name().c_str(),__FILE__,__LINE__);
   fflush(stdout);
 #endif  
   control_sync_barrier (CkIndex_Block::r_stopping_enter(NULL));
@@ -114,7 +114,7 @@ void Block::stopping_exit_()
 
 #ifdef TRACE_CONTRIBUTE  
     CkPrintf ("%s %s:%d DEBUG_CONTRIBUTE calling r_exit()\n",
-              name().c_str(),__FILE__,__LINE__); fflush(stdout);
+	    name().c_str(),__FILE__,__LINE__);
     fflush(stdout);
 #endif  
 

@@ -71,9 +71,6 @@ int EnzoBlock::SolveHydroEquations
 
   }
 
-  // No subgrids, so colindex is NULL
-  int *colindex         = NULL;
-
   /* Compute size (in enzo_floats) of the current grid. */
 
   int rank = cello::rank();
@@ -120,6 +117,13 @@ int EnzoBlock::SolveHydroEquations
   /* Determine if Gamma should be a scalar or a field. */
 
   const int in = cello::index_static();
+  const EnzoPhysicsFluidProps* fluid_props = enzo::fluid_props();
+  enzo_float gamma = fluid_props->gamma();
+
+  enzo_float dual_eta1, dual_eta2;
+  const bool idual_ = fluid_props->dual_energy_config().bryan95_formulation
+    (&dual_eta1, &dual_eta2);
+  int idual = (int) idual_;
 
   /* Set minimum support. */
 
@@ -174,6 +178,7 @@ int EnzoBlock::SolveHydroEquations
   int *vindex    = p; p+=3*2;
   int *windex    = p; p+=3*2;
   int *geindex   = p; p+=3*2;
+  int *colindex  = p; p+=3*2*ncolor;
 
   // Offsets computed from the "standard" pointer to the start of each
   // flux data
@@ -196,7 +201,8 @@ int EnzoBlock::SolveHydroEquations
   long long min=std::numeric_limits<long long>::max();
   long long max=std::numeric_limits<long long>::lowest();
 #endif  
-  
+ 
+  index_color = 0; 
   for (int i_f=0; i_f<nf; i_f++) {
     int * flux_index = 0;
     const int index_field = flux_data->index_field(i_f);
@@ -208,6 +214,11 @@ int EnzoBlock::SolveHydroEquations
     if (field_name == "velocity_z")      flux_index = windex;
     if (field_name == "total_energy")    flux_index = Eindex;
     if (field_name == "internal_energy") flux_index = geindex;
+    
+    if (field.groups()->is_in(field_name,"color")) {
+      flux_index = colindex + 3*2*index_color;
+      index_color++;
+    }
 
     for (int axis=0; axis<rank; axis++) {
       leftface[axis] = l3[axis];
@@ -291,7 +302,7 @@ int EnzoBlock::SolveHydroEquations
      acceleration_x,
      acceleration_y,
      acceleration_z,
-     &Gamma[in], &dt, &cycle_,
+     &gamma, &dt, &cycle_,
      CellWidthTemp[0], CellWidthTemp[1], CellWidthTemp[2],
      &rank, &GridDimension[0], &GridDimension[1],
      &GridDimension[2], GridStartIndex, GridEndIndex,
@@ -299,8 +310,7 @@ int EnzoBlock::SolveHydroEquations
      &PressureFree[in],
      &iconsrec, &iposrec,
      &PPMDiffusionParameter[in], &PPMSteepeningParameter[in],
-     &DualEnergyFormalism[in], &DualEnergyFormalismEta1[in],
-     &DualEnergyFormalismEta2[in],
+     &idual, &dual_eta1, &dual_eta2,
      &NumberOfSubgrids, leftface, rightface,
      istart, iend, jstart, jend,
      flux_array, dindex, Eindex, uindex, vindex, windex,

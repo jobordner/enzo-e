@@ -11,10 +11,10 @@
 // #define DEBUG_COARSE_ARRAY
 //----------------------------------------------------------------------
 
-FieldData::FieldData 
+FieldData::FieldData
 (
  const FieldDescr * field_descr,
- int nx, int ny, int nz 
+ int nx, int ny, int nz
  ) throw()
   : array_permanent_(),
     temporary_size_(),
@@ -46,7 +46,7 @@ FieldData::FieldData
 //----------------------------------------------------------------------
 
 FieldData::~FieldData() throw()
-{  
+{
   deallocate_permanent();
   for (size_t i=0; i<array_temporary_.size(); i++) {
     delete [] array_temporary_[i];
@@ -84,7 +84,7 @@ void FieldData::pup(PUP::er &p)
       }
       PUParray(p,array_temporary_[i],n);
     }
-  }  
+  }
 
   p | coarse_dimensions_;
   int nc = coarse_dimensions_.size();
@@ -100,7 +100,7 @@ void FieldData::pup(PUP::er &p)
       }
       PUParray(p,array_coarse_[i],n);
     }
-  }  
+  }
   p | offsets_;
   p | ghosts_allocated_;
   p | history_id_;
@@ -163,7 +163,7 @@ char * FieldData::values
       const int np = field_descr->num_permanent();
       id_field = history_id_[id_field + np*(index_history-1)];
     }
-  
+
     if (field_descr->is_permanent(id_field)) {
 
       const int num_fields = field_descr->field_count();
@@ -201,6 +201,8 @@ char * FieldData::coarse_values
 (const FieldDescr * field_descr,
  int id_field, int index_history ) throw ()
 {
+  ASSERT("FieldData::coarse_values", "index_history must be 0",
+         index_history == 0);
 #ifdef DEBUG_COARSE_ARRAY
       CkPrintf ("DEBUG_COARSE_ARRAY %p returning %p[%d]\n",
                 (void*)this,(void *)array_coarse_[id_field],id_field);
@@ -211,7 +213,7 @@ char * FieldData::coarse_values
 //----------------------------------------------------------------------
 
 const char * FieldData::unknowns
-( const FieldDescr * field_descr, 
+( const FieldDescr * field_descr,
   int id_field, int index_history ) const throw ()
 {
   return (const char *)
@@ -233,7 +235,7 @@ char * FieldData::unknowns
     const int np = field_descr->num_permanent();
     id_field = history_id_[id_field + np*(index_history-1)];
   }
-      
+
   // First get values including ghosts
   // (note index_history ommitted since already have updated id_field)
   char * unknowns = values(field_descr,id_field);
@@ -251,7 +253,7 @@ char * FieldData::unknowns
     int bytes_per_element = cello::sizeof_precision (precision);
 
     unknowns += bytes_per_element * (gx + mx*(gy + my*gz));
-  } 
+  }
   return unknowns;
 }
 
@@ -310,7 +312,7 @@ void FieldData::clear
 	break;
       default:
 	char buffer[80];
-	sprintf (buffer,"Clear called with unsupported precision %s" , 
+	sprintf (buffer,"Clear called with unsupported precision %s" ,
 		 cello::precision_name[precision]);
 	ERROR("FieldData::clear", buffer);
       }
@@ -324,7 +326,7 @@ void FieldData::clear
 
 //----------------------------------------------------------------------
 
-void FieldData::allocate_permanent 
+void FieldData::allocate_permanent
 (const FieldDescr * field_descr,
  bool ghosts_allocated ) throw()
 {
@@ -356,7 +358,7 @@ void FieldData::allocate_permanent
   int array_size = 0;
 
   for (int id_field=0; id_field<field_descr->field_count(); id_field++) {
-    
+
     // Increment array_size, including padding and alignment adjustment
 
     int nx,ny,nz;       // not needed
@@ -375,7 +377,7 @@ void FieldData::allocate_permanent
   // Allocate the array
 
   array_permanent_.resize(array_size);
-  
+
   // Initialize field_begin
 
   int field_offset = align_padding_(alignment);
@@ -423,13 +425,13 @@ void FieldData::allocate_temporary (const FieldDescr * field_descr,
 
 {
   allocate_coarse(field_descr,id_field);
-  
+
   int index_field = id_field - field_descr->num_permanent();
   if (! (index_field < int(array_temporary_.size()))) {
     array_temporary_.resize(index_field+1, 0);
     temporary_size_. resize(index_field+1, 0);
   }
-    
+
   if (array_temporary_[index_field] == 0) {
     int mx,my,mz;
     dimensions(field_descr,id_field,&mx,&my,&mz);
@@ -518,11 +520,11 @@ void FieldData::deallocate_temporary (const FieldDescr * field_descr,
   }
   if (array_temporary_[index_field] != 0) {
     precision_type precision = field_descr->precision(id_field);
-    if (precision == precision_single)    
+    if (precision == precision_single)
       delete [] (float *)       array_temporary_[index_field];
-    if (precision == precision_double)    
+    if (precision == precision_double)
       delete [] (double *)      array_temporary_[index_field];
-    if (precision == precision_quadruple) 
+    if (precision == precision_quadruple)
       delete [] (long double *) array_temporary_[index_field];
   }
   array_temporary_[index_field] = 0;
@@ -564,7 +566,7 @@ void FieldData::reallocate_permanent
     allocate_permanent(field_descr,ghosts_allocated);
     return;
   }
-  
+
   std::vector<int>  old_offsets;
   std::vector<char> old_array;
 
@@ -588,7 +590,7 @@ void FieldData::deallocate_permanent () throw()
   if ( permanent_allocated() ) {
 
     deallocate_coarse();
-    
+
     array_permanent_.clear();
     offsets_.clear();
   }
@@ -650,7 +652,7 @@ void FieldData::coarse_dimensions
  int              * mcz
  ) const throw()
 {
-  // Determine augmented coarse block size 
+  // Determine augmented coarse block size
 
   //    get block centering (cx,cy,cz)
   //    get block size (nx,ny,nz)
@@ -750,7 +752,7 @@ void FieldData::print
 	     nxd,nyd);
       break;
     case precision_double:
-      print_((const double * ) array_offset, 
+      print_((const double * ) array_offset,
 	     field_name, message, // lower,
 	     fp,
 	     ixm,iym,izm,
@@ -760,7 +762,7 @@ void FieldData::print
 	     nxd,nyd);
       break;
     case precision_quadruple:
-      print_((const long double * ) array_offset, 
+      print_((const long double * ) array_offset,
 	     field_name, message, // lower,
 	     fp,
 	     ixm,iym,izm,
@@ -839,7 +841,7 @@ void FieldData::scale
 	   "Calling scale on illegal fields: ix=%d iy=%d",
 	   ix,iy,
 	   (ix>=0) && (iy>=0) );
-  
+
   int mx,my,mz;
   int nx,ny,nz;
   int gx,gy,gz;
@@ -892,7 +894,7 @@ void FieldData::scale_
   } else {
     int i0 = gx + mx*(gy + my*gz);
     for (int iz=0; iz<nx; iz++) {
-      for (int iy=0; iy<ny; iy++) { 
+      for (int iy=0; iy<ny; iy++) {
 	for (int ix=0; ix<mx; ix++) {
 	  int i = i0 + ix + mx*(iy + my*iz);
 	  Y[i] = a*X[i];
@@ -903,7 +905,7 @@ void FieldData::scale_
 }
 
 //----------------------------------------------------------------------
-  
+
 void FieldData::save_history (const FieldDescr * field_descr, double time)
 {
   // Cycle temporary field id's, and copy permanent to history_id_[0]
@@ -922,7 +924,7 @@ void FieldData::save_history (const FieldDescr * field_descr, double time)
   if (nh > 0) {
 
     // Save oldest history id's
-  
+
     std::vector<int> history_id_save;
     history_id_save.resize(np);
     for (int ip=0; ip<np; ip++) {
@@ -937,7 +939,7 @@ void FieldData::save_history (const FieldDescr * field_descr, double time)
     }
 
     // Copy saved oldest id's to newest id's
-      
+
     for (int ip=0; ip<np; ip++) {
       history_id_[ip] = history_id_save[ip];
     }
@@ -956,7 +958,7 @@ void FieldData::save_history (const FieldDescr * field_descr, double time)
     for (int ih=nh-1; ih>0; ih--) {
       history_time_[ih] = history_time_[ih-1];
     }
-  
+
     history_time_[0] = time;
   }
 }
@@ -974,12 +976,12 @@ void FieldData::units_scale_cgs
 
   // Return if already scaled by amount
   if (units_scaling_[id] == amount) return;
-  
+
   // Error if scaling by 0.0
   ASSERT1("FieldData::units_scale_cgs()",
 	  "Trying to scale field %d by 0.0",
 	  id, (amount != 0.0));
-    
+
   // Unscale first if already scaled
   if (units_scaling_[id] != 1.0) {
     units_scale_code (field_descr,id, units_scaling_[id]);
@@ -1119,7 +1121,7 @@ char * FieldData::load_data (FieldDescr * field_descr,
 	  "Buffer has size %ld but expecting size %d",
 	  (pc-buffer),data_size(field_descr),
 	  ((pc-buffer) == data_size(field_descr)));
-  
+
   return pc;
 }
 
@@ -1127,7 +1129,7 @@ char * FieldData::load_data (FieldDescr * field_descr,
 
 int FieldData::adjust_padding_
 (
- int size, 
+ int size,
  int padding) const throw ()
 {
   return size + padding;
@@ -1137,7 +1139,7 @@ int FieldData::adjust_padding_
 
 int FieldData::adjust_alignment_
 (
- int size, 
+ int size,
  int alignment) const throw ()
 {
   return (alignment - (size % alignment)) % alignment;
@@ -1146,9 +1148,9 @@ int FieldData::adjust_alignment_
 //----------------------------------------------------------------------
 
 int FieldData::align_padding_ (int alignment) const throw()
-{ 
+{
   long unsigned start_long = reinterpret_cast<long unsigned>(&array_permanent_[0]);
-  return ( alignment - (start_long % alignment) ) % alignment; 
+  return ( alignment - (start_long % alignment) ) % alignment;
 }
 
 template <class T>
@@ -1203,7 +1205,7 @@ void FieldData::print_
 
 //----------------------------------------------------------------------
 
-void FieldData::restore_permanent_ 
+void FieldData::restore_permanent_
 (
  const FieldDescr * field_descr,
  const char * array_from,
@@ -1211,7 +1213,7 @@ void FieldData::restore_permanent_
 {
 
   // copy values
-  for (int id_field=0; 
+  for (int id_field=0;
        id_field < field_descr->field_count();
        id_field++) {
 
@@ -1280,7 +1282,7 @@ void FieldData::set_history_(const FieldDescr * field_descr)
 {
   const int np = field_descr->num_permanent();
   const int nh = field_descr->num_history();
-  
+
   if (nh > 0) {
     history_id_.  resize(np*nh);
     history_time_.resize(nh);
@@ -1288,10 +1290,134 @@ void FieldData::set_history_(const FieldDescr * field_descr)
       for (int ip=0; ip<np; ip++) {
 
 	int i = ip + np*ih;
-	
 	history_id_[i] = field_descr->history_id(ip,ih+1);
       }
       history_time_[ih] = 0.0;
     }
   }
 }
+//----------------------------------------------------------------------
+
+namespace{
+
+  template<class T>
+  bool verify_type_(const FieldDescr * field_descr, int id_field) throw()
+  {
+    using nonconst_T = typename std::remove_cv<T>::type;
+    switch (field_descr->precision(id_field)) {
+    case precision_single:
+      if (!std::is_same<nonconst_T, float>::value){
+	ERROR1("verify_type_",
+	       "type template parameter is wrong. It should be `float` "
+	       "for field_id %d",
+	       id_field);
+      }
+      break;
+    case precision_double:
+      if (!std::is_same<nonconst_T, double>::value){
+	ERROR1("verify_type_",
+	       "type template parameter is wrong. It should be `double` "
+	       "for field_id %d",
+	       id_field);
+      }
+      break;
+    case precision_quadruple:
+      if (!std::is_same<nonconst_T, long double>::value){
+	ERROR1("verify_type_",
+	       "type template parameter is wrong. It should be `long double` "
+	       "for field_id %d",
+	       id_field);
+      }
+      break;
+    default:
+      ERROR2("verify_type_", "Unknown precision %d for field id %d",
+	     field_descr->precision(id_field),id_field);
+    }
+    return true;
+  }
+
+}// namespace
+
+//----------------------------------------------------------------------
+
+template<class T>
+CelloArray<T, 3> FieldData::make_view_
+(const FieldDescr * field_descr,
+ int id_field, ghost_choice choice,
+ int index_history,  bool coarse) throw()
+{
+  // check that T is consistent with field_descr->precision
+  verify_type_<T>(field_descr, id_field);
+
+  // get the pointer
+  char* ptr;
+  int mx, my, mz; // store the shape of the field
+  if (coarse) {
+
+    ASSERT("FieldData::make_view_",
+           "ghost_choice::include is required to load coarse field data",
+           choice == ghost_choice::include);
+    ptr = this->coarse_values(field_descr, id_field, index_history);
+    this->coarse_dimensions(field_descr, id_field, &mx, &my, &mz);
+
+  } else {
+
+    // get the pointer and determine if ghost zones are included
+    bool includes_ghost;
+    switch (choice){
+    case ghost_choice::permit:
+      ptr = this->values(field_descr, id_field, index_history);
+      includes_ghost = this->ghosts_allocated();
+      break;
+    case ghost_choice::include:
+      ptr = this->values(field_descr, id_field, index_history);
+      ASSERT("FieldData::make_view_",
+             ("ghost zones must be allocated when ghost_choice::include is "
+              "specified and loading non-coarse data"),
+             this->ghosts_allocated());
+      includes_ghost = true;
+      break;
+    case ghost_choice::exclude:
+      ptr = this->unknowns(field_descr, id_field, index_history);
+      includes_ghost = false;
+      break;
+    default:
+      ERROR("FieldData::make_view_",
+            "Encountered unhandled ghost_choice value");
+    }
+
+    // determine the shape of the output (including ghost zones)
+    this->dimensions(field_descr,id_field,&mx,&my,&mz);
+
+    if (!includes_ghost){ // subtract ghost depth from the shape
+      int gx, gy, gz;
+      field_descr->ghost_depth(id_field,&gx,&gy,&gz);
+
+      mx = (mx > 1) ? (mx - 2*gx) : mx;
+      my = (my > 1) ? (my - 2*gy) : my;
+      mz = (mz > 1) ? (mz - 2*gz) : mz;
+    }
+  }
+
+  if (ptr == nullptr){
+    const char* field_type = (coarse) ? "coarse field" : "field";
+    ERROR2("data_view_", "There is no %s with id %d", field_type, id_field);
+    // alternatively, we could just return CelloArray<T,3>()
+  }
+
+  return CelloArray<T, 3>(reinterpret_cast<T*>(ptr), mz, my, mx);
+}
+
+template CelloArray<float, 3> FieldData::make_view_
+(const FieldDescr * field_descr,
+ int id_field, ghost_choice choice,
+ int index_history, bool coarse) throw();
+template CelloArray<double, 3> FieldData::make_view_
+(const FieldDescr * field_descr,
+ int id_field, ghost_choice choice,
+ int index_history, bool coarse) throw();
+template CelloArray<long double, 3> FieldData::make_view_
+(const FieldDescr * field_descr,
+ int id_field, ghost_choice choice,
+ int index_history, bool coarse) throw();
+

@@ -89,14 +89,14 @@ void EnzoComputeTemperature::compute_(Block * block,
 
   Field field = enzo_block->data()->field();
 
-  const enzo_float gamma = EnzoBlock::Gamma[cello::index_static()];
+  const enzo_float gamma = enzo::fluid_props()->gamma();
 
   if (enzo::config()->method_grackle_use_grackle){
 
 #ifdef CONFIG_USE_GRACKLE
     const EnzoMethodGrackle* grackle_method = enzo::grackle_method();
-    grackle_method->calculate_temperature(block, t, grackle_units,
-					  grackle_fields, i_hist_);
+    grackle_method->calculate_temperature(EnzoFieldAdaptor(block, i_hist_), t,
+                                          0, grackle_units, grackle_fields);
 #else
     ERROR("EnzoComputeTemperature::compute_()",
           "Attempting to compute temperature with method Grackle "
@@ -123,7 +123,7 @@ void EnzoComputeTemperature::compute_(Block * block,
     for (int i=0; i<m; i++) {
       enzo_float density     = std::max(d[i], (enzo_float) density_floor_);
       enzo_float temperature = p[i] * mol_weight_ / density;
-      t[i] = std::max(temperature, (enzo_float)temperature_floor_) * enzo_units->temperature();
+      t[i] = std::max(temperature, (enzo_float)temperature_floor_);
     }
   }
 

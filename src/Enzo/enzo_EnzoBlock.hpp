@@ -53,7 +53,6 @@ public:
   // Physics
 
   static int PressureFree[CONFIG_NODE_SIZE];
-  static enzo_float Gamma[CONFIG_NODE_SIZE];
   static enzo_float GravitationalConstant[CONFIG_NODE_SIZE];
 
   // Problem-specific
@@ -71,15 +70,6 @@ public:
   //  static int ProcessorNumber;
 
   // Numerics
-
-  static int DualEnergyFormalism[CONFIG_NODE_SIZE];
-  static enzo_float DualEnergyFormalismEta1[CONFIG_NODE_SIZE];
-  static enzo_float DualEnergyFormalismEta2[CONFIG_NODE_SIZE];
-
-  static enzo_float pressure_floor[CONFIG_NODE_SIZE];
-  static enzo_float density_floor[CONFIG_NODE_SIZE];
-  static enzo_float number_density_floor[CONFIG_NODE_SIZE];
-  static enzo_float temperature_floor[CONFIG_NODE_SIZE];
 
   static enzo_float InitialRedshift[CONFIG_NODE_SIZE];
   static enzo_float InitialTimeInCodeUnits[CONFIG_NODE_SIZE];
@@ -258,6 +248,12 @@ public: /// entry methods
 
   //--------------------------------------------------
 
+  /// Synchronize for accumulate refresh before adding the
+  /// sink fields.
+  void p_method_accretion_end();
+
+  // ------------------------------------------------
+  
   /// EnzoSolverCg entry method: DOT ==> refresh P
   void r_solver_cg_loop_0a (CkReductionMsg * msg);
 
@@ -346,6 +342,9 @@ public: /// entry methods
   void p_solver_mg0_prolong_recv(FieldMsg * msg);
   void p_solver_mg0_restrict_recv(FieldMsg * msg);
 
+  // EnzoMethodFeedbackSTARSS
+
+  void p_method_feedback_starss_end();
 
   virtual void print() const {
     CkPrintf ("PRINT_ENZO_BLOCK name = %s\n",name().c_str());

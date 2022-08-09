@@ -182,7 +182,7 @@ Initial * EnzoProblem::create_initial_
   } else if (type == "cosmology") {
     initial = new EnzoInitialCosmology
       (cycle,time,
-       enzo_config->field_gamma,
+       enzo::fluid_props()->gamma(),
        enzo_config->initial_cosmology_temperature
        );
   } else if (type == "inclined_wave") {
@@ -190,7 +190,7 @@ Initial * EnzoProblem::create_initial_
       (cycle, time,
        enzo_config->initial_inclinedwave_alpha,
        enzo_config->initial_inclinedwave_beta,
-       enzo_config->field_gamma,
+       enzo::fluid_props()->gamma(),
        enzo_config->initial_inclinedwave_amplitude,
        enzo_config->initial_inclinedwave_lambda,
        enzo_config->initial_inclinedwave_parallel_vel,
@@ -202,7 +202,7 @@ Initial * EnzoProblem::create_initial_
        enzo_config->initial_turbulence_density,
        enzo_config->initial_turbulence_pressure,
        enzo_config->initial_turbulence_temperature,
-       enzo_config->field_gamma);
+       enzo::fluid_props()->gamma());
   } else if (type == "pm") {
     std::string param_str = "Initial:" + config->initial_list[index] + ":mask";
     initial = new EnzoInitialPm
@@ -215,7 +215,7 @@ Initial * EnzoProblem::create_initial_
     initial = new EnzoInitialPpmlTest (cycle,time,enzo_config);
   } else if (type == "shock_tube") {
     initial = new EnzoInitialShockTube
-      (enzo_config->field_gamma,
+      (enzo::fluid_props()->gamma(),
        cycle, time,
        enzo_config->initial_shock_tube_setup_name,
        enzo_config->initial_shock_tube_aligned_ax,
@@ -253,10 +253,40 @@ Initial * EnzoProblem::create_initial_
        enzo_config->initial_burkertbodenheimer_densityprofile);
   } else if (type == "isolated_galaxy") {
     initial = new EnzoInitialIsolatedGalaxy (enzo_config);
-  } else if (type == "merge_stars_test") {
-    initial = new EnzoInitialMergeStarsTest (enzo_config);
-  }
-  else {
+  } else if (type == "merge_sinks_test") {
+    initial = new EnzoInitialMergeSinksTest (enzo_config);
+  } else if (type == "accretion_test") {
+    initial = new EnzoInitialAccretionTest
+      (cycle, time,
+       enzo_config->initial_accretion_test_sink_position,
+       enzo_config->initial_accretion_test_sink_velocity,
+       enzo_config->initial_accretion_test_sink_mass,
+       enzo_config->initial_accretion_test_gas_density,
+       enzo_config->initial_accretion_test_gas_pressure,
+       enzo_config->initial_accretion_test_gas_radial_velocity);
+  } else if (type == "shu_collapse") {
+    initial = new EnzoInitialShuCollapse
+      (cycle, time,
+       enzo_config->initial_shu_collapse_center,
+       enzo_config->initial_shu_collapse_drift_velocity,
+       enzo_config->initial_shu_collapse_truncation_radius,
+       enzo_config->initial_shu_collapse_nominal_sound_speed,
+       enzo_config->initial_shu_collapse_instability_parameter,
+       enzo_config->initial_shu_collapse_external_density,
+       enzo_config->initial_shu_collapse_central_sink_exists,
+       enzo_config->initial_shu_collapse_central_sink_mass);
+  } else if (type == "bb_test") {
+    initial = new EnzoInitialBBTest
+      (cycle, time,
+       enzo_config->initial_bb_test_center,
+       enzo_config->initial_bb_test_drift_velocity,
+       enzo_config->initial_bb_test_mean_density,
+       enzo_config->initial_bb_test_fluctuation_amplitude,
+       enzo_config->initial_bb_test_truncation_radius,
+       enzo_config->initial_bb_test_nominal_sound_speed,
+       enzo_config->initial_bb_test_angular_rotation_velocity,
+       enzo_config->initial_bb_test_external_density);
+  } else {
     initial = Problem::create_initial_
       (type,index,config,parameters);
   }
@@ -299,7 +329,7 @@ Refine * EnzoProblem::create_refine_
        config->adapt_max_coarsen[index],
        config->adapt_min_refine2[index],
        config->adapt_max_coarsen2[index],
-       enzo_config->field_gamma,
+       enzo::fluid_props()->gamma(),
        enzo_config->physics_cosmology,
        config->adapt_max_level[index],
        config->adapt_include_ghosts[index],
@@ -504,16 +534,12 @@ Compute * EnzoProblem::create_compute
 
   if (name == "temperature") {
 
-    compute = new EnzoComputeTemperature(
-                        enzo_config->ppm_density_floor,
-                        enzo_config->ppm_temperature_floor,
-                        enzo_config->ppm_mol_weight,
-                        enzo_config->physics_cosmology);
-
+    compute = new EnzoComputeTemperature(enzo::fluid_props(),
+                                         enzo_config->physics_cosmology);
 
   } else if (name == "pressure"){
 
-    compute = new EnzoComputePressure(enzo_config->field_gamma,
+    compute = new EnzoComputePressure(enzo::fluid_props()->gamma(),
                                       enzo_config->physics_cosmology);
 
 #ifdef CONFIG_USE_GRACKLE
@@ -566,7 +592,7 @@ Method * EnzoProblem::create_method_
 
     method = new EnzoMethodHydro
       (enzo_config->method_hydro_method,
-       enzo_config->field_gamma,
+       enzo::fluid_props()->gamma(),
        enzo_config->physics_gravity,
        enzo_config->physics_cosmology,
        enzo_config->method_hydro_dual_energy,
@@ -610,7 +636,7 @@ Method * EnzoProblem::create_method_
 
     method = new EnzoMethodGrackle
       (enzo_config->physics_cosmology_initial_redshift,
-       enzo_config->initial_time);
+       enzo::simulation()->time());
 
 #endif /* CONFIG_USE_GRACKLE */
 
@@ -665,13 +691,8 @@ Method * EnzoProblem::create_method_
       (enzo_config->method_vlct_riemann_solver,
        enzo_config->method_vlct_half_dt_reconstruct_method,
        enzo_config->method_vlct_full_dt_reconstruct_method,
-       enzo_config->field_gamma,
        enzo_config->method_vlct_theta_limiter,
-       enzo_config->method_vlct_density_floor,
-       enzo_config->method_vlct_pressure_floor,
        enzo_config->method_vlct_mhd_choice,
-       enzo_config->method_vlct_dual_energy,
-       enzo_config->method_vlct_dual_energy_eta,
        store_fluxes_for_corrections);
 
   } else if (name == "background_acceleration") {
@@ -695,6 +716,9 @@ Method * EnzoProblem::create_method_
     // should generalize this to enable multiple maker types
     if (enzo_config->method_star_maker_flavor == "stochastic"){
       method = new EnzoMethodStarMakerStochasticSF();
+    } else if (enzo_config->method_star_maker_flavor == "STARSS" ||
+               enzo_config->method_star_maker_flavor == "starss") {
+      method = new EnzoMethodStarMakerSTARSS();
     } else{ // does not do anything
       method = new EnzoMethodStarMaker();
     }
@@ -702,7 +726,14 @@ Method * EnzoProblem::create_method_
   } else if (name == "feedback") {
 
     // need a similar type swtich as in star maker
-    method = new EnzoMethodDistributedFeedback();
+    if (enzo_config->method_feedback_flavor == "distributed"){
+      method = new EnzoMethodDistributedFeedback();
+    } else if (enzo_config->method_feedback_flavor == "STARSS" ||
+               enzo_config->method_feedback_flavor == "starss") {
+      method = new EnzoMethodFeedbackSTARSS();
+    }  else { // does not do anything
+      method = new EnzoMethodFeedback();
+    }
 
   } else if (name == "check") {
 
@@ -713,11 +744,58 @@ Method * EnzoProblem::create_method_
        enzo_config->method_check_dir,
        enzo_config->method_check_monitor_iter);
 
-  } else if (name == "merge_stars") {
+  } else if (name == "merge_sinks") {
 
-    method = new EnzoMethodMergeStars
-      (enzo_config->method_merge_stars_merging_radius_cells);
+    method = new EnzoMethodMergeSinks
+      (enzo_config->method_merge_sinks_merging_radius_cells);
 
+  } else if (name == "accretion") {
+
+    if (enzo_config->method_accretion_flavor == "threshold") {
+      method = new EnzoMethodThresholdAccretion
+        (
+         enzo_config->method_accretion_accretion_radius_cells,
+         enzo_config->method_accretion_physical_density_threshold_cgs,
+         enzo_config->method_accretion_max_mass_fraction
+         );
+    } else if (enzo_config->method_accretion_flavor == "bondi_hoyle") {
+      method = new EnzoMethodBondiHoyleAccretion
+        (
+         enzo_config->method_accretion_accretion_radius_cells,
+         enzo_config->method_accretion_physical_density_threshold_cgs,
+         enzo_config->method_accretion_max_mass_fraction
+         );
+    } else if (enzo_config->method_accretion_flavor == "flux") {
+      method = new EnzoMethodFluxAccretion
+        (
+         enzo_config->method_accretion_accretion_radius_cells,
+         enzo_config->method_accretion_physical_density_threshold_cgs,
+         enzo_config->method_accretion_max_mass_fraction
+         );
+    } else if (enzo_config->method_accretion_flavor == "dummy"){
+      method = new EnzoMethodAccretion
+        (
+         enzo_config->method_accretion_accretion_radius_cells,
+         enzo_config->method_accretion_physical_density_threshold_cgs,
+         enzo_config->method_accretion_max_mass_fraction
+         );
+    } else {
+      ERROR1("EnzoProblem::create_method_",
+             "\"accretion\" method has flavor \"%s\", which is not one of the possible options: "
+	     "\"threshold\", \"bondi_hoyle\", \"flux\", or \"dummy\"",
+	     enzo_config->method_accretion_flavor.c_str());
+    }
+  } else if (name == "sink_maker") {
+
+    method = new EnzoMethodSinkMaker(
+			enzo_config->method_sink_maker_jeans_length_resolution_cells,
+			enzo_config->method_sink_maker_physical_density_threshold_cgs,
+			enzo_config->method_sink_maker_check_density_maximum,
+			enzo_config->method_sink_maker_max_mass_fraction,
+			enzo_config->method_sink_maker_min_sink_mass_solar,
+			enzo_config->method_sink_maker_max_offset_cell_fraction,
+			enzo_config->method_sink_maker_offset_seed_shift
+				     );
   } else {
 
     // Fallback to Cello method's
@@ -774,10 +852,9 @@ Physics * EnzoProblem::create_physics_
 {
 
   Physics * physics = NULL;
+  const EnzoConfig * enzo_config = enzo::config();
 
   if (type == "cosmology") {
-
-    const EnzoConfig * enzo_config = enzo::config();
 
     physics = new EnzoPhysicsCosmology
       (
@@ -792,6 +869,16 @@ Physics * EnzoProblem::create_physics_
        enzo_config->physics_cosmology_final_redshift
        );
 
+  } else if (type == "fluid_props") {
+
+    physics = new EnzoPhysicsFluidProps
+      (
+       enzo_config->physics_fluid_props_de_config,
+       enzo_config->physics_fluid_props_fluid_floor_config,
+       enzo_config->physics_fluid_props_gamma,
+       enzo_config->physics_fluid_props_mol_weight
+       );
+
   } else {
 
     physics = Problem::create_physics_
@@ -800,6 +887,30 @@ Physics * EnzoProblem::create_physics_
 
   return physics;
 
+}
+
+//----------------------------------------------------------------------
+
+void EnzoProblem::initialize_physics_coda_(Config * config,
+                                           Parameters * parameters) throw()
+{
+  // if EnzoPhysicsFluidProps doesn't already exist, initialize it
+  if (physics("fluid_props") == nullptr){
+    physics_list_.push_back(create_physics_("fluid_props",
+                                            physics_list_.size(),
+                                            config, parameters));
+  }
+
+  // in the future, we might want to move the following snippet from
+  // EnzoSimulation::r_startup_begun to this function:
+  //   EnzoPhysicsCosmology * cosmology = (EnzoPhysicsCosmology *)
+  //     problem()->physics("cosmology");
+  //  if (cosmology) {
+  //    EnzoUnits * units = (EnzoUnits *) problem()->units();
+  //    units->set_cosmology(cosmology);
+  //  }
+  // Doing this could resolve some issues encountered in EnzoMethodGrackle more
+  // elegantly that the existing work-around
 }
 
 //----------------------------------------------------------------------

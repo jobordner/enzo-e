@@ -96,11 +96,8 @@ void EnzoMethodTurbulence::compute ( Block * block) throw()
 
   const EnzoConfig * enzo_config = enzo::config();
 
-  EnzoComputeTemperature compute_temperature
-    (enzo_config->ppm_density_floor,
-     enzo_config->ppm_temperature_floor,
-     enzo_config->ppm_mol_weight,
-     comoving_coordinates_);
+  EnzoComputeTemperature compute_temperature(enzo::fluid_props(),
+                                             comoving_coordinates_);
 
   compute_temperature.compute(enzo_block);
 
@@ -134,6 +131,9 @@ void EnzoMethodTurbulence::compute ( Block * block) throw()
   field.dimensions (0,&mx,&my,&mz);
   const int rank = ((mz == 1) ? ((my == 1) ? 1 : 2) : 3);
 
+  EnzoUnits* enzo_units = enzo::units();
+  const enzo_float kelvin_per_energy_u = enzo_units->kelvin_per_energy_units();
+
   if (block->is_leaf()) {
 
     for (int iz=0; iz<nz; iz++) {
@@ -147,7 +147,7 @@ void EnzoMethodTurbulence::compute ( Block * block) throw()
 	    enzo_float v  = velocity[id][i];
 	    enzo_float v2 = v*v;
 	    enzo_float a  = driving[id][i];
-	    enzo_float ti = 1.0 / temperature[i];
+	    enzo_float ti = kelvin_per_energy_u  / temperature[i];
 
 	    g[index_turbulence_vad] +=   v*a*d;
 	    g[index_turbulence_aad] +=   a*a*d;
@@ -263,7 +263,10 @@ void EnzoMethodTurbulence::compute_resume
     double box_size = domain_x;
     double box_mass = domain_x * domain_y * domain_z * density_initial_;
 
-    float v_rms = mach_number_ * sqrt(temperature_initial_);
+
+    EnzoUnits* enzo_units = enzo::units();
+    float v_rms = mach_number_ * sqrt(temperature_initial_ /
+                                      enzo_units->kelvin_per_energy_units());
 
     edot_ = 0.81/box_size*box_mass*v_rms*v_rms*v_rms;
 
