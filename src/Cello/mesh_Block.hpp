@@ -159,14 +159,15 @@ public: // interface
   // GENERAL
   //----------------------------------------------------------------------
 
-  /// Return the name of the block
-  std::string name () const throw();
+  /// Return the name of the block, optionally with different Index
+  std::string name(Index) const throw();
+  std::string name () const throw()
+  { if (name_ == "") name_ = name(index_); return name_; }
 
   /// Return a short variation of the Block name based on octal digits
-  std::string name8() const throw();
-
-  /// Return the name of the block with the given index
-  std::string name(Index index) const throw();
+  std::string name8(Index) const throw();
+  std::string name8() const throw()
+  { if (name8_ == "") name8_ = name8(index_); return name8_; }
 
   /// Return the size the Block array
   void size_array (int * nx, int * ny = 0, int * nz = 0) const throw();
@@ -997,6 +998,7 @@ protected: // attributes
 
   /// String for storing bit ID name
   mutable std::string name_;
+  mutable std::string name8_;
 
   /// Index of currently-active Method
   int index_method_;

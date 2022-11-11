@@ -66,6 +66,7 @@ Block::Block ( process_type ip_source, MsgType msg_type )
     is_leaf_((thisIndex.level() >= 0)),
     age_(0),
     name_(""),
+    name8_(""),
     index_method_(-1),
     index_solver_(),
     refresh_()
@@ -153,6 +154,7 @@ Block::Block ( MsgRefine * msg )
     is_leaf_((thisIndex.level() >= 0)),
     age_(0),
     name_(""),
+    name8_(""),
     index_method_(-1),
     index_solver_(),
     refresh_()
@@ -391,6 +393,7 @@ void Block::pup(PUP::er &p)
   p | is_leaf_;
   p | age_;
   p | name_;
+  p | name8_;
   p | index_method_;
   p | index_solver_;
   p | refresh_;
@@ -477,6 +480,7 @@ void Block::print () const
 {
   CkPrintf ("--------------------\n");
   CkPrintf ("PRINT_BLOCK name_ = %s\n",name().c_str());
+  CkPrintf ("PRINT_BLOCK name8_ = %s\n",name().c_str());
   CkPrintf ("PRINT_BLOCK data_ = %p\n",(void*)data_);
   CkPrintf ("PRINT_BLOCK child_data_ = %p\n",(void*)child_data_);
   int v3[3];index().values(v3);
@@ -695,6 +699,7 @@ Block::Block ()
     is_leaf_((thisIndex.level() >= 0)),
     age_(0),
     name_(""),
+    name8_(""),
     index_method_(-1),
     index_solver_(),
     refresh_()
@@ -732,6 +737,7 @@ Block::Block (CkMigrateMessage *m)
     is_leaf_((thisIndex.level() >= 0)),
     age_(0),
     name_(""),
+    name8_(""),
     index_method_(-1),
     index_solver_(),
     refresh_()
@@ -826,19 +832,9 @@ void Block::init_refresh_()
 
 //----------------------------------------------------------------------
 
-std::string Block::name() const throw()
-{
-  if (name_ == "") {
-
-    name_ = name(index_);
-  }
-  return name_;
-}
-
-//----------------------------------------------------------------------
-
 std::string Block::name(Index index) const throw()
 {
+  return name8(index);
   int blocking[3] = {1,1,1};
   cello::hierarchy()->root_blocks(blocking,blocking+1,blocking+2);
 
@@ -859,32 +855,38 @@ std::string Block::name(Index index) const throw()
   if (blocking[1]) do { ++bits[1]; } while (blocking[1]/=2);
   if (blocking[2]) do { ++bits[2]; } while (blocking[2]/=2);
 
-  return std::string("B" + index.bit_string(level,cello::rank(),bits));
+  std::string name = std::string("B" + index.bit_string(level,cello::rank(),bits));
+  return name;
 }
 
 //----------------------------------------------------------------------
 
-std::string Block::name8() const throw()
+std::string Block::name8(Index index) const throw()
 {
   int a3[3];
   int t3[3];
-  index_.array(a3,a3+1,a3+2);
-  index_.tree(t3,t3+1,t3+2);
+  index.array(a3,a3+1,a3+2);
+  index.tree(t3,t3+1,t3+2);
 
   const int min_level = cello::config()->mesh_min_level;
 
   std::string name8 = "b#";
-  for (int level=min_level; level<=0; level++) {
-    int ax = (a3[0] >> level) & 1;
-    int ay = (a3[1] >> level) & 1;
-    int az = (a3[2] >> level) & 1;
-    name8 += '0' + ax+2*(ay+2*az);
+  for (int level=std::min(index.level(),0)-min_level-1; level>=0; level--) {
+    int shift = level;
+    int ax = (a3[0] >> shift) & 1;
+    int ay = (a3[1] >> shift) & 1;
+    int az = (a3[2] >> shift) & 1;
+    char digit = '0' + ax+2*(ay+2*az);
+    name8 += digit;
   }
-  for (int level=1; level<=index_.level(); level++) {
-    int tx = (t3[0] >> (INDEX_BITS_TREE-level)) & 1;
-    int ty = (t3[1] >> (INDEX_BITS_TREE-level)) & 1;
-    int tz = (t3[2] >> (INDEX_BITS_TREE-level)) & 1;
-    name8 += '0' + tx+2*(ty+2*tz);
+  name8 += ":";
+  for (int level=1; level<=index.level(); level++) {
+    int shift = (INDEX_BITS_TREE-level);
+    int tx = (t3[0] >> shift) & 1;
+    int ty = (t3[1] >> shift) & 1;
+    int tz = (t3[2] >> shift) & 1;
+    char digit = tx+2*(ty+2*tz);
+    name8 += '0' + digit;
   }
   return name8;
 }

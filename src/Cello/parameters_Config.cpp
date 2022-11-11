@@ -732,9 +732,18 @@ void Config::read_mesh_ (Parameters * p) throw()
   mesh_max_initial_level = p->value_integer
     ("Adapt:max_initial_level",mesh_max_level);
 
-  // Note mesh_min_level may be < 0 for multigrid
+  // Set Adapt:min_level according to root blocking
+  // NOTE: depreciated as a parameter
 
-  mesh_min_level = p->value_integer("Adapt:min_level",0);
+  int max_root_blocks = std::max( { mx, my, mz } );
+  int array_bits = 0;
+  while (max_root_blocks=(max_root_blocks>>1)) ++array_bits;
+  if (! (p->type("Adapt:min_level") == parameter_unknown)) {
+    WARNING ("Config::read_mesh_()",
+             "Parameters 'Adapt : min_level' is depreciated: ignoring");
+  }
+
+  mesh_min_level = - array_bits;
 
   if ( mesh_min_level > 0 ) {
     ERROR1 ("Config::read", 
