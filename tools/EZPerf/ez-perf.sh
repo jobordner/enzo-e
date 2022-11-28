@@ -13,12 +13,13 @@ fi
 # Initialize path and file variables
 #==============================
 
-# Get performance directory $topdir
+# Get absolute path to performance directory
 file=$0
 while [[ -L $file ]]; do
       file=`readlink $file`
 done
 topdir=$(dirname $file)
+topdir="$PWD/$topdir"
 
 # Get input file $input
 input="$PWD/$1"
