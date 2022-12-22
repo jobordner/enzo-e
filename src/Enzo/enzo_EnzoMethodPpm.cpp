@@ -105,6 +105,8 @@ void EnzoMethodPpm::pup (PUP::er &p)
 
 void EnzoMethodPpm::compute ( Block * block) throw()
 {
+  int in = 0;
+
   TRACE_PPM("BEGIN compute()");
 #ifdef COPY_FIELDS_TO_OUTPUT
   const int rank = cello::rank();
@@ -231,7 +233,6 @@ double EnzoMethodPpm::timestep ( Block * block ) throw()
 
   /* Compute the pressure. */
 
-  const int in = cello::index_static();
   enzo_float gamma = enzo::fluid_props()->gamma();
 
   EnzoComputePressure compute_pressure(gamma, comoving_coordinates_);
@@ -252,6 +253,10 @@ double EnzoMethodPpm::timestep ( Block * block ) throw()
 
   /* calculate minimum timestep */
 
+  const int in = cello::index_static();
+
+  int pressure_free = EnzoBlock::PressureFree[in] ? 1 : 0;
+
   FORTRAN_NAME(calc_dt)(&rank,
 			enzo_block->GridDimension,
 			enzo_block->GridDimension+1,
@@ -265,7 +270,7 @@ double EnzoMethodPpm::timestep ( Block * block ) throw()
 			&enzo_block->CellWidth[0],
 			&enzo_block->CellWidth[1],
 			&enzo_block->CellWidth[2],
-			&gamma, &EnzoBlock::PressureFree[in], &cosmo_a,
+			&gamma, &pressure_free, &cosmo_a,
 			density, pressure,
 			velocity_x,
 			velocity_y,
@@ -279,4 +284,35 @@ double EnzoMethodPpm::timestep ( Block * block ) throw()
   double dt = dtBaryons;
 
   return dt;
+}
+
+void EnzoMethodPpm::read_parameters () throw()
+{
+  for (int in=0; in<CONFIG_NODE_SIZE; in++) {
+    enzo::get_parameter (EnzoBlock::PressureFree[in],
+                         "pressure_free", false);
+    enzo::get_parameter (EnzoBlock::MinimumPressureSupportParameter[in],
+                         "minimum_pressure_support_parameter",100.0);
+    enzo::get_parameter (EnzoBlock::UseMinimumPressureSupport[in],
+                         "use_minimum_pressure_support_parameter",false);
+    enzo::get_parameter (EnzoBlock::PPMFlatteningParameter[in],
+                         "flattening", 3);
+    enzo::get_parameter (EnzoBlock::PPMDiffusionParameter[in],
+                         "diffusion", false);
+    enzo::get_parameter (EnzoBlock::PPMSteepeningParameter[in],
+                         "steepening", false);
+  }
+  // Verify parameters have been read correctly
+  CkPrintf ("TRACE_PARAMETER pressure_free %d\n",
+            EnzoBlock::PressureFree[0]);
+  CkPrintf ("TRACE_PARAMETER minimum_pressure_support_parameter %g\n",
+            EnzoBlock::MinimumPressureSupportParameter[0]);
+  CkPrintf ("TRACE_PARAMETER use_minimum_pressure_support_parameter %d\n",
+            EnzoBlock::UseMinimumPressureSupport[0]);
+  CkPrintf ("TRACE_PARAMETER flattening %d\n",
+            EnzoBlock::PPMFlatteningParameter[0]);
+  CkPrintf ("TRACE_PARAMETER diffusion %d\n",
+            EnzoBlock::PPMDiffusionParameter[0]);
+  CkPrintf ("TRACE_PARAMETER steepening %d\n",
+            EnzoBlock::PPMSteepeningParameter[0]);
 }

@@ -310,6 +310,9 @@ int EnzoBlock::SolveHydroEquations
 
   int error = 0;
 
+  int pressure_free = PressureFree[in] ? 1 : 0;
+  int diffusion_parameter = PPMDiffusionParameter[in] ? 1 : 0;
+  int steepening_parameter = PPMSteepeningParameter[in] ? 1 : 0;
   FORTRAN_NAME(ppm_de)
     (
      density, total_energy, velocity_x, velocity_y, velocity_z,
@@ -323,9 +326,9 @@ int EnzoBlock::SolveHydroEquations
      &rank, &GridDimension[0], &GridDimension[1],
      &GridDimension[2], GridStartIndex, GridEndIndex,
      &PPMFlatteningParameter[in],
-     &PressureFree[in],
+     &pressure_free,
      &iconsrec, &iposrec,
-     &PPMDiffusionParameter[in], &PPMSteepeningParameter[in],
+     &diffusion_parameter, &steepening_parameter,
      &idual, &dual_eta1, &dual_eta2,
      &NumberOfSubgrids, leftface, rightface,
      istart, iend, jstart, jend,

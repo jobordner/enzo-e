@@ -47,6 +47,16 @@ namespace enzo {
     return (EnzoUnits *) problem()->units();
   }
 
+
+  void get_parameter (int & value, std::string name, int default_value)
+  { cello::get_parameter(value,name,default_value); }
+  void get_parameter (double & value, std::string name, double default_value)
+  { cello::get_parameter(value,name,default_value); }
+  void get_parameter (float & value, std::string name, float default_value)
+  { cello::get_parameter(value,name,default_value); }
+  void get_parameter (bool & value, std::string name, bool default_value)
+  { cello::get_parameter(value,name,default_value); }
+
   CProxy_EnzoBlock block_array()
   {
     return (CProxy_EnzoBlock) enzo::simulation()->hierarchy()->block_array();

@@ -43,7 +43,7 @@ public:
 
   // /// Cosmology
 
-  static int UseMinimumPressureSupport[CONFIG_NODE_SIZE];
+  static bool UseMinimumPressureSupport[CONFIG_NODE_SIZE];
   static enzo_float MinimumPressureSupportParameter[CONFIG_NODE_SIZE];
 
   // Chemistry
@@ -52,7 +52,7 @@ public:
 
   // Physics
 
-  static int PressureFree[CONFIG_NODE_SIZE];
+  static bool PressureFree[CONFIG_NODE_SIZE];
   static enzo_float GravitationalConstant[CONFIG_NODE_SIZE];
 
   // Problem-specific
@@ -62,8 +62,8 @@ public:
   // Method PPM
 
   static int PPMFlatteningParameter[CONFIG_NODE_SIZE];
-  static int PPMDiffusionParameter[CONFIG_NODE_SIZE];
-  static int PPMSteepeningParameter[CONFIG_NODE_SIZE];
+  static bool PPMDiffusionParameter[CONFIG_NODE_SIZE];
+  static bool PPMSteepeningParameter[CONFIG_NODE_SIZE];
 
   // Parallel
 

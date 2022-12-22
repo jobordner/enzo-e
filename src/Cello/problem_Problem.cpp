@@ -469,7 +469,7 @@ void Problem::initialize_method
   Method::courant_global = config->method_courant_global;
 
   method_list_.push_back(new MethodNull(config->method_null_dt)); 
-  
+
   for (size_t index_method=0; index_method < num_method ; index_method++) {
 
     std::string name = config->method_type[index_method];
@@ -477,6 +477,13 @@ void Problem::initialize_method
     Method * method = create_method_(name, index_method, config, factory);
 
     if (method) {
+
+      // Read method parameters
+      Parameters * p = cello::parameters();
+      p->group_clear();
+      p->group_push("Method");
+      p->group_push(name);
+      method->read_parameters();
 
       method_list_.push_back(method); 
 

@@ -714,8 +714,14 @@ namespace cello {
   /// Return a pointer to the Config object containing user parameters values
   const Config *  config();
   /// Return a pointer to the Parameters object
-  const Parameters *  parameters();
+  Parameters *  parameters();
   /// Return a pointer to the FieldDescr object defining fields on Blocks
+
+  void get_parameter (int &    value, std::string name, int    default_value);
+  void get_parameter (double & value, std::string name, double default_value);
+  void get_parameter (float &  value, std::string name, float  default_value);
+  void get_parameter (bool &   value, std::string name, bool   default_value);
+
   FieldDescr *    field_descr();
   /// Return a pointer to the Groupings object defining field groups
   Grouping *      field_groups();

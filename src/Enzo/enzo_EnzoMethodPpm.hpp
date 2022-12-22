@@ -37,6 +37,8 @@ public: // virtual methods
   /// Apply the method to advance a block one timestep 
   virtual void compute( Block * block) throw();
 
+  virtual void read_parameters () throw();
+
   virtual std::string name () throw () 
   { return "ppm"; }
 

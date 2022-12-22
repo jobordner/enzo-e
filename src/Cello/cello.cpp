@@ -175,21 +175,21 @@ namespace cello {
     }
   }
 
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
 
   Simulation * simulation()
   {
     return proxy_simulation.ckLocalBranch();
   }
 
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
 
   const Factory * factory()
   {
     return simulation()->factory();
   }
 
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
   ScalarDescr * scalar_descr_double()
   {
     static ScalarDescr * scalar_descr_double_[CONFIG_NODE_SIZE] = {nullptr};
@@ -261,49 +261,77 @@ namespace cello {
     return scalar_descr_index_[in];
   }
 
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
 
   CProxy_Block block_array()
   {
     return cello::hierarchy()->block_array();
   }
 
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
 
   const Config * config()
   {
     return simulation() ? simulation()->config() : nullptr;
   }
 
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
 
-  const Parameters * parameters()
+  Parameters * parameters()
   {
     return simulation() ? simulation()->parameters() : nullptr;
   }
 
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
+
+  void get_parameter (int & value, std::string name, int default_value)
+  {
+    value = cello::parameters()->value_integer( name, default_value);
+  }
+
+  //----------------------------------------------------------------------
+
+  void get_parameter (double & value, std::string name, double default_value)
+  {
+    value = cello::parameters()->value_float( name, default_value);
+  }
+
+  //----------------------------------------------------------------------
+
+  void get_parameter (float & value, std::string name, float default_value)
+  {
+    value = cello::parameters()->value_float( name, default_value);
+  }
+
+  //----------------------------------------------------------------------
+
+  void get_parameter (bool & value, std::string name, bool default_value)
+  {
+    value = cello::parameters()->value_logical( name, default_value);
+  }
+
+  //----------------------------------------------------------------------
 
   Problem * problem()
   {
     return simulation() ? simulation()->problem() : nullptr;
   }
 
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
 
   Boundary * boundary(int i)
   {
     return problem() ? problem()->boundary(i) : nullptr;
   }
 
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
 
   Hierarchy * hierarchy()
   {
     return simulation() ? simulation()->hierarchy() : nullptr;
   }
 
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
 
   FieldDescr * field_descr()
   {
@@ -316,12 +344,12 @@ namespace cello {
     return field_descr_[in];
   }
 
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
 
   Grouping * field_groups()
   { return field_descr()->groups(); }
     
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
 
   int define_field (std::string field_name, int cx, int cy, int cz)
   {
@@ -339,7 +367,7 @@ namespace cello {
     return field_descr->field_id(field_name);
   }
  
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
  
   int define_field_in_group
   (std::string field_name, std::string group_name,
@@ -350,7 +378,7 @@ namespace cello {
     return out;
   }
  
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
   void finalize_fields ()
   {
     FieldDescr * field_descr = cello::field_descr();
@@ -358,14 +386,14 @@ namespace cello {
     field_descr->reset_history(config->field_history);
   }
 
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
 
   Monitor * monitor()
   {
     return simulation() ? simulation()->monitor() : Monitor::instance();
   }
 
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
 
   ParticleDescr * particle_descr()
   {
@@ -378,26 +406,26 @@ namespace cello {
     return particle_descr_[in];
   }
 
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
 
   Grouping * particle_groups()
   { return particle_descr()->groups(); }
     
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
 
   Output * output(int index)
   {
     return problem() ? problem()->output(index) : nullptr;
   }
 
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
 
   Solver * solver(int index)
   {
     return problem() ? problem()->solver(index) : nullptr;
   }
 
-  //---------------------------------------------------------------------- 
+  //----------------------------------------------------------------------
 
   Units * units()
   {

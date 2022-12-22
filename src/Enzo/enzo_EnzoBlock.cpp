@@ -16,7 +16,7 @@
 
 //======================================================================
 
-int EnzoBlock::UseMinimumPressureSupport[CONFIG_NODE_SIZE];
+bool EnzoBlock::UseMinimumPressureSupport[CONFIG_NODE_SIZE];
 enzo_float EnzoBlock::MinimumPressureSupportParameter[CONFIG_NODE_SIZE];
 
 // Chemistry
@@ -25,7 +25,7 @@ int EnzoBlock::MultiSpecies[CONFIG_NODE_SIZE];
 
 // Physics
 
-int EnzoBlock::PressureFree[CONFIG_NODE_SIZE];
+bool EnzoBlock::PressureFree[CONFIG_NODE_SIZE];
 enzo_float EnzoBlock::GravitationalConstant[CONFIG_NODE_SIZE];
 
 // Problem-specific
@@ -35,8 +35,8 @@ int EnzoBlock::ProblemType[CONFIG_NODE_SIZE];
 // Method PPM
 
 int EnzoBlock::PPMFlatteningParameter[CONFIG_NODE_SIZE];
-int EnzoBlock::PPMDiffusionParameter[CONFIG_NODE_SIZE];
-int EnzoBlock::PPMSteepeningParameter[CONFIG_NODE_SIZE];
+bool EnzoBlock::PPMDiffusionParameter[CONFIG_NODE_SIZE];
+bool EnzoBlock::PPMSteepeningParameter[CONFIG_NODE_SIZE];
 
 // Numerics
 
@@ -107,15 +107,6 @@ void EnzoBlock::initialize(const EnzoConfig * enzo_config)
     ProblemType[in] = 0;
 
     // PPM parameters
-
-    PressureFree[in]              = enzo_config->ppm_pressure_free;
-    UseMinimumPressureSupport[in] = enzo_config->ppm_use_minimum_pressure_support;
-    MinimumPressureSupportParameter[in] =
-      enzo_config->ppm_minimum_pressure_support_parameter;
-
-    PPMFlatteningParameter[in]    = enzo_config->ppm_flattening;
-    PPMDiffusionParameter[in]     = enzo_config->ppm_diffusion;
-    PPMSteepeningParameter[in]    = enzo_config->ppm_steepening;
 
     ghost_depth[in*3+0] = gx;
     ghost_depth[in*3+1] = gy;

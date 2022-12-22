@@ -75,6 +75,11 @@ namespace enzo {
   EnzoSimulation *          simulation();
   EnzoUnits *               units();
 
+  void get_parameter (int & value, std::string name, int default_value);
+  void get_parameter (double & value, std::string name, double default_value);
+  void get_parameter (float & value, std::string name, float default_value);
+  void get_parameter (bool & value, std::string name, bool default_value);
+
   /// Returns whether the dual energy formalism is in use.
   ///
   /// @param default_ret[in] The value to return if no hydro methods are used.

@@ -54,6 +54,13 @@ public: // virtual functions
   virtual double timestep (Block * block) throw()
   { return std::numeric_limits<double>::max(); }
 
+  virtual void read_parameters () throw()
+  {
+    WARNING1 ("Method::read_parameters",
+              "No read_parameters() method implemented for Method %s",
+              name().c_str());
+  }
+
   /// Resume computation after a reduction
   ///
   /// This member function only typically needs to be implemented by Method
