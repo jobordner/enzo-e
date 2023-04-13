@@ -838,21 +838,31 @@ void IoEnzoReader::file_read_dataset_
   // field size
   int n4[4];
   n4[0] = n4[1] = n4[2] = n4[3] = 1;
-  n4[0] = nx;
-  n4[1] = ny;
-  n4[2] = nz;
+  n4[0] = std::min(nx,m4[0]);
+  n4[1] = std::min(ny,m4[1]);
+  n4[2] = std::min(nz,m4[2]);
 
   // determine offsets
   int o4[4] = {0,0,0,0};
 
   // open the dataspace
+
   file_-> data_slice
     (m4[0],m4[1],m4[2],m4[3],
      n4[0],n4[1],n4[2],n4[3],
      o4[0],o4[1],o4[2],o4[3]);
 
   // create memory space
-  file_->mem_create (nx,ny,nz,nx,ny,nz,0,0,0);
+  if (nx > m4[0]) {
+    // include_ghosts = false
+    const int gx=(nx-m4[0])/2;
+    const int gy=(ny-m4[1])/2;
+    const int gz=(nz-m4[2])/2;
+    file_->mem_create (nx,ny,nz,m4[0],m4[1],m4[2],gx,gy,gz);
+  } else {
+    // include_ghosts = true
+    file_->mem_create (nx,ny,nz,nx,ny,nz,0,0,0);
+  }
 
   file_->data_read (buffer);
 }

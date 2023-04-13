@@ -314,7 +314,8 @@ module enzo {
 
   array[1D] IoEnzoWriter : IoWriter {
     entry IoEnzoWriter();
-    entry IoEnzoWriter (int num_files, std::string ordering, int monitor_iter);
+    entry IoEnzoWriter (int num_files, std::string ordering,
+                        int monitor_iter, int include_ghosts);
     entry void p_write(EnzoMsgCheck * );
   };
 

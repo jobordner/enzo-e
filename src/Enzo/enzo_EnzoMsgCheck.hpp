@@ -213,9 +213,10 @@ protected: // attributes
 
   /// Array holding serialized Array object
   int adapt_buffer_[ADAPT_BUFFER_SIZE];
-  
+
   /// Index for io_reader for restart
   int index_file_;
+
 };
 
 #endif /* CHARM_ENZO_MSG_CHECK_HPP */
