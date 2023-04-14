@@ -54,7 +54,7 @@ void EnzoMethodBalance::compute ( Block * block) throw()
                      block->data()->scalar_data_long_long());
   int count = *scalar.value(is_count);
   int index = *scalar.value(is_index);
-  int ip_next = CkNumPes()*index/count;
+  int ip_next = (long long) CkNumPes()*index/count;
   block->set_ip_next(ip_next);
 #ifdef TRACE_BALANCE
   CkPrintf ("self_balance %d %d %d %d\n", count, index,ip_next,CkMyPe());
