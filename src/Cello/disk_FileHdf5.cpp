@@ -185,6 +185,11 @@ void FileHdf5::data_open
 
   // Open the dataset
   
+#ifdef TRACE_DISK  
+  CkPrintf ("%d %Ld :%d TRACE_DISK data_open(%s) %d %d %d\n",CkMyPe(),file_id_, __LINE__,name.c_str(),
+            is_group_open_,group_id_,file_id_);
+  fflush(stdout);
+#endif  
   hid_t group = (is_group_open_) ? group_id_ : file_id_;
 
   data_id_ = open_dataset_(group,name);
@@ -1262,7 +1267,7 @@ hid_t FileHdf5::open_dataset_ (hid_t group, std::string name) throw()
 {
   
 #ifdef TRACE_DISK
-  CkPrintf ("%d %Ld :%d TRACE_DISK H5Dopen(%s)\n",CkMyPe(),file_id_, __LINE__,name.c_str());
+  CkPrintf ("%d %Ld :%d TRACE_DISK H5Dopen(%s) %d\n",CkMyPe(),file_id_, __LINE__,name.c_str(),group);
   fflush(stdout);
 #endif  
   hid_t dataset_id = H5Dopen( group, name.c_str(), H5P_DEFAULT);

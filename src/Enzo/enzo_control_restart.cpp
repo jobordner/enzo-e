@@ -633,7 +633,18 @@ void IoEnzoReader::file_read_block_
 
   data->allocate();
 
-  // Loop through fields and read them in
+  file_read_block_particles_(data,data_msg);
+
+  file_read_block_fields_ (data,data_msg,io_block);
+
+  file_->group_close();
+}
+
+//----------------------------------------------------------------------
+
+void IoEnzoReader::file_read_block_fields_(Data * data, DataMsg * data_msg, IoEnzoBlock * io_block)
+{
+  FieldDescr * field_descr = cello::field_descr();
 
   const int num_fields = field_descr->num_permanent();
   Field field = data->field();
@@ -681,8 +692,13 @@ void IoEnzoReader::file_read_block_
     file_->data_close();
 
   }
+}
 
-  // Read in particle data
+//----------------------------------------------------------------------
+
+void IoEnzoReader::file_read_block_particles_ (Data * data, DataMsg * data_msg)
+{
+  ParticleDescr * particle_descr = cello::particle_descr();
 
   Particle particle = data->particle();
 
@@ -764,7 +780,6 @@ void IoEnzoReader::file_read_block_
       delete [] buffer;
     }
   }
-  file_->group_close();
 }
 
 //----------------------------------------------------------------------
@@ -773,12 +788,97 @@ template <class T>
 void IoEnzoReader::copy_buffer_to_particle_attribute_
 (T * buffer, Particle particle, int it, int ia, int np)
 {
+#define TEST_NEW_TYPE
+
+  union {
+    char * batch;
+    float * batch_f4;
+    double * batch_f8;
+    long double * batch_f16;
+    int8_t * batch_i8;
+    int16_t * batch_i16;
+    int32_t * batch_i32;
+    int64_t * batch_i64;
+  };
+  int type = particle.attribute_type(it,ia);
+  switch (type) {
+  case type_single:
+#ifdef TEST_NEW_TYPE
+    CkPrintf ("DEBUG_TYPE |attribute|=%d |buffer|=%d\n",
+              sizeof(batch_f4[0]),sizeof(buffer[0]));
+    for (int ip=0; ip<np; ip++) {
+      int ib,io;
+      particle.index(ip,&ib,&io);
+      batch = particle.attribute_array(it,ia,ib);
+      batch_f4[io] = buffer[ip];
+      if (ip==0) CkPrintf ("DEBUG_TYPE single %g %g\n",batch_f4[io],buffer[ip]);
+    }
+    break;
+  case type_double:
+    CkPrintf ("DEBUG_TYPE |attribute|=%d |buffer|=%d\n",
+              sizeof(batch_f8[0]),sizeof(buffer[0]));
+    for (int ip=0; ip<np; ip++) {
+      int ib,io;
+      particle.index(ip,&ib,&io);
+      batch = particle.attribute_array(it,ia,ib);
+      batch_f8[io] = buffer[ip];
+      if (ip==0) CkPrintf ("DEBUG_TYPE double %g %g\n",batch_f8[io],buffer[ip]);
+    }
+    break;
+  case type_quadruple:
+    for (int ip=0; ip<np; ip++) {
+      int ib,io;
+      particle.index(ip,&ib,&io);
+      batch = particle.attribute_array(it,ia,ib);
+      batch_f16[io] = buffer[ip];
+    }
+    break;
+  case type_int8:
+    for (int ip=0; ip<np; ip++) {
+      int ib,io;
+      particle.index(ip,&ib,&io);
+      batch = particle.attribute_array(it,ia,ib);
+      batch_i8[io] = buffer[ip];
+    }
+    break;
+  case type_int16:
+    for (int ip=0; ip<np; ip++) {
+      int ib,io;
+      particle.index(ip,&ib,&io);
+      batch = particle.attribute_array(it,ia,ib);
+      batch_i16[io] = buffer[ip];
+    }
+    break;
+  case type_int32:
+    for (int ip=0; ip<np; ip++) {
+      int ib,io;
+      particle.index(ip,&ib,&io);
+      batch = particle.attribute_array(it,ia,ib);
+      batch_i32[io] = buffer[ip];
+    }
+    break;
+  case type_int64:
+    for (int ip=0; ip<np; ip++) {
+      int ib,io;
+      particle.index(ip,&ib,&io);
+      batch = particle.attribute_array(it,ia,ib);
+      batch_i64[io] = buffer[ip];
+    }
+    break;
+  }
+#else  
   for (int ip=0; ip<np; ip++) {
     int ib,io;
     particle.index(ip,&ib,&io);
     T * batch = (T *) particle.attribute_array(it,ia,ib);
     batch[io] = buffer[ip];
+    if (ip==0) {
+      CkPrintf ("DEBUG_TYPE default %g %g\n",batch[io],buffer[ip]);
+      fflush(stdout);
+    }
   }
+#endif
+
 }
 
 //----------------------------------------------------------------------

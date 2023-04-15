@@ -82,12 +82,7 @@ void * EnzoMsgCheck::pack (EnzoMsgCheck * msg)
 
   SIZE_OBJECT_TYPE(size,msg->index_send_);
 
-  // data_msg_;
-  int have_data = (msg->data_msg_ != nullptr);
-  size += sizeof(int);
-  if (have_data) {
-    size += msg->data_msg_->data_size();
-  }
+  SIZE_OBJECT_PTR_TYPE(size,DataMsg,msg->data_msg_);
 
   // Block name
   SIZE_STRING_TYPE(size,msg->block_name_);
@@ -132,12 +127,7 @@ void * EnzoMsgCheck::pack (EnzoMsgCheck * msg)
 
   SAVE_OBJECT_TYPE(pc,msg->index_send_);
 
-  // data_msg_;
-  have_data = (msg->data_msg_ != nullptr);
-  (*pi++) = have_data;
-  if (have_data) {
-    pc = msg->data_msg_->save_data(pc);
-  }
+  SAVE_OBJECT_PTR_TYPE(pc,DataMsg,msg->data_msg_);
 
   // Block name
   SAVE_STRING_TYPE(pc,msg->block_name_);
@@ -199,14 +189,7 @@ EnzoMsgCheck * EnzoMsgCheck::unpack(void * buffer)
 
   LOAD_OBJECT_TYPE(pc,msg->index_send_);
 
-  // data_msg_
-  int have_data = (*pi++);
-  if (have_data) {
-    msg->data_msg_ = new DataMsg;
-    pc = msg->data_msg_->load_data(pc);
-  } else {
-    msg->data_msg_ = nullptr;
-  }
+  LOAD_OBJECT_PTR_TYPE(pc,DataMsg,msg->data_msg_);
 
   // Block name
   LOAD_STRING_TYPE(pc,msg->block_name_);
