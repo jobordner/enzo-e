@@ -788,8 +788,9 @@ template <class T>
 void IoEnzoReader::copy_buffer_to_particle_attribute_
 (T * buffer, Particle particle, int it, int ia, int np)
 {
-#define TEST_NEW_TYPE
 
+  // #define TEST_NEW_TYPE
+#ifdef TEST_NEW_TYPE
   union {
     char * batch;
     float * batch_f4;
@@ -803,7 +804,6 @@ void IoEnzoReader::copy_buffer_to_particle_attribute_
   int type = particle.attribute_type(it,ia);
   switch (type) {
   case type_single:
-#ifdef TEST_NEW_TYPE
     CkPrintf ("DEBUG_TYPE |attribute|=%d |buffer|=%d\n",
               sizeof(batch_f4[0]),sizeof(buffer[0]));
     for (int ip=0; ip<np; ip++) {
@@ -872,10 +872,6 @@ void IoEnzoReader::copy_buffer_to_particle_attribute_
     particle.index(ip,&ib,&io);
     T * batch = (T *) particle.attribute_array(it,ia,ib);
     batch[io] = buffer[ip];
-    if (ip==0) {
-      CkPrintf ("DEBUG_TYPE default %g %g\n",batch[io],buffer[ip]);
-      fflush(stdout);
-    }
   }
 #endif
 
