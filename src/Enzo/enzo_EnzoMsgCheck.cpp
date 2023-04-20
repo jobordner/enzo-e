@@ -47,12 +47,12 @@ EnzoMsgCheck::EnzoMsgCheck()
 EnzoMsgCheck::~EnzoMsgCheck()
 {
   --counter[cello::index_static()];
-  if (is_local_) {
-    delete data_msg_;
-    data_msg_ = nullptr;
-    delete io_block_;
-    io_block_ = nullptr;
-  }
+  // if (!is_local_) {
+  delete data_msg_;
+  data_msg_ = nullptr;
+  delete io_block_;
+  io_block_ = nullptr;
+  // }
   CkFreeMsg (buffer_);
   buffer_=nullptr;
 }
@@ -81,16 +81,12 @@ void * EnzoMsgCheck::pack (EnzoMsgCheck * msg)
   // determine buffer size
 
   SIZE_OBJECT_TYPE(size,msg->index_send_);
-
   SIZE_OBJECT_PTR_TYPE(size,DataMsg,msg->data_msg_);
-
-  // Block name
   SIZE_STRING_TYPE(size,msg->block_name_);
   SIZE_SCALAR_TYPE(size,int,msg->block_level_);
   SIZE_ARRAY_TYPE(size,double,msg->block_lower_,3);
   SIZE_ARRAY_TYPE(size,double,msg->block_upper_,3);
   SIZE_ARRAY_TYPE(size,int,msg->block_size_,3);
-
   SIZE_ARRAY_TYPE(size,char,msg->tag_,TAG_LEN+1);
 
   int have_io = (msg->io_block_ != nullptr);
@@ -118,24 +114,15 @@ void * EnzoMsgCheck::pack (EnzoMsgCheck * msg)
 
   // serialize message data into buffer
 
-  union {
-    char * pc;
-    int  * pi;
-  };
-
-  pc = buffer;
+  char * pc = buffer;
 
   SAVE_OBJECT_TYPE(pc,msg->index_send_);
-
   SAVE_OBJECT_PTR_TYPE(pc,DataMsg,msg->data_msg_);
-
-  // Block name
   SAVE_STRING_TYPE(pc,msg->block_name_);
   SAVE_SCALAR_TYPE(pc,int,msg->block_level_);
   SAVE_ARRAY_TYPE(pc,double,msg->block_lower_,3);
   SAVE_ARRAY_TYPE(pc,double,msg->block_upper_,3);
   SAVE_ARRAY_TYPE(pc,int,msg->block_size_,3);
-
   SAVE_ARRAY_TYPE(pc,char,msg->tag_,TAG_LEN+1);
 
   have_io = (msg->io_block_ != nullptr);
@@ -180,24 +167,15 @@ EnzoMsgCheck * EnzoMsgCheck::unpack(void * buffer)
 
   // de-serialize message data from input buffer into allocated message
 
-  union {
-    char   * pc;
-    int    * pi;
-  };
-
-  pc = (char *) buffer;
+  char * pc = (char *) buffer;
 
   LOAD_OBJECT_TYPE(pc,msg->index_send_);
-
   LOAD_OBJECT_PTR_TYPE(pc,DataMsg,msg->data_msg_);
-
-  // Block name
   LOAD_STRING_TYPE(pc,msg->block_name_);
   LOAD_SCALAR_TYPE(pc,int,msg->block_level_);
   LOAD_ARRAY_TYPE(pc,double,msg->block_lower_,3);
   LOAD_ARRAY_TYPE(pc,double,msg->block_upper_,3);
   LOAD_ARRAY_TYPE(pc,int,msg->block_size_,3);
-
   LOAD_ARRAY_TYPE(pc,char,msg->tag_,TAG_LEN+1);
 
   int have_io;

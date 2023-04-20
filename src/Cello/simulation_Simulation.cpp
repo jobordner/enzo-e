@@ -864,6 +864,14 @@ void Simulation::update_state(int cycle, double time, double dt, double stop)
   stop_  = stop != 0;
 }
 
+//----------------------------------------------------------------------
+
+void Simulation::p_update_state(MsgState * msg)
+{
+  msg->update(this);
+  delete msg;
+}
+
 //======================================================================
 
 void Simulation::data_insert_block(Block * block) 

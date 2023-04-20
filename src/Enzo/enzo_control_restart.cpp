@@ -549,39 +549,34 @@ std::ifstream IoEnzoReader::stream_open_blocks_
 void IoEnzoReader::file_read_hierarchy_()
 {
   // Simulation data
-  IoSimulation io_simulation = (cello::simulation());
-  for (size_t i=0; i<io_simulation.meta_count(); i++) {
+  if (thisIndex == 0) {
+    IoSimulation io_simulation = (cello::simulation());
+    for (size_t i=0; i<io_simulation.meta_count(); i++) {
 
-    void * buffer;
-    std::string name;
-    int type_scalar;
-    int nx,ny,nz;
+      void * buffer;
+      std::string name;
+      int type_scalar;
+      int nx,ny,nz;
 
-    // Get object's ith metadata
-    io_simulation.meta_value(i,& buffer, &name, &type_scalar, &nx,&ny,&nz);
+      // Get object's ith metadata
+      io_simulation.meta_value(i,& buffer, &name, &type_scalar, &nx,&ny,&nz);
 
-    // Read object's ith metadata
-    file_->file_read_meta(buffer,name.c_str(),&type_scalar,&nx,&ny,&nz);
+      // Read object's ith metadata
+      file_->file_read_meta(buffer,name.c_str(),&type_scalar,&nx,&ny,&nz);
+    }
+
+    // Get current state
+    double time,dt;
+    int cycle;
+    io_simulation.get_state(time,dt,cycle);
+
+    // Create and initialize state message
+    MsgState * msg_state = new MsgState;;
+    msg_state->set_state(time,dt,cycle,false);
+
+    // Send state to all Simulation objects on all processes
+    proxy_enzo_simulation.p_update_state(msg_state);
   }
-
-  io_simulation.save_to(cello::simulation());
-
-  // Hierarchy data
-  IoHierarchy io_hierarchy = (cello::hierarchy());
-  for (size_t i=0; i<io_hierarchy.meta_count(); i++) {
-
-    void * buffer;
-    std::string name;
-    int type_scalar;
-    int nx,ny,nz;
-
-    // Get object's ith metadata
-    io_hierarchy.meta_value(i,& buffer, &name, &type_scalar, &nx,&ny,&nz);
-
-    // Read object's ith metadata
-    file_->file_read_meta(buffer,name.c_str(),&type_scalar,&nx,&ny,&nz);
-  }
-  io_hierarchy.save_to(cello::hierarchy());
 }
 
 //----------------------------------------------------------------------

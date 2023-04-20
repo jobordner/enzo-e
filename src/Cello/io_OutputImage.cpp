@@ -716,9 +716,10 @@ void OutputImage::png_close_ () throw()
 
 void OutputImage::image_create_ () throw()
 {
-  ASSERT("OutputImage::image_create_",
-	 "image_ already created",
-	 image_data_ == NULL || image_mesh_ == NULL);
+  ASSERT2("OutputImage::image_create_",
+	 "image_ already created %p %p",
+          image_data_,image_mesh_,
+          (image_data_ == NULL || image_mesh_ == NULL));
 
   TRACE_MEMORY("new image_data_",image_size_[0]*image_size_[1]*sizeof(double));
   TRACE_MEMORY("new image_mesh_",image_size_[0]*image_size_[1]*sizeof(double));

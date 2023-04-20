@@ -33,7 +33,7 @@ public: // interface
 
   /// Assignment operator
   Object & operator= (const Object & Object) throw()
-  { }
+  { return *this; }
 
   /// Destructor
   virtual ~Object() throw()

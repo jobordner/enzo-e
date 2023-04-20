@@ -204,6 +204,8 @@ public: // virtual functions
   /// stopping criteria
   virtual void update_state(int cycle, double time, double dt, double stop) ;
 
+  void p_update_state(MsgState *);
+
   /// initialize the Simulation given a parameter file
   virtual void initialize() throw();
 
