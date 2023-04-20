@@ -103,27 +103,29 @@ Components of the new I/O approach include
         - ``IoWriter::IoWriter()``
      * ``MethodOrderMorton``
 
-------------------
-Output: checkpoint
-------------------
+
+----------
+Checkpoint
+----------
 
 .. image:: io-output.png
            :width: 800
 
---------------
-Input: restart
---------------
-
-The UML sequence diagram below shows how the ``Simulation`` group,
-IoReader chare array, and Block chare array interoperate to read data
-from a checkpoint directory. Time runs vertically starting from the top,
-and the three Charm++ group/arrays are arranged into three columns.
-Code for restart is found in the ``enzo_control_restart.cpp`` file.
-
-.. image:: io-read.png
-
-startup
 -------
+Restart
+-------
+
+The UML sequence diagrams below show how the ``Simulation`` group,
+IoReader chare array, and Block chare array interoperate to read data
+from a checkpoint directory. Time runs vertically starting from the
+top, and the three Charm++ group/arrays are arranged into three
+columns.  Code for restart is found in the
+``enzo_control_restart.cpp`` file.
+
+Restart: startup
+----------------
+
+.. image:: io-read-startup.png
 
 Restart begins in the "startup" phase, with the unique root block for
 the (0,0,0) octree in the array-of-octrees calling the ``Simulation``
@@ -148,8 +150,10 @@ calling ``p_set_io_reader()``.
 used to guarantee that all proxy elements will have been initialized
 before any are accessed in subsequent phases.
 
-level 0
--------
+Restart: level 0
+----------------
+
+.. image:: io-read-level-0.png
 
 In the level-0 (root-level) phase, the root ``Simulation`` object
 reads the file names from the `file-list` file, and calls the
@@ -175,8 +179,10 @@ acknowledgements, and after the last one calls
 ``Simulation::p_restart_next_level()`` to process the next refinement
 level blocks.
 
-level k
--------
+Restart: level k
+----------------
+
+.. image:: io-read-level-k.png
 
 The level-k phase for k=1 to L is more complicated than level-0
 because the level k > 0 blocks must be created first.
@@ -206,8 +212,10 @@ receives the last one it calls ``p_restart_level_created()`` on
 the root-level ``Simulation`` object. After this, the rest of
 the level-k phase mirrors that of the level-0 phase.
 
-cleanup
--------
+Restart: cleanup
+----------------
+
+.. image:: io-read-cleanup.png
 
 In the cleanup section, after all blocks up to the maximum level have
 been created and initialized, the ``p_restart_next_level()`` entry

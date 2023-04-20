@@ -1,0 +1,31 @@
+   @startuml
+
+   box "Simulation array" #Pink
+   participant simulation_0 as s0
+   participant simulation_k as sk
+   end box
+
+   box "IoReader array" #LightBlue
+   participant reader_0 as r0
+   participant reader_1 as r1
+   end box
+
+   box "Block array" #LightGreen
+   participant block_0 as b0
+   participant "block_k-1" as bk
+   participant "block_k" as bkp1
+   end box
+
+   == startup ==
+
+   b0 -> s0 : p_restart_enter()
+   s0 -> r0 ** : ckNew()
+   s0 -> r1 **
+   r0 -> s0 : p_io_reader_created()
+   r1 -> s0
+   hnote over s0 : sync
+   s0 <-> sk : p_set_io_reader()
+   hnote over s0,sk : r_restart_start()
+
+
+   @enduml

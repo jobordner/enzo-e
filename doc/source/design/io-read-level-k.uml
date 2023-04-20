@@ -1,0 +1,45 @@
+   @startuml
+
+   box "Simulation array" #Pink
+   participant simulation_0 as s0
+   participant simulation_k as sk
+   end box
+
+   box "IoReader array" #LightBlue
+   participant reader_0 as r0
+   participant reader_1 as r1
+   end box
+
+   box "Block array" #LightGreen
+   participant block_0 as b0
+   participant "block_k-1" as bk
+   participant "block_k" as bkp1
+   end box
+
+   == level k ==
+   loop for k=1 to L
+   s0 -> bk **
+   s0 -> r0 : p_create_level(k)
+   s0 -> r1
+   r0 ->o bk : p_restart_refine()
+   r1 ->o bk
+   bk o-> bkp1 ** : insert
+   bkp1 o-> r0 : p_block_created()
+   bkp1 o-> r1
+
+   hnote over r0,r1 : sync
+   r0 -> s0 : r_restart_level_created()
+   r1 -> s0
+   hnote over s0 : sync
+   s0 -> r0 : p_init_level(k)
+   s0 -> r1
+   r0 ->o bkp1 : p_restart_set_data()
+   r1 ->o bkp1
+   bkp1 o-> r0 : p_block_ready()
+   bkp1 o-> r1
+   hnote over r0,r1 : sync
+   r0 -> s0 : r_restart_next_level()
+   r1 -> s0
+   hnote over s0 : sync
+   end
+   @enduml
