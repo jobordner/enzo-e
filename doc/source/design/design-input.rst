@@ -109,7 +109,8 @@ Checkpoint
 ----------
 
 .. image:: io-output.png
-           :width: 800
+           :width: 600
+           :align: center
 
 -------
 Restart
@@ -126,6 +127,8 @@ Restart: startup
 ----------------
 
 .. image:: io-read-startup.png
+           :width: 600
+           :align: center
 
 Restart begins in the "startup" phase, with the unique root block for
 the (0,0,0) octree in the array-of-octrees calling the ``Simulation``
@@ -154,6 +157,8 @@ Restart: level 0
 ----------------
 
 .. image:: io-read-level-0.png
+           :width: 600
+           :align: center
 
 In the level-0 (root-level) phase, the root ``Simulation`` object
 reads the file names from the `file-list` file, and calls the
@@ -183,6 +188,8 @@ Restart: level k
 ----------------
 
 .. image:: io-read-level-k.png
+           :width: 600
+           :align: center
 
 The level-k phase for k=1 to L is more complicated than level-0
 because the level k > 0 blocks must be created first.
@@ -216,6 +223,8 @@ Restart: cleanup
 ----------------
 
 .. image:: io-read-cleanup.png
+           :width: 600
+           :align: center
 
 In the cleanup section, after all blocks up to the maximum level have
 been created and initialized, the ``p_restart_next_level()`` entry

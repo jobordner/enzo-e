@@ -404,7 +404,7 @@ void EnzoBlock::p_restart_refine(int ic3[3],int io_reader)
   Refresh * refresh = new Refresh;
   refresh->add_all_data();
   FieldFace * field_face = create_face
-    (if3,ic3,g3, refresh_fine, refresh, true);
+    (if3,ic3,g3, refresh_fine, refresh);
 
   // Create data message object to send
   DataMsg * data_msg = new DataMsg;
@@ -622,27 +622,26 @@ void IoEnzoReader::file_read_block_
   FieldDescr * field_descr = cello::field_descr();
   ParticleDescr * particle_descr = cello::particle_descr();
 
-  Data * data = new Data
-    (nx, ny, nz, num_field_blocks, xm,xp, ym,yp, zm,zp,
-     field_descr, particle_descr);
+  file_read_block_particles_(data_msg);
 
-  data->allocate();
-
-  file_read_block_particles_(data,data_msg);
-
-  file_read_block_fields_ (data,data_msg,io_block);
+  file_read_block_fields_ (data_msg,nx,ny,nz,io_block);
 
   file_->group_close();
 }
 
 //----------------------------------------------------------------------
 
-void IoEnzoReader::file_read_block_fields_(Data * data, DataMsg * data_msg, IoEnzoBlock * io_block)
+void IoEnzoReader::file_read_block_fields_
+(DataMsg * data_msg,
+ int nx, int ny, int nz, IoEnzoBlock * io_block)
 {
   FieldDescr * field_descr = cello::field_descr();
+  // Initialize field data
+  FieldData * field_data = new FieldData (field_descr,nx,ny,nz);
+  field_data->allocate_permanent(field_descr,true);
+  Field field(field_descr,field_data);
 
   const int num_fields = field_descr->num_permanent();
-  Field field = data->field();
 
   if (num_fields > 0) {
     // If any fields, add them to DataMsg
@@ -656,8 +655,8 @@ void IoEnzoReader::file_read_block_fields_(Data * data, DataMsg * data_msg, IoEn
     field_face -> set_ghost(true,true,true);
     field_face -> set_refresh(refresh,true);
     bool is_new;
-    data_msg -> set_field_face (field_face,        is_new=true);
-    data_msg -> set_field_data (data->field_data(),is_new=true);
+    data_msg -> set_field_face (field_face,is_new=true);
+    data_msg -> set_field_data (field_data,is_new=true);
   }
   for (int i_f=0; i_f<num_fields; i_f++) {
 
@@ -691,17 +690,18 @@ void IoEnzoReader::file_read_block_fields_(Data * data, DataMsg * data_msg, IoEn
 
 //----------------------------------------------------------------------
 
-void IoEnzoReader::file_read_block_particles_ (Data * data, DataMsg * data_msg)
+void IoEnzoReader::file_read_block_particles_ (DataMsg * data_msg)
 {
   ParticleDescr * particle_descr = cello::particle_descr();
-
-  Particle particle = data->particle();
+  ParticleData * particle_data = new ParticleData;
+  particle_data->allocate(particle_descr);
+  Particle particle (particle_descr,particle_data);
 
   // for each particle type
   const int num_types = particle_descr->num_types();
   if (num_types > 0) {
     // If any fields, add them to DataMsg
-    data_msg -> set_particle_data (particle.particle_data(),true);
+    data_msg -> set_particle_data (particle_data,true);
   }
   for (int it=0; it<num_types; it++) {
 
@@ -726,7 +726,7 @@ void IoEnzoReader::file_read_block_particles_ (Data * data, DataMsg * data_msg)
                 name_block.c_str(),it,ia,np);
 #endif
       if (ia==0) {
-        particle.insert_particles(it,np);
+        particle_data->insert_particles(particle_descr,it,np);
       }
 
       // read particle attribute into single array first...

@@ -140,6 +140,10 @@ public: // static methods
 
 protected: // methods
 
+  int size_();
+  char * load_(char *);
+  char * save_(char *);
+
   void copy_(const EnzoMsgCheck & enzo_msg_check)
   {
     is_local_      = enzo_msg_check.is_local_;
