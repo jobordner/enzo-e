@@ -95,20 +95,21 @@ void IoFieldData::field_array
   field_descr->ghost_depth(field_index_,&gx,&gy,&gz);
   field_descr->centering(field_index_,&cx,&cy,&cz);
 
-  if (pmx) (*pmx) = mx + cx;
-  if (pmy) (*pmy) = my + cy;
-  if (pmz) (*pmz) = mz + cz;
+  if (pmx) (*pmx) = mx;
+  if (pmy) (*pmy) = my;
+  if (pmz) (*pmz) = mz;
 
   if (field_data_->ghosts_allocated()) {
 
     if (include_ghosts_) {
 
-      if (pnx) (*pnx) = mx + cx;
-      if (pny) (*pny) = my + cy;
-      if (pnz) (*pnz) = mz + cz;
+      if (pnx) (*pnx) = mx;
+      if (pny) (*pny) = my;
+      if (pnz) (*pnz) = mz;
 
     } else {
 
+      // adjust buffer pointer to start of non-ghost values
       if (buffer) (*buffer) += type_size*(gx+mx*(gy+my*gz));
       if (pnx) (*pnx) = nx + cx;
       if (pny) (*pny) = ny + cy;
@@ -118,9 +119,9 @@ void IoFieldData::field_array
 
   } else {
 
-    if (pnx) (*pnx) = mx + cx;
-    if (pny) (*pny) = my + cy;
-    if (pnz) (*pnz) = mz + cz;
+    if (pnx) (*pnx) = mx;
+    if (pny) (*pny) = my;
+    if (pnz) (*pnz) = mz;
 
   }
 }
