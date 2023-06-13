@@ -189,6 +189,7 @@ module enzo {
     entry void p_io_reader_created();
     entry void p_restart_next_level();
     entry void p_restart_level_created();
+
     // enzo_level_array
     entry void p_set_level_array(CProxy_EnzoLevelArray proxy);
   };
@@ -317,7 +318,8 @@ module enzo {
 
   array[1D] IoEnzoWriter : IoWriter {
     entry IoEnzoWriter();
-    entry IoEnzoWriter (int num_files, std::string ordering, int monitor_iter);
+    entry IoEnzoWriter (int num_files, std::string ordering,
+                        int monitor_iter, int include_ghosts);
     entry void p_write(EnzoMsgCheck * );
   };
 

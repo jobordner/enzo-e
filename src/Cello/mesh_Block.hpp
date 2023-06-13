@@ -809,7 +809,7 @@ public: // virtual functions
   (int if3[3], int ic3[3], int g3[3],
    int refresh_type,
    Refresh * refresh,
-   bool new_refresh) const;
+   bool new_refresh = true) const;
 
   virtual void print (FILE * fp = nullptr) const;
 

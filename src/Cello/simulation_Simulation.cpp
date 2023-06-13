@@ -66,9 +66,7 @@ Simulation::Simulation
   max_solver_iter_(),
   restart_directory_(),
   restart_num_files_(),
-  restart_stream_file_list_(),
-  num_blocks_level_()
-  
+  restart_stream_file_list_()
 {
   for (int i=0; i<256; i++) dir_checkpoint_[i] = '\0';
 #ifdef DEBUG_SIMULATION
@@ -138,8 +136,7 @@ Simulation::Simulation()
   max_solver_iter_(),
   restart_directory_(),
   restart_num_files_(),
-  restart_stream_file_list_(),
-  num_blocks_level_()
+  restart_stream_file_list_()
 {
   for (int i=0; i<256; i++) dir_checkpoint_[i] = '\0';
 #ifdef DEBUG_SIMULATION
@@ -197,8 +194,7 @@ Simulation::Simulation (CkMigrateMessage *m)
     max_solver_iter_(),
     restart_directory_(),
     restart_num_files_(),
-    restart_stream_file_list_(),
-    num_blocks_level_()
+    restart_stream_file_list_()
 {
   for (int i=0; i<256; i++) dir_checkpoint_[i] = '\0';
 #ifdef DEBUG_SIMULATION
@@ -318,7 +314,6 @@ void Simulation::pup (PUP::er &p)
   p | max_solver_iter_;
   p | restart_directory_;
   p | restart_num_files_;
-  p | num_blocks_level_;
 }
 
 //----------------------------------------------------------------------
@@ -739,13 +734,6 @@ void Simulation::initialize_hierarchy_() throw()
      config_->mesh_min_level,
      config_->mesh_max_level);
 
-  num_blocks_level_.resize(config_->mesh_max_level+1);
-  std::fill(num_blocks_level_.begin(),
-            num_blocks_level_.end(),
-            0);
-
-  // Domain extents
-
   hierarchy_->set_lower
     (config_->domain_lower[0], 
      config_->domain_lower[1], 
@@ -862,6 +850,14 @@ void Simulation::update_state(int cycle, double time, double dt, double stop)
   time_  = time;
   dt_    = dt;
   stop_  = stop != 0;
+}
+
+//----------------------------------------------------------------------
+
+void Simulation::p_update_state(MsgState * msg)
+{
+  msg->update(this);
+  delete msg;
 }
 
 //======================================================================
@@ -1064,9 +1060,6 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
     const long long num_blocks_level = counters_reduce[m++]; // NL
     monitor()->print("performance","simulation num-blocks-level %d %lld",
 		     i,num_blocks_level);
-    // Save block count per level
-    if (i>=0) num_blocks_level_[i] = num_blocks_level;
-
     num_total_blocks += num_blocks_level;
     // compute leaf blocks given number of blocks per level
     // (NOTE: num_blocks_level (i>0) is evenly divisible by num_children
