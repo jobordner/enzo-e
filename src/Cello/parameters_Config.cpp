@@ -148,6 +148,8 @@ void Config::pup (PUP::er &p)
 
   p | monitor_debug;
   p | monitor_verbose;
+  p | monitor_time;
+  p | monitor_proc;
 
   // Output
 
@@ -213,7 +215,7 @@ void Config::pup (PUP::er &p)
   p | performance_warnings;
   p | performance_on_schedule_index;
   p | performance_off_schedule_index;
-
+  
   // Physics
   
   p | num_physics;
@@ -983,7 +985,8 @@ void Config::read_monitor_ (Parameters * p) throw()
 
   monitor_debug   = p->value_logical("Monitor:debug",  false);
   monitor_verbose = p->value_logical("Monitor:verbose",false);
-
+  monitor_proc    = p->value_logical("Monitor:include_proc", true);
+  monitor_time    = p->value_logical("Monitor:include_time",true);
 }
 
 //----------------------------------------------------------------------

@@ -59,7 +59,6 @@ EnzoSolverDd::EnzoSolverDd
       gx_(0),gy_(0),gz_(0),
       coarse_level_(coarse_level)
 {
-
   /// Define temporary field "X_c" for coarse grid correction
   ixc_ = cello::field_descr()->insert_temporary();
 
@@ -254,7 +253,6 @@ void EnzoBlock::r_solver_dd_barrier(CkReductionMsg * msg)
 
 void EnzoSolverDd::prolong(EnzoBlock * enzo_block) throw()
 {
-
   if (is_finest_(enzo_block)) {
     copy_xc_to_x_(enzo_block);
   }
@@ -270,7 +268,7 @@ void EnzoSolverDd::prolong(EnzoBlock * enzo_block) throw()
   }
 
   if (coarse_level_ < level && level <= max_level_) {
-    enzo_block->solver_dd_prolong_recv(NULL);
+    prolong_recv(enzo_block,nullptr);
   } else {
     call_domain_solver (enzo_block);
   }
@@ -299,9 +297,6 @@ void EnzoSolverDd::prolong_send_(EnzoBlock * enzo_block) throw()
 //----------------------------------------------------------------------
 
 void EnzoBlock::p_solver_dd_prolong_recv(FieldMsg * msg)
-{  solver_dd_prolong_recv(msg); }
-
-void EnzoBlock::solver_dd_prolong_recv(FieldMsg * msg)
 {
   static_cast<EnzoSolverDd*> (solver())->prolong_recv(this,msg);
 }
@@ -340,7 +335,6 @@ void EnzoSolverDd::prolong_recv
 
 void EnzoSolverDd::copy_xc_to_x_(EnzoBlock * enzo_block) throw()
 {
-
   const int m = mx_*my_*mz_;
 
   Field field = enzo_block->data()->field();
@@ -349,7 +343,6 @@ void EnzoSolverDd::copy_xc_to_x_(EnzoBlock * enzo_block) throw()
 	      (enzo_float *) field.values(ix_));
   std::copy_n((enzo_float *) field.values(ixc_),m,
 	      (enzo_float *) field.values("X_copy"));
-
 }
 
 //----------------------------------------------------------------------
@@ -404,7 +397,6 @@ void EnzoSolverDd::call_last_smoother(EnzoBlock * enzo_block) throw()
   smooth_last->set_field_b(ib_);
 
   smooth_last->apply(A_,enzo_block);
-
 }
 
 //----------------------------------------------------------------------

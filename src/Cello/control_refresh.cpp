@@ -42,6 +42,8 @@
 
 void Block::refresh_start (int id_refresh, int callback)
 {
+  //  PERF_REFRESH_START(perf_refresh_start);
+  PERF_START(perf_refresh);
   CHECK_ID(id_refresh);
   Refresh * refresh = cello::refresh(id_refresh);
   Sync * sync = sync_(id_refresh);
@@ -95,6 +97,8 @@ void Block::refresh_start (int id_refresh, int callback)
     refresh_exit(*refresh);
 
   }
+  //  PERF_REFRESH_STOP(perf_refresh_start);
+  //  PERF_REFRESH_POST(perf_refresh_start);
 }
 
 //----------------------------------------------------------------------
@@ -199,6 +203,7 @@ void Block::refresh_check_done (int id_refresh)
 
 void Block::p_refresh_recv (MsgRefresh * msg_refresh)
 {
+  //  PERF_REFRESH_START(perf_refresh_recv);
   const int id_refresh = msg_refresh->id_refresh();
   CHECK_ID(id_refresh);
   Sync * sync = sync_(id_refresh);
@@ -221,13 +226,15 @@ void Block::p_refresh_recv (MsgRefresh * msg_refresh)
     refresh_msg_list_[id_refresh].push_back(msg_refresh);
 
   }
-
+  //  PERF_REFRESH_STOP(perf_refresh_recv);
+  //  PERF_REFRESH_POST(perf_refresh_recv);
 }
 
 //----------------------------------------------------------------------
 
 void Block::refresh_exit (Refresh & refresh)
 {
+  PERF_REFRESH_START(perf_refresh_exit);
   CHECK_ID(refresh.id());
   update_boundary_();
   control_sync (refresh.callback(),
@@ -236,6 +243,8 @@ void Block::refresh_exit (Refresh & refresh)
   		refresh.min_face_rank(),
   		refresh.neighbor_type(),
   		refresh.root_level());
+  PERF_REFRESH_STOP(perf_refresh_exit);
+  PERF_STOP(perf_refresh);
 }
 
 //----------------------------------------------------------------------
@@ -942,7 +951,6 @@ int Block::refresh_load_particle_faces_ (Refresh & refresh, const bool copy)
 void Block::particle_send_
 (Refresh & refresh, int nl,Index index_list[], ParticleData * particle_list[])
 {
-
   ParticleDescr * p_descr = cello::particle_descr();
 
   for (int il=0; il<nl; il++) {

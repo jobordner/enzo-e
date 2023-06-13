@@ -12,7 +12,9 @@
 #include "_parallel.hpp"
 #include "_parameters.hpp"
 #include "_memory.hpp"
-
 #include "_performance.hpp"
+#include "io_Schedule.hpp"
+#include "io_ScheduleInterval.hpp"
+#include "io_ScheduleList.hpp"
 
 #endif /* PERFORMANCE_HPP */

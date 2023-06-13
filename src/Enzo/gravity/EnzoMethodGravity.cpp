@@ -185,7 +185,6 @@ void EnzoMethodGravity::compute(Block * block) throw()
     for (int i=0; i<mx*my*mz; i++) B[i] = 0.0;
 
   }
-  
   Solver * solver = enzo::problem()->solver(index_solver_);
 
   // May exit before solve is done...
@@ -215,9 +214,9 @@ void EnzoBlock::p_method_gravity_continue()
   // refresh ("Charm++ fatal error: mis-matched client callbacks in
   // reduction messages")
 
+  // @@@
   EnzoMethodGravity * method = static_cast<EnzoMethodGravity*> (this->method());
   method->refresh_potential(this);
-
 }
 
 //----------------------------------------------------------------------
@@ -243,7 +242,6 @@ void EnzoBlock::p_method_gravity_end()
 
 void EnzoMethodGravity::compute_accelerations (EnzoBlock * enzo_block) throw()
 {
-
   Field field = enzo_block->data()->field();
   int gx,gy,gz;
   int mx,my,mz;

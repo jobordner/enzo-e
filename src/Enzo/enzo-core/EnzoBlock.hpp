@@ -111,7 +111,11 @@ public: // interface
        dt(0.0),
        redshift(0.0)
   {
-    performance_start_(perf_block);
+
+    PERF_START(perf_block);
+#ifdef TRACE_BLOCK
+    CkPrintf ("%d %p TRACE_BLOCK EnzoBlock()\n",CkMyPe(),(void *)this);
+#endif
 
     for (int i=0; i<MAX_DIMENSION; i++) {
       GridLeftEdge[i] = 0;
@@ -120,10 +124,9 @@ public: // interface
       GridEndIndex[i] = 0;
       CellWidth[i] = 0.0;
     }
-    performance_stop_(perf_block);
   }
 
-  /// Charm++ Migration constructor
+  /// Initialize a migrated EnzoBlock
   EnzoBlock (CkMigrateMessage *m);
 
   /// Pack / unpack the EnzoBlock in a CHARM++ program
@@ -315,7 +318,6 @@ public: /// entry methods
 
   void p_solver_dd_restrict_recv(FieldMsg * msg);
   void p_solver_dd_prolong_recv(FieldMsg * msg);
-  void solver_dd_prolong_recv(FieldMsg * msg);
   void p_solver_dd_solve_coarse();
   void p_solver_dd_solve_domain();
   void p_solver_dd_last_smooth();
@@ -335,7 +337,6 @@ public: /// entry methods
   void p_solver_mg0_last_smooth();
   void r_solver_mg0_barrier(CkReductionMsg* msg);
   void p_solver_mg0_prolong_recv(FieldMsg * msg);
-  void solver_mg0_prolong_recv(FieldMsg * msg);
   void p_solver_mg0_restrict_recv(FieldMsg * msg);
 
   // EnzoMethodFeedbackSTARSS

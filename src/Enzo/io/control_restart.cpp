@@ -393,11 +393,7 @@ void IoEnzoReader::p_create_level (int level)
   int i=0;
   for (int k=0; k<block_name_list_.size(); k++) {
     if (block_level_list_[k] != level) continue;
-    CkPrintf ("DEBUG_RESTART [new] %d level %d i %d\n",thisIndex,level,i);
-    fflush(stdout);
     EnzoMsgCheck * msg_check = io_msg_check_[level][i];
-    CkPrintf ("DEBUG_RESTART [new] %d io_msg_check %p\n",thisIndex,(void*)msg_check);
-    fflush(stdout);
     IoEnzoBlock * io_enzo_block = new IoEnzoBlock;
     msg_check->set_io_block (io_enzo_block);
     std::string block_name = block_name_list_[k];

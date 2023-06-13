@@ -176,6 +176,7 @@ public: // interface
   void begin_solve(EnzoBlock * enzo_block,
 		   CkReductionMsg *msg) throw();
 
+  /// End the cycle, returning true if solver itself has completed
   void end_cycle(EnzoBlock * enzo_block) throw();
   
   void print()

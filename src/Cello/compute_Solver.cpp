@@ -76,7 +76,7 @@ Solver::Solver () throw()
   ir_post_ = add_refresh_();
 }
 
-//----------------------------------------------------------------------
+//======================================================================
 
 int Solver::add_refresh_ ()
 {
@@ -94,7 +94,7 @@ int Solver::add_refresh_ ()
   return cello::simulation()->new_register_refresh(refresh);
 }
 
-//======================================================================
+//----------------------------------------------------------------------
 
 void Solver::monitor_output_
 (Block * block, int iter,
@@ -137,12 +137,12 @@ bool Solver::reuse_solution_ (int cycle) const throw()
 
 void Solver::begin_(Block * block)
 {
-#ifdef TRACE_SOLVER  
+  PERF_SOLVER_START(this);
+#ifdef TRACE_SOLVER
   if (block->cycle() >= CYCLE)
     CkPrintf ("%s TRACE_SOLVER %d Solver::begin_(%s)\n",
 	    block->name().c_str(),index_,name_.c_str());
-#endif  
-	    
+#endif
   block->push_solver(index_);
 }
 
@@ -150,6 +150,7 @@ void Solver::begin_(Block * block)
 
 void Solver::end_(Block * block)
 {
+  PERF_SOLVER_STOP(this);
   int index = block->pop_solver();
 #ifdef TRACE_SOLVER  
   if (block->cycle() >= CYCLE)

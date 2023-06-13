@@ -15,58 +15,15 @@
 // #define DEBUG_SIMULATION
 // #define DEBUG_MSG_REFINE
 
+int Simulation::perf_method_base = 0;
+int Simulation::perf_solver_base = 0;
+
 Simulation::Simulation
 (
  const char *   parameter_file,
  int            n
  )
-/// Initialize the Simulation object
-:
-#if defined(CELLO_DEBUG) || defined(CELLO_VERBOSE)
-  fp_debug_(NULL),
-#endif
-  factory_(NULL),
-  parameters_(&g_parameters),
-  parameter_file_(parameter_file),
-  rank_(0),
-  cycle_(0),
-  cycle_watch_(-1),
-  time_(0.0),
-  dt_(0),
-  stop_(false),
-  phase_(phase_unknown),
-  config_(&g_config),
-  problem_(NULL),
-  timer_(),
-  performance_(NULL),
-#ifdef CONFIG_USE_PROJECTIONS
-  projections_tracing_(true),
-  projections_schedule_on_(NULL),
-  projections_schedule_off_(NULL),
-#endif
-  schedule_balance_(NULL),
-  monitor_(NULL),
-  hierarchy_(NULL),
-  scalar_descr_long_double_(NULL),
-  scalar_descr_double_(NULL),
-  scalar_descr_int_(NULL),
-  scalar_descr_long_long_(NULL),
-  scalar_descr_sync_(NULL),
-  scalar_descr_void_(NULL),
-  scalar_descr_index_(NULL),
-  field_descr_(NULL),
-  particle_descr_(NULL),
-  sync_output_begin_(),
-  sync_output_write_(),
-  sync_restart_created_(),
-  sync_restart_next_(),
-  refresh_list_(),
-  index_output_(-1),
-  num_solver_iter_(),
-  max_solver_iter_(),
-  restart_directory_(),
-  restart_num_files_(),
-  restart_stream_file_list_()
+  : Simulation()
 {
   for (int i=0; i<256; i++) dir_checkpoint_[i] = '\0';
 #ifdef DEBUG_SIMULATION
@@ -95,6 +52,7 @@ Simulation::Simulation()
 #if defined(CELLO_DEBUG) || defined(CELLO_VERBOSE)
   fp_debug_(NULL),
 #endif
+  CBase_Simulation(),
   factory_(NULL),
   parameters_(&g_parameters),
   parameter_file_(""),
@@ -109,11 +67,6 @@ Simulation::Simulation()
   problem_(NULL),
   timer_(),
   performance_(NULL),
-#ifdef CONFIG_USE_PROJECTIONS
-  projections_tracing_(true),
-  projections_schedule_on_(NULL),
-  projections_schedule_off_(NULL),
-#endif
   schedule_balance_(NULL),
   monitor_(NULL),
   hierarchy_(NULL),
@@ -149,52 +102,7 @@ Simulation::Simulation()
 //----------------------------------------------------------------------
 
 Simulation::Simulation (CkMigrateMessage *m)
-  : CBase_Simulation(m),
-#if defined(CELLO_DEBUG) || defined(CELLO_VERBOSE)
-    fp_debug_(NULL),
-#endif
-    factory_(NULL),
-    parameters_(&g_parameters),
-    parameter_file_(""),
-    rank_(0),
-    cycle_(0),
-    cycle_watch_(-1),
-    time_(0.0),
-    dt_(0),
-    stop_(false),
-    phase_(phase_unknown),
-    config_(&g_config),
-    problem_(NULL),
-    timer_(),
-    performance_(NULL),
-#ifdef CONFIG_USE_PROJECTIONS
-    projections_tracing_(true),
-    projections_schedule_on_(NULL),
-    projections_schedule_off_(NULL),
-#endif
-    schedule_balance_(NULL),
-    monitor_(NULL),
-    hierarchy_(NULL),
-    scalar_descr_long_double_(NULL),
-    scalar_descr_double_(NULL),
-    scalar_descr_int_(NULL),
-    scalar_descr_long_long_(NULL),
-    scalar_descr_sync_(NULL),
-    scalar_descr_void_(NULL),
-    scalar_descr_index_(NULL),
-    field_descr_(NULL),
-    particle_descr_(NULL),
-    sync_output_begin_(),
-    sync_output_write_(),
-    sync_restart_created_(),
-    sync_restart_next_(),
-    refresh_list_(),
-    index_output_(-1),
-    num_solver_iter_(),
-    max_solver_iter_(),
-    restart_directory_(),
-    restart_num_files_(),
-    restart_stream_file_list_()
+  : CBase_Simulation(m)
 {
   for (int i=0; i<256; i++) dir_checkpoint_[i] = '\0';
 #ifdef DEBUG_SIMULATION
@@ -288,12 +196,6 @@ void Simulation::pup (PUP::er &p)
   if (up) sync_output_begin_.set_stop(0);
   if (up) sync_output_write_.set_stop(0);
 
-#ifdef CONFIG_USE_PROJECTIONS
-  p | projections_tracing_;
-  p | projections_schedule_on_;
-  p | projections_schedule_off_;
-#endif
-
   p | schedule_balance_;
 
   p | refresh_list_;
@@ -322,7 +224,7 @@ void Simulation::finalize() throw()
 {
   TRACE0;
 
-  performance_->stop_region(perf_simulation);
+  PERF_STOP(perf_simulation);
 
   performance_->end();
 
@@ -423,35 +325,70 @@ void Simulation::initialize_performance_() throw()
 
   performance_ = new Performance (config_);
 
-  const bool in_charm = true;
   Performance * p = performance_;
   p->new_region(perf_unknown,            "unknown");
   p->new_region(perf_simulation,         "simulation");
   p->new_region(perf_cycle,              "cycle");
   p->new_region(perf_initial,            "initial");
-  p->new_region(perf_adapt_apply,        "adapt_apply");
-  p->new_region(perf_adapt_apply_sync,   "adapt_apply_sync",in_charm);
-  p->new_region(perf_adapt_notify,       "adapt_notify");
-  p->new_region(perf_adapt_notify_sync,  "adapt_notify_sync",in_charm);
-  p->new_region(perf_adapt_update,       "adapt_update");
-  p->new_region(perf_adapt_update_sync,  "adapt_update_sync",in_charm);
-  p->new_region(perf_adapt_end,          "adapt_end");
-  p->new_region(perf_adapt_end_sync,     "adapt_end_sync",in_charm);
-  p->new_region(perf_refresh_store,      "refresh_store");
-  p->new_region(perf_refresh_child,      "refresh_child");
-  p->new_region(perf_refresh_exit,       "refresh_exit");
-  p->new_region(perf_refresh_store_sync, "refresh_store_sync",in_charm);
-  p->new_region(perf_refresh_child_sync, "refresh_child_sync",in_charm);
-  p->new_region(perf_refresh_exit_sync,  "refresh_exit_sync",in_charm);
-  p->new_region(perf_compute,            "compute");
-  p->new_region(perf_control,            "control");
-  p->new_region(perf_output,             "output");
-  p->new_region(perf_stopping,           "stopping");
-  p->new_region(perf_block,              "block");
-  p->new_region(perf_exit,               "exit");
+
+  const bool in_charm = true;
+  p->new_region(perf_adapt,                 "adapt");
+  p->new_region(perf_adapt_post,            "adapt_post",in_charm);
+  p->new_region(perf_adapt_enter,           "adapt_enter");
+  p->new_region(perf_adapt_enter_post,      "adapt_enter_post",in_charm);
+  p->new_region(perf_adapt_end,             "adapt_end");
+  p->new_region(perf_adapt_end_post,        "adapt_end_post",in_charm);
+  p->new_region(perf_adapt_update,          "adapt_update");
+  p->new_region(perf_adapt_update_post,     "adapt_update_post",in_charm);
+  p->new_region(perf_adapt_next,            "adapt_next");
+  p->new_region(perf_adapt_next_post,       "adapt_next_post",in_charm);
+  p->new_region(perf_adapt_called,          "adapt_called");
+  p->new_region(perf_adapt_called_post,     "adapt_called_post",in_charm);
+  p->new_region(perf_adapt_exit,            "adapt_exit");
+  p->new_region(perf_adapt_exit_post,       "adapt_exit_post",in_charm);
+  p->new_region(perf_adapt_delete,          "adapt_delete");
+  p->new_region(perf_adapt_delete_post,     "adapt_delete_post",in_charm);
+  p->new_region(perf_adapt_recv_level,      "adapt_recv_level");
+  p->new_region(perf_adapt_recv_level_post, "adapt_recv_level_post",in_charm);
+  p->new_region(perf_adapt_recv_child,      "adapt_recv_child");
+  p->new_region(perf_adapt_recv_child_post, "adapt_recv_child_post",in_charm);
+  p->new_region(perf_refresh,               "refresh");
+  p->new_region(perf_refresh_post,          "refresh_post",in_charm);
+  p->new_region(perf_refresh_recv,          "refresh_recv");
+  p->new_region(perf_refresh_recv_post,     "refresh_recv_post",in_charm);
+  p->new_region(perf_refresh_exit,          "refresh_exit");
+  p->new_region(perf_refresh_exit_post,     "refresh_exit_post",in_charm);
+  p->new_region(perf_refresh_child,          "refresh_child");
+  p->new_region(perf_refresh_child_post,     "refresh_child_post",in_charm);
+  p->new_region(perf_method,                "method");
+  p->new_region(perf_solver,                "solver");
+  p->new_region(perf_control,               "control");
+  p->new_region(perf_output,                "output");
+  p->new_region(perf_balance,               "balance");
+  p->new_region(perf_stopping,              "stopping");
+  p->new_region(perf_block,                 "block");
+  p->new_region(perf_exit,                  "exit");
 #ifdef CONFIG_USE_GRACKLE
-  p->new_region(perf_grackle,            "grackle");
+  p->new_region(perf_grackle,               "grackle");
 #endif
+
+  const Problem * problem = cello::problem();
+  // Add Method performance regions
+  perf_method_base = p->num_regions();
+  for (int i=0; i<problem->num_methods(); i++) {
+    Method * method = problem->method(i);
+    std::string region_name = std::string("method_") + method->name();
+    p->new_region(perf_method_base + i, region_name);
+    method->set_perf_index(perf_method_base + i);
+  }
+  // add Solver performance regions
+  perf_solver_base = p->num_regions();
+  for (int i=0; i<problem->num_solvers(); i++) {
+    Solver * solver = problem->solver(i);
+    std::string region_name = std::string("solver_") + solver->name();
+    p->new_region(perf_solver_base + i, region_name);
+    solver->set_perf_index(perf_solver_base + i);
+  }
 
   timer_.start();
 
@@ -462,37 +399,9 @@ void Simulation::initialize_performance_() throw()
   }
 #endif  
 
-#ifdef CONFIG_USE_PROJECTIONS
-  int index_on = config_->performance_on_schedule_index;
-  int index_off = config_->performance_off_schedule_index;
-  projections_tracing_ = config_->performance_projections_on_at_start;
-  if (projections_tracing_ == false) {
-    traceEnd();
-  }    
-  if (index_on >= 0) {
-    projections_schedule_on_ = Schedule::create
-      ( config_->schedule_var[index_on],
-	config_->schedule_type[index_on],
-	config_->schedule_start[index_on],
-	config_->schedule_stop[index_on],
-	config_->schedule_step[index_on],
-	config_->schedule_list[index_on]);
-  }
-  if (index_off >= 0) {
-    projections_schedule_off_ = Schedule::create
-      ( config_->schedule_var[index_off],
-	config_->schedule_type[index_off],
-	config_->schedule_start[index_off],
-	config_->schedule_stop[index_off],
-	config_->schedule_step[index_off],
-	config_->schedule_list[index_off]);
-    
-  }
-#endif
-
   p->begin();
 
-  p->start_region(perf_simulation);
+  PERF_START(perf_simulation);
 
 }
 
@@ -511,6 +420,8 @@ void Simulation::initialize_monitor_() throw()
   bool debug = config_->monitor_debug;
   int debug_mode = debug ? monitor_mode_all : monitor_mode_none;
   monitor_->set_mode("DEBUG",debug_mode);
+  monitor_->set_include_proc(config_->monitor_proc);
+  monitor_->set_include_time(config_->monitor_time);
   monitor_->set_verbose(config_->monitor_verbose);
 }
 
@@ -907,10 +818,17 @@ void Simulation::data_delete_particles(int64_t count)
 
 void Simulation::monitor_output()
 {
-  monitor()-> print("", "-------------------------------------");
-  monitor()-> print("Simulation", "cycle %04d", cycle_);
-  monitor()-> print("Simulation", "time-sim %15.12e",time_);
-  monitor()-> print("Simulation", "dt %15.12e", dt_);
+  Monitor * monitor = cello::monitor();
+  monitor-> print("", "-------------------------------------");
+  const bool in_p = monitor->include_proc();
+  const bool in_t = monitor->include_time();
+  monitor->set_include_proc(true);
+  monitor->set_include_time(true);
+  monitor-> print("Simulation", "cycle %04d", cycle_);
+  monitor-> print("Simulation", "time-sim %15.12e",time_);
+  monitor-> print("Simulation", "dt %15.12e", dt_);
+  monitor->set_include_proc(in_p);
+  monitor->set_include_time(in_t);
   thisProxy.p_monitor_performance();
 }
 
@@ -947,7 +865,6 @@ void Simulation::monitor_performance()
   long long * counters_region = new long long [nc];
   long long * counters_reduce = new long long [n];
 
-  const int in = cello::index_static();
   
   int m=0;
   const int num_max = 4 + num_solver;
@@ -956,6 +873,7 @@ void Simulation::monitor_performance()
   
   // accumulated metrics
   
+  const int in = cello::index_static();
   counters_reduce[m++] = MsgCoarsen::counter[in];     // 2
   counters_reduce[m++] = MsgRefine::counter[in];      // 3
   counters_reduce[m++] = MsgRefresh::counter[in];     // 4
@@ -963,6 +881,7 @@ void Simulation::monitor_performance()
   counters_reduce[m++] = FieldFace::counter[in];      // 6
   counters_reduce[m++] = ParticleData::counter[in];   // 7
   counters_reduce[m++] = hierarchy_->num_particles(); // 8
+  
   for (int i=0; i<num_solver; i++) {
     counters_reduce[m++] = cello::simulation()->get_solver_num_iter(i); // 9
   }
@@ -1038,19 +957,21 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   const int num_solver = problem()->num_solvers();
   for (int i=0; i<num_solver; i++) {
     const long long num_solver_iter = counters_reduce[m++]; // 15
-    monitor()->print ("Performance","solver num-%s-iter %lld",
-                      problem()->solver(i)->name().c_str(),
-                      num_solver_iter);
+    if (num_solver_iter>0) {
+      monitor()->print ("perf:solver","num-%s-iter %lld",
+                        problem()->solver(i)->name().c_str(),
+                        num_solver_iter);
+    }
   }
 
-  monitor()->print("Performance","counter num-msg-coarsen %lld", msg_coarsen);
-  monitor()->print("Performance","counter num-msg-refine %lld", msg_refine);
-  monitor()->print("Performance","counter num-msg-refresh %lld", msg_refresh);
-  monitor()->print("Performance","counter num-data-msg %lld", data_msg);
-  monitor()->print("Performance","counter num-field-face %lld", field_face);
-  monitor()->print("Performance","counter num-particle-data %lld", particle_data);
+  monitor()->print("perf:counter","msg-coarsen %lld", msg_coarsen);
+  monitor()->print("perf:counter","msg-refine %lld", msg_refine);
+  monitor()->print("perf:counter","msg-refresh %lld", msg_refresh);
+  monitor()->print("perf:counter","data-msg %lld", data_msg);
+  monitor()->print("perf:counter","field-face %lld", field_face);
+  monitor()->print("perf:counter","particle-data %lld", particle_data);
 
-  monitor()->print("Performance","simulation num-particles total %lld",
+  monitor()->print("perf:data","num-particles total %lld",
 		   num_particles);
 
   // compute total blocks and leaf blocks
@@ -1058,7 +979,7 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   long long num_leaf_blocks = 0;
   for (int i=hierarchy_->min_level(); i<=hierarchy_->max_level(); i++) {
     const long long num_blocks_level = counters_reduce[m++]; // NL
-    monitor()->print("performance","simulation num-blocks-level %d %lld",
+    monitor()->print("perf:mesh","blocks-level_%d %lld",
 		     i,num_blocks_level);
     num_total_blocks += num_blocks_level;
     // compute leaf blocks given number of blocks per level
@@ -1072,9 +993,9 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   }
 
   monitor()->print
-    ("Performance","simulation num-leaf-blocks %lld",  num_leaf_blocks);
+    ("perf:mesh","leaf-blocks %lld",  num_leaf_blocks);
   monitor()->print
-    ("Performance","simulation num-total-blocks %lld", num_total_blocks);
+    ("perf:mesh","total-blocks %lld", num_total_blocks);
 
   const long long num_blocks_total   = counters_reduce[m++]; // 10
 
@@ -1090,16 +1011,21 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   for (int ir = 0; ir < num_regions; ir++) {
     for (int ic = 0; ic < num_counters; ic++, m++) {
       bool do_print =
-	(ir != perf_unknown) && (
-	(performance_->counter_type(ic) != counter_type_abs) ||
-	(ir == index_region_cycle));
+	(ir != perf_unknown) &&
+        ((performance_->counter_type(ic) != counter_type_abs) ||
+         (ir == index_region_cycle)) &&
+        (counters_reduce[m] != 0);
       if (do_print) {
-	monitor()->print("Performance","%s %s %lld",
-			performance_->region_name(ir).c_str(),
-			performance_->counter_name(ic).c_str(),
-			 counters_reduce[m]);
+        monitor()->print("perf:region","%s %s %lld",
+                         performance_->region_name(ir).c_str(),
+                         performance_->counter_name(ic).c_str(),
+                         counters_reduce[m]);
+        const int multiplicity = performance_->region_multiplicity(ir);
+        if (! (0 <= multiplicity && multiplicity <= 1)) {
+          CkPrintf ("WARNING: perf:region %s %d multiplicity %d\n",
+                    performance_->region_name(ir).c_str(),ir,multiplicity);
+        }
       }
-      
     }
   }
 
@@ -1110,52 +1036,42 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
 
   for (int i=0; i<num_solver; i++) {
     const long long max_solver_iters       = counters_reduce[m++]; // 15
-    monitor()->print ("Performance","solver max-%s-iter %lld",
+    monitor()->print ("perf:solver","max-%s-iter %lld",
                       problem()->solver(i)->name().c_str(),
                       max_solver_iters);
   }
   cello::simulation()->clear_solver_iter(); // clear it for the next solve
 
-  
   monitor()->print
-    ("Performance","simulation max-proc-blocks %lld",  max_proc_blocks);
+    ("perf:balance","max-proc-blocks %lld",  max_proc_blocks);
   monitor()->print
-    ("Performance","simulation max-node-blocks %lld",  max_node_blocks);
+    ("perf:balance","max-node-blocks %lld",  max_node_blocks);
   monitor()->print
-    ("Performance","simulation max-proc-particles %lld", max_proc_particles);
+    ("perf:balance","max-proc-particles %lld", max_proc_particles);
   monitor()->print
-    ("Performance","simulation max-node-particles %lld", max_node_particles);
+    ("perf:balance","max-node-particles %lld", max_node_particles);
 
   const double avg_proc_blocks = 1.0*num_blocks_total/CkNumPes();
   const double avg_node_blocks = 1.0*num_blocks_total/CkNumNodes();
 
-
-  // monitor()->print
-  //   ("Performance","simulation balance-blocks-core %f",
-  //    100.0*(max_proc_blocks / avg_proc_blocks - 1.0 ));
-  // monitor()->print
-  //   ("Performance","simulation balance-blocks-node %f",
-  //    100.0*(max_node_blocks / avg_node_blocks - 1.0 ));
-
   monitor()->print
-    ("Performance","simulation balance-eff-blocks-core %f (%.0f/%lld)",
+    ("perf:balance","eff-blocks-core %f (%.0f/%lld)",
      avg_proc_blocks / max_proc_blocks,
      avg_proc_blocks, max_proc_blocks);
   monitor()->print
-    ("Performance","simulation balance-eff-blocks-node %f (%.0f/%lld)",
+    ("perf:balance","eff-blocks-node %f (%.0f/%lld)",
      avg_node_blocks / max_node_blocks,
      avg_node_blocks, max_node_blocks);
-  
 
   if (num_particles > 0) {
     const double avg_proc_particles = 1.0*num_particles/CkNumPes();
     const double avg_node_particles = 1.0*num_particles/CkNumNodes();
     monitor()->print
-      ("Performance","simulation balance-eff-particles-core %f (%.0f/%lld)",
+      ("perf:balance","eff-particles-core %f (%.0f/%lld)",
        avg_proc_particles / max_proc_particles,
        avg_proc_particles , max_proc_particles );
     monitor()->print
-      ("Performance","simulation balance-eff-particles-node %f (%.0f/%lld)",
+      ("perf:balance","eff-particles-node %f (%.0f/%lld)",
        avg_node_particles / max_node_particles,
        avg_node_particles , max_node_particles );
   }

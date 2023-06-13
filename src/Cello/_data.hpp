@@ -134,24 +134,24 @@ class FieldFace;
     for (int iz=gz; iz<mz-gz; iz++) {					\
       for (int iy=gy; iy<my-gy; iy++) {					\
 	for (int ix=gx; ix<mx-gx; ix++) {				\
-	  int i = ix + mx*(iy + my*iz);					\
+	  int i = ix + mx*(iy + my*iz);                                 \
 	  double value=SCALE*FIELD[i];					\
 	  sum_real+=value;						\
 	  sum_abs+=std::abs(value);					\
 	  sum2_real+=value*value;					\
 	}								\
-      }									\
+      }                                                                 \
     }									\
     double mean=sum_real/((mx-2*gx)*(my-2*gy)*(mz-2*gz));		\
     for (int iz=gz; iz<mz-gz; iz++) {					\
-      for (int iy=gy; iy<my-gy; iy++) {					\
+      for (int iy=gy; iy<my-gy; iy++) {                                 \
 	for (int ix=gx; ix<mx-gx; ix++) {				\
-	  int i = ix + mx*(iy + my*iz);					\
+	  int i = ix + mx*(iy + my*iz);                                 \
 	  double value=SCALE*FIELD[i];					\
 	  sum_mean +=std::abs(value-mean);				\
-	  sum_var  +=(value-mean)*(value-mean);				\
+	  sum_var  +=(value-mean)*(value-mean);                         \
 	}								\
-      }									\
+      }                                                                 \
     }									\
     CkPrintf ("DEBUG_FIELD (%g) [%g] | (%g : %g %g %g) %s:%d %s\n",	\
 	      sum_real,sum_all,					\

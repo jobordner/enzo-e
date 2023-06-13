@@ -37,7 +37,7 @@ void Method::pup (PUP::er &p)
   p | courant_;
   p | ir_post_;
   p | neighbor_type_;
-
+  p | index_perf_;
 }
 
 //----------------------------------------------------------------------
