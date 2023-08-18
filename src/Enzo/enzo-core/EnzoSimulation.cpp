@@ -37,6 +37,8 @@ EnzoSimulation::EnzoSimulation
     check_num_files_(0),
     check_ordering_(""),
     check_directory_(),
+    sync_method_balance_(),
+    method_balance_count_(0),
     restart_level_(0)
 {
 #ifdef CHECK_MEMORY
@@ -86,6 +88,8 @@ void EnzoSimulation::pup (PUP::er &p)
   p | check_num_files_;
   p | check_ordering_;
   p | check_directory_;
+  p | sync_method_balance_;
+  p | method_balance_count_;
   p | restart_level_;
 
   if (p.isUnpacking()) {

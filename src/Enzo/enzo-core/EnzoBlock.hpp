@@ -188,7 +188,7 @@ public: /// entry methods
   //--------------------------------------------------
 
   // EnzoMethodBalance
-  void p_method_balance_migrate();
+  void p_method_balance_migrate(int migrated);
   void p_method_balance_done();
 
   /// Synchronize after potential solve and before accelerations

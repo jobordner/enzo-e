@@ -364,6 +364,9 @@ public: // interface
       method_background_acceleration_stellar_scale_height_r(0.0),
       method_background_acceleration_stellar_scale_height_z(0.0),
       method_background_acceleration_apply_acceleration(true),
+      // EnzoMethodBalance
+      method_balance_num_updates(0),
+      method_balance_limit_rel(1.0),
       // EnzoMethodPmDeposit
       method_pm_deposit_alpha(0.5),
       // EnzoMethodPmUpdate
@@ -470,6 +473,7 @@ protected: // methods
   //--------------------
   void read_method_accretion_(Parameters *);
   void read_method_background_acceleration_(Parameters *);
+  void read_method_balance_(Parameters *);
   void read_method_check_(Parameters *);
   void read_method_feedback_(Parameters *);
   void read_method_grackle_(Parameters *);
@@ -883,6 +887,11 @@ public: // attributes
   double                     method_background_acceleration_center[3];
   double                     method_background_acceleration_angular_momentum[3];
   bool                       method_background_acceleration_apply_acceleration;
+
+  /// EnzoMethodBalance
+
+  int                        method_balance_num_updates;
+  float                      method_balance_limit_rel;
 
   /// EnzoMethodPmDeposit
 

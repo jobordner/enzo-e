@@ -60,7 +60,9 @@ public: // functions
   /// Count number of Blocks that are planning on load-balancing
   void r_method_balance_count(CkReductionMsg * msg);
   /// Count down of migrating blocks (plus root-Block in case none)
-  void p_method_balance_check();
+  void p_method_balance_check(int migrated);
+  Timer & method_balance_timer()
+  { return method_balance_timer_; }
 
   /// EnzoMethodCheck
   void r_method_check_enter (CkReductionMsg *);
@@ -102,6 +104,9 @@ private: // attributes
 
   /// Balance Method synchronization
   Sync sync_method_balance_;
+  int method_balance_count_;
+  Timer method_balance_timer_;
+
   /// Current restart level
   int restart_level_; 
 

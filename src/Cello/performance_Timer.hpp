@@ -71,6 +71,8 @@ public: // interface
     time_ = 0.0;
   }
 
+  /// Whether the timer is running or not
+  bool is_running() const { return is_running_; }
 
   /// Return the value of the timer
   float value() const throw()

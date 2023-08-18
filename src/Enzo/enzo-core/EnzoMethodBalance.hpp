@@ -17,20 +17,24 @@ class EnzoMethodBalance : public Method {
 public: // interface
 
   /// Create a new EnzoMethodBalance object
-  EnzoMethodBalance();
+  EnzoMethodBalance(float limit_rel);
 
   /// Charm++ PUP::able declarations
   PUPable_decl(EnzoMethodBalance);
 
   /// Charm++ PUP::able migration constructor
   EnzoMethodBalance (CkMigrateMessage *m)
-    : Method (m)
+    : Method (m),
+      limit_rel_(1.0),
+      timer_()
   {}
 
   /// CHARM++ Pack / Unpack function
   void pup (PUP::er &p);
 
-  void do_migrate(EnzoBlock * enzo_block);
+  Timer & timer ()
+  { return enzo::simulation()->method_balance_timer(); }
+  void do_migrate(EnzoBlock * enzo_block, int migrated);
   void done(EnzoBlock * enzo_block);
 
 public: // virtual methods
@@ -42,6 +46,14 @@ public: // virtual methods
   { return "balance"; }
 
 protected: // attributes
+
+  /// Limit p on relative number of blocks to migrate; if M blocks
+  /// want to migrate out of a total of N, then migrate if r < p*N/M,
+  /// where r random between 0.0 and 1.0
+  float limit_rel_;
+
+  /// Timer used for monitoring
+  Timer timer_;
 };
 
 #endif /* ENZO_ENZO_METHOD_BALANCE_HPP */

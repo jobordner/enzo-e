@@ -644,7 +644,8 @@ Method * EnzoProblem::create_method_
 
   } else if (name == "balance") {
 
-    method = new EnzoMethodBalance;
+    method = new EnzoMethodBalance
+      (enzo_config->method_balance_limit_rel);
 
   } else if (name == "turbulence") {
 

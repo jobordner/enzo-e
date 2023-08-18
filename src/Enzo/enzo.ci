@@ -165,7 +165,7 @@ module enzo {
 
     //EnzoMethodBalance
     entry void r_method_balance_count(CkReductionMsg * msg);
-    entry void p_method_balance_check();
+    entry void p_method_balance_check(int migrated);
 
     // EnzoMethodCheck
     entry void r_method_check_enter(CkReductionMsg *);
@@ -199,7 +199,7 @@ module enzo {
     entry void p_initial_hdf5_recv(MsgInitial * msg_initial);
 
     // EnzoMethodBalance
-    entry void p_method_balance_migrate();
+    entry void p_method_balance_migrate(int migrated);
     entry void p_method_balance_done();
 
     // EnzoMethodGravity synchronization entry methods

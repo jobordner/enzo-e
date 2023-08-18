@@ -154,7 +154,7 @@ EnzoBlock::EnzoBlock (CkMigrateMessage *m)
 {
   TRACE("CkMigrateMessage");
   // EnzoSimulation[0] counts migrated Blocks
-  proxy_enzo_simulation[0].p_method_balance_check();
+  proxy_enzo_simulation[0].p_method_balance_check(1);
 }
 
 EnzoBlock::EnzoBlock( MsgType msg_type)

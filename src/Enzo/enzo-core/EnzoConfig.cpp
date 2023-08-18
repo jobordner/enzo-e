@@ -323,6 +323,9 @@ EnzoConfig::EnzoConfig() throw ()
   method_background_acceleration_stellar_scale_height_r(1.0E-10),
   method_background_acceleration_stellar_scale_height_z(1.0E-10),
   method_background_acceleration_apply_acceleration(true), // for debugging
+  /// EnzoMethodBalance
+  method_balance_num_updates(0),
+  method_balance_limit_rel(1.0),
   /// EnzoMethodPmDeposit
   method_pm_deposit_alpha(0.5),
   /// EnzoMethodPmUpdate
@@ -726,6 +729,9 @@ void EnzoConfig::pup (PUP::er &p)
   PUParray(p,method_background_acceleration_angular_momentum,3);
   PUParray(p,method_background_acceleration_center,3);
 
+  p | method_balance_num_updates;
+  p | method_balance_limit_rel;
+
   p | method_pm_deposit_alpha;
   p | method_pm_update_max_dt;
 
@@ -829,6 +835,7 @@ void EnzoConfig::read(Parameters * p) throw()
 
   read_method_accretion_(p);
   read_method_background_acceleration_(p);
+  read_method_balance_(p);
   read_method_check_(p);
   read_method_feedback_(p);
   read_method_grackle_(p);
@@ -1857,6 +1864,16 @@ void EnzoConfig::read_method_background_acceleration_(Parameters * p)
   for (size_t i=0; i<method_list.size(); i++) {
     if (method_list[i] == "background_acceleration") physics_gravity=true;
   }
+}
+
+//----------------------------------------------------------------------
+
+void EnzoConfig::read_method_balance_(Parameters * p)
+{
+  method_balance_num_updates = p->value_integer
+    ("Method:balance:num_updates",0);
+  method_balance_limit_rel = p->value_float
+    ("Method:balance:limit_rel",1.0);
 }
 
 //----------------------------------------------------------------------
