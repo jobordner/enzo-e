@@ -140,7 +140,8 @@ void EnzoSimulation::p_method_balance_check(int migrated)
     cello::monitor()->print
       ("Method EnzoMethodBalance",
        "done migrating %d blocks in %.2f s",
-       method_balance_count_);
+       method_balance_count_,
+       method_balance_timer_.value());
     method_balance_count_ = 0;
   }
 }
