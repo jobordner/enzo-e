@@ -12,7 +12,7 @@ for name in sys.argv[2:]:
         n=file[block][dark[0]].size
         for i in range(n):
             if (random.random() < ratio):
-                f.write ("%7f %7f %7f" %
+                f.write ("%7f %7f %7f\n" %
                        (file[block][dark[0]][i],
                         file[block][dark[1]][i],
                         file[block][dark[2]][i]))
