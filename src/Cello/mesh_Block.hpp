@@ -28,7 +28,7 @@ class Solver;
 class Block : public CBase_Block
 {
   /// @class    Block
-  /// @ingroup  Comm
+  /// @ingroup  Mesh
   ///
   /// @brief [\ref Mesh] Handles parallel communication and
   /// synchronization of mesh Blocks

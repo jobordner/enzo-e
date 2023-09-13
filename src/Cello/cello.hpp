@@ -719,9 +719,8 @@ namespace cello {
 
   inline void af_to_xyz (int axis, int face, int r3[3])
   {
-    r3[0] = (axis==0) ? 2*face-1 : 0;
-    r3[1] = (axis==1) ? 2*face-1 : 0;
-    r3[2] = (axis==2) ? 2*face-1 : 0;
+    std::fill_n(r3,3,0);
+    r3[axis] = 2*face-1;
   }
 
   /// Return a pointer to the Simulation object on this process

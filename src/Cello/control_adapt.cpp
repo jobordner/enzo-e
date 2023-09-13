@@ -608,10 +608,13 @@ void Block::adapt_recv_level
 
     int if3[3] = {ofv[0][i],ofv[1][i],ofv[2][i]};
 
-    ASSERT4("Block::p_adapt_recv_level()",
-            "Mismatch in %s : %s adapt_recv_level actual %d != expected %d\n",
-            name().c_str(),name(index_send).c_str(),adapt_step,adapt_step_,
-            adapt_step == adapt_step_);
+    if (adapt_step < adapt_step_) {
+      WARNING4("Block::p_adapt_recv_level()",
+              "Mismatch adapt_step in %s <- %s adapt_recv_level actual %d != expected %d\n: ignoring",
+              name().c_str(),
+              name(index_send).c_str(),adapt_step,adapt_step_);
+      continue;
+    }
     int level_max;
 
     adapt_.update_neighbor

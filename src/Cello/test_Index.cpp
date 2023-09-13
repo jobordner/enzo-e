@@ -18,6 +18,7 @@ PARALLEL_MAIN_BEGIN
 
 #define N 8
   Index i8[N+1];
+  CIndex ci8[N+1];
 
   int trace[][3] = { {0,0,0},
                      {1,0,0},
