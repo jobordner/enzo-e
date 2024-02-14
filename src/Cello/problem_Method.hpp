@@ -57,6 +57,10 @@ public: // virtual functions
   /// Return the name of this Method
   virtual std::string name () throw () = 0;
 
+  /// Whether to monitor performance (so can be turned off if problematic)
+  virtual bool monitor_performance() const
+  { return true; }
+
   /// Compute maximum timestep for this method
   ///
   /// The default implementation returns the maximum finite value of `double`

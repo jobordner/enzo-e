@@ -8,6 +8,8 @@
 #ifndef PERFORMANCE_HPP
 #define PERFORMANCE_HPP
 
+#include "charm.hpp"
+
 #include "_error.hpp"
 #include "_parallel.hpp"
 #include "_parameters.hpp"

@@ -36,10 +36,6 @@ const char * phase_name[] = {
 
 // #define TRACE_BLOCK
 
-//======================================================================
-#ifdef BYPASS_CHARM_MEM_LEAK
-//======================================================================
-
 Block::Block ( process_type ip_source, MsgType msg_type )
   : CBase_Block(),
     data_(NULL),
@@ -86,9 +82,6 @@ Block::Block ( process_type ip_source, MsgType msg_type )
 
   thisIndex.array(array_,array_+1,array_+2);
 
-  if (msg_type == MsgType::msg_refine) {
-    proxy_simulation[ip_source].p_get_msg_refine(thisIndex);
-  }
   PERF_STOP(perf_block);
 }
 
@@ -126,74 +119,149 @@ void Block::p_set_msg_refine(MsgRefine * msg)
   PERF_STOP(perf_block);
 }
 
-//======================================================================
-#else /* not BYPASS_CHARM_MEM_LEAK */
-//======================================================================
+// <<<<<<< HEAD
+// //======================================================================
+// #else /* not BYPASS_CHARM_MEM_LEAK */
+// //======================================================================
 
-Block::Block ( MsgRefine * msg )
-  : CBase_Block(),
-    data_(NULL),
-    child_data_(NULL),
-    level_next_(0),
-    cycle_(0),
-    time_(0.0),
-    dt_(0.0),
-    stop_(false),
-    index_initial_(0),
-    children_(),
-    sync_coarsen_(),
-    sync_count_(),
-    sync_max_(),
-    adapt_(),
-    child_face_level_curr_(),
-    child_face_level_next_(),
-    count_coarsen_(0),
-    adapt_step_(0),
-    adapt_ready_(false),
-    adapt_balanced_(false),
-    adapt_changed_(0),
-    coarsened_(false),
-    is_leaf_((thisIndex.level() >= 0)),
-    age_(0),
-    ip_next_(-1),
-    name_(""),
-    index_method_(-1),
-    index_solver_(),
-    refresh_()
-{
-#ifdef TRACE_BLOCK
+// Block::Block ( MsgRefine * msg )
+//   : CBase_Block(),
+//     data_(NULL),
+//     child_data_(NULL),
+//     level_next_(0),
+//     cycle_(0),
+//     time_(0.0),
+//     dt_(0.0),
+//     stop_(false),
+//     index_initial_(0),
+//     children_(),
+//     sync_coarsen_(),
+//     sync_count_(),
+//     sync_max_(),
+//     adapt_(),
+//     child_face_level_curr_(),
+//     child_face_level_next_(),
+//     count_coarsen_(0),
+//     adapt_step_(0),
+//     adapt_ready_(false),
+//     adapt_balanced_(false),
+//     adapt_changed_(0),
+//     coarsened_(false),
+//     is_leaf_((thisIndex.level() >= 0)),
+//     age_(0),
+//     ip_next_(-1),
+//     name_(""),
+//     index_method_(-1),
+//     index_solver_(),
+//     refresh_()
+// {
+// #ifdef TRACE_BLOCK
 
-  CkPrintf ("%d TRACE_BLOCK %s Block::Block(MsgRefine)\n",  CkMyPe(),name(thisIndex).c_str());
+//   CkPrintf ("%d TRACE_BLOCK %s Block::Block(MsgRefine)\n",  CkMyPe(),name(thisIndex).c_str());
 
-#endif
+// #endif
 
-  PERF_START(perf_block);
+//   PERF_START(perf_block);
 
-  init_refresh_();
-  usesAtSync = true;
+//   init_refresh_();
+//   usesAtSync = true;
 
-  thisIndex.array(array_,array_+1,array_+2);
-#ifdef TRACE_BLOCK
-  CkPrintf ("DEBUG_BLOCK Block(msg) face_level %p\n",
-            msg->face_level_);
-#endif
-  init_refine_ (msg->index_,
-	msg->nx_, msg->ny_, msg->nz_,
-	msg->num_field_blocks_,
-	msg->num_adapt_steps_,
-	msg->cycle_, msg->time_,  msg->dt_,
-	0, NULL, msg->refresh_type_,
-        msg->num_face_level_, msg->face_level_,
-        msg->adapt_parent_);
+//   thisIndex.array(array_,array_+1,array_+2);
+// #ifdef TRACE_BLOCK
+//   CkPrintf ("DEBUG_BLOCK Block(msg) face_level %p\n",
+//             msg->face_level_);
+// #endif
+//   init_refine_ (msg->index_,
+// 	msg->nx_, msg->ny_, msg->nz_,
+// 	msg->num_field_blocks_,
+// 	msg->num_adapt_steps_,
+// 	msg->cycle_, msg->time_,  msg->dt_,
+// 	0, NULL, msg->refresh_type_,
+//         msg->num_face_level_, msg->face_level_,
+//         msg->adapt_parent_);
 
-  init_adapt_(msg->adapt_parent_);
+//   init_adapt_(msg->adapt_parent_);
 
-  apply_initial_(msg);
-}
-//======================================================================
-#endif /* BYPASS_CHARM_MEM_LEAK */
-//======================================================================
+//   apply_initial_(msg);
+// }
+// //======================================================================
+// #endif /* BYPASS_CHARM_MEM_LEAK */
+// //======================================================================
 
+// ||||||| 1d3f74c23
+// //======================================================================
+// #else /* not BYPASS_CHARM_MEM_LEAK */
+// //======================================================================
+
+// Block::Block ( MsgRefine * msg )
+//   : CBase_Block(),
+//     data_(NULL),
+//     child_data_(NULL),
+//     level_next_(0),
+//     cycle_(0),
+//     time_(0.0),
+//     dt_(0.0),
+//     stop_(false),
+//     index_initial_(0),
+//     children_(),
+//     sync_coarsen_(),
+//     sync_count_(),
+//     sync_max_(),
+//     adapt_(),
+//     child_face_level_curr_(),
+//     child_face_level_next_(),
+//     count_coarsen_(0),
+//     adapt_step_(0),
+//     adapt_ready_(false),
+//     adapt_balanced_(false),
+//     adapt_changed_(0),
+//     coarsened_(false),
+//     is_leaf_((thisIndex.level() >= 0)),
+//     age_(0),
+//     ip_next_(-1),
+//     name_(""),
+//     index_method_(-1),
+//     index_solver_(),
+//     refresh_()
+// {
+// #ifdef TRACE_BLOCK
+
+//   CkPrintf ("%d TRACE_BLOCK %s Block::Block(MsgRefine)\n",  CkMyPe(),name(thisIndex).c_str());
+
+// #endif
+
+//   performance_start_(perf_block);
+
+//   init_refresh_();
+//   usesAtSync = true;
+
+//   thisIndex.array(array_,array_+1,array_+2);
+// #ifdef TRACE_BLOCK
+//   CkPrintf ("DEBUG_BLOCK Block(msg) face_level %p\n",
+//             msg->face_level_);
+// #endif
+//   init_refine_ (msg->index_,
+// 	msg->nx_, msg->ny_, msg->nz_,
+// 	msg->num_field_blocks_,
+// 	msg->num_adapt_steps_,
+// 	msg->cycle_, msg->time_,  msg->dt_,
+// 	0, NULL, msg->refresh_type_,
+//         msg->num_face_level_, msg->face_level_,
+//         msg->adapt_parent_);
+
+//   init_adapt_(msg->adapt_parent_);
+
+//   apply_initial_(msg);
+  
+//   performance_stop_(perf_block);
+
+// }
+// //======================================================================
+// #endif /* BYPASS_CHARM_MEM_LEAK */
+// //======================================================================
+
+// =======
+// >>>>>>> origin/texascale-fixes
 //----------------------------------------------------------------------
 
 void Block::init_refine_
@@ -411,6 +479,8 @@ void Block::pup(PUP::er &p)
     for (int i=0; i<len; i++) refresh_msg_list_[i].clear();
   }
 
+  p | index_order_;
+  p | count_order_;
 }
 
 //----------------------------------------------------------------------
@@ -591,12 +661,11 @@ void Block::apply_initial_(MsgRefine * msg) throw ()
   fflush(stdout);
 #endif
   const bool is_first_cycle = (cycle_ == cello::config()->initial_cycle);
-  const bool initial_new    = cello::config()->initial_new;
-
   if (! is_first_cycle) {
     msg->update(data());
   } else {
     TRACE("Block::apply_initial_()");
+    const bool initial_new = cello::config()->initial_new;
     if (initial_new) {
 
       initial_new_begin_(0);

@@ -41,6 +41,10 @@ public: // virtual methods
   virtual std::string name () throw () 
   { return "balance"; }
 
+  /// Whether to monitor performance (so can be turned off if problematic)
+  virtual bool monitor_performance() const
+  { return false; }
+
 protected: // attributes
 
   /// Process to migrate to

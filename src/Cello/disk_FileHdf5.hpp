@@ -7,7 +7,7 @@
 
 #ifndef DISK_FILE_HDF5_HPP
 #define DISK_FILE_HDF5_HPP
-
+#include "performance_Timer.hpp"
 class FileHdf5 : public File {
 
   /// @class    FileHdf5
@@ -312,6 +312,8 @@ private: // attributes
 
   /// Compression level
   int compress_level_;
+
+  Timer timer;
 
 };
 

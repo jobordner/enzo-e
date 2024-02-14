@@ -96,6 +96,39 @@ Performance::~Performance()
 #endif
 }
 
+void Performance::pup (PUP::er &p)
+{
+  TRACEPUP;
+
+  // NOTE: change this function whenever attributes change
+#ifdef CONFIG_USE_PAPI
+  p | papi_;
+#endif
+  p | counter_name_;
+  p | counter_type_;
+  p | counter_values_;
+  p | counter_values_reduced_;
+  p | region_name_;
+  p | region_counters_;
+  p | region_index_;
+  p | region_multiplicity_;
+  p | region_in_charm_;
+#ifdef CONFIG_USE_PAPI
+  WARNING("Performance::pup",
+          "skipping Performance:papi_counters_");
+  //    p | papi_counters_
+#endif
+#ifdef CONFIG_USE_PROJECTIONS
+  p | projections_tracing_;
+  p | projections_schedule_on_;
+  p | projections_schedule_off_;
+#endif
+
+  p | warnings_;
+  p | index_region_current_;
+}
+
+
 //----------------------------------------------------------------------
 
 void
