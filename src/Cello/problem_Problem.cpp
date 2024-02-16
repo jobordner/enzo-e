@@ -469,7 +469,7 @@ void Problem::initialize_method
   Method::courant_global = config->method_courant_global;
 
   method_list_.push_back(new MethodNull(config->method_null_dt)); 
-  
+
   for (size_t index_method=0; index_method < num_method ; index_method++) {
 
     std::string name = config->method_type[index_method];
@@ -491,6 +491,9 @@ void Problem::initialize_method
 			     config->schedule_step[index_schedule],
 			     config->schedule_list[index_schedule]));
       }
+      method->set_max_subcycle(config->method_max_subcycle[index_method]);
+      method->set_max_supercycle(config->method_max_supercycle[index_method]);
+      method->set_index(method_list_.size() - 1);
 
     } else {
       ERROR1("Problem::initialize_method",
@@ -1010,6 +1013,7 @@ Output * Problem::create_output_
     std::string image_reduce_type = config->output_image_reduce_type[index];
     std::string image_mesh_color  = config->output_image_mesh_color[index];
     std::string image_mesh_order  = config->output_image_mesh_order[index];
+    std::string image_mesh_scalar = config->output_image_mesh_scalar[index];
     std::string image_color_particle_attribute =
       config->output_image_color_particle_attribute[index];
     double      image_min = config->output_image_min[index];
@@ -1041,6 +1045,7 @@ Output * Problem::create_output_
 			      image_reduce_type,
 			      image_mesh_color,
 			      image_mesh_order,
+			      image_mesh_scalar,
 			      image_color_particle_attribute,
 			      image_lower, image_upper,
 			      image_face_rank,

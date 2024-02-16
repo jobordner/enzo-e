@@ -482,6 +482,8 @@ public: // attributes
   int                        num_method;
   double                     method_courant_global;
   std::vector<std::string>   method_list;
+  std::vector<int>           method_max_subcycle;
+  std::vector<int>           method_max_supercycle;
 
   std::vector<int>           method_schedule_index;
 
@@ -538,6 +540,8 @@ public: // attributes
   std::vector < char >        output_image_abs;
   std::vector < std::string > output_image_mesh_color;
   std::vector < std::string > output_image_mesh_order;
+  std::vector < std::string > output_image_mesh_scalar;
+  std::vector < int >         output_image_mesh_scalar_index;
   std::vector < std::string > output_image_color_particle_attribute;
   std::vector < std::vector <int> > output_image_size;
   std::vector < std::string>  output_image_reduce_type;
@@ -635,6 +639,8 @@ public: // attributes
   std::vector<double>        testing_time_final;
   double                     testing_time_tolerance;
 
+  std::vector<std::string>   timestep_adapt_type;
+
 protected: // functions
 
   void read_adapt_       ( Parameters * ) throw();
@@ -654,6 +660,7 @@ protected: // functions
   void read_solver_      ( Parameters * ) throw();
   void read_stopping_    ( Parameters * ) throw();
   void read_testing_     ( Parameters * ) throw();
+  void read_timestep_    ( Parameters * ) throw();
   void read_units_       ( Parameters * ) throw();
 
   int read_schedule_( Parameters * ,

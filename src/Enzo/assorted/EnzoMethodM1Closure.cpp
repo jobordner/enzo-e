@@ -506,7 +506,7 @@ void EnzoMethodM1Closure::inject_photons ( EnzoBlock * enzo_block, int igroup ) 
 
   double cell_volume = hx*hy*hz * enzo_units->volume(); 
 
-  double dt = enzo_block->dt * tunit;
+  double dt = enzo_block->state()->dt() * tunit;
 
   // get relevant field variables
   enzo_float * N          = (enzo_float *) field.values(
@@ -1312,7 +1312,7 @@ void EnzoMethodM1Closure::solve_transport_eqn ( EnzoBlock * enzo_block, int igro
   double tunit = enzo_units->time();
   double Nunit = enzo_units->photon_number_density();
 
-  double dt = enzo_block->dt;
+  double dt = enzo_block->state()->dt();
   double hx = (xp-xm)/(mx-2*gx);
   double hy = (yp-ym)/(my-2*gy);
   double hz = (zp-zm)/(mz-2*gz);
@@ -1449,7 +1449,7 @@ void EnzoMethodM1Closure::add_LWB(EnzoBlock * enzo_block, double J21)
     double D = 5.882e-4;
     double E = -5.056e-6;
 
-    double z = enzo_block->redshift;
+    double z = enzo_block->state()->redshift();
     if (z > 30) { // function valid for z < 30 (not many Pop III stars at z > 30)
       return;
     }
@@ -1468,8 +1468,10 @@ void EnzoMethodM1Closure::add_LWB(EnzoBlock * enzo_block, double J21)
 
   Scalar<double> scalar = enzo_block->data()->scalar_double();
   
-  bool is_first_cycle = (enzo_block->cycle() == enzo_config->initial_cycle);
-  double Nbackground_previous = is_first_cycle ? 0.0 : *(scalar.value(scalar.index("N_LWB")));
+  bool is_first_cycle =
+    (enzo_block->state()->cycle() == enzo_config->initial_cycle);
+  double Nbackground_previous =
+    is_first_cycle ? 0.0 : *(scalar.value(scalar.index("N_LWB")));
  
   for (int i=0; i<mx*my*mz; i++) {
     // subtract the background from the previous timestep and add the new

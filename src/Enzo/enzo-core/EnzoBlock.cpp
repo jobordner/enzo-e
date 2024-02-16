@@ -149,19 +149,20 @@ void EnzoBlock::initialize(const EnzoConfig * enzo_config)
 
 EnzoBlock::EnzoBlock (CkMigrateMessage *m)
   : CBase_EnzoBlock (m)
-    // dt(0.0),
-    // redshift(0.0)
 {
+  state_ = std::make_shared<EnzoState>(0, 0.0, 0.0, false);
+
   TRACE("CkMigrateMessage");
   // EnzoSimulation[0] counts migrated Blocks
   proxy_enzo_simulation[0].p_method_balance_check();
 }
 
-EnzoBlock::EnzoBlock( MsgType msg_type)
-  : CBase_EnzoBlock (msg_type),
-    redshift(0.0)
+//----------------------------------------------------------------------
 
+EnzoBlock::EnzoBlock(MsgType msg_type)
+  : CBase_EnzoBlock (msg_type)
 {
+  state_ = std::make_shared<EnzoState>(0, 0.0, 0.0, false);
 #ifdef TRACE_BLOCK
 
   CkPrintf ("%d %p TRACE_BLOCK %s EnzoBlock(ip) msg_type %d\n",
@@ -227,8 +228,6 @@ void EnzoBlock::pup(PUP::er &p)
 
   CBase_EnzoBlock::pup(p);
 
-  p | dt;
-
   const int in = cello::index_static();
 
   static bool warn1[CONFIG_NODE_SIZE] = {true};
@@ -242,8 +241,6 @@ void EnzoBlock::pup(PUP::er &p)
   PUParray(p,GridStartIndex,MAX_DIMENSION);
   PUParray(p,GridEndIndex,MAX_DIMENSION);
   PUParray(p,CellWidth,MAX_DIMENSION);
-
-  p | redshift;
 }
 
 //======================================================================
@@ -348,33 +345,6 @@ void EnzoBlock::write(FILE * fp) throw ()
 
   // problem
 
-  fprintf (fp,"EnzoBlock: dt %g\n", dt);
-
-}
-
-//----------------------------------------------------------------------
-
-void EnzoBlock::set_dt (double dt_param) throw ()
-{
-  Block::set_dt (dt_param);
-
-  dt = dt_param;
-}
-
-//----------------------------------------------------------------------
-
-void EnzoBlock::set_time (double time) throw ()
-{
-  Block::set_time (time);
-
-  Simulation * simulation = cello::simulation();
-  EnzoUnits * units = (EnzoUnits * )simulation->problem()->units();
-  EnzoPhysicsCosmology * cosmology = units->cosmology();
-
-  if (cosmology) {
-    cosmology->set_current_time(time);
-    redshift = cosmology->current_redshift();
-  }
 }
 
 //----------------------------------------------------------------------

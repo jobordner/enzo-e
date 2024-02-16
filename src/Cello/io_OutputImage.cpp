@@ -13,9 +13,9 @@
 //----------------------------------------------------------------------
 #ifdef TRACE_MEMORY
 #  undef TRACE_MEMORY
-#  define TRACE_MEMORY(MSG,BYTES) CkPrintf \
-  ("TRACE_MEMORY %d : %d %s : %lu\n",                                   \
-   CkMyPe(),__LINE__,(MSG),(long unsigned)(BYTES));                     \
+#  define TRACE_MEMORY(MSG,BYTES) CkPrintf              \
+  ("TRACE_MEMORY %d : %d %s : %lu\n",                   \
+   CkMyPe(),__LINE__,(MSG),(long unsigned)(BYTES));     \
   fflush(stdout);
 #else
 #  define TRACE_MEMORY(MSG,BYTES) /* ... */
@@ -33,7 +33,8 @@ OutputImage::OutputImage(int index,
 			 int image_size[2],
 			 std::string image_reduce_type,
 			 std::string image_mesh_color,
-			 std::string image_mesh_order,
+                         std::string image_mesh_order,
+			 std::string image_mesh_scalar,
 			 std::string color_particle_attribute,
 			 double image_lower[],
 			 double image_upper[],
@@ -84,6 +85,9 @@ OutputImage::OutputImage(int index,
   else if (image_mesh_color=="order") {
     mesh_color_type_  = mesh_color_order;
     mesh_color_order_ = image_mesh_order;
+  } else if (image_mesh_color=="scalar") {
+    mesh_color_type_ = mesh_color_scalar;
+    image_color_scalar_ = image_mesh_scalar;
   } else {
     ERROR1 ("OutputImage::OutputImage()",
 	    "Unrecognized output_image_mesh_color %s",
@@ -188,6 +192,7 @@ void OutputImage::pup (PUP::er &p)
   p | op_reduce_;
   p | mesh_color_type_;
   p | mesh_color_order_;
+  p | image_color_scalar_;
   p | color_particle_attribute_;
   p | axis_;
   p | use_min_max_;
@@ -654,6 +659,11 @@ double OutputImage::mesh_color_(const Block * block, int level) const
     long long index,count;
     block->get_order (&index, &count);
     value = (count) > 0 ? 1.0*index/count : 0;
+  } else if (mesh_color_type_ == mesh_color_scalar) {
+    const ScalarDescr * scalar = cello::scalar_descr_double();
+    int is = scalar->index (image_color_scalar_);
+    ScalarData<double> * scalar_data = ((Block *)block)->data()->scalar_data_double();
+    value = *scalar_data->value(cello::scalar_descr_double(),is);
   } else {
     ERROR1 ("OutputImage::mesh_color_()",
 	    "Unknown mesh_color_type_ %d",
@@ -885,7 +895,7 @@ void OutputImage::reduce_point_
 
   if ( ! (0.0 <= alpha && alpha <= 1.0)) {
     WARNING1 ("OutputImage::reduce_point_()",
-	     "Alpha %g is not between 0.0 and 1.0",
+              "Alpha %g is not between 0.0 and 1.0",
 	      alpha);
   }
   const int i = ix + image_size_[0]*iy;

@@ -210,10 +210,11 @@ public: // interface
   void update_curr_from_next ()
   { face_level_curr_ = face_level_next_; }
 
+
   void update_next_from_curr ()
   { face_level_next_ = face_level_curr_; }
 
-  void copy_face_level_curr(int * face_level)
+  void copy_face_level_curr(const int * face_level)
   {
     for (int i=0; i<27; i++)
       face_level_curr_[i] = face_level[i];
@@ -337,7 +338,7 @@ public: // interface
   inline Index index(int i) const { return neighbor_list_.at(i).index_; }
 
   /// Display Adapt attributes for debugging
-  void print(std::string message, const Block * block = nullptr, FILE * fp=nullptr) const;
+  void print(std::string message, const Block * block = nullptr, FILE * fp=stdout) const;
 
   /// Write block's neighbors to file for debugging
   void write(std::string filename, const Block * block, int cycle_start = 0) const;

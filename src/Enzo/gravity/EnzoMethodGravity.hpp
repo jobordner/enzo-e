@@ -37,7 +37,11 @@ public: // interface
       order_(4),
       ir_exit_(-1),
       index_prolong_(0),
-      dt_max_(0.0)
+      dt_max_(0.0),
+      ipotential_curr_(-1),
+      ipotential_prev_(-1),
+      is_time_curr_(-1),
+      is_time_prev_(-1)
   {};
 
   /// Destructor
@@ -54,8 +58,11 @@ public: // interface
       order_(4),
       ir_exit_(-1),
       index_prolong_(0),
-      dt_max_(0.0)
-
+      dt_max_(0.0),
+      ipotential_curr_(-1),
+      ipotential_prev_(-1),
+      is_time_curr_(-1),
+      is_time_prev_(-1)
   { }
 
   /// CHARM++ Pack / Unpack function
@@ -75,6 +82,10 @@ public: // interface
     p | order_;
     p | dt_max_;
     p | ir_exit_;
+    p | ipotential_curr_;
+    p | ipotential_prev_;
+    p | is_time_curr_;
+    p | is_time_prev_;
 
   }
 
@@ -98,7 +109,13 @@ public: // interface
 
   /// Compute maximum timestep for this method
   double timestep_ (Block * block) throw() ;
-  
+
+  /// Scalar times for previous and current saved potentials when max_supercycling > 1
+  double & s_time_curr_(Block * block)
+  { return *block->data()->scalar_double().value(is_time_curr_); }
+  double & s_time_prev_(Block * block)
+  { return *block->data()->scalar_double().value(is_time_prev_); }
+
 protected: // attributes
 
   /// Solver index for the linear solver used to compute the potential
@@ -119,6 +136,14 @@ protected: // attributes
 
   /// Maximum timestep
   double dt_max_;
+
+  /// Temporary fields
+  int ipotential_curr_;
+  int ipotential_prev_;
+
+  /// Scalars
+  int is_time_curr_;
+  int is_time_prev_;
 };
 
 

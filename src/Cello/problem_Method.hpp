@@ -22,20 +22,22 @@ public: // interface
   /// Create a new Method
   Method (double courant = 1.0) throw();
 
-  /// Destructor
-  virtual ~Method() throw();
-
   /// Charm++ PUP::able declarations
   PUPable_abstract(Method);
 
   Method (CkMigrateMessage *m)
     : PUP::able(m),
-    schedule_(NULL),
-    courant_(1.0),
-    ir_post_(-1),
-    neighbor_type_(neighbor_leaf)
-
+      schedule_(NULL),
+      courant_(1.0),
+      ir_post_(-1),
+      neighbor_type_(neighbor_leaf),
+      max_subcycle_(1),
+      max_supercycle_(1),
+      index_method_(-1)
   { }
+
+  /// Destructor
+  virtual ~Method() throw();
 
   /// CHARM++ Pack / Unpack function
   void pup (PUP::er &p);
@@ -93,6 +95,25 @@ public: // virtual functions
   void set_courant(double courant) throw ()
   { courant_ = courant; }
 
+  /// Initialize subcycling, supercycling, and index_method
+  void set_max_subcycle (int max_subcycle)
+  { max_subcycle_ = max_subcycle; }
+
+  void set_max_supercycle (int max_supercycle)
+  { max_supercycle_ = max_supercycle; }
+
+  void set_index(int index)
+  { index_method_ = index; }
+
+  int index() const { return index_method_; }
+
+  /// Access subcycling and supercycling limits
+  int max_subcycle () const
+  { return max_subcycle_; }
+
+  int max_supercycle () const
+  { return max_supercycle_; }
+
 protected: // functions
 
   /// Perform vector copy X <- Y
@@ -124,6 +145,12 @@ protected: // attributes
   /// Default refresh type
   int neighbor_type_;
 
+  /// Minimum and maximum allowed sub- and super-cycling
+  int max_subcycle_;
+  int max_supercycle_;
+
+  /// Index of this Method in Problem
+  int index_method_;
 };
 
 #endif /* PROBLEM_METHOD_HPP */

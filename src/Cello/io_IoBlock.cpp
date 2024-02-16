@@ -6,6 +6,7 @@
 /// @brief    Implementation of the IoBlock class
 
 #include "io.hpp"
+#include "data_State.hpp"
 
 //----------------------------------------------------------------------
 
@@ -36,9 +37,9 @@ void IoBlock::set_block (Block * block) throw()
   for (i=0; i<3; i++) index_[i] = block->index_[i];
   for (i=0; i<3; i++) lower_[i] = data->lower_[i];
   for (i=0; i<3; i++) upper_[i] = data->upper_[i];
-  cycle_ = block->cycle_;
-  time_  = block->time_;
-  dt_    = block->dt_;
+  cycle_ = block->state()->cycle();
+  time_  = block->state()->time();
+  dt_    = block->state()->dt();
   for (i=0; i<3; i++) array_[i] = block->array_[i];
   Index order_next;
   block->get_order(&order_index_, &order_count_, &order_next);
@@ -184,9 +185,9 @@ void IoBlock::save_to (void * v)
     //    b->upper_[i] = upper_[i];
     b->array_[i] = array_[i];
   }
-  b->cycle_ = cycle_;
-  b->time_  = time_;
-  b->dt_    = dt_;
+  b->state()->set_cycle(cycle_);
+  b->state()->set_time (time_);
+  b->state()->set_dt   (dt_);
   Index order_next;
   order_next.set_values(order_next_);
   b->set_order(order_index_, order_count_,order_next);

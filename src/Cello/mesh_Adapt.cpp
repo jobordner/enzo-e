@@ -358,7 +358,9 @@ void Adapt::print(std::string message, const Block * block, FILE * fp) const
 {
   if (fp != nullptr && block->is_leaf() && valid_) {
     std::string prefix = std::string("DEBUG_ADAPT ")+message;
-    fprintf (fp,"%s Block %s cycle %d\n",prefix.c_str(),block->name().c_str(),block->cycle());
+    fprintf (fp,"%s Block %s cycle %d\n",prefix.c_str(),
+             block->name().c_str(),
+             block->state()->cycle());
     fprintf (fp,"%s face_level curr: ",prefix.c_str());
     for (size_t i=0; i<face_level_curr_.size(); i++) {
       fprintf (fp,"%d ", face_level_curr_.at(i));
@@ -435,7 +437,7 @@ void Adapt::print(std::string message, const Block * block, FILE * fp) const
 
 void Adapt::write(std::string root, const Block * block, int cycle_start) const
 {
-  const int cycle = cello::simulation()->cycle();
+  const int cycle = cello::simulation()->state()->cycle();
   if (cycle >= cycle_start) {
     char filename[80];
     sprintf (filename,"%d-%s.%s",cycle,root.c_str(),block->name().c_str());

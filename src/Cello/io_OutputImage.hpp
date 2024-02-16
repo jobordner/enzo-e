@@ -12,11 +12,12 @@ class Factory;
 
 enum mesh_color_type {
   mesh_color_unknown,
-  mesh_color_level,
-  mesh_color_process,
-  mesh_color_neighbor,
   mesh_color_age,
-  mesh_color_order
+  mesh_color_level,
+  mesh_color_neighbor,
+  mesh_color_order,
+  mesh_color_process,
+  mesh_color_scalar
 };
 
 class OutputImage : public Output {
@@ -43,6 +44,7 @@ public: // functions
 	      std::string image_reduce_type,
 	      std::string image_mesh_color,
 	      std::string image_mesh_order,
+	      std::string image_color_scalar,
 	      std::string image_color_particle_attribute,
 	      double      image_lower[],
 	      double      image_upper[],
@@ -68,6 +70,7 @@ public: // functions
       op_reduce_(reduce_unknown),
       mesh_color_type_(mesh_color_unknown),
       mesh_color_order_(),
+      image_color_scalar_(),
       color_particle_attribute_(""),
       axis_(axis_all),
       min_value_(std::numeric_limits<double>::max()),
@@ -197,6 +200,9 @@ private: // attributes
 
   /// Block int Scalar for ordering when mesh_color_type_ = mesh_color_order
   std::string mesh_color_order_;
+
+  /// Scalar associated with mesh_color_type = mesh_color_scalar
+  std::string image_color_scalar_;
 
   /// Particle attribute defining color (default -1: constant)
   std::string color_particle_attribute_;

@@ -101,8 +101,8 @@ void EnzoMethodBackgroundAcceleration::compute_ (Block * block) throw()
 
   if (cosmology) {
     enzo_float cosmo_dadt = 0.0;
-    double dt    = block->dt();
-    double time  = block->time();
+    const double dt    = block->state()->dt();
+    const double time  = block->state()->time();
     cosmology->compute_expansion_factor(&cosmo_a,&cosmo_dadt,time+0.5*dt);
     if (rank >= 1) hx_ *= cosmo_a;
     if (rank >= 2) hy_ *= cosmo_a;
@@ -122,15 +122,16 @@ void EnzoMethodBackgroundAcceleration::compute_ (Block * block) throw()
   }
 
   Particle particle = enzo_block->data()->particle();
+  auto dt = enzo_block->state()->dt();
 
   if (enzo_config->method_background_acceleration_flavor == "GalaxyModel"){
 
     this->GalaxyModel(ax, ay, az, &particle, rank,
-                      cosmo_a, enzo_config, enzo_units, enzo_block->dt);
+                      cosmo_a, enzo_config, enzo_units, dt);
 
   } else if (enzo_config->method_background_acceleration_flavor == "PointMass"){
     this->PointMass(ax, ay, az, &particle, rank,
-                    cosmo_a, enzo_config, enzo_units, enzo_block->dt);
+                    cosmo_a, enzo_config, enzo_units, dt);
   } else {
 
     ERROR("EnzoMethodBackgroundAcceleration::compute_()",
@@ -423,8 +424,8 @@ double EnzoMethodBackgroundAcceleration::timestep (Block * block) throw()
   if (cosmology) {
     enzo_float cosmo_a = 1.0;
     enzo_float cosmo_dadt = 0.0;
-    double dt   = block->dt();
-    double time = block->time();
+    const double dt   = block->state()->dt();
+    const double time = block->state()->time();
     cosmology-> compute_expansion_factor (&cosmo_a,&cosmo_dadt,time+0.5*dt);
     if (rank >= 1) hx*=cosmo_a;
     if (rank >= 2) hy*=cosmo_a;

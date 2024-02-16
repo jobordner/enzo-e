@@ -170,8 +170,6 @@ extern "C" { // declare the names of Grackle types so can reduce the usage of
 #include "utils/EnzoEFltArrayMap.hpp"
 #include "utils/utils.hpp"
 
-#include "enzo_Index3.hpp"
-
 #include "cosmology/EnzoPhysicsCosmology.hpp"
 
 // [order dependencies:]
@@ -192,17 +190,11 @@ extern "C" { // declare the names of Grackle types so can reduce the usage of
 #include "chemistry/GrackleFacade.hpp"
 
 #include "enzo-core/EnzoFactory.hpp"
-
 #include "enzo-core/EnzoSimulation.hpp"
-
 #include "enzo-core/EnzoProblem.hpp"
-
 #include "enzo-core/EnzoConfig.hpp"
-
+#include "enzo-core/EnzoState.hpp"
 #include "enzo-core/EnzoBlock.hpp"
-
-
-#include "enzo_EnzoLevelArray.hpp"
 
 #include "io/IoEnzoBlock.hpp"
 #include "io/IoEnzoReader.hpp"
@@ -265,9 +257,6 @@ extern "C" { // declare the names of Grackle types so can reduce the usage of
 #include "hydro-mhd/EnzoBfieldMethod.hpp"
 #include "hydro-mhd/EnzoBfieldMethodCT.hpp"
 
-
-#include "enzo_EnzoMethodInference.hpp"
-
 #include "particle/formation/EnzoMethodAccretion.hpp"
 #include "gravity/EnzoMethodBackgroundAcceleration.hpp"
 #include "particle/formation/EnzoMethodBondiHoyleAccretion.hpp"
@@ -322,5 +311,10 @@ extern "C" { // declare the names of Grackle types so can reduce the usage of
 #include "mesh/EnzoProlongMC1.hpp"
 #include "mesh/EnzoProlongPoisson.hpp"
 #include "mesh/EnzoRestrict.hpp"
+
+#include "enzo_Index3.hpp"
+#include "enzo_EnzoLevelArray.hpp"
+#include "enzo_EnzoMethodInference.hpp"
+
 
 #endif /* ENZO_PRIVATE_HPP */
