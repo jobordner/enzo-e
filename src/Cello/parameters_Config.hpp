@@ -93,7 +93,6 @@ public: // interface
     method_flux_correct_enable(),
     method_flux_correct_min_digits_fields(),
     method_flux_correct_min_digits_values(),
-    method_flux_correct_single_array(true),
     method_field_list(),
     method_particle_list(),
     method_order_ordering(),
@@ -270,7 +269,6 @@ public: // interface
       method_flux_correct_enable(),
       method_flux_correct_min_digits_fields(),
       method_flux_correct_min_digits_values(),
-      method_flux_correct_single_array(true),
       method_field_list(),
       method_particle_list(),
       method_order_ordering(),
@@ -502,7 +500,6 @@ public: // attributes
   std::vector<bool>          method_flux_correct_enable;
   std::vector<std::vector<std::string>> method_flux_correct_min_digits_fields;
   std::vector<std::vector<double>> method_flux_correct_min_digits_values;
-  bool                       method_flux_correct_single_array;
 
   std::vector< std::vector< std::string > > method_field_list;
   std::vector< std::vector< std::string > > method_particle_list;

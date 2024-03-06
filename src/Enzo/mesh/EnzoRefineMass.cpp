@@ -1,16 +1,16 @@
-// // See LICENSE_CELLO file for license and copyright information
+// See LICENSE_CELLO file for license and copyright information
 
-// /// @file     enzo_EnzoRefineMass.cpp
-// /// @author   James Bordner (jobordner@ucsd.edu)
-// /// @date     2013-04-23
-// /// @brief    Implementation of Enzo RefineMass class
+/// @file     enzo_EnzoRefineMass.cpp
+/// @author   James Bordner (jobordner@ucsd.edu)
+/// @date     2013-04-23
+/// @brief    Implementation of Enzo RefineMass class
 
 // #define DEBUG_REFINE
 
-#include "enzo.hpp"
-#include "charm_simulation.hpp"
-#include "enzo.hpp"
-#include "charm_enzo.hpp"
+#include "Enzo/mesh/mesh.hpp"
+#include "Enzo/enzo.hpp"
+#include "Cello/charm_simulation.hpp"
+#include "enzo.decl.h"
 
 //----------------------------------------------------------------------
 

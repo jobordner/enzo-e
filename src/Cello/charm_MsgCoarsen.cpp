@@ -22,8 +22,8 @@ MsgCoarsen::MsgCoarsen()
     buffer_(NULL),
     adapt_child_(nullptr),
     num_face_level_(0),
-    face_level_(NULL),
-    face_level_count_(NULL)
+    face_level_(nullptr),
+    face_level_count_(nullptr)
 {
   ic3_[0] = ic3_[1] = ic3_[2] = -1;
   ++counter[cello::index_static()]; 

@@ -38,12 +38,6 @@ public: // interface
     ++counter[cello::index_static()]; 
   };
 
-  // /// Assignment operator
-  // MsgOrder & operator= (const MsgOrder & msg) throw()
-  // {
-  //   return *this;
-  // }
-
   inline void get_index (int & index, double & windex) const
   {
     index  = index_;

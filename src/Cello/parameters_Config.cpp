@@ -130,7 +130,6 @@ void Config::pup (PUP::er &p)
   p | method_flux_correct_enable;
   p | method_flux_correct_min_digits_fields;
   p | method_flux_correct_min_digits_values;
-  p | method_flux_correct_single_array;
   p | method_field_list;
   p | method_particle_list;
   p | method_order_ordering;
@@ -328,21 +327,7 @@ void Config::read_adapt_ (Parameters * p) throw()
 
     std::string param_str = prefix + "field_list";
 
-    int type = p->type(param_str);
-
-    if (type == parameter_list) {
-      const int n = p->list_length(param_str);
-      adapt_field_list[ia].resize(n);
-      for (int index=0; index<n; index++) {
-	adapt_field_list[ia][index] = p->value(index,param_str,"none");
-      }
-    } else if (type == parameter_string) {
-      adapt_field_list[ia].resize(1);
-      adapt_field_list[ia][0] = p->value_string (param_str,"none");
-    } else if (type != parameter_unknown) {
-      ERROR2 ("Config::read()", "Incorrect parameter type %d for %s",
-	      type,param_str.c_str());
-    }
+    adapt_field_list[ia] = p->value_full_strlist(prefix+"field_list", true);
 
     //--------------------------------------------------
 
@@ -444,8 +429,14 @@ void Config::read_boundary_ (Parameters * p) throw()
 
   for (int ib=0; ib<num_boundary; ib++) {
 
-    boundary_list[ib] = multi_boundary ?
-      p->list_value_string(ib,"Boundary:list","unknown") : "boundary";
+    if (!multi_boundary){
+      boundary_list[ib] = "#boundary#";
+    } else {
+      boundary_list[ib] = p->list_value_string(ib,"Boundary:list","unknown");
+      ASSERT("Config::read_boundary_()",
+             "'#' character can't appear in any strings in Boundary:list",
+             boundary_list[ib].find('#') == std::string::npos);
+    }
 
     std::string prefix = "Boundary:";
 
@@ -476,25 +467,8 @@ void Config::read_boundary_ (Parameters * p) throw()
     boundary_mask[ib] = (p->type(prefix+"mask") 
 			 == parameter_logical_expr);
 
-    std::string param_str = prefix+"field_list";
-    int field_list_type = p->type(param_str);
-    if (field_list_type == parameter_list) {
-      const int n = p->list_length(param_str);
-      boundary_field_list[ib].resize(n);
-      for (int index=0; index<n; index++) {
-	boundary_field_list[ib][index] = p->list_value_string 
-	  (index,param_str);
-      }
-    } else if (field_list_type == parameter_string) {
-      boundary_field_list[ib].resize(1);
-      boundary_field_list[ib][0] = p->value_string(param_str);
-    } else if (field_list_type != parameter_unknown) {
-      ERROR2 ("Config::read()", "Incorrect parameter type %d for %s",
-	      field_list_type,param_str.c_str());
-    }
-	
+    boundary_field_list[ib] = p->value_full_strlist(prefix+"field_list", true);
   }
-
 }
 
 //----------------------------------------------------------------------
@@ -706,6 +680,16 @@ void Config::read_memory_ (Parameters * p) throw()
 
 //----------------------------------------------------------------------
 
+// format mesh shape str for error messages (it's okay that it's inefficient)
+static std::string format_mesh_dims_(int rank, const int* dims) {
+  std::string out = "{" + std::to_string(dims[0]);
+  if (rank > 1) out += (", " + std::to_string(dims[1]));
+  if (rank > 2) out += (", " + std::to_string(dims[2]));
+  return out + "}";
+}
+
+//----------------------------------------------------------------------
+
 void Config::read_mesh_ (Parameters * p) throw()
 {
   //--------------------------------------------------
@@ -714,6 +698,10 @@ void Config::read_mesh_ (Parameters * p) throw()
 
   TRACE("Parameters: Mesh");
   mesh_root_rank = p->value_integer("Mesh:root_rank",0);
+
+  if ((mesh_root_rank < 0) && (mesh_root_rank > 3)) {
+    ERROR("Config::read_mesh_", "Mesh:root_rank must be set to 1, 2, or 3");
+  }
 
   // Adjust ghost zones for unused ranks
   if (mesh_root_rank < 2) field_ghost_depth[1] = 0;
@@ -753,46 +741,53 @@ void Config::read_mesh_ (Parameters * p) throw()
 
   if ( mesh_min_level > 0 ) {
     ERROR1 ("Config::read", 
-		    "The value of mesh_min_level: %d should be less than or equal to zero", 
-		    mesh_min_level);
+            "Adapt:min_level has invalid value, %d. It should be less than or "
+            "equal to 0", 
+            mesh_min_level);
   }
 
-  // Handle 1D and 2D simulations by adjusting the number of cells along the extra dimensions
+  // Handle 1D and 2D simulations by adjusting the number of cells along the
+  // extra dimensions
   if (mesh_root_rank < 2) mesh_root_size[1] = 1;
   if (mesh_root_rank < 3) mesh_root_size[2] = 1;
 
   // Dimensions of the active zone on each block along each axis
-  int ax = mesh_root_size[0] / mesh_root_blocks[0]; 
-  int ay = mesh_root_size[1] / mesh_root_blocks[1];
-  int az = mesh_root_size[2] / mesh_root_blocks[2];
+  const std::array<int,3> az_shape = {mesh_root_size[0] / mesh_root_blocks[0], 
+                                      mesh_root_size[1] / mesh_root_blocks[1],
+                                      mesh_root_size[2] / mesh_root_blocks[2]};
 
   //  Constraints on the block size based on the ghost depth
   if ( mesh_max_level > 0 ) {
-    if ( !(ax >= 2*field_ghost_depth[0] &&
-           ay >= 2*field_ghost_depth[1] &&
-           az >= 2*field_ghost_depth[2] ) ) {
-      ERROR3 ("Config::read",
-              "Dimensions of the active zone on each block (%d, %d, %d) "
-              "must be at least double the size of the ghost depth for AMR simulations: ",
-              ax, ay, az);
+    if ( (az_shape[0] < 2*field_ghost_depth[0]) ||
+         (az_shape[1] < 2*field_ghost_depth[1]) ||
+         (az_shape[2] < 2*field_ghost_depth[2]) ) {
+      // the above condition should work even in 1D or 2D
+      std::string az_str = format_mesh_dims_(mesh_root_rank, az_shape.data());
+      std::string gd_str = format_mesh_dims_(mesh_root_rank,
+                                             field_ghost_depth);
+      ERROR2 ("Config::read", 
+	      "Dimensions of the active zone on each block, currently %s, "
+              "should be at least double the ghost depth for AMR simulations. "
+              "Ghost depth is currently %s.", 
+              az_str.c_str(), gd_str.c_str());
+    } else if ( (az_shape[0]%2 != 0) ||
+                ((az_shape[1]%2 != 0) && (mesh_root_rank >= 2)) ||
+                ((az_shape[2]%2 != 0) && (mesh_root_rank >= 3) ) ) {
+      std::string az_str = format_mesh_dims_(mesh_root_rank, az_shape.data());
+      ERROR1 ("Config::read",
+              "Dimensions of the active zone on each block, currently %s, "
+              "should each be even for AMR simulations" ,
+              az_str.c_str());
     }
-
-    ASSERT3 ("Config::read",
-             "Dimensions of the active zone on each block (%d, %d, %d) "
-             "must each be even for AMR simulations" ,
-             ax, ay, az,
-             ( ( ax%2 == 0) &&
-               ((ay%2 == 0) || mesh_root_rank < 2) &&
-               ((az%2 == 0) || mesh_root_rank < 3) ) );
-  }
-  else if ( mesh_max_level == 0 ) {
-    if ( !(ax >= field_ghost_depth[0] &&
-           ay >= field_ghost_depth[1] &&
-           az >= field_ghost_depth[2] ) ) {
-      ERROR3 ("Config::read",
-              "Dimensions of the active zone on each block (%d, %d, %d) "
+  } else if ( mesh_max_level == 0 ) {   
+    if ( (az_shape[0] < field_ghost_depth[0]) ||
+         (az_shape[1] < field_ghost_depth[1]) ||
+         (az_shape[2] < field_ghost_depth[2]) ) {
+      std::string az_str = format_mesh_dims_(mesh_root_rank, az_shape.data());
+      ERROR1 ("Config::read",
+              "Dimensions of the active zone on each block, currently %s, "
               "should be at least as large as the ghost depth",
-              ax, ay, az);
+              az_str);
     }
   }
 }
@@ -949,9 +944,6 @@ void Config::read_method_ (Parameters * p) throw()
     } else if (p->param(min_digits_name) != nullptr){
       ERROR1("Config::read", "%s has an invalid type", min_digits_name.c_str());
     }
-
-    method_flux_correct_single_array =
-      p->value_logical (full_name + ":single_array",true);
 
     // Field and particle lists if needed by MethodRefresh
     int n = p->list_length(full_name + ":field_list");
@@ -1217,7 +1209,7 @@ void Config::read_output_ (Parameters * p) throw()
             int color_rgb;
             if (name[0] == '#') {
               bool is_valid=true;
-              for (size_t i=1; i<name.size(); i++) {
+              for (std::size_t i=1; i<name.size(); i++) {
                 is_valid = is_valid && isxdigit(name[i]);
               }
               ASSERT1 ("Config::read_output()",

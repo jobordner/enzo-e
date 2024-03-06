@@ -7,17 +7,14 @@
 
 
 #define TRACE_SUPERCYCLE
-
-#include "cello.hpp"
-#include "enzo.hpp"
-
-#include "charm_enzo.hpp"
+#include "Cello/cello.hpp"
+#include "Enzo/enzo.hpp"
+#include "Enzo/gravity/gravity.hpp"
 
 //----------------------------------------------------------------------
 
 EnzoMethodGravity::EnzoMethodGravity
 (int index_solver,
- double grav_const,
  int order,
  bool accumulate,
  int index_prolong,
@@ -25,7 +22,6 @@ EnzoMethodGravity::EnzoMethodGravity
  std::string type_super)
   : Method(),
     index_solver_(index_solver),
-    grav_const_(grav_const),
     order_(order),
     ir_exit_(-1),
     index_prolong_(index_prolong),
@@ -229,39 +225,27 @@ void EnzoMethodGravity::compute(Block * block) throw()
     if (block->is_leaf()) {
       EnzoPhysicsCosmology * cosmology = enzo::cosmology();
       if (cosmology) {
-        int gx,gy,gz;
-        field.ghost_depth(0,&gx,&gy,&gz);
-        gx=gy=gz=0;
-        for (int iz=gz; iz<mz-gz; iz++) {
-          for (int iy=gy; iy<my-gy; iy++) {
-            for (int ix=gx; ix<mx-gx; ix++) {
-              int i = ix + mx*(iy + my*iz);
-              // In cosmological simulations, density units are defined such that `rho_bar_m` is
-              // 1.0, and time units are defined such that `4 * pi * G * rho_bar_m` is 1.0, where
-              // `G` is the gravitational constant, and `rho_bar_m` is the mean matter density
-              // of the universe. These choices of units result in Poisson's equation having a
-              // much simplified form.
-              DT[i]=-(DT[i]-1.0);
-              B[i]  = DT[i];
-            }
-          }
+        for (int i=0; i<mx*my*mz; i++)  {
+          // In cosmological simulations, density units are defined such that `rho_bar_m` is
+          // 1.0, and time units are defined such that `4 * pi * G * rho_bar_m` is 1.0, where
+          // `G` is the gravitational constant, and `rho_bar_m` is the mean matter density
+          // of the universe. These choices of units result in Poisson's equation having a
+          // much simplified form.
+          DT[i]=-(DT[i]-1.0);
+          B[i]  = DT[i];
         }
       } else {
-        const double scale = -4.0 * (cello::pi) * grav_const_;
-        for (int iz=0; iz<mz; iz++) {
-          for (int iy=0; iy<my; iy++) {
-            for (int ix=0; ix<mx; ix++) {
-              const int i = ix + mx*(iy + my*iz);
-              B[i] = scale * DT[i];
-            }
-          }
+        const double grav_const = enzo::grav_constant_codeU();
+        const double scale = -4.0 * (cello::pi) * grav_const;
+        for (int i=0; i<mx*my*mz; i++)  {
+          B[i] = scale * DT[i];
         }
       }
-
+        
     } else {
 
       for (int i=0; i<mx*my*mz; i++) B[i] = 0.0;
-
+        
     }
 
     Solver * solver = enzo::problem()->solver(index_solver_);
