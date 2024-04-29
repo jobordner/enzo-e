@@ -37,16 +37,10 @@ class Block : public CBase_Block
 
 public: // interface
 
-#ifdef BYPASS_CHARM_MEM_LEAK
   /// create a Block whose MsgRefine is on the creating process
   Block ( process_type ip_source, MsgType msg_type );
   /// Initialize Block using MsgRefine returned by creating process
   virtual void p_set_msg_refine(MsgRefine * msg);
-#else
-  /// create a Block with the given block count, lower extent, block
-  /// size, and number of field blocks
-  Block ( MsgRefine * msg );
-#endif
 
   /// Destructor
   virtual ~Block();
@@ -70,7 +64,7 @@ public: // interface
   Block();
 
   /// Initialize a migrated Block
-  Block (CkMigrateMessage *m);
+  Block (CkMigrateMessage *m) : CBase_Block(m) { }
 
   /// CHARM pupper
   virtual void pup(PUP::er &p);
@@ -110,6 +104,12 @@ public: // interface
 
   int age() const throw()
   { return age_; };
+
+  /// Return process to migrate to next if different from current
+  int ip_next() const throw() { return ip_next_; }
+
+  /// Set  process to migrate to next
+  void set_ip_next(int ip) { ip_next_ = ip; }
 
   /// Return the current timestep
   double dt() const throw()
@@ -169,7 +169,7 @@ public: // interface
   std::string name8() const throw()
   { if (name8_ == "") name8_ = name8(index_); return name8_; }
 
-  /// Return the size the Block array
+  /// Return the size of the Block array
   void size_array (int * nx, int * ny = 0, int * nz = 0) const throw();
 
   /// Compute the lower extent of the Block in the domain
@@ -334,6 +334,17 @@ public: // interface
   /// Return the currently-active Solver
   Solver * solver () throw();
 
+  /// Accessor functions for block ordering index and count 
+  void set_order (long long index, long long count)
+  {
+    index_order_ = index;
+    count_order_ = count;
+  }
+  void get_order (long long * index, long long * count) const
+  { *index = index_order_;
+    *count = count_order_;
+  }
+  
 protected: // methods
 
   Index neighbor_ (const int if3[3], Index * ind = 0) const;
@@ -808,9 +819,9 @@ public: // virtual functions
   (int if3[3], int ic3[3], int g3[3],
    int refresh_type,
    Refresh * refresh,
-   bool new_refresh) const;
+   bool new_refresh = true) const;
 
-  virtual void print () const;
+  virtual void print (FILE * fp = nullptr) const;
 
   const Adapt * adapt() const { return & adapt_; }
 
@@ -996,6 +1007,9 @@ protected: // attributes
   /// Age of the Block in cycles (for OutputImage)
   int age_;
 
+  /// Process to migrate to if different from current; -1 to skip
+  int ip_next_;
+
   /// String for storing bit ID name
   mutable std::string name_;
   mutable std::string name8_;
@@ -1013,6 +1027,9 @@ protected: // attributes
   std::vector < Sync > refresh_sync_list_;
   std::vector < std::vector <MsgRefresh * > > refresh_msg_list_;
 
+  /// Index and total count used for ordering blocks, e.g. for dynamic load balancing
+  long long index_order_;
+  long long count_order_;
 };
 
 #endif /* COMM_BLOCK_HPP */

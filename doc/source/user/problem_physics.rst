@@ -10,12 +10,33 @@ This section decribes the Physics subgroups that can be specified in
 the ``Physics`` Group of the parameter file. Each subgroup directly
 maps to a different type of ``Physics`` object in the codebase. These
 objects hold information that needs to be accessible across different
-Enzo-E methods.
+Enzo-E methods and/or initializers.
+
+In a parameter file, a user currently needs to explicitly list the
+names of all of the physics objects that they are configuring within
+the :par:param:`Physics:list` parameter.
+
+.. note::
+
+   Currently, the ``"fluid_props"`` and ``"gravity"`` don't need to be
+   :par:param:`Physics:list` for Enzo-E to parse and make use of
+   parameters in the respective Physics subgroups. This choice is made
+   purely for the sake of backwards compatability (so that parameter
+   files designed for earlier versions of the code will continue to
+   work properly).
+
+   With that said, this is mostly just an implementation detail (that
+   is subject to change, especially as deprecated parameters are
+   eventually removed). At this time, Users should still explicitly
+   list these physics groups within the :par:param:`Physics:list`
+   parameter if they want to use/configure them.
 
 ``"cosmology"``
 ===============
 
 Specifies cosmological parameters
+
+.. _user-fluid_props:
 
 ``"fluid_props"``
 =================
@@ -60,19 +81,19 @@ The relevant parameters are listed below:
      - Type
      - Default
      - Description
-   * - ``"type"``
+   * - :par:param:`~Physics:fluid_props:dual_energy:type`
      - `string`
      - ``"disabled"``
      - choice of formalism: ``"disabled"``, ``"bryan95"``, ``"modern"``
-   * - ``"eta"``
+   * - :par:param:`~Physics:fluid_props:dual_energy:eta`
      - `list(float)`
      - `-`
-     - Interpretation (and defaults) depend on value of ``"type"``
+     - Interpretation (and defaults) depend on value of :par:param:`~Physics:fluid_props:dual_energy:type`
 
-When ``type`` is ``disabled``, the simulation runs without the dual-energy formalism
-This is the default configuration and in this case, the ``eta`` parameter should **NOT** be specified.
+When :par:param:`~Physics:fluid_props:dual_energy:type` is ``"disabled"``, the simulation runs without the dual-energy formalism
+This is the default configuration and in this case, the :par:param:`~Physics:fluid_props:dual_energy:eta` parameter should **NOT** be specified.
 
-The other two choices for ``type`` refer to two variants of the dual-energy formalism that we describe below.
+The other two choices for :par:param:`~Physics:fluid_props:dual_energy:type` refer to two variants of the dual-energy formalism that we describe below.
 
 ``"bryan95"`` variant
 ~~~~~~~~~~~~~~~~~~~~~
@@ -81,13 +102,13 @@ This is the original formulation of the dual-energy formalism described in
 <https://ui.adsabs.harvard.edu/abs/1995CoPhC..89..149B>`_.
 It is used by the ``"ppm"`` solver and it is parameterized by two values: :math:`\eta_1\, \&\, \eta_2`.
 
-``fluid_props:dual_energy:eta`` expects a list of 2 entries: :math:`[\eta_1, \eta_2]` (users are **NOT** permitted to provide a single entry).
+:par:param:`Physics:fluid_props:dual_energy:eta` expects a list of 2 entries: :math:`[\eta_1, \eta_2]` (users are **NOT** permitted to provide a single entry).
 When this parameter isn't specified, it defaults to ``[0.001, 0.1]``.
 
 ``"modern"`` variant
 ~~~~~~~~~~~~~~~~~~~~
 This implementation is used by the ``"mhd_vlct"`` solver and it more closely resembles the implementation employed in Enzo's Runge–Kutta integrator than the  ``"bryan95"`` variant.
-This variant is parameterized by a single value: :math:`eta`, and thus ``fluid_props:dual_energy:eta`` should only provide a single entry.
+This variant is parameterized by a single value: :math:`\eta`, and thus :par:param:`Physics:fluid_props:dual_energy:eta` should only provide a single entry.
 
 There are 3 primary differences from the ``"bryan95"`` variant:
 
@@ -138,15 +159,15 @@ In the future, further EOS customization will be supported in this section
      - Type
      - Default
      - Description
-   * - ``"gamma"``
+   * - :par:param:`~Physics:fluid_props:eos:gamma`
      - `float`
      - ``5.0/3.0``
      - Adiabatic index (a.k.a. the ratio of specific heats)
 
 See :ref:`using-grackle-gamma-with-HD` for further discussion about
 how the equation of state is handled when
-``Method:grackle:primordial_chemistry > 1`` (under these conditions
-Grackle models a spatially varying adiabatic index).
+:par:param:`Method:grackle:primordial_chemistry` exceeds ``1`` (under
+these conditions Grackle models a spatially varying adiabatic index).
 
 .. _using-fluid_props-floors:
 
@@ -163,28 +184,75 @@ The ``"fluid_props:floors"`` subsection is used for specifying the floors of dif
      - Type
      - Default
      - Description
-   * - ``"density"``
+   * - :par:param:`~Physics:fluid_props:floors:density`
      - `float`
      - `-`
      - The floor to apply to the ``"density"`` field.
-   * - ``"pressure"``
+   * - :par:param:`~Physics:fluid_props:floors:pressure`
      - `float`
      - `-`
      - The floor to apply to the ``"pressure"`` field.
-   * - ``"temperature"``
+   * - :par:param:`~Physics:fluid_props:floors:temperature`
      - `float`
      - `-`
      - The floor to apply to the ``"temperature"`` field.
-   * - ``"metallicity"``
+   * - :par:param:`~Physics:fluid_props:floors:metallicity`
      - `float`
      - `-`
      - This multiplied by the ``"density"`` field and ``enzo_constants::metallicity_solar`` gives the floor for the ``"metal_density"`` field.
 
 See :ref:`using-methods` for discussions of the floors that are actually used by a given method.
-Be mindful that unlike the other parameters, the ``"metallicity"`` doesn't directly specify the floor for a fluid field (the actual floor depends on other quantities).
+Be mindful that unlike the other parameters, the :par:param:`~Physics:fluid_props:floors:metallicity` parameter doesn't directly specify the floor for a fluid field (the actual floor depends on other quantities).
 
 .. note::
 
    The ``"pressure"`` and ``"temperature"`` fields can be written to disk as derived quantities (if the fields are specified in the "derived" grouping).
    In these cases, these quantities are computed using ``EnzoComputePressure`` and ``EnzoComputeTemperature``, respectively.
    You may want to check these classes to see if/when the floors get applied.
+
+``"gravity"``
+=============
+
+Specifies the gravitational constant. In the future, additional
+gravity-related parameters could be introduced.
+
+.. list-table:: Physics ``gravity`` parameters
+   :widths: 10 5 1 30
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Default
+     - Description
+   * - :par:param:`~Physics:gravity:grav_const_codeU`
+     - `float`
+     - `-`
+     - The gravitational constant specified in code units. When not
+       specified, it's automatically computed from the real-world
+       reference value :math:`G\approx 6.67\times 10^{-8}\, {\rm
+       cm}^3\, {\rm g}^{-1} {\rm s}^{-2}` (see codebase for exact
+       value).
+
+In most cases, users should not specify
+:par:param:`~Physics:gravity:grav_const_codeU` at all (so that the
+appropriate default value is used). This parameter mostly exists to
+help simplify some test problems in non-cosmological simulations.
+
+Users are **NOT** allowed to specify
+:par:param:`~Physics:gravity:grav_const_codeU` parameter in
+cosmological simulations. This is because cosmological code-units are
+defined such that :math:`4\pi G\bar{\rho}` has the value ``1.0``,
+where :math:`\bar{\rho}` is the mean physical matter density of the
+universe.
+
+We generally advise users to include ``"gravity"`` within
+:par:param:`Physics:list` whenever they use any method involving
+gravity, event if they aren't explicitly assigning a value to
+:par:param:`Physics:gravity:grav_const_codeU`.
+
+.. note::
+
+   At the time of writing, if the user specifies both ``"cosmology"``
+   and ``"gravity"`` within :par:param:`Physics:list`, it's important
+   that ``"cosmology"`` comes first. In the future, we can hopefully
+   relax these requirements.

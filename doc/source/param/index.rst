@@ -52,8 +52,8 @@ specifies boundary conditions for some subset of the domain.  The
 :p:`axis` and :p:`face` parameters are available to restrict boundary
 conditions to a subset of faces, whereas the :p:`mask` parameter is
 available for even finer control of mixed boundary conditions, which
-may be time-dependent.  Inflow boundary conditions use the :p:`inflow`
-parameter to specify field values at the boundary.
+may be time-dependent.  Inflow boundary conditions use the :p:`value`
+parameter/subgroup to specify field values at the boundary.
 
 .. include:: boundary.incl
 
@@ -225,17 +225,22 @@ Physics
 
 .. include:: physics.incl
 
+.. _schedule_param:
+
 --------
 schedule
 --------
 
-"schedule" is a parameter *subgroup* that defines when to do something, such as
-perform output, apply a method, or to apply the dynamic load balancer.
-Schedules can be specified as a :p:`list` of values, or as an interval of
-values specified using some subset of :p:`start`, :p:`stop`, and
-:p:`step`.  The associated variable, set using :p:`var`, can be "cycle",
-"time", or "seconds".  Here "time" refers to simulation time, and
-"seconds" to wall-clock time.  At each cycle, all schedules are
+"schedule" is a parameter *subgroup* that defines when to do
+something, such as perform output, apply a method, or to apply the
+dynamic load balancer.  Schedules can be specified as either
+
+   * a :par:param:`~schedule:list` of values
+   * an interval of values specified using some subset of :par:param:`~schedule:start`, :par:param:`schedule:stop`, and :par:param:`~schedule:step`.
+
+The associated variable, set using :par:param:`~schedule:var`, can be
+"cycle", "time", or "seconds".  Here "time" refers to simulation time,
+and "seconds" to wall-clock time.  At each cycle, all schedules are
 checked to see if the cycle number, simulation time or wall-clock
 seconds match the list or interval of values.  If there is a match,
 the associated output or is performed; otherwise, it is skipped.

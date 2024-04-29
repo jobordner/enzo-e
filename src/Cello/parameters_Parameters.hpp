@@ -29,12 +29,12 @@ public: // interface
   Parameters(const char * file_name, 
 	     Monitor * monitor = 0) throw();
 
-  /// Copy constructor
-  Parameters(const Parameters & parameters) throw();
-
-  /// Assignment operator
-
-  Parameters & operator= (const Parameters & parameters) throw();
+  // At this time, we explicitly delete the copy/move constructor/assignment
+  // methods (it may make sense to define some of these in the future)
+  Parameters(const Parameters &) = delete;
+  Parameters(Parameters&&) = delete;
+  Parameters & operator= (const Parameters & ) = delete;
+  Parameters & operator= (Parameters&& ) = delete;
 
   /// Delete a Parameters object (singleton design pattern)
   ~Parameters();
@@ -57,6 +57,8 @@ public: // interface
   bool value (std::string s, bool deflt) throw()
   { return value_logical(s,deflt); }
 
+  std::string value (std::string s, const char * deflt) throw()
+  { return value_string(s,deflt); }
   std::string value (std::string s, std::string deflt) throw()
   { return value_string(s,deflt); }
 
@@ -175,6 +177,31 @@ public: // interface
    )    
     throw();
 
+  /// utility for parsing a parameter that is expected to always be a list
+  /// containing strings. An empty vector is returned if the parameter does not
+  /// exist or was assigned an empty list. If the parameter was assigned a
+  /// value with a different type, or a list entry is not a string, the program
+  /// will abort with an error.
+  ///
+  /// When ``coerce_string_to_list`` is ``false``, the program will abort with
+  /// an error if the parameter was assigned a string value. Otherwise, the
+  /// string will be coerced to a 1-element vector.
+  ///
+  /// When suppress_err is true, the method returns an empty vector, even in
+  /// the case of an error.
+  ///
+  /// @note
+  /// Overhead from returning a vector is minimal. The compiler will know it
+  /// it can implicitly move contents into another vector
+  ///
+  /// @note
+  /// This method encapsulates a parameter-parsing parameter that comes up a
+  /// lot! But, this may not be the best place to put this functionality
+  std::vector<std::string> value_full_strlist(const std::string& parameter,
+                                              bool coerce_string_to_list,
+                                              bool suppress_err = false)
+    throw();
+
   //--------------------------------------------------
   // PARAMETER GROUPS
 
@@ -207,8 +234,16 @@ public: // interface
   /// Clear all groups
   void group_clear() throw();
 
+  /// Returns a vector holding the names of all leaf parameters in the
+  /// specified parameter group
+  std::vector<std::string> leaf_parameter_names
+  (const std::string& full_group_name) const throw();
+
   /// Returns a vector holding the names of all leaf parameters in the current
   /// group
+  ///
+  /// this overload of the function is deprecated, but exists to maintain
+  /// backwards compatibility
   std::vector<std::string> leaf_parameter_names() const throw();
 
   /// Return the full name of the parameter including group
@@ -270,7 +305,7 @@ private: // attributes
   std::map<std::string, Param *>  parameter_map_;
 
   /// Parameters represented as a tree with groups as internal nodes
-  ParamNode                     * parameter_tree_;
+  ParamNode parameter_tree_;
 
   /// Monitor object for parameters
   Monitor * monitor_; 

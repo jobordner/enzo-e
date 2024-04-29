@@ -1,11 +1,11 @@
+import copy
+from dataclasses import dataclass
 import numpy as np
 import os
+import pytest
 import shutil
-import signal
-import subprocess
-import sys
 import tempfile
-import time
+from typing import Optional
 import yt
 
 from numpy.testing import assert_array_equal
@@ -13,41 +13,77 @@ from unittest import TestCase
 from yt.funcs import ensure_dir
 from yt.testing import assert_rel_equal
 
+from test_utils.enzoe_driver import EnzoEDriver
+
 _base_file = os.path.basename(__file__)
 
-# If GENERATE_TEST_RESULTS="true", just generate test results.
-generate_results = os.environ.get("GENERATE_TEST_RESULTS", "false").lower() == "true"
-yt.mylog.info(f"{_base_file}: {generate_results=}")
+@dataclass(frozen = True)
+class TestOptions:
+    enzoe_driver: EnzoEDriver
+    uses_double_prec: bool
+    generate_results: bool
+    test_results_dir: str
+    grackle_input_data_dir : Optional[str]
 
-_results_dir = os.environ.get("TEST_RESULTS_DIR", "~/enzoe_test_results")
-test_results_dir = os.path.abspath(os.path.expanduser(_results_dir))
-yt.mylog.info(f"{_base_file}: {test_results_dir=}")
-if generate_results:
-    ensure_dir(test_results_dir)
-else:
-    if not os.path.exists(test_results_dir):
+_CACHED_OPTS = None
+
+def set_cached_opts(**kwargs):
+    global _CACHED_OPTS
+    if _CACHED_OPTS is not None:
+        raise RuntimeError("Can't call set_cached_opts more than once")
+
+    _CACHED_OPTS = TestOptions(**kwargs)
+    yt.mylog.info(
+        f"{_base_file}: generate_results = {_CACHED_OPTS.generate_results}")
+
+    yt.mylog.info(
+        f"{_base_file}: test_results_dir = {_CACHED_OPTS.test_results_dir}")
+    if _CACHED_OPTS.generate_results:
+        ensure_dir(_CACHED_OPTS.test_results_dir)
+    elif not os.path.exists(_CACHED_OPTS.test_results_dir):
         raise RuntimeError(
-            f"Test results directory not found: {test_results_dir}.")
+            f"Test results dir not found: {_CACHED_OPTS.test_results_dir}.")
 
-# Set the path to charmrun
-_charm_path = os.environ.get("CHARM_PATH", "")
-if not _charm_path:
-    raise RuntimeError(
-        f"Specify path to charm with CHARM_PATH environment variable.")
-charmrun_path = os.path.join(_charm_path, "charmrun")
-yt.mylog.info(f"{_base_file}: {charmrun_path=}")
-if not os.path.exists(charmrun_path):
-    raise RuntimeError(
-        f"No charmrun executable found in {_charm_path}.")
+    if ((_CACHED_OPTS.grackle_input_data_dir is not None) and
+        (not os.path.exists(_CACHED_OPTS.grackle_input_data_dir))):
+        raise RuntimeError(
+            "grackle input data dir not found: "
+            f"{_CACHED_OPTS.grackle_input_data_dir}")
+
+    yt.mylog.info(
+        f"{_base_file}: use_double = {_CACHED_OPTS.uses_double_prec}")
+
+def cached_opts():
+    if _CACHED_OPTS is None:
+        raise RuntimeError("set_cached_opts was never called")
+    return _CACHED_OPTS
 
 src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-enzo_path = os.path.join(src_path, "build/bin/enzo-e")
-yt.mylog.info(f"{_base_file}: {enzo_path=}")
-if not os.path.exists(enzo_path):
-    raise RuntimeError(
-        f"No enzo-e executable found in {enzo_path}.")
 
 input_dir = "input"
+
+_grackle_tagged_tests = set()
+
+def uses_grackle(cls):
+    """
+    Decorator that annotates that a test class uses grackle
+
+    In detail, this annotates and sets up the appropriate skipif marker
+    and updates a global registry of tests using grackle.
+    """
+    _grackle_tagged_tests.add(cls.__name__)
+
+    has_grackle = cached_opts().enzoe_driver.query_has_grackle()
+    has_grackle_inputs = cached_opts().grackle_input_data_dir is not None
+
+    skip_reason = "Enzo-E is not built with Grackle"
+    if has_grackle and (not has_grackle_inputs):
+        skip_reason = "the grackle input data dir was not specified"
+
+    wrapper_factory = pytest.mark.skipif(
+        (not has_grackle) or (not has_grackle_inputs), reason = skip_reason
+    )
+    return wrapper_factory(cls)
 
 class EnzoETest(TestCase):
     parameter_file = None
@@ -59,26 +95,13 @@ class EnzoETest(TestCase):
         spath = os.path.join(self.tmpdir, input_dir)
         os.symlink(ipath, spath)
 
-    def run_simulation(self):
-        pfile = os.path.join(input_dir, self.parameter_file)
-        command = f"{charmrun_path} ++local +p{self.ncpus} {enzo_path} {pfile}"
-        proc = subprocess.Popen(
-            command, shell=True, close_fds=True, 
-            preexec_fn=os.setsid)
-
-        stime = time.time()
-        while proc.poll() is None:
-            if time.time() - stime > self.max_runtime:
-                os.killpg(proc.pid, signal.SIGUSR1)
-                raise RuntimeError(
-                    f"Simulation {self.__class__.__name__} exceeded max runtime of "
-                    f"{self.max_runtime} seconds.")
-            time.sleep(1)
-
-        if proc.returncode != 0:
-            raise RuntimeError(
-                f"Simulation {self.__class__.__name__} exited with nonzero return "
-                f"code {proc.returncode}.")
+        if self.__class__.__name__ in _grackle_tagged_tests:
+            # make symlinks to each grackle input file
+            with os.scandir(cached_opts().grackle_input_data_dir) as it:
+                for entry in it:
+                    if not entry.is_file():
+                        continue
+                    os.symlink(entry.path,os.path.join(self.tmpdir, entry.name))
 
     def setUp(self):
         self.curdir = os.getcwd()
@@ -86,7 +109,10 @@ class EnzoETest(TestCase):
 
         self.setup_symlinks()
         os.chdir(self.tmpdir)
-        self.run_simulation()
+        cached_opts().enzoe_driver.run(
+            parameter_fname = os.path.join(input_dir, self.parameter_file),
+            max_runtime = self.max_runtime, ncpus = self.ncpus,
+            sim_name = f"Simulation {self.__class__.__name__}")
 
     def tearDown(self):
         os.chdir(self.curdir)
@@ -104,10 +130,11 @@ def ytdataset_test(compare_func, **kwargs):
         def wrapper(*args):
             # name the file after the function
             filename = "%s.h5" % func.__name__
-            result_filename = os.path.join(test_results_dir, filename)
+            result_filename = os.path.join(cached_opts().test_results_dir,
+                                           filename)
 
             # check that answers exist
-            if not generate_results:
+            if not cached_opts().generate_results:
                 assert os.path.exists(result_filename), \
                   "Result file, %s, not found!" % result_filename
 
@@ -115,8 +142,8 @@ def ytdataset_test(compare_func, **kwargs):
             fn = yt.save_as_dataset({}, filename=filename, data=data)
 
             # if generating, move files to results dir
-            if generate_results:
-                os.rename(filename, result_filename)
+            if cached_opts().generate_results:
+                shutil.move(filename, result_filename)
             # if comparing, run the comparison
             else:
                 ytdataset_compare(
@@ -128,10 +155,20 @@ def ytdataset_test(compare_func, **kwargs):
 def assert_array_rel_equal(a1, a2, decimals=16, **kwargs):
     """
     Wraps assert_rel_equal with, but decimals is a keyword arg.
-    """
-    assert_rel_equal(a1, a2, decimals, **kwargs)
 
-def ytdataset_compare(fn1, fn2, compare_func=None, **kwargs):
+    Adds functionality to interpret `decimals = np.inf` as an indication that
+    an exact match is required
+    """
+    if decimals == np.inf:
+        diff = a1-a2 # if incompatible units are attached to a1 and a2, an
+                     # exception will be raised
+        if hasattr(diff, 'ndarray_view'):
+            diff = diff.ndarray_view()
+        np.testing.assert_allclose(diff, 0.0, rtol = 0.0, atol = 0.0, **kwargs)
+    else:
+        assert_rel_equal(a1, a2, decimals, **kwargs)
+
+def ytdataset_compare(fn1, fn2, compare_func=None, decimals = None, **kwargs):
     """
     Compare all datasets between two yt datasets.
     """
@@ -145,7 +182,14 @@ def ytdataset_compare(fn1, fn2, compare_func=None, **kwargs):
     assert ds1.field_list == ds2.field_list, \
       "Files have different datasets!"
 
+    _kwargs = copy.deepcopy(kwargs)
+
     for field in ds1.field_list:
+        if callable(decimals):
+            _kwargs['decimals'] = decimals(field)
+        elif decimals is not None:
+            _kwargs['decimals'] = decimals
+
         compare_func(
             ds1.data[field], ds2.data[field],
-            err_msg=f"Comparison of {field} field failed.", **kwargs)
+            err_msg=f"Comparison of {field} field failed.", **_kwargs)

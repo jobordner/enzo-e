@@ -17,13 +17,13 @@
 #include "_monitor.hpp"
 #include "_parallel.hpp"
 #include "_disk.hpp"
+#include "_parameters.hpp"
 #include "_problem.hpp"
 #include "_mesh.hpp"
-#include "_parameters.hpp"
 #include "_io.hpp"
 #include "_compute.hpp"
 #include "_simulation.hpp"
-#include "_array.hpp"
+#include "_view.hpp"
 
 #include "_data.hpp"
 
