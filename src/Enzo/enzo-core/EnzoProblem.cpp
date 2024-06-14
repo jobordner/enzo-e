@@ -169,10 +169,8 @@ Initial * EnzoProblem::create_initial_
     if (rank == 2) initial = new EnzoInitialSedovArray2(enzo_config);
     if (rank == 3) initial = new EnzoInitialSedovArray3(enzo_config);
 
-#ifdef CONFIG_USE_GRACKLE
   } else if (type == "grackle_test") {
-    initial = new EnzoInitialGrackleTest(enzo_config);
-#endif /* CONFIG_USE_GRACKLE */
+    initial = new EnzoInitialGrackleTest(cycle, time, p_group);
   } else if (type == "feedback_test") {
     initial = new EnzoInitialFeedbackTest(cycle, time, p_group);
   } else if (type == "vlct_bfield") {
@@ -610,6 +608,15 @@ Method * EnzoProblem::create_method_
     skip_auto_courant = true;
 
 #endif /* CONFIG_USE_GRACKLE */
+
+  } else if (name == "inference") {
+
+    method = new EnzoMethodInference
+      (enzo_config->method_inference_level_base,
+       enzo_config->method_inference_level_array,
+       enzo_config->method_inference_level_infer,
+       enzo_config->method_inference_field_group,
+       enzo_config->method_inference_overdensity_threshold);
 
   } else if (name == "balance") {
 

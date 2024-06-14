@@ -95,13 +95,6 @@ public: // interface
       initial_collapse_temperature(0.0),
       // EnzoInitialCosmology
       initial_cosmology_temperature(0.0),
-      // EnzoGrackleTest
-      initial_grackle_test_maximum_H_number_density(1000.0),
-      initial_grackle_test_maximum_metallicity(1.0),
-      initial_grackle_test_maximum_temperature(1.0E8),
-      initial_grackle_test_minimum_H_number_density(0.1),
-      initial_grackle_test_minimum_metallicity(1.0E-4),
-      initial_grackle_test_minimum_temperature(10.0),
       // EnzoInitialHdf5
       initial_hdf5_blocking(),
       initial_hdf5_field_coords(),
@@ -206,6 +199,12 @@ public: // interface
       // EnzoMethodTurbulence
       method_turbulence_edot(0.0),
       method_turbulence_mach_number(0.0),
+      /// EnzoMethodInference
+      method_inference_level_base(0),
+      method_inference_level_array(0),
+      method_inference_level_infer(0),
+      method_inference_field_group(),
+      method_inference_overdensity_threshold(0),
       // EnzoProlong
       prolong_enzo_type(),
       prolong_enzo_positive(true),
@@ -257,7 +256,6 @@ protected: // methods
   void read_initial_burkertbodenheimer_(Parameters *);
   void read_initial_collapse_(Parameters *);
   void read_initial_cosmology_(Parameters *);
-  void read_initial_grackle_(Parameters *);
   void read_initial_hdf5_(Parameters *);
   void read_initial_isolated_galaxy_(Parameters *);
   void read_initial_merge_sinks_test_(Parameters *);
@@ -273,6 +271,7 @@ protected: // methods
   //--------------------
   void read_method_background_acceleration_(Parameters *);
   void read_method_check_(Parameters *);
+  void read_method_inference_(Parameters *);
   void read_method_turbulence_(Parameters *);
 
   void read_physics_(Parameters *);
@@ -337,14 +336,6 @@ public: // attributes
   double                     initial_collapse_particle_ratio;
   double                     initial_collapse_mass;
   double                     initial_collapse_temperature;
-
-  /// EnzoGrackleTest
-  double                     initial_grackle_test_maximum_H_number_density;
-  double                     initial_grackle_test_maximum_metallicity;
-  double                     initial_grackle_test_maximum_temperature;
-  double                     initial_grackle_test_minimum_H_number_density;
-  double                     initial_grackle_test_minimum_metallicity;
-  double                     initial_grackle_test_minimum_temperature;
 
   /// EnzoInitialHdf5
 
@@ -481,6 +472,13 @@ public: // attributes
 
   /// EnzoMethodCheckGravity
   std::string                method_check_gravity_particle_type;
+
+  /// EnzoMethodInference
+  int                        method_inference_level_base;
+  int                        method_inference_level_array;
+  int                        method_inference_level_infer;
+  std::string                method_inference_field_group;
+  float                      method_inference_overdensity_threshold;
 
   /// EnzoMethodTurbulence
   double                     method_turbulence_edot;

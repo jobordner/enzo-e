@@ -52,13 +52,6 @@ EnzoConfig::EnzoConfig() throw ()
   initial_collapse_particle_ratio(0.0),
   initial_collapse_mass(0.0),
   initial_collapse_temperature(0.0),
-  // EnzoInitialGrackleTest
-  initial_grackle_test_maximum_H_number_density(1000.0),
-  initial_grackle_test_maximum_metallicity(1.0),
-  initial_grackle_test_maximum_temperature(1.0E8),
-  initial_grackle_test_minimum_H_number_density(0.1),
-  initial_grackle_test_minimum_metallicity(1.0E-4),
-  initial_grackle_test_minimum_temperature(10.0),
   // EnzoInitialHdf5
   initial_hdf5_max_level(),
   initial_hdf5_format(),
@@ -164,6 +157,12 @@ EnzoConfig::EnzoConfig() throw ()
   initial_bb_test_nominal_sound_speed(0.0),
   initial_bb_test_angular_rotation_velocity(0.0),
   initial_bb_test_external_density(0.0),
+  // EnzoMethodInference
+  method_inference_level_base(0),
+  method_inference_level_array(0),
+  method_inference_level_infer(0),
+  method_inference_field_group(),
+  method_inference_overdensity_threshold(0),
   // EnzoMethodTurbulence
   method_turbulence_edot(0.0),
   method_turbulence_mach_number(0.0),
@@ -240,13 +239,6 @@ void EnzoConfig::pup (PUP::er &p)
   p | initial_collapse_particle_ratio;
   p | initial_collapse_mass;
   p | initial_collapse_temperature;
-
-  p | initial_grackle_test_minimum_H_number_density;
-  p | initial_grackle_test_maximum_H_number_density;
-  p | initial_grackle_test_minimum_temperature;
-  p | initial_grackle_test_maximum_temperature;
-  p | initial_grackle_test_minimum_metallicity;
-  p | initial_grackle_test_maximum_metallicity;
 
   p | initial_sedov_rank;
   PUParray(p,initial_sedov_array,3);
@@ -348,6 +340,12 @@ void EnzoConfig::pup (PUP::er &p)
   p | method_check_monitor_iter;
   p | method_check_include_ghosts;
 
+  p | method_inference_level_base;
+  p | method_inference_level_array;
+  p | method_inference_level_infer;
+  p | method_inference_field_group;
+  p | method_inference_overdensity_threshold;
+
   PUParray(p,initial_accretion_test_sink_position,3);
   PUParray(p,initial_accretion_test_sink_velocity,3);
   p | initial_accretion_test_sink_mass;
@@ -423,7 +421,6 @@ void EnzoConfig::read(Parameters * p) throw()
   read_initial_burkertbodenheimer_(p);
   read_initial_collapse_(p);
   read_initial_cosmology_(p);
-  read_initial_grackle_(p);
   read_initial_hdf5_(p);
   read_initial_isolated_galaxy_(p);
   read_initial_merge_sinks_test_(p);
@@ -441,6 +438,7 @@ void EnzoConfig::read(Parameters * p) throw()
 
   read_method_check_(p);
   read_method_turbulence_(p);
+  read_method_inference_(p);
 
   read_prolong_enzo_(p);
 
@@ -507,25 +505,6 @@ void EnzoConfig::read_initial_cosmology_(Parameters * p)
 {
   initial_cosmology_temperature =
     p->value_float("Initial:cosmology:temperature",0.0);
-}
-
-//----------------------------------------------------------------------
-
-void EnzoConfig::read_initial_grackle_(Parameters * p)
-{
-  // Grackle test initialization
-  initial_grackle_test_minimum_H_number_density =
-    p->value_float("Initial:grackle_test:minimum_H_number_density",0.1);
-  initial_grackle_test_maximum_H_number_density =
-    p->value_float("Initial:grackle_test:maximum_H_number_density",1000.0);
-  initial_grackle_test_minimum_temperature =
-    p->value_float("Initial:grackle_test:minimum_temperature",10.0);
-  initial_grackle_test_maximum_temperature =
-    p->value_float("Initial:grackle_test:maximum_temperature",1.0E8);
-  initial_grackle_test_minimum_metallicity =
-    p->value_float("Initial:grackle_test:minimum_metallicity", 1.0E-4);
-  initial_grackle_test_maximum_metallicity =
-    p->value_float("Initial:grackle_test:maximum_metallicity", 1.0);
 }
 
 //----------------------------------------------------------------------
@@ -955,6 +934,25 @@ void EnzoConfig::read_method_check_(Parameters * p)
   }
   method_check_monitor_iter   = p->value_integer("monitor_iter",0);
   method_check_include_ghosts = p->value_logical("include_ghosts",false);
+}
+
+//----------------------------------------------------------------------
+
+void EnzoConfig::read_method_inference_(Parameters* p)
+{
+  p->group_set(0,"Method");
+  p->group_push("inference");
+
+  method_inference_level_base = p->value_integer ("level_base");
+  method_inference_level_array = p->value_integer ("level_array");
+  method_inference_level_infer = p->value_integer ("level_infer");
+
+  const int rank = p->value_integer("Mesh:root_rank",0);
+
+  method_inference_field_group = p->value_string  ("field_group");
+
+  method_inference_overdensity_threshold = p->value_float
+    ("Method:inference:overdensity_threshold",0.0);
 }
 
 //----------------------------------------------------------------------
