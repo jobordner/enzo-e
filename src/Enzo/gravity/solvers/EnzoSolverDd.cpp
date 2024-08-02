@@ -155,14 +155,14 @@ void EnzoSolverDd::begin_solve(EnzoBlock * enzo_block) throw()
 
   } else {
 
-    restrict (enzo_block);
+    do_restrict (enzo_block);
 
   }
 }
 
 //----------------------------------------------------------------------
 
-void EnzoSolverDd::restrict(EnzoBlock * enzo_block) throw()
+void EnzoSolverDd::do_restrict(EnzoBlock * enzo_block) throw()
 {
   restrict_send(enzo_block);
 
@@ -247,13 +247,13 @@ void EnzoBlock::p_solver_dd_solve_coarse()
 
 void EnzoBlock::r_solver_dd_barrier(CkReductionMsg * msg)
 {
-  static_cast<EnzoSolverDd*> (solver())->prolong(this);
+  static_cast<EnzoSolverDd*> (solver())->do_prolong(this);
   delete msg;
 }
 
 //----------------------------------------------------------------------
 
-void EnzoSolverDd::prolong(EnzoBlock * enzo_block) throw()
+void EnzoSolverDd::do_prolong(EnzoBlock * enzo_block) throw()
 {
 
   if (is_finest_(enzo_block)) {

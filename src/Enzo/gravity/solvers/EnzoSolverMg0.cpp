@@ -404,7 +404,7 @@ void EnzoSolverMg0::begin_cycle_(EnzoBlock * enzo_block) throw()
     } else {
 
       SOLVER_CONTROL(enzo_block,"coarse+1","fine", "8 calling restrict_1");
-      restrict (enzo_block);
+      do_restrict (enzo_block);
 
     }
 
@@ -461,7 +461,7 @@ void EnzoBlock::r_solver_mg0_barrier(CkReductionMsg* msg)
 
   delete msg;
 
-  solver->prolong(this);
+  solver->do_prolong(this);
 
   performance_stop_(perf_compute,__FILE__,__LINE__);
 }
@@ -477,14 +477,14 @@ void EnzoBlock::p_solver_mg0_restrict()
   EnzoSolverMg0 * solver =
     static_cast<EnzoSolverMg0*> (this->solver());
 
-  solver->restrict(this);
+  solver->do_restrict(this);
 
   performance_stop_(perf_compute,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------
 
-void EnzoSolverMg0::restrict(EnzoBlock * enzo_block) throw()
+void EnzoSolverMg0::do_restrict(EnzoBlock * enzo_block) throw()
 ///      smooth.apply (A,X,B)
 ///      callback = p_restrict_send()
 ///      call refresh (X,level,"level")
@@ -664,7 +664,7 @@ void EnzoSolverMg0::restrict_recv
 
 //----------------------------------------------------------------------
 
-void EnzoSolverMg0::prolong(EnzoBlock * enzo_block) throw()
+void EnzoSolverMg0::do_prolong(EnzoBlock * enzo_block) throw()
 ///
 ///      solve A X = B
 ///      end_cycle()

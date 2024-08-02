@@ -80,7 +80,7 @@ EnzoMethodGravity::EnzoMethodGravity(ParameterGroup p, int index_solver,
 
     // EnzoProlong does not work with accumulate!
     std::string prolong_name =
-      cello::problem()->prolong(index_prolong_)->name();
+      cello::problem()->get_prolong(index_prolong_)->name();
 
     ASSERT1("EnzoMethodGravity::EnzoMethodGravity()",
            "Requesting accumulated particle mass refresh: "

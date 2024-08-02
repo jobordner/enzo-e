@@ -430,7 +430,7 @@ public: // interface
   { id_prolong_ = id_prolong; }
   
   /// Return the prolongation operator for refresh
-  Prolong * prolong ();
+  Prolong * get_prolong ();
   /// Return the prolongation id
   int index_prolong () const
   { return id_prolong_; }
@@ -440,7 +440,7 @@ public: // interface
   { id_restrict_ = id_restrict; }
   
   /// Return the restriction operator for refresh
-  Restrict * restrict ();
+  Restrict * get_restrict ();
   
   //--------------------------------------------------
 

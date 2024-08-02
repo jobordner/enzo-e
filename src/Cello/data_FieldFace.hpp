@@ -89,12 +89,6 @@ public: // interface
   void set_refresh_type (int refresh_type)
   {  refresh_type_ = refresh_type;  }
 
-  Prolong * prolong ()
-  { return refresh_->prolong(); }
-
-  Restrict * restrict ()
-  { return refresh_->restrict(); }
-  
   /// Set the Refresh object 
   void set_refresh (Refresh * refresh, bool new_refresh)
   {
@@ -146,6 +140,12 @@ public: // interface
 
 private: // functions
 
+  Prolong * prolong_ ()
+  { return refresh_->get_prolong(); }
+
+  Restrict * restrict_ ()
+  { return refresh_->get_restrict(); }
+  
   /// copy data
   void copy_(const FieldFace & field_face); 
 

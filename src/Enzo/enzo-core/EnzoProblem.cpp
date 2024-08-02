@@ -241,8 +241,7 @@ Initial * EnzoProblem::create_initial_
        enzo_config->initial_accretion_test_gas_pressure,
        enzo_config->initial_accretion_test_gas_radial_velocity);
   } else if (type == "shu_collapse") {
-    initial = new EnzoInitialShuCollapse
-      (cycle, time, p_group);
+    initial = new EnzoInitialShuCollapse (cycle, time, p_group);
   } else if (type == "bb_test") {
     initial = new EnzoInitialBBTest
       (cycle, time,
@@ -361,15 +360,15 @@ Solver * EnzoProblem::create_solver_
     solve_type = solve_unknown;
   }
 
-  Prolong * prolong = create_prolong_
+  Prolong * prolong_ptr = create_prolong_
     (enzo_config->solver_prolong[index_solver],config);
-  Restrict * restrict = create_restrict_
+  Restrict * restrict_ptr = create_restrict_
     (enzo_config->solver_restrict[index_solver],config);
 
   const int index_prolong = prolong_list_.size();
   const int index_restrict = restrict_list_.size();
-  prolong_list_.push_back(prolong);
-  restrict_list_.push_back(restrict);
+  prolong_list_.push_back(prolong_ptr);
+  restrict_list_.push_back(restrict_ptr);
 
   if (solver_type == "cg") {
 
@@ -493,7 +492,6 @@ Compute * EnzoProblem::create_compute
   Config * config ) throw()
 /// @param name  Name of the compute to create
 {
-
   Compute * compute = 0;
 
   TRACE1("EnzoProblem::create_compute %s",name.c_str());
@@ -526,7 +524,6 @@ Compute * EnzoProblem::create_compute
             compute->name().c_str(),name.c_str(),
             compute->name() == name);
   }
-
   return compute;
 }
 
@@ -647,11 +644,11 @@ Method * EnzoProblem::create_method_
 	     solver_name.c_str(),
 	     0 <= index_solver && index_solver < enzo_config->num_solvers);
 
-    Prolong * prolong = create_prolong_
+    Prolong * prolong_ptr = create_prolong_
       (p_group.value_string("prolong","linear"),config);
 
     const int index_prolong = prolong_list_.size();
-    prolong_list_.push_back(prolong);
+    prolong_list_.push_back(prolong_ptr);
 
     method = new EnzoMethodGravity(p_group, index_solver, index_prolong);
 
@@ -773,20 +770,20 @@ Prolong * EnzoProblem::create_prolong_
   Config *     config ) throw ()
 {
 
-  Prolong * prolong = 0;
+  Prolong * prolong_ptr = nullptr;
 
   const EnzoConfig * enzo_config = enzo::config();
 
   if (type == "enzo") {
-    prolong = new EnzoProlong
+    prolong_ptr = new EnzoProlong
       (enzo_config->prolong_enzo_type,
        enzo_config->prolong_enzo_positive,
        enzo_config->prolong_enzo_use_linear);
   } else {
-    prolong = Problem::create_prolong_(type,config);
+    prolong_ptr = Problem::create_prolong_(type,config);
   }
 
-  return prolong;
+  return prolong_ptr;
 
 }
 
@@ -924,13 +921,7 @@ Restrict * EnzoProblem::create_restrict_
  std::string  type,
  Config * config ) throw ()
 {
-
-  Restrict * restrict = 0;
-
-  restrict = Problem::create_restrict_(type,config);
-
-  return restrict;
-
+  return Problem::create_restrict_(type,config);
 }
 
 //----------------------------------------------------------------------

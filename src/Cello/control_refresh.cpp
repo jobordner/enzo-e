@@ -275,8 +275,8 @@ int Block::refresh_load_field_faces_ (Refresh & refresh)
 	(level_face == level + 1) ? refresh_fine : refresh_unknown;
 
       // handle padded interpolation special case if needed
-      Prolong * prolong = refresh.prolong();
-      int pad = refresh.coarse_padding(prolong);
+      
+      int pad = refresh.coarse_padding(refresh.get_prolong());
 
       if (pad == 0) {
         refresh_load_field_face_
@@ -368,8 +368,7 @@ int Block::refresh_load_coarse_face_
   const int level = index_.level();
   int count = 0;
 
-  Prolong * prolong = refresh.prolong();
-  const int pad = refresh.coarse_padding(prolong);
+  const int pad = refresh.coarse_padding(refresh.get_prolong());
 
   if ((pad > 0) && (level != level_face)) {
 
@@ -752,9 +751,9 @@ void Block::refresh_coarse_send_
 
 void Block::refresh_coarse_apply_ (Refresh * refresh)
 {
-  Prolong * prolong = refresh->prolong();
+  Prolong * prolong_ptr = refresh->get_prolong();
 
-  const int pad = refresh->coarse_padding(prolong);
+  const int pad = refresh->coarse_padding(prolong_ptr);
 
   if (pad > 0) {
 
@@ -885,10 +884,10 @@ void Block::refresh_coarse_apply_ (Refresh * refresh)
             box_p.get_start_size
               (ip3_f,np3_f,BlockType::none,BlockType::receive,lpad=false);
 
-            prolong->array_sizes_valid (n3_f,n3_c);
+            prolong_ptr->array_sizes_valid (n3_f,n3_c);
             const bool accumulate = refresh->accumulate(i_f);
-            TRACE_PROLONG("coarse_apply",prolong, m3_f,ip3_f,np3_f, m3_c,ip3_c,np3_c);
-            prolong->apply(default_precision,
+            TRACE_PROLONG("coarse_apply",prolong_ptr, m3_f,ip3_f,np3_f, m3_c,ip3_c,np3_c);
+            prolong_ptr->apply(default_precision,
                            field_values_dst, m3_f, ip3_f, np3_f,
                            coarse_field_src, m3_c, ip3_c, np3_c,
                            accumulate);

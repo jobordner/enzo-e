@@ -138,7 +138,7 @@ public: // interface
   void unpack_correction_(EnzoBlock *, FieldMsg *) throw();
   
   /// Restrict residual to coarser Block
-  void restrict(EnzoBlock * enzo_block) throw();
+  void do_restrict(EnzoBlock * enzo_block) throw();
 
   /// Restrict residual to parent
   void restrict_send(EnzoBlock * enzo_block) throw();
@@ -155,7 +155,7 @@ public: // interface
   void call_last_smoother(EnzoBlock * enzo_block) throw();
 
   /// Begin the prolongation phase
-  void prolong(EnzoBlock * enzo_block) throw();
+  void do_prolong(EnzoBlock * enzo_block) throw();
 
   /// Prolong the correction C to the next-finer level
   void prolong_recv(EnzoBlock * enzo_block,

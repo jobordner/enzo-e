@@ -99,8 +99,8 @@ extern "C" void FORTRAN_NAME(field_face_store_4)
   (float * field, float * array, int * m3, int * n3, int * accumulate);
 extern "C" void FORTRAN_NAME(field_face_store_8)
   (double * field, double * array, int * m3, int * n3, int * accumulate);
-extern "C" void FORTRAN_NAME(field_face_store_16)
-  (long double * field, long double * array, int * m3, int * n3, int * accumulate);
+// extern "C" void FORTRAN_NAME(field_face_store_16)
+//   (long double * field, long double * array, int * m3, int * n3, int * accumulate);
 
 enum enum_op_type {
   op_unknown,
@@ -288,7 +288,7 @@ void FieldFace::face_to_array ( Field field,char * array) throw()
 
       int i3_array[3] = {0,0,0};
 
-      index_array += restrict()->apply
+      index_array += restrict_()->apply
 	(precision, 
 	 array_face,nc3,i3_array,nc3, 
 	 field_face,m3,i3, n3);
@@ -379,7 +379,7 @@ void FieldFace::array_to_face (char * array, Field field) throw()
 
       ASSERT ("FieldFace::array_to_face()",
               "No prolongation operator",
-              (prolong() != nullptr));
+              (prolong_() != nullptr));
         
       int ic3[3];
       int nc3[3];
@@ -392,8 +392,8 @@ void FieldFace::array_to_face (char * array, Field field) throw()
       ic3[2] = 0;
 
       // adjust for full-block interpolation to child
-      TRACE_PROLONG("array_to_face",prolong(),m3,i3,n3,mc3,ic3,nc3);
-      prolong()->apply
+      TRACE_PROLONG("array_to_face",prolong_(),m3,i3,n3,mc3,ic3,nc3);
+      prolong_()->apply
         (precision,
          field_ghost,m3, i3,  n3,
          array_ghost,mc3,ic3, nc3,
@@ -511,7 +511,7 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
 
       // adjust for full-block interpolation to child
       TRACE_PROLONG("face_to_face",prolong(),m3,id3,nd3,m3,is3,ns3);
-      prolong()->apply (precision,
+      prolong_()->apply (precision,
                         values_dst,m3,id3, nd3,
                         values_src,m3,is3, ns3,
                         accumulate);
@@ -527,7 +527,7 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
 
       // Restrict field
 
-      restrict()->apply (precision,
+      restrict_()->apply (precision,
                          values_dst,m3,id3, nd3,
                          values_src,m3,is3, ns3,
                          accumulate);
@@ -757,9 +757,9 @@ template<class T> size_t FieldFace::store_
     } else if (sizeof(T)==sizeof(double)) {
       FORTRAN_NAME(field_face_store_8)(ghost_8 + im,   array_8, m3,n3,
                                        &iaccumulate);
-    } else if (sizeof(T)==sizeof(long double)) {
-      FORTRAN_NAME(field_face_store_16)(ghost_16 + im, array_16, m3,n3,
-                                        &iaccumulate);
+    // } else if (sizeof(T)==sizeof(long double)) {
+    //   FORTRAN_NAME(field_face_store_16)(ghost_16 + im, array_16, m3,n3,
+    //                                     &iaccumulate);
     } else {
       ERROR1 ("FieldFace::store_()",
               "unknown float precision sizeof(T) = %lu\n",sizeof(T));
@@ -987,8 +987,7 @@ void FieldFace::set_box_(Box * box)
 
   box->set_block(BoxType_receive,level,face_,child_);
 
-  Prolong * prolong = this->prolong();
-  int pad = prolong ? refresh_->coarse_padding(prolong) : 0;
+  int pad = prolong_() ? refresh_->coarse_padding(prolong_()) : 0;
   if (refresh_type_ != refresh_fine) pad = 0;
 
   box->set_padding(pad);

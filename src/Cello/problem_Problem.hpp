@@ -147,11 +147,11 @@ public: // interface
       throw();
   
   /// Return the ith prolong object
-  Prolong * prolong(size_t i = 0) const throw()
+  Prolong * get_prolong(size_t i = 0) const throw()
   { return (i < prolong_list_.size()) ? prolong_list_[i] : nullptr; }
 
   /// Return the ith restrict object
-  Restrict * restrict(size_t i = 0) const throw()
+  Restrict * get_restrict(size_t i = 0) const throw()
   { return (i < restrict_list_.size()) ? restrict_list_[i] : nullptr; }
 
   //--------------------------------------------------
