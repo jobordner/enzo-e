@@ -57,15 +57,15 @@ MethodDebug::MethodDebug
 void MethodDebug::compute ( Block * block) throw()
 {
   const int num_reduce = 4*(num_fields_+3*num_particles_);
-  long double * reduce = new long double [1+num_reduce];
+  cello_reduce_type * reduce = new cello_reduce_type [1+num_reduce];
   reduce[0] = num_reduce+1;
   const int kmin=0;
   const int kmax=1;
   const int ksum=2;
   const int knum=3;
   for (int k=1; k<num_reduce; k+=4) {
-    reduce[k+kmin] = std::numeric_limits<long double>::max();
-    reduce[k+kmax] = -std::numeric_limits<long double>::max();
+    reduce[k+kmin] = std::numeric_limits<cello_reduce_type>::max();
+    reduce[k+kmax] = -std::numeric_limits<cello_reduce_type>::max();
     reduce[k+ksum] = 0;
     reduce[k+knum] = 0;
   }
@@ -90,9 +90,10 @@ void MethodDebug::compute ( Block * block) throw()
         for (int iy=gy; iy<my-gy; iy++) {
           for (int ix=gx; ix<mx-gx; ix++) {
             int i=ix + mx*(iy + my*iz);
-            reduce[k+kmin] = std::min(reduce[k],(long double)(values[i]));
-            reduce[k+kmax] = std::max(reduce[k+1],(long double)(values[i]));
-            reduce[k+ksum] += values[i];
+            cello_reduce_type value = values[i];
+            reduce[k+kmin] = std::min(reduce[k+kmin], value);
+            reduce[k+kmax] = std::max(reduce[k+kmax], value);
+            reduce[k+ksum] += value;
             reduce[k+knum] += rel_vol;
           }
         }
@@ -114,9 +115,9 @@ void MethodDebug::compute ( Block * block) throw()
         const int np = particle.num_particles(it,ib);
         for (int i=0; i<cello::rank(); i++) {
           for (int ip=0; ip<np; ip++) {
-            double value = position[i][ip];
-            reduce[k+4*i+kmin] = std::min(reduce[k+4*i+0],(long double)(value));
-            reduce[k+4*i+kmax] = std::max(reduce[k+4*i+1],(long double)(value));
+            cello_reduce_type value = position[i][ip];
+            reduce[k+4*i+kmin] = std::min(reduce[k+4*i+0],value);
+            reduce[k+4*i+kmax] = std::max(reduce[k+4*i+1],value);
             reduce[k+4*i+ksum] += value;
             reduce[k+4*i+knum] += 1;
           }
@@ -163,7 +164,7 @@ void MethodDebug::compute ( Block * block) throw()
                        block->proxy_array());
 
   block->contribute
-    ((1+num_reduce)*sizeof(long double), reduce,
+    ((1+num_reduce)*sizeof(cello_reduce_type), reduce,
      r_reduce_method_debug_type, callback);
 
   delete [] reduce;
@@ -183,7 +184,7 @@ void MethodDebug::compute_continue
 ( Block * block, CkReductionMsg * msg) throw()
 {
 
-  long double * data = (long double *) msg->getData();
+  cello_reduce_type * data = (cello_reduce_type *) msg->getData();
   int id = 1;
   for (int index_field=0; index_field<num_fields_; index_field++) {
     field_min_[index_field] = data[id];

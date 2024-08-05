@@ -76,7 +76,7 @@ void mutex_init_bcg_iter()
     enzo_float* X      = (enzo_float*) field.values(ID);               \
     enzo_float* X_bcg  = (enzo_float*) field.values(COPY);             \
     if (X_bcg) for (int i=0; i<m_; i++)  X_bcg[i] = X[i];              \
-    long double sum_a=0.0,sum_abs=0.0;                                 \
+    cello_reduce_type sum_a=0.0,sum_abs=0.0;                                 \
     for (int iz=gz_; iz<mz_-gz_; iz++) {                               \
       for (int iy=gy_; iy<my_-gy_; iy++) {                             \
         for (int ix=gx_; ix<mx_-gx_; ix++) {                           \
@@ -478,12 +478,12 @@ void EnzoSolverBiCgStab::compute_(EnzoBlock* block) throw() {
 
   if (is_singular_()) {
 
-    std::vector<long double> reduce;
+    std::vector<cello_reduce_type> reduce;
     reduce.resize(3+1);
     reduce.clear();
     reduce[0] = 3;
 
-    long double count = 0.0;
+    cello_reduce_type count = 0.0;
 
     if (is_finest_(block)) {
 
@@ -556,7 +556,7 @@ void EnzoSolverBiCgStab::start_2(EnzoBlock* block,
   TRACE_BCG(block,this,"start_2");
   
   if (solve_type_ != solve_tree && msg != NULL) {
-    long double* data = (long double*) msg->getData();
+    cello_reduce_type* data = (cello_reduce_type*) msg->getData();
     ASSERT1("EnzoSolverBiCgStab::start_2",
 	    "Expecting (data[0] = %Lg) == 3",
 	    data[0],(data[0] == 3));
@@ -573,7 +573,7 @@ void EnzoSolverBiCgStab::start_2(EnzoBlock* block,
 
   /// update B and initialize temporary vectors (on leaf blocks only)
 
-  std::vector<long double> reduce;
+  std::vector<cello_reduce_type> reduce;
   reduce.resize(3+1);
   reduce.clear();
   reduce[0] = 3;
@@ -591,9 +591,9 @@ void EnzoSolverBiCgStab::start_2(EnzoBlock* block,
 
     if (is_singular_()) {
 
-      long double bs = S(bs);
-      long double xs = S(xs);
-      long double c  = S(c);
+      cello_reduce_type bs = S(bs);
+      cello_reduce_type xs = S(xs);
+      cello_reduce_type c  = S(c);
 
       enzo_float b_shift = bs / c;
       enzo_float x_shift = xs / c;
@@ -672,7 +672,7 @@ void EnzoSolverBiCgStab::loop_0a(EnzoBlock* block,
   TRACE_BCG(block,this,"loop_0a");
   
   if (solve_type_ != solve_tree && msg != NULL) {
-    long double* data = (long double*) msg->getData();
+    cello_reduce_type* data = (cello_reduce_type*) msg->getData();
     ASSERT1("EnzoSolverBiCgStab::loop_0a",
 	    "Expecting (data[0] = %Lg) == 3",
 	    data[0],(data[0] == 3));
@@ -728,8 +728,8 @@ void EnzoSolverBiCgStab::loop_0(EnzoBlock* block) throw() {
 
   const int iter = (s_iter_(block));
   if (iter == 0) {
-    const long double s_r0s = S(r0s);
-    const long double s_c =   S(c);
+    const cello_reduce_type s_r0s = S(r0s);
+    const cello_reduce_type s_c =   S(c);
     if (is_singular_()) {
       enzo_float shift = s_r0s/ s_c;
       if (is_finest_(block)) {
@@ -981,7 +981,7 @@ void EnzoSolverBiCgStab::loop_4(EnzoBlock* block) throw() {
   COPY_FIELD(block,"loop_4",iv_,"V1_bcg");
   /// compute local contributions to vr0_ = DOT(V, R0)
   
-  std::vector<long double> reduce;
+  std::vector<cello_reduce_type> reduce;
   reduce.resize(3+1);
   reduce.clear();
   reduce[0] = 3;
@@ -1068,7 +1068,7 @@ void EnzoSolverBiCgStab::loop_6(EnzoBlock* block,
   TRACE_BCG(block,this,"loop_6");
 
   if (solve_type_ != solve_tree && msg != NULL) {
-    long double* data = (long double*) msg->getData();
+    cello_reduce_type* data = (cello_reduce_type*) msg->getData();
     ASSERT1("EnzoSolverBiCgStab::loop_6",
 	    "Expecting (data[0] = %Lg) == 3",
 	    data[0],(data[0] == 3));
@@ -1079,9 +1079,9 @@ void EnzoSolverBiCgStab::loop_6(EnzoBlock* block,
 
   delete msg;
 
-  const long double vr0 = S(vr0);
-  const long double ys =  S(ys);
-  const long double vs =  S(vs);
+  const cello_reduce_type vr0 = S(vr0);
+  const cello_reduce_type ys =  S(ys);
+  const cello_reduce_type vs =  S(vs);
   
   TRACE_SCALAR(block,"vr0",vr0);
   TRACE_SCALAR(block,"ys",ys);
@@ -1279,7 +1279,7 @@ void EnzoSolverBiCgStab::loop_10(EnzoBlock* block) throw() {
 
   COPY_FIELD(block,"loop_10",iu_,"U");
 
-  std::vector<long double> reduce;
+  std::vector<cello_reduce_type> reduce;
   reduce.resize(5+1);
   reduce.clear();
   reduce[0] = 5;
@@ -1378,7 +1378,7 @@ void EnzoSolverBiCgStab::loop_12(EnzoBlock* block,
   TRACE_BCG(block,this,"loop_12");
 
   if (solve_type_ != solve_tree && msg != NULL) {
-    long double* data = (long double*) msg->getData();
+    cello_reduce_type* data = (cello_reduce_type*) msg->getData();
     ASSERT1("EnzoSolverBiCgStab::loop_12",
 	    "Expecting (data[0] = %Lg) == 5",
 	    data[0],(data[0] == 5));
@@ -1391,9 +1391,9 @@ void EnzoSolverBiCgStab::loop_12(EnzoBlock* block,
 
   delete msg;
 
-  const long double ys = S(ys);
-  const long double us = S(us);
-  const long double qs = S(qs);
+  const cello_reduce_type ys = S(ys);
+  const cello_reduce_type us = S(us);
+  const cello_reduce_type qs = S(qs);
 
   /// verify legal floating-point values for preceding reduction results
 
@@ -1481,7 +1481,7 @@ void EnzoSolverBiCgStab::loop_12(EnzoBlock* block,
   /// rr_     = DOT(R, R)
   /// beta_n = DOT(R, R0)
   
-  std::vector<long double> reduce;
+  std::vector<cello_reduce_type> reduce;
   reduce.resize(2+1);
   reduce.clear();
   reduce[0] = 2;
@@ -1545,7 +1545,7 @@ void EnzoSolverBiCgStab::loop_14(EnzoBlock* block,
   TRACE_BCG(block,this,"loop_14");
 
   if (solve_type_ != solve_tree && msg != NULL) {
-    long double* data = (long double*) msg->getData();
+    cello_reduce_type* data = (cello_reduce_type*) msg->getData();
     ASSERT1("EnzoSolverBiCgStab::loop_14",
 	    "Expecting (data[0] = %Lg) == 2",
 	    data[0],(data[0] == 2));
@@ -1640,7 +1640,7 @@ void EnzoSolverBiCgStab::end (EnzoBlock* block, int retval) throw () {
 //======================================================================
 
 void EnzoSolverBiCgStab::inner_product_
-(EnzoBlock * block, int n, long double * reduce,
+(EnzoBlock * block, int n, cello_reduce_type * reduce,
  const std::vector<int> & is_array,
  CkCallback callback,
  int i_function)
@@ -1650,8 +1650,8 @@ void EnzoSolverBiCgStab::inner_product_
     dot_compute_tree_(block,n,reduce+1,is_array,i_function,s_iter_(block));
   } else {
     TRACE_BCG(block,this,"inner_product_B");
-    block->contribute((n+1)*sizeof(long double), reduce, 
-		      sum_long_double_n_type, callback);
+    block->contribute((n+1)*sizeof(cello_reduce_type), reduce, 
+		      sum_cello_reduce_n_type, callback);
   }
 }
 
@@ -1659,7 +1659,7 @@ void EnzoSolverBiCgStab::inner_product_
 
 void EnzoSolverBiCgStab::dot_compute_tree_(EnzoBlock * block,
 					   int n,
-					   long double * dot_local,
+					   cello_reduce_type * dot_local,
 					   const std::vector<int> & is_array,
 					   int i_function,
                                            int iter)
@@ -1685,7 +1685,7 @@ void EnzoSolverBiCgStab::dot_compute_tree_(EnzoBlock * block,
 
 void EnzoSolverBiCgStab::dot_send_parent_(EnzoBlock * block,
 					  int n,
-					  long double * dot_block,
+					  cello_reduce_type * dot_block,
 					  const std::vector<int> & is_array,
 					  int i_function, int iter)
 {
@@ -1704,7 +1704,7 @@ void EnzoSolverBiCgStab::dot_send_parent_(EnzoBlock * block,
 
 //----------------------------------------------------------------------
 
-void EnzoBlock::p_dot_recv_parent(int n, long double * dot_block,
+void EnzoBlock::p_dot_recv_parent(int n, cello_reduce_type * dot_block,
 				  std::vector<int> is_array,
 				  int i_function, int iter)
 {
@@ -1717,7 +1717,7 @@ void EnzoBlock::p_dot_recv_parent(int n, long double * dot_block,
 
 void EnzoSolverBiCgStab::dot_recv_parent(EnzoBlock * block,
 					 int n,
-					 long double * dot_block,
+					 cello_reduce_type * dot_block,
 					 const std::vector<int> & is_array,
 					 int i_function, int iter)
 {
@@ -1743,7 +1743,7 @@ void EnzoSolverBiCgStab::dot_recv_parent(EnzoBlock * block,
 
 void EnzoSolverBiCgStab::dot_send_children_(EnzoBlock * block,
 					    int n,
-					    long double * dot_local,
+					    cello_reduce_type * dot_local,
 					    const std::vector<int> & is_array,
 					    int i_function)
 {
@@ -1762,7 +1762,7 @@ void EnzoSolverBiCgStab::dot_send_children_(EnzoBlock * block,
 
 //----------------------------------------------------------------------
 
-void EnzoBlock::p_dot_recv_children(int n, long double * dot_block,
+void EnzoBlock::p_dot_recv_children(int n, cello_reduce_type * dot_block,
 				    std::vector<int> is_array,
 				    int i_function)
 {
@@ -1774,7 +1774,7 @@ void EnzoBlock::p_dot_recv_children(int n, long double * dot_block,
 
 void EnzoSolverBiCgStab::dot_recv_children(EnzoBlock * block,
 					   int n,
-					   long double * dot_local,
+					   cello_reduce_type * dot_local,
 					   const std::vector<int> & is_array,
 					   int i_function)
 {
@@ -1789,7 +1789,7 @@ void EnzoSolverBiCgStab::dot_recv_children(EnzoBlock * block,
 //----------------------------------------------------------------------
 
 void EnzoSolverBiCgStab::dot_save_
-(EnzoBlock * block,int n, long double * data, const std::vector<int> & is_array)
+(EnzoBlock * block,int n, cello_reduce_type * data, const std::vector<int> & is_array)
 {
   TRACE_DOT(block,"dot_save",-1);
   Scalar<long double> scalar =
@@ -1803,7 +1803,7 @@ void EnzoSolverBiCgStab::dot_save_
 //----------------------------------------------------------------------
 
 void EnzoSolverBiCgStab::dot_load_
-(EnzoBlock * block,int n, long double * data, const std::vector<int> & is_array)
+(EnzoBlock * block,int n, cello_reduce_type * data, const std::vector<int> & is_array)
 {
   TRACE_DOT(block,"dot_load",-1);
   Scalar<long double> scalar =
@@ -1830,7 +1830,7 @@ void EnzoSolverBiCgStab::dot_clear_
 //----------------------------------------------------------------------
 
 void EnzoSolverBiCgStab::dot_clear_
-(EnzoBlock * block,int n, long double * array)
+(EnzoBlock * block,int n, cello_reduce_type * array)
 {
   for (int i=0; i<n; i++) array[i] = 0.0;
 }
@@ -1841,7 +1841,7 @@ void EnzoSolverBiCgStab::dot_increment_
 (EnzoBlock * block,
  int n,
  const std::vector<int> & is_array,
- long double * dot_block)
+ cello_reduce_type * dot_block)
 {
   TRACE_DOT(block,"dot_increment",-1);
   Scalar<long double> scalar =

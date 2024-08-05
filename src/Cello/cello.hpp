@@ -144,8 +144,29 @@ enum reduce_enum {
   reduce_set      /// Value of last processed (used for mesh plotting)
 };
 
-typedef int reduce_type;
+#define CELLO_REDUCE_TYPE_QUAD /* select for accuracy (default) */
+/* #define CELLO_REDUCE_TYPE_DOUBLE */ /* select for performance */
 
+/// @typedef cello_reduce_type
+/// @brief   type to use for global reductions; "long double" (quad) is
+///          default for accuracy, but can cause significant slow-down
+///          on some platforms (e.g. Grace-Hopper with NVIDIA compilers)
+
+/// Use "quad" reduction type (higher accuracy)
+#ifdef  CELLO_REDUCE_TYPE_QUAD
+typedef long double cello_reduce_type;
+#   define CELLO_REDUCE_DEFINED
+#endif
+
+/// Use "double" reduction type (higher performance)
+#ifdef CELLO_REDUCE_TYPE_DOUBLE
+typedef double cello_reduce_type;
+#   define CELLO_REDUCE_DEFINED
+#endif
+
+#ifndef CELLO_REDUCE_DEFINED
+#   error "CELLO_REDUCE_TYPE is neither double nor quad (long double)"
+#endif
 
 /// @enum precision_enum
 /// @brief list of known floating-point precision, used for Field

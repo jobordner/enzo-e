@@ -123,7 +123,7 @@ public: // interface
   /// Type of this solver
   virtual std::string type() const { return "mg0"; }
 
-  void compute_shift_(EnzoBlock * enzo_block,long double * reduce) throw();
+  void compute_shift_(EnzoBlock * enzo_block, cello_reduce_type * reduce) throw();
   void compute_correction(EnzoBlock * enzo_block) throw();
 
   /// Compute the residual

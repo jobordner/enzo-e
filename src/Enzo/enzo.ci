@@ -236,10 +236,10 @@ module enzo {
     entry void p_solver_bicgstab_loop_8();
     entry void p_solver_bicgstab_loop_9();
 
-    entry void p_dot_recv_parent(int n, long double dot[n],
+    entry void p_dot_recv_parent(int n, cello_reduce_type dot[n],
 				 std::vector<int> isa,
 				 int i_function, int iter);
-    entry void p_dot_recv_children(int n, long double dot[n],
+    entry void p_dot_recv_children(int n, cello_reduce_type dot[n],
 				   std::vector<int> isa,
 				   int i_function);
 

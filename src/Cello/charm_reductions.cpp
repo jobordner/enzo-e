@@ -61,10 +61,10 @@ CkReductionMsg * r_reduce_method_debug(int n, CkReductionMsg ** msgs)
 {
   if (n <= 0) return NULL;
 
-  long double num_fields = ((long double*) (msgs[0]->getData()))[0];
+  cello_reduce_type num_fields = ((cello_reduce_type*) (msgs[0]->getData()))[0];
 
   const int length = 1 + 4*num_fields;
-  std::vector<long double> accum;
+  std::vector<cello_reduce_type> accum;
   ASSERT1 ("r_reduce_method_debug",
 	   "Sanity check failed on expected accumulator array %d",
 	   length, (length < 500));
@@ -77,9 +77,9 @@ CkReductionMsg * r_reduce_method_debug(int n, CkReductionMsg ** msgs)
   // initialize reductions min max sum count
   int j=1;
   for (int i_f=0; i_f < num_fields; i_f++) {
-    accum [j] = std::numeric_limits<long double>::max();
+    accum [j] = std::numeric_limits<cello_reduce_type>::max();
     ++j;
-    accum [j] = -std::numeric_limits<long double>::max();
+    accum [j] = -std::numeric_limits<cello_reduce_type>::max();
     ++j;
     accum [j] = 0.0;
     ++j;
@@ -87,7 +87,7 @@ CkReductionMsg * r_reduce_method_debug(int n, CkReductionMsg ** msgs)
     ++j;
   }
   for (int i=0; i<n; i++) {
-    long double * values = (long double *) msgs[i]->getData();
+    cello_reduce_type * values = (cello_reduce_type *) msgs[i]->getData();
     j = 1;
     for (int i_f=0; i_f < num_fields; i_f++) {
       accum [j] = std::min(accum[j],values[j]); ++j;
@@ -97,86 +97,122 @@ CkReductionMsg * r_reduce_method_debug(int n, CkReductionMsg ** msgs)
     }
   }
 
-  return CkReductionMsg::buildNew(length*sizeof(long double),&accum[0]);
+  return CkReductionMsg::buildNew(length*sizeof(cello_reduce_type),&accum[0]);
 }
 
 //======================================================================
 
-CkReduction::reducerType sum_long_double_type;
+CkReduction::reducerType sum_cello_reduce_type;
 
-void register_sum_long_double(void)
-{ sum_long_double_type = CkReduction::addReducer(sum_long_double); }
+void register_sum_cello_reduce(void)
+{ sum_cello_reduce_type = CkReduction::addReducer(sum_cello_reduce); }
 
-CkReductionMsg * sum_long_double(int n, CkReductionMsg ** msgs)
+CkReductionMsg * sum_cello_reduce(int n, CkReductionMsg ** msgs)
 {
-  long double accum = 0.0;
+  cello_reduce_type accum = 0.0;
 
   for (int i=0; i<n; i++) {
-    ASSERT2("sum_long_double()",
+    ASSERT2("sum_cello_reduce()",
 	    "CkReductionMsg actual size %d is different from expected %lu",
-	    msgs[i]->getSize(),sizeof(long double),
-	    (msgs[i]->getSize() == sizeof(long double)));
-    long double * values = (long double *) msgs[i]->getData();
+	    msgs[i]->getSize(),sizeof(cello_reduce_type),
+	    (msgs[i]->getSize() == sizeof(cello_reduce_type)));
+    cello_reduce_type * values = (cello_reduce_type *) msgs[i]->getData();
     accum += values[0];
   }
-  return CkReductionMsg::buildNew(sizeof(long double),&accum);
+  return CkReductionMsg::buildNew(sizeof(cello_reduce_type),&accum);
 }
 
 //------------------------------------------------------------------------
 
 
-CkReduction::reducerType sum_long_double_2_type;
+CkReduction::reducerType sum_cello_reduce_2_type;
 
-void register_sum_long_double_2(void)
-{ sum_long_double_2_type = CkReduction::addReducer(sum_long_double_2); }
+void register_sum_cello_reduce_2(void)
+{ sum_cello_reduce_2_type = CkReduction::addReducer(sum_cello_reduce_2); }
 
-CkReductionMsg * sum_long_double_2(int n, CkReductionMsg ** msgs)
+CkReductionMsg * sum_cello_reduce_2(int n, CkReductionMsg ** msgs)
 {
-  long double accum[2];
+  cello_reduce_type accum[2];
   std::fill_n(accum,2,0.0);
 
   for (int i=0; i<n; i++) {
 
-    ASSERT2("sum_long_double_2()",
+    ASSERT2("sum_cello_reduce_2()",
 	    "CkReductionMsg actual size %d is different from expected %lu",
-	    msgs[i]->getSize(),2*sizeof(long double),
-	    (msgs[i]->getSize() == 2*sizeof(long double)));
+	    msgs[i]->getSize(),2*sizeof(cello_reduce_type),
+	    (msgs[i]->getSize() == 2*sizeof(cello_reduce_type)));
 
-    long double * values = (long double *) msgs[i]->getData();
+    cello_reduce_type * values = (cello_reduce_type *) msgs[i]->getData();
 
     accum [0] += values[0];
     accum [1] += values[1];
   }
-  return CkReductionMsg::buildNew(2*sizeof(long double),accum);
+  return CkReductionMsg::buildNew(2*sizeof(cello_reduce_type),accum);
 }
 
 //------------------------------------------------------------------------
 
 
-CkReduction::reducerType sum_long_double_3_type;
+CkReduction::reducerType sum_cello_reduce_3_type;
 
-void register_sum_long_double_3(void)
-{ sum_long_double_3_type = CkReduction::addReducer(sum_long_double_3); }
+void register_sum_cello_reduce_3(void)
+{ sum_cello_reduce_3_type = CkReduction::addReducer(sum_cello_reduce_3); }
 
-CkReductionMsg * sum_long_double_3(int n, CkReductionMsg ** msgs)
+CkReductionMsg * sum_cello_reduce_3(int n, CkReductionMsg ** msgs)
 {
-  long double accum[3];
+  cello_reduce_type accum[3];
   std::fill_n(accum,3,0.0);
   
   for (int i=0; i<n; i++) {
 
-    ASSERT2("sum_long_double_3()",
+    ASSERT2("sum_cello_reduce_3()",
 	    "CkReductionMsg actual size %d is different from expected %lu",
-	    msgs[i]->getSize(),3*sizeof(long double),
-	    (msgs[i]->getSize() == 3*sizeof(long double)));
+	    msgs[i]->getSize(),3*sizeof(cello_reduce_type),
+	    (msgs[i]->getSize() == 3*sizeof(cello_reduce_type)));
 
-    long double * values = (long double *) msgs[i]->getData();
+    cello_reduce_type * values = (cello_reduce_type *) msgs[i]->getData();
 
     accum [0] += values[0];
     accum [1] += values[1];
     accum [2] += values[2];
   }
-  return CkReductionMsg::buildNew(3*sizeof(long double),accum);
+  return CkReductionMsg::buildNew(3*sizeof(cello_reduce_type),accum);
+}
+
+//----------------------------------------------------------------------
+
+CkReduction::reducerType sum_cello_reduce_n_type;
+
+void register_sum_cello_reduce_n(void)
+{ sum_cello_reduce_n_type = CkReduction::addReducer(sum_cello_reduce_n); }
+
+CkReductionMsg * sum_cello_reduce_n(int n, CkReductionMsg ** msgs)
+{
+
+  const int N = int(*((cello_reduce_type *) msgs[0]->getData()));
+  
+  cello_reduce_type * accum = new cello_reduce_type [N+1];
+  
+  std::fill_n(accum,N+1,0.0);
+
+  for (int i=0; i<n; i++) {
+
+    ASSERT2("sum_cello_reduce_n()",
+	    "CkReductionMsg actual size %d is different from expected %lu",
+	    msgs[i]->getSize(),(N+1)*sizeof(cello_reduce_type),
+            ((long unsigned)msgs[i]->getSize() == (N+1)*sizeof(cello_reduce_type)));
+    
+    cello_reduce_type * values = (cello_reduce_type *) msgs[i]->getData();
+
+    accum[0] = values[0];
+    for (int i=1; i<=N; i++) {
+      accum[i] += values[i];
+    }
+  }
+  CkReductionMsg * msg = CkReductionMsg::buildNew
+    ((N+1)*sizeof(cello_reduce_type),accum);
+  delete [] accum;
+  return msg;
 }
 
 //----------------------------------------------------------------------

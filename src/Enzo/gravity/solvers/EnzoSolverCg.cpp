@@ -21,15 +21,15 @@
   enzo_float* X_bcg  = (enzo_float*) field.values(COPY);        \
   const int m = mx_*my_*mz_;                                    \
   if (X_bcg) for (int i=0; i<m; i++)  X_bcg[i] = X[i];          \
-  long double sum=0.0,min=1e100,max=-1e100;                     \
+  cello_reduce_type sum=0.0,min=1e100,max=-1e100;                     \
   int count = 0;                                                \
   for (int iz=gz_; iz<mz_-gz_; iz++) {                          \
     for (int iy=gy_; iy<my_-gy_; iy++) {                        \
       for (int ix=gx_; ix<mx_-gx_; ix++) {                      \
         int i=ix+mx_*(iy+my_*iz);                               \
         sum += X[i];                                            \
-        min = std::min(min,(long double)X[i]);                  \
-        max = std::max(max,(long double)X[i]);                  \
+        min = std::min(min,(cello_reduce_type)X[i]);                  \
+        max = std::max(max,(cello_reduce_type)X[i]);                  \
         count++;                                                \
       }                                                         \
     }                                                           \
@@ -240,7 +240,7 @@ void EnzoSolverCg::compute_ (EnzoBlock * enzo_block) throw()
     }
   }
 
-  long double reduce[3] = {0.0};
+  cello_reduce_type reduce[3] = {0.0};
 
   if (is_finest_(enzo_block)) {
 
@@ -262,8 +262,8 @@ void EnzoSolverCg::compute_ (EnzoBlock * enzo_block) throw()
   CkCallback callback(CkIndex_EnzoBlock::r_solver_cg_loop_0a(NULL),
 		      enzo_block->proxy_array());
 
-  enzo_block->contribute (3*sizeof(long double), &reduce,
-			  sum_long_double_3_type,
+  enzo_block->contribute (3*sizeof(cello_reduce_type), &reduce,
+			  sum_cello_reduce_3_type,
 			  callback);
 }
 
@@ -288,7 +288,7 @@ void EnzoSolverCg::loop_0a
 (EnzoBlock * enzo_block, CkReductionMsg * msg) throw ()
 {
 
-  long double * data = (long double *) msg->getData();
+  cello_reduce_type * data = (cello_reduce_type *) msg->getData();
 
   rr_ = data[0];
   bs_ = data[1];
@@ -381,7 +381,7 @@ void EnzoSolverCg::shift_1 (EnzoBlock * enzo_block) throw()
       // shift_ (R,shift,R);
       // shift_ (B,shift,B);
 
-      long double shift = -bs_ / bc_;
+      cello_reduce_type shift = -bs_ / bc_;
       enzo_float * D = (enzo_float*) field.values(id_);
       enzo_float * Z = (enzo_float*) field.values(iz_);
       for (int i=0; i<mx_*my_*mz_; i++) {
@@ -396,7 +396,7 @@ void EnzoSolverCg::shift_1 (EnzoBlock * enzo_block) throw()
     }
   }
 
-  long double reduce = 0;
+  cello_reduce_type reduce = 0;
 
   if (is_finest_(enzo_block)) {
 
@@ -416,8 +416,8 @@ void EnzoSolverCg::shift_1 (EnzoBlock * enzo_block) throw()
   CkCallback callback(CkIndex_EnzoBlock::r_solver_cg_shift_1(NULL),
 		      enzo_block->proxy_array());
 
-  enzo_block->contribute (sizeof(long double), &reduce,
-			  sum_long_double_type,
+  enzo_block->contribute (sizeof(cello_reduce_type), &reduce,
+			  sum_cello_reduce_type,
 			  callback);
 }
 
@@ -430,7 +430,7 @@ void EnzoBlock::r_solver_cg_shift_1 (CkReductionMsg * msg)
   EnzoSolverCg * solver =
     static_cast<EnzoSolverCg*> (this->solver());
 
-  solver->set_rr( ((long double*)msg->getData())[0] );
+  solver->set_rr( ((cello_reduce_type*)msg->getData())[0] );
 
   delete msg;
 
@@ -503,7 +503,7 @@ void EnzoSolverCg::loop_2b (EnzoBlock * enzo_block) throw()
 
     }
 
-    long double reduce[3] = {0.0, 0.0, 0.0};
+    cello_reduce_type reduce[3] = {0.0, 0.0, 0.0};
 
     if (is_finest_(enzo_block)) {
 
@@ -527,8 +527,8 @@ void EnzoSolverCg::loop_2b (EnzoBlock * enzo_block) throw()
     CkCallback callback(CkIndex_EnzoBlock::r_solver_cg_loop_3(NULL),
 			enzo_block->proxy_array());
 
-    enzo_block->contribute (3*sizeof(long double), &reduce,
-			    sum_long_double_3_type,
+    enzo_block->contribute (3*sizeof(cello_reduce_type), &reduce,
+			    sum_cello_reduce_3_type,
 			    callback);
   }
 }
@@ -542,7 +542,7 @@ void EnzoBlock::r_solver_cg_loop_3 (CkReductionMsg * msg)
   EnzoSolverCg * solver =
     static_cast<EnzoSolverCg*> (this->solver());
 
-  long double * data = (long double *) msg->getData();
+  cello_reduce_type * data = (cello_reduce_type *) msg->getData();
 
   solver->set_rr(data[0]);
   solver->set_rz(data[1]);
@@ -603,7 +603,7 @@ void EnzoSolverCg::loop_4 (EnzoBlock * enzo_block) throw ()
 
   }
 
-  long double reduce[3] = {0.0, 0.0, 0.0};
+  cello_reduce_type reduce[3] = {0.0, 0.0, 0.0};
 
   if (is_finest_(enzo_block)) {
 
@@ -629,8 +629,8 @@ void EnzoSolverCg::loop_4 (EnzoBlock * enzo_block) throw ()
   CkCallback callback(CkIndex_EnzoBlock::r_solver_cg_loop_5(NULL),
 		      enzo_block->proxy_array());
 
-  enzo_block->contribute (3*sizeof(long double), &reduce,
-			  sum_long_double_3_type,
+  enzo_block->contribute (3*sizeof(cello_reduce_type), &reduce,
+			  sum_cello_reduce_3_type,
 			  callback);
 }
 
@@ -645,7 +645,7 @@ void EnzoBlock::r_solver_cg_loop_5 (CkReductionMsg * msg)
   EnzoSolverCg * solver =
     static_cast<EnzoSolverCg*> (this->solver());
 
-  long double * data = (long double *) msg->getData();
+  cello_reduce_type * data = (cello_reduce_type *) msg->getData();
 
   solver->set_rz2(data[0]);
   solver->set_rs (data[1]);
@@ -769,7 +769,7 @@ void EnzoSolverCg::local_cg_(EnzoBlock * enzo_block)
       }
     }
     bc_ = nx_*ny_*nz_;
-    long double shift = -bs_ / bc_;
+    cello_reduce_type shift = -bs_ / bc_;
     for (int i=0; i<mx_*my_*mz_; i++) {
       R[i] += shift;
       B[i] += shift;
@@ -985,8 +985,8 @@ void EnzoSolverCg::shift_local_(int i_x,EnzoBlock * enzo_block)
 {
   if (A_->is_singular()) {
     enzo_float * X = (enzo_float*) enzo_block->data()->field().values(i_x);
-    long double xs = 0.0;
-    long double xc = 0.0;
+    cello_reduce_type xs = 0.0;
+    cello_reduce_type xc = 0.0;
     for (int iz=gz_; iz<mz_-gz_; iz++) {
       for (int iy=gy_; iy<my_-gy_; iy++) {
 	for (int ix=gx_; ix<mx_-gx_; ix++) {
