@@ -664,6 +664,14 @@ void OutputImage::image_create_ () throw()
 	 "image_ already created",
 	 image_data_ == NULL || image_mesh_ == NULL);
 
+  std::string file_name = expand_name_ (&file_name_,&file_args_);
+
+  std::string dir_name = directory();
+
+  // Create png object
+  Monitor::instance()->print ("Output","writing image file %s",
+                              (dir_name + "/" + file_name).c_str());
+
   TRACE_MEMORY("new image_data_",image_size_[0]*image_size_[1]*sizeof(double));
   TRACE_MEMORY("new image_mesh_",image_size_[0]*image_size_[1]*sizeof(double));
   image_data_  = new double [image_size_[0]*image_size_[1]];
