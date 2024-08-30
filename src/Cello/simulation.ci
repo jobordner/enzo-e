@@ -35,6 +35,7 @@ module simulation {
 
     entry void r_monitor_performance_reduce (CkReductionMsg * msg);
     entry void p_monitor_performance();
+    entry void p_monitor_output();
 
     entry void p_set_block_array (CProxy_Block block_array);
     entry void p_initial_block_created();

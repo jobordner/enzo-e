@@ -226,9 +226,17 @@ public: // interface
 			  cello_reduce_type * dot_block);
 protected:
   
-  inline long double & scalar_ (Block *block, int i_scalar)
+  inline cello_reduce_type & scalar_ (Block *block, int i_scalar)
   {
-    return *block->data()->scalar_long_double().value(i_scalar);
+#ifdef CELLO_REDUCE_TYPE_QUAD
+  Scalar<long double> scalar =
+    block->data()->scalar_long_double();
+#endif  
+#ifdef CELLO_REDUCE_TYPE_DOUBLE
+  Scalar<double> scalar =
+    block->data()->scalar_double();
+#endif  
+    return *scalar.value(i_scalar);
   }
 
   bool is_singular_()

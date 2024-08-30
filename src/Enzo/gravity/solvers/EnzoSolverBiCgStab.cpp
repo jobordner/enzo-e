@@ -241,33 +241,39 @@ EnzoSolverBiCgStab::EnzoSolverBiCgStab
   }
   
   //  if (solve_type == solve_tree) {
-  ScalarDescr * scalar_descr_quad = cello::scalar_descr_long_double();
+
+#ifdef CELLO_REDUCE_TYPE_DOUBLE
+  ScalarDescr * scalar_descr = cello::scalar_descr_double();
+#endif
+#ifdef CELLO_REDUCE_TYPE_QUAD
+  ScalarDescr * scalar_descr = cello::scalar_descr_long_double();
+#endif
 
   // skip index==0 for checking index validity  
-  int is_skip   =  scalar_descr_quad->new_value("solver_bicgstab_skip");
+  int is_skip   =  scalar_descr->new_value("solver_bicgstab_skip");
   
-  is_alpha_ =  scalar_descr_quad->new_value("solver_bicgstab_alpha");
-  is_beta_n_ = scalar_descr_quad->new_value("solver_bicgstab_beta_n");
-  is_beta_d_ = scalar_descr_quad->new_value("solver_bicgstab_beta_d");
-  is_omega_ =  scalar_descr_quad->new_value("solver_bicgstab_omega");
-  is_omega_d_ =scalar_descr_quad->new_value("solver_bicgstab_omega_d");
-  is_omega_n_ =scalar_descr_quad->new_value("solver_bicgstab_omega_n");
-  is_err_ =    scalar_descr_quad->new_value("solver_bicgstab_err");
-  is_err0_ =   scalar_descr_quad->new_value("solver_bicgstab_err0");
-  is_err_min_ =scalar_descr_quad->new_value("solver_bicgstab_err_min");
-  is_err_max_ =scalar_descr_quad->new_value("solver_bicgstab_err_max");
-  is_rr_ =     scalar_descr_quad->new_value("solver_bicgstab_rr");
-  is_r0s_ =    scalar_descr_quad->new_value("solver_bicgstab_r0s");
-  is_c_ =      scalar_descr_quad->new_value("solver_bicgstab_c");
-  is_bs_ =     scalar_descr_quad->new_value("solver_bicgstab_bs");
-  is_xs_ =     scalar_descr_quad->new_value("solver_bicgstab_xs");
-  is_bnorm_ =  scalar_descr_quad->new_value("solver_bicgstab_bnorm");
-  is_rho0_  =  scalar_descr_quad->new_value("solver_bicgstab_rho0");
-  is_vr0_ =    scalar_descr_quad->new_value("solver_bicgstab_vr0");
-  is_ys_ =     scalar_descr_quad->new_value("solver_bicgstab_ys");
-  is_vs_ =     scalar_descr_quad->new_value("solver_bicgstab_vs");
-  is_us_ =     scalar_descr_quad->new_value("solver_bicgstab_us");
-  is_qs_ =     scalar_descr_quad->new_value("solver_bicgstab_qs");
+  is_alpha_ =  scalar_descr->new_value("solver_bicgstab_alpha");
+  is_beta_n_ = scalar_descr->new_value("solver_bicgstab_beta_n");
+  is_beta_d_ = scalar_descr->new_value("solver_bicgstab_beta_d");
+  is_omega_ =  scalar_descr->new_value("solver_bicgstab_omega");
+  is_omega_d_ =scalar_descr->new_value("solver_bicgstab_omega_d");
+  is_omega_n_ =scalar_descr->new_value("solver_bicgstab_omega_n");
+  is_err_ =    scalar_descr->new_value("solver_bicgstab_err");
+  is_err0_ =   scalar_descr->new_value("solver_bicgstab_err0");
+  is_err_min_ =scalar_descr->new_value("solver_bicgstab_err_min");
+  is_err_max_ =scalar_descr->new_value("solver_bicgstab_err_max");
+  is_rr_ =     scalar_descr->new_value("solver_bicgstab_rr");
+  is_r0s_ =    scalar_descr->new_value("solver_bicgstab_r0s");
+  is_c_ =      scalar_descr->new_value("solver_bicgstab_c");
+  is_bs_ =     scalar_descr->new_value("solver_bicgstab_bs");
+  is_xs_ =     scalar_descr->new_value("solver_bicgstab_xs");
+  is_bnorm_ =  scalar_descr->new_value("solver_bicgstab_bnorm");
+  is_rho0_  =  scalar_descr->new_value("solver_bicgstab_rho0");
+  is_vr0_ =    scalar_descr->new_value("solver_bicgstab_vr0");
+  is_ys_ =     scalar_descr->new_value("solver_bicgstab_ys");
+  is_vs_ =     scalar_descr->new_value("solver_bicgstab_vs");
+  is_us_ =     scalar_descr->new_value("solver_bicgstab_us");
+  is_qs_ =     scalar_descr->new_value("solver_bicgstab_qs");
 
   if (solve_type == solve_tree) {
    
@@ -1792,9 +1798,14 @@ void EnzoSolverBiCgStab::dot_save_
 (EnzoBlock * block,int n, cello_reduce_type * data, const std::vector<int> & is_array)
 {
   TRACE_DOT(block,"dot_save",-1);
-  Scalar<long double> scalar =
+
+  Scalar<cello_reduce_type> scalar =
+#ifdef CELLO_REDUCE_TYPE_QUAD
     block->data()->scalar_long_double();
-  
+#endif  
+#ifdef CELLO_REDUCE_TYPE_DOUBLE
+    block->data()->scalar_double();
+#endif  
   for (int i=0; i<n; i++) {
     *(scalar.value(is_array[i])) = data[i];
   }
@@ -1806,8 +1817,13 @@ void EnzoSolverBiCgStab::dot_load_
 (EnzoBlock * block,int n, cello_reduce_type * data, const std::vector<int> & is_array)
 {
   TRACE_DOT(block,"dot_load",-1);
-  Scalar<long double> scalar =
+  Scalar<cello_reduce_type> scalar =
+#ifdef CELLO_REDUCE_TYPE_QUAD
     block->data()->scalar_long_double();
+#endif  
+#ifdef CELLO_REDUCE_TYPE_DOUBLE
+    block->data()->scalar_double();
+#endif  
   
   for (int i=0; i<n; i++) {
     data[i] = *(scalar.value(is_array[i]));
@@ -1819,8 +1835,13 @@ void EnzoSolverBiCgStab::dot_load_
 void EnzoSolverBiCgStab::dot_clear_
 (EnzoBlock * block,int n, const std::vector<int> & is_array)
 {
-  Scalar<long double> scalar =
+  Scalar<cello_reduce_type> scalar =
+#ifdef CELLO_REDUCE_TYPE_QUAD
     block->data()->scalar_long_double();
+#endif  
+#ifdef CELLO_REDUCE_TYPE_DOUBLE
+    block->data()->scalar_double();
+#endif  
   
   for (int i=0; i<n; i++) {
     *(scalar.value(is_array[i])) = 0.0;
@@ -1844,8 +1865,13 @@ void EnzoSolverBiCgStab::dot_increment_
  cello_reduce_type * dot_block)
 {
   TRACE_DOT(block,"dot_increment",-1);
-  Scalar<long double> scalar =
+  Scalar<cello_reduce_type> scalar =
+#ifdef CELLO_REDUCE_TYPE_QUAD
     block->data()->scalar_long_double();
+#endif  
+#ifdef CELLO_REDUCE_TYPE_DOUBLE
+    block->data()->scalar_double();
+#endif  
   
   for (int i=0; i<n; i++) {
     *(scalar.value(is_array[i])) += dot_block[i];

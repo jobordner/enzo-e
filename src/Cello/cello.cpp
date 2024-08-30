@@ -201,6 +201,13 @@ namespace cello {
 
   //---------------------------------------------------------------------- 
 
+  CProxy_Simulation simulation_array()
+  {
+    return proxy_simulation;
+  }
+
+  //---------------------------------------------------------------------- 
+
   const Factory * factory()
   {
     return simulation()->factory();

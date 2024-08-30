@@ -38,7 +38,7 @@ CProxy_Main proxy_main;
 
 #ifdef CHARM_ENZO
 #include "simulation.hpp"
-extern CProxy_EnzoSimulation proxy_simulation;
+extern CProxy_EnzoSimulation proxy_enzo_simulation;
 #include "enzo_finalize.hpp"
 #endif
 
@@ -108,7 +108,7 @@ void Main::p_checkpoint_output(int count, std::string dir_name)
 
 #ifdef CHARM_ENZO
     CkPrintf ("Calling CkStartCheckpoint\n");
-    CkCallback callback(CkIndex_EnzoSimulation::r_write_checkpoint_output(),proxy_simulation);
+    CkCallback callback(CkIndex_EnzoSimulation::r_write_checkpoint_output(),proxy_enzo_simulation);
     CkStartCheckpoint (dir_checkpoint_,callback,false,1);
     // "OLD" CHARM++ (version < 7.0.0) USE:
     //CkStartCheckpoint (dir_checkpoint_,callback);

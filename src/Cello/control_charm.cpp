@@ -92,7 +92,7 @@ void Block::output_exit_()
   TRACE_CONTROL("output_exit");
 
   if (index_.is_root()) {
-    cello::simulation()->monitor_output();
+    cello::simulation_array()[0].p_monitor_output();
   }
 
   performance_stop_(perf_output);

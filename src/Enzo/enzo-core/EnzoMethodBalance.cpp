@@ -40,9 +40,9 @@ void EnzoMethodBalance::pup (PUP::er &p)
 void EnzoMethodBalance::compute ( Block * block) throw()
 {
 #ifdef TRACE_BALANCE
-  CkPrintf ("TRACE_SELF_BALANCE %s\n",block->name().c_str());
-  CkPrintf ("TRACE_BALANCE 1 compute() %s process %d counter %lld\n",
-            block->name().c_str(),CkMyPe(),MsgRefresh::counter[CkMyPe()]);
+  CkPrintf ("TRACE_BALANCE 1 ip %d compute() %s\n",
+            CkMyPe(),block->name().c_str());
+  fflush(stdout);
 #endif
   // Output that we're calling the load balancer
   Monitor * monitor = cello::monitor();
@@ -61,13 +61,17 @@ void EnzoMethodBalance::compute ( Block * block) throw()
 
   block->set_ip_next(ip_next);
 #ifdef TRACE_BALANCE
-  CkPrintf ("self_balance %d %d %d %d\n", count, index,ip_next,CkMyPe());
+  CkPrintf ("TRACE_BALANCE 2 ip %d compute() %s ip_next %d index %d count %d\n",
+            CkMyPe(),block->name().c_str(),ip_next,index,count);
+  fflush(stdout);
 #endif
 
   int count_local = 0;
   if (ip_next != CkMyPe()) {
 #ifdef TRACE_BALANCE
-    CkPrintf ("TRACE_MIGRATE Method Counting %s from %d to %d\n",block->name().c_str(),CkMyPe(),ip_next);
+    CkPrintf ("TRACE_BALANCE 3 ip %d compute() migrating %s to %d\n",
+	      CkMyPe(),block->name().c_str(),ip_next);
+    fflush(stdout);
 #endif
     count_local = 1;
   }
@@ -85,7 +89,8 @@ void EnzoSimulation::r_method_balance_count(CkReductionMsg * msg)
 {
   int * count_total = (int * )msg->getData();
 #ifdef TRACE_BALANCE
-  CkPrintf ("DEBUG_BALANCE block_count = %d\n",*count_total);
+  CkPrintf ("TRACE_BALANCE 4 ip %d r_method_balance_count() block count %d\n",
+	    CkMyPe(),*count_total);
   fflush(stdout);
 #endif
   sync_method_balance_.set_stop(*count_total + 1);
@@ -98,22 +103,27 @@ void EnzoSimulation::r_method_balance_count(CkReductionMsg * msg)
 
 void EnzoBlock::p_method_balance_migrate()
 {
+#ifdef TRACE_BALANCE
+  CkPrintf ("TRACE_BALANCE 5 p_method_balance_migrate() calling do_migrate()\n");
+  fflush(stdout);
+#endif
   static_cast<EnzoMethodBalance*> (method())->do_migrate(this);
 }
 
 void EnzoMethodBalance::do_migrate(EnzoBlock * enzo_block)
 {
 #ifdef TRACE_BALANCE
-  CkPrintf ("TRACE_BALANCE 2 migrate() %s process %d counter %lld\n",
-            enzo_block->name().c_str(),CkMyPe(),MsgRefresh::counter[CkMyPe()]);
+  CkPrintf ("TRACE_BALANCE 6 ip %d do_migrate() %s\n",
+            CkMyPe(),enzo_block->name().c_str());
+  fflush(stdout);
 #endif
   int ip_next = enzo_block->ip_next();
   if (ip_next != CkMyPe()) {
 #ifdef TRACE_BALANCE
-    CkPrintf ("TRACE_MIGRATE Method Migrating %s from %d to %d\n",
-              enzo_block->name().c_str(),CkMyPe(),ip_next);
-#endif
+    CkPrintf ("TRACE_BALANCE 7 ip %d do_migrate() calling migrateMe() %s to %d\n",
+              CkMyPe(),enzo_block->name().c_str(),ip_next);
     fflush(stdout);
+#endif
 
     enzo_block->migrateMe(ip_next);
   }
@@ -122,14 +132,10 @@ void EnzoMethodBalance::do_migrate(EnzoBlock * enzo_block)
 void EnzoSimulation::p_method_balance_check()
 {
 #ifdef TRACE_BALANCE
-  CkPrintf ("TRACE_MIGRATE p_method_balance_check()\n");
-#endif
-#ifdef TRACE_BALANCE
-  CkPrintf ("TRACE_BALANCE 3 check() process %d counter %lld\n",
-            CkMyPe(),MsgRefresh::counter[CkMyPe()]);
+  CkPrintf ("TRACE_BALANCE 8 ip %d p_method_balance_check()\n",CkMyPe());
+  fflush(stdout);
 #endif
   if (sync_method_balance_.next()) {
-    enzo::block_array().doneInserting();
     enzo::block_array().p_method_balance_done();
   }
 }
@@ -142,8 +148,9 @@ void EnzoBlock::p_method_balance_done()
 void EnzoMethodBalance::done(EnzoBlock * enzo_block)
 {
 #ifdef TRACE_BALANCE
-  CkPrintf ("TRACE_BALANCE 4 done() %s process %d counter %lld\n",
-            enzo_block->name().c_str(),CkMyPe(),MsgRefresh::counter[CkMyPe()]);
+  CkPrintf ("TRACE_BALANCE 10 ip %d done() %s\n",
+            CkMyPe(),enzo_block->name().c_str());
+  fflush(stdout);
 #endif
   enzo_block->set_ip_next(-1);
   enzo_block->compute_done();

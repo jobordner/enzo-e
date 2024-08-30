@@ -302,6 +302,8 @@ public: // virtual functions
   //--------------------------------------------------
 
   void monitor_output();
+  void p_monitor_output()
+  { monitor_output(); }
 
    void p_monitor_performance()
    { monitor_performance(); };

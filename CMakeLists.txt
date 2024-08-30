@@ -146,7 +146,7 @@ endif()
 
 option(balance "Enable charm++ dynamic load balancing" ON)
 set(balancer_included "CommonLBs" CACHE STRING "Charm++ load balancer to include")
-set(balancer_default "TreeLB" CACHE STRING "Charm++ load balancer to use by default")
+set(balancer_default "" CACHE STRING "Charm++ load balancer to use by default")
 #TODO we should figure our reasonale defaults and/or provide instructions in the docs
 if (balance)
   foreach(BALANCER IN LISTS balancer_included)

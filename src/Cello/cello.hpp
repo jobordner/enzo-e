@@ -66,6 +66,8 @@ class ScalarDescr;
 class Simulation;
 class Solver;
 class Units;
+class CProxy_Simulation;
+extern CProxy_Simulation proxy_simulation;
 
 #ifdef CELLO_DEBUG
 # define TRACE_ONCE                                             \
@@ -144,8 +146,8 @@ enum reduce_enum {
   reduce_set      /// Value of last processed (used for mesh plotting)
 };
 
-#define CELLO_REDUCE_TYPE_QUAD /* select for accuracy (default) */
-/* #define CELLO_REDUCE_TYPE_DOUBLE */ /* select for performance */
+/* #define CELLO_REDUCE_TYPE_QUAD */ /* select for accuracy (default) */
+#define CELLO_REDUCE_TYPE_DOUBLE /* select for performance */
 
 /// @typedef cello_reduce_type
 /// @brief   type to use for global reductions; "long double" (quad) is
@@ -772,6 +774,8 @@ namespace cello {
 
   /// Return a pointer to the Simulation object on this process
   Simulation *    simulation();
+  /// Return a proxy for the Simulation chare array
+  CProxy_Simulation simulation_array();
   /// Return a pointer to the Factory object on this process
   const Factory * factory();
   /// Return a proxy for the Block chare array of Blocks
