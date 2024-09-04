@@ -111,6 +111,7 @@ void Monitor::header () const
 #endif
   print ("CHARM","CkNumPes()           %d",CkNumPes());
   print ("CHARM","CkNumNodes()         %d",CkNumNodes());
+  print ("CHARM","CkNumHosts()         %d",CmiNumPhysicalNodes());
 }
 
 //----------------------------------------------------------------------
