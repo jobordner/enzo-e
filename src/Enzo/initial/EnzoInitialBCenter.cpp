@@ -231,9 +231,9 @@ void EnzoInitialBCenter::enforce_block( Block * block,
 
 void EnzoInitialBCenter::initialize_values_()
 {
-  parameters_->group_set(0,"Initial");
-  parameters_->group_set(1,"vlct_bfield");
-
+  parameter_path_type current_group;
+  current_group.push_back("Initial");
+  current_group.push_back("vlct_bfield");
 
   // Check if values are specified for any component of the vector potential
   //    - If only a subset of values are specified, than the unspecified
@@ -242,14 +242,14 @@ void EnzoInitialBCenter::initialize_values_()
   //      be pre-calculated and only the cell-centered values are computed
   std::string names[3] = {"Ax","Ay","Az"};
   for (int i = 0; i < 3; i++){
-    if (parameters_->type(names[i]) == parameter_unknown){
+    if (parameters_->type(current_group,names[i]) == parameter_unknown){
       values_[i] = nullptr;
     } else {
-      if ( (parameters_->type(names[i]) == parameter_list) &&
-	   (parameters_->list_length(names[i]) == 0)){
+      if ( (parameters_->type(current_group,names[i]) == parameter_list) &&
+	   (parameters_->list_length(current_group,names[i]) == 0)){
 	values_[i] = nullptr;
       }
-      values_[i] = new Value(parameters_, names[i]);
+      values_[i] = new Value(parameters_, current_group,names[i]);
     }
   }
 }

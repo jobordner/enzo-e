@@ -27,6 +27,10 @@ typedef int parameter_type;
 
 extern const char * parameter_type_name [];
 
+typedef std::string parameter_name_type;
+typedef std::vector <parameter_name_type> parameter_path_type;
+static const parameter_path_type root_group;
+
 //----------------------------------------------------------------------
 // System includes
 //----------------------------------------------------------------------

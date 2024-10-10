@@ -578,6 +578,7 @@ protected: // functions
   void read_units_       ( Parameters * ) throw();
 
   int read_schedule_( Parameters * ,
+                      const parameter_path_type & current_group,
 		      const std::string group   );
 
 };

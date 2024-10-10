@@ -29,14 +29,14 @@ EnzoMethodFeedback::EnzoMethodFeedback
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_all_fields();
 
-  ejecta_mass_   = (p.value_float("ejecta_mass",0.0) *
+  ejecta_mass_   = (p.value<double>("ejecta_mass",0.0) *
                     enzo_constants::mass_solar / enzo_units->mass());
 
-  ejecta_energy_ = p.value_float("supernova_energy",1.0) * 1.0E51 /
+  ejecta_energy_ = p.value<double>("supernova_energy",1.0) * 1.0E51 /
                    enzo_units->mass() / enzo_units->velocity() /
                    enzo_units->velocity();
 
-  ejecta_metal_fraction_ = p.value_float("ejecta_metal_fraction",0.1);
+  ejecta_metal_fraction_ = p.value<double>("ejecta_metal_fraction",0.1);
 
   return;
 }

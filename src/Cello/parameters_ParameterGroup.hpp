@@ -66,13 +66,10 @@ class ParameterGroup {
 public:
 
   /// construct a new ParameterGroup object
-  ParameterGroup(Parameters &p, const std::string& root_parameter_path)
+  ParameterGroup(Parameters &p, const parameter_path_type & current_group)
     : wrapped_p_(p),
-      root_parameter_path_(root_parameter_path)
+      current_group_(current_group)
   {
-    ASSERT("ParameterGroup::ParameterGroup",
-           "root_parameter_path must not have a trailing colon",
-           root_parameter_path.back() != ':');
   }
 
   // default implementations of copy and move constructors
@@ -96,80 +93,49 @@ public:
   /// - if ``*this`` represents the group containing the parameters with paths
   ///   "par_alpha" and "par_beta", then this method would return ``""``
   ///   (Note: by convention, parameters are never actually put in this group)
-  const std::string& get_group_path() const noexcept
-  {return root_parameter_path_;}
+  const std::string get_group_path() const noexcept
+  {
+    std::string path="";
+    if (current_group_.size()>0) {
+      path=current_group_[0];
+      for (size_t i=1; i<current_group_.size(); i++) {
+        path += std::string(":") + current_group_[i];
+      }
+    }
+    return path;
+  }
 
-  int value (std::string s, int deflt) noexcept
-  { return value_integer(s,deflt); }
-  double value (std::string s, double deflt) noexcept
-  { return value_float(s,deflt); }
-  bool value (std::string s, bool deflt) noexcept
-  { return value_logical(s, deflt); }
-  std::string value (std::string s, std::string deflt) noexcept
-  { return value_string(s, deflt); }
+  template <class T> T value
+  (const parameter_name_type & parameter_name) noexcept;
+  template <class T> T value
+  (const parameter_name_type & parameter_name, T deflt) noexcept;
 
-  int value (int i,std::string s, int deflt) noexcept
-  { return list_value_integer(i,s,deflt); }
-  double value (int i,std::string s, double deflt) noexcept
-  { return list_value_float(i,s,deflt); }
-  bool value (int i,std::string s, bool deflt) noexcept
-  { return list_value_logical(i,s,deflt); }
-  std::string value (int i,std::string s, const char * deflt) noexcept
-  { return list_value_string(i,s,deflt); }
-  std::string value (int i,std::string s, std::string deflt) noexcept
-  { return list_value_string(i,s,deflt); }
-
-  /// Return the type of the given parameter
-  parameter_type type(std::string param) noexcept;
-
-  /// Return the Param pointer for the specified parameter
-  Param * param (std::string parameter);
-
-  /// Return the integer-valued parameter
-  int value_integer (std::string s, int deflt = 0) noexcept;
-  /// Return the floating-point valued parameter
-  double value_float (std::string s, double deflt = 0.0) noexcept;
-  /// Return the logical-valued parameter
-  bool value_logical (std::string s, bool deflt = false) noexcept;
-  /// Return the string-valued parameter
-  std::string value_string ( std::string s, std::string deflt = "") noexcept;
-
-  /// Return the length of the list parameter
-  int list_length (std::string parameter);
-  /// Access an integer list element
-  int list_value_integer (int i, std::string s, int deflt = 0) noexcept;
-  /// Access a floating point list element
-  double list_value_float (int i, std::string s, double deflt = 0.0) noexcept;
-  /// Access a logical list element
-  bool list_value_logical (int i, std::string s, bool deflt = false) noexcept;
-  /// Access a string list element
-  std::string list_value_string (int, std::string, std::string d="") noexcept;
+  template <class T> T value
+  (int i, const parameter_name_type & parameter_name) noexcept;
+  template <class T> T value
+  (int i, const parameter_name_type & parameter_name, T deflt) noexcept;
 
   /// Return the full name of the parameter (including the root parameter path)
-  std::string full_name(const std::string& parameter) const noexcept
-  { return root_parameter_path_ + ":" + parameter; }
+  std::string full_name(const parameter_name_type & parameter) const noexcept
+  {
+    std::string group_path = get_group_path();
+    return (group_path == "") ? parameter : group_path + ":" + parameter;;
+  }
+  /// Return the type of the given parameter
+  parameter_type type(const parameter_name_type & param) noexcept;
+
+  /// Return the Param pointer for the specified parameter
+  Param * param (const parameter_name_type & parameter);
+
+  // /// Return the length of the list parameter
+  int list_length (const parameter_name_type & parameter);
 
   /// Returns a vector holding the names of all leaf parameters that share the
   /// root parameter path encapsulated by this object
   std::vector<std::string> leaf_parameter_names() const noexcept
-  { return wrapped_p_.leaf_parameter_names(root_parameter_path_); }
+  { return wrapped_p_.leaf_parameter_names(current_group_); }
 
 private:
-
-  std::vector<std::string> pop_wrapped_p_groups_()
-  {
-    const int n = wrapped_p_.group_depth();
-    std::vector<std::string> grps(n);
-    for (int i = 0; i < n; i++) { grps[i] = wrapped_p_.group(i); }
-    wrapped_p_.group_clear();
-    return grps;
-  }
-
-  void restore_wrapped_p_groups_(const std::vector<std::string>& groups)
-  {
-    wrapped_p_.group_clear();
-    for (const std::string& grp : groups) { wrapped_p_.group_push(grp); }
-  }
 
 private: // attributes
   /// the wrapped Parameters object
@@ -178,15 +144,9 @@ private: // attributes
   /// holding this reference
   Parameters &wrapped_p_;
 
-  /// The associated root parameter path. All parameters in a given group share
-  /// this path
-  ///
-  /// This will never have a trailing colon.
-  ///
-  /// An invariant of this class is that this will NOT change. If we're ever
-  /// tempted to allow this attribute to change, we should prefer creation of a
-  /// new ParameterGroup instance (since they are light)
-  const std::string root_parameter_path_;
+  /// Current group, moved from Parameters for thread safety
+  parameter_path_type current_group_;
+
 };
 
 #endif /* PARAMETERS_PARAMETER_ACCESSOR_HPP */

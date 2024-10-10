@@ -273,16 +273,16 @@ EnzoMethodFeedbackSTARSS::EnzoMethodFeedbackSTARSS(ParameterGroup p)
   // previously a parameter was parsed called "Method:feedback:min_level",
   // but that never got used!
 
-  supernovae_              = p.value_logical("supernovae",true);
-  unrestricted_sn_         = p.value_logical("unrestricted_sn",true);
-  stellar_winds_           = p.value_logical("stellar_winds",true);
-  radiation_               = p.value_logical("radiation",true);
-  analytic_SNR_shell_mass_ = p.value_logical("analytic_SNR_shell_mass",true);
-  fade_SNR_                = p.value_logical("fade_SNR",true);
+  supernovae_              = p.value<bool>("supernovae",true);
+  unrestricted_sn_         = p.value<bool>("unrestricted_sn",true);
+  stellar_winds_           = p.value<bool>("stellar_winds",true);
+  radiation_               = p.value<bool>("radiation",true);
+  analytic_SNR_shell_mass_ = p.value<bool>("analytic_SNR_shell_mass",true);
+  fade_SNR_                = p.value<bool>("fade_SNR",true);
 
   // initialize NEvents parameter (mainly for testing). Sets off 'NEvents'
   // supernovae, with at most one supernova per star particle per cycle.
-  NEvents                  = p.value_integer("NEvents",-1);
+  NEvents                  = p.value<int>("NEvents",-1);
 
   // Initialize temporary fields
   i_d_dep  = cello::field_descr()->insert_temporary();

@@ -11,9 +11,9 @@
 //----------------------------------------------------------------------
 
 MethodTrace::MethodTrace(ParameterGroup p) noexcept
-  : Method ( p.value_float("courant",1.0) ),
-    timestep_( p.value_float("timestep", std::numeric_limits<double>::max()) ),
-    name_( p.value_string("name", "trace") )
+  : Method ( p.value<double>("courant",1.0) ),
+    timestep_( p.value<double>("timestep", std::numeric_limits<double>::max()) ),
+    name_( p.value<std::string>("name", "trace") )
 {
   cello::simulation()->refresh_set_name(ir_post_,name_);
 

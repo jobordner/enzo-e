@@ -64,7 +64,7 @@ GrackleChemistryData parse_chemistry(ParameterGroup p)
           "\"Method:grackle:grackle_data_file\". Instead, they must specify "
           "\"Method:grackle:data_file\".");
   } else if (p.param("data_file") != nullptr) {
-    std::string fname = p.value_string("data_file", "");
+    std::string fname = p.value<std::string>("data_file", "");
     ASSERT("EnzoMethodGrackle::from_parameters",
            "\"Method:grackle:data_file\" can't be an empty string",
            fname.length() > 0); // sanity check!
@@ -109,14 +109,14 @@ EnzoMethodGrackle::EnzoMethodGrackle
   : Method(),
     grackle_facade_(std::move(parse_chemistry(p)),
                     // for when not using cosmology - redshift of UVB
-                    p.value_float("radiation_redshift", -1.0),
+                    p.value<double>("radiation_redshift", -1.0),
                     // the next parameter is relevant when using cosmology
                     physics_cosmology_initial_redshift,
                     time),
-    use_cooling_timestep_(p.value_logical("use_cooling_timestep", false))
+    use_cooling_timestep_(p.value<bool>("use_cooling_timestep", false))
 {
   // courant is only meaningful when use_cooling_timestep is true
-  this->set_courant(p.value_float("courant", 1.0));
+  this->set_courant(p.value<double>("courant", 1.0));
 
   // Gather list of fields that MUST be defined for this
   // method and check that they are permanent. If not,

@@ -25,7 +25,7 @@
 
 EnzoMethodMergeSinks::EnzoMethodMergeSinks(ParameterGroup p)
   : Method(),
-    merging_radius_cells_(p.value_float("merging_radius_cells",8.0))
+    merging_radius_cells_(p.value<double>("merging_radius_cells",8.0))
 {
   // This method requires three dimensions.
   ASSERT("EnzoMethodMergeSinks::EnzoMethodMergeSinks()",

@@ -20,7 +20,8 @@ class EnzoInitialPm : public Initial {
 public: // interface
 
   EnzoInitialPm (Parameters * parameters,
-		 const std::string parameter_name,
+                 const parameter_path_type & current_group,
+		 const parameter_name_type & parameter_name,
 		 int               init_cycle,
 		 double            init_time,
 		 std::string       field,
@@ -33,7 +34,7 @@ public: // interface
       mask_()
   {
     if (parameters) {
-      mask_ = Mask::create (parameters->param(parameter_name),parameters);
+      mask_ = Mask::create (parameters->param(current_group,parameter_name),parameters);
     } else {
       mask_ = nullptr;
     } 

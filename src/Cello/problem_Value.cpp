@@ -10,14 +10,15 @@
 //======================================================================
 
 Value::Value(Parameters * parameters,
-	     const std::string parameter_name) throw()
+	     const parameter_path_type & current_group,
+             const parameter_name_type & parameter_name) throw()
 {
-  const int param_type = parameters->type(parameter_name);
+  const int param_type = parameters->type(current_group,parameter_name);
 
   if (param_type == parameter_float_expr || 
       param_type == parameter_float ) {
 
-    Param * param = parameters->param(parameter_name);
+    Param * param = parameters->param(current_group,parameter_name);
 
     ASSERT1("Value::Value()",
 	    "param = NULL for parameter %s",
@@ -31,10 +32,10 @@ Value::Value(Parameters * parameters,
 
   }  else if (param_type == parameter_list) {
 
-    const int list_length = parameters->list_length(parameter_name);
+    const int list_length = parameters->list_length(current_group,parameter_name);
     for (int index=0; index<list_length; index+=2) {
 
-      Param * param = parameters->param(parameter_name,index);
+      Param * param = parameters->param(current_group,parameter_name,index);
 
       ASSERT2("Value::Value",
 	      "param = NULL for parameter %s index %d",
@@ -45,7 +46,7 @@ Value::Value(Parameters * parameters,
       scalar_expr_list_.push_back(std::move(scalar_expr));
 
       if (index+1 < list_length) {
-	param = parameters->param(parameter_name,index+1);
+	param = parameters->param(current_group,parameter_name,index+1);
 	mask_list_.push_back(Mask::create(param,parameters));
       } else {
 	mask_list_.push_back(nullptr);

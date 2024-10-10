@@ -34,7 +34,8 @@ public: // interface
   Value& operator= (Value&&) = default;
 
   Value(Parameters * parameters,
-	const std::string parameter_name) throw();
+        const parameter_path_type & current_group,
+	const parameter_name_type & parameter_name) throw();
 
   /// CHARM++ Pack / Unpack function
   inline void pup (PUP::er &p)

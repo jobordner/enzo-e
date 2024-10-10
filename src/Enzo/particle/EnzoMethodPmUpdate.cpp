@@ -25,7 +25,7 @@ EnzoMethodPmUpdate::EnzoMethodPmUpdate
 ( ParameterGroup p )
   : Method(),
     // load value from Method:pm_update:max_dt
-    max_dt_(p.value_float("max_dt", std::numeric_limits<double>::max()))
+    max_dt_(p.value<double>("max_dt", std::numeric_limits<double>::max()))
 {
   TRACE_PM("EnzoMethodPmUpdate()");
 

@@ -497,22 +497,22 @@ GrackleChemistryData GrackleChemistryData::from_parameters
 
     switch (p.type(name)){
       case parameter_logical: {
-        bool value = p.value_logical(name);
+        bool value = p.value<bool>(name,false);
         if (out.try_set<int>(name, value)) {break;}
         general_param_err(name, "logical");
       }
       case parameter_integer: {
-        int value = p.value_integer(name);
+        int value = p.value<int>(name);
         if (out.try_set<int>(name, value)) {break;}
         general_param_err(name, "integer");
       }
       case parameter_float: {
-        double value = p.value_float(name);
+        double value = p.value<double>(name);
         if (out.try_set<double>(name, value)) {break;}
         general_param_err(name, "float");
       }
       case parameter_string: {
-        std::string value = p.value_string(name);
+        std::string value = p.value<std::string>(name);
         if (out.try_set<std::string>(name,value)) {break;}
         general_param_err(name, "string");
       }

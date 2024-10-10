@@ -70,6 +70,7 @@ void OutputCheckpoint::update_config_()
     int length = p.list_length("Testing:time_final");
     config->testing_time_final.resize(length);
     for (int i=0; i<length; i++) {
+      //      parameter_name_type parameter();
       config->testing_time_final[i] = p.list_value_float (i,"Testing:time_final",0.0);
     }
   } else {

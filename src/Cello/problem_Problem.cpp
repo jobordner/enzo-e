@@ -481,13 +481,15 @@ void Problem::initialize_method
   // that we can use it to construct this first MethodNull object. (But that
   // may be somewhat involved)
   {
-    const std::string root_path = "Method:null";
-    ASSERT("Problem::create_method_", "Something is wrong",
+    ASSERT("Problem::create_method_", "cello::simulation() is null",
            cello::simulation());
-    ParameterGroup p_group(*(cello::simulation()->parameters()), root_path);
+    parameter_path_type current_group;
+    current_group.push_back("Method");
+    current_group.push_back("null");
+    ParameterGroup p_group(*(cello::simulation()->parameters()), current_group);
     method_list_.push_back(new MethodNull(p_group));
   }
-  
+
   for (size_t index_method=0; index_method < num_method ; index_method++) {
 
     std::string name = config->method_type[index_method];
@@ -696,6 +698,7 @@ Refine * Problem::create_refine_
 
     return new RefineMask 
       (parameters,
+       root_group,
        param_str,
        config->adapt_max_level[index],
        config->adapt_include_ghosts[index],
@@ -905,13 +908,16 @@ Method * Problem::create_method_
 {
   TRACE1("Problem::create_method %s",name.c_str());
 
-  // move creation of p_access up the call stack?
-  ASSERT("Problem::create_method_", "Something is wrong", cello::simulation());
+  ASSERT("Problem::create_method_", "cello::simulation() is null",
+         cello::simulation());
   Parameters* parameters = cello::simulation()->parameters();
-  const std::string root_path =
-    ("Method:" + parameters->list_value_string(index_method, "Method:list"));
-  ParameterGroup p_group(*parameters, root_path);
 
+  parameter_path_type current_group;
+  current_group.push_back("Method");
+  current_group.push_back(config->method_list[index_method]);
+  ParameterGroup p_group(*parameters, current_group);
+
+  CkPrintf ("DEBUG_PARAM Problem::create_method %d %s\n",index_method,name.c_str());
   // No default method
   Method * method = nullptr;
 
@@ -945,9 +951,9 @@ Method * Problem::create_method_
     method = new MethodDebug
       (config->num_fields,
        config->num_particles,
-       p_group.value_logical("print",false),
-       p_group.value_logical("coarse",false),
-       p_group.value_logical("ghost",false));
+       p_group.value<bool>("print",false),
+       p_group.value<bool>("coarse",false),
+       p_group.value<bool>("ghost",false));
 
   } else if (name == "close_files") {
     method = new MethodCloseFiles(p_group);
