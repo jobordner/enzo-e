@@ -109,7 +109,7 @@ Initial * EnzoProblem::create_initial_
   // move creation of p_accessor up the call stack?
   parameter_path_type current_group;
   current_group.push_back("Initial");
-  current_group.push_back("list");
+  current_group.push_back(parameters->list_value_string(index,"Initial:list"));
   ParameterGroup p_group(*parameters, current_group);
 
   int cycle   = config->initial_cycle;

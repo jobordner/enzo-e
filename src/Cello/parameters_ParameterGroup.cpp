@@ -63,17 +63,6 @@ std::string ParameterGroup::value
 //----------------------------------------------------------------------
 
 template<>
-const char * ParameterGroup::value
-(const parameter_name_type & parameter_name, const char * deflt) noexcept
-{ return wrapped_p_.value_string(current_group_,parameter_name, deflt).c_str(); }
-template<>
-const char * ParameterGroup::value
-(const parameter_name_type & parameter_name) noexcept
-{ return wrapped_p_.value_string(current_group_,parameter_name, "undefined").c_str(); }
-
-//----------------------------------------------------------------------
-
-template<>
 int ParameterGroup::value
 (int i,const parameter_name_type & parameter_name, int deflt) noexcept
 { return wrapped_p_.list_value_integer(i, current_group_,parameter_name, deflt); }
@@ -110,17 +99,6 @@ template<>
 std::string ParameterGroup::value
 (int i,const parameter_name_type & parameter_name) noexcept
 { return wrapped_p_.list_value_string(i, current_group_,parameter_name, ""); }
-
-//----------------------------------------------------------------------
-
-template<>
-const char * ParameterGroup::value
-(int i,const parameter_name_type & parameter_name, const char * deflt) noexcept
-{ return wrapped_p_.list_value_string(i, current_group_,parameter_name, deflt).c_str(); }
-template<>
-const char * ParameterGroup::value
-(int i,const parameter_name_type & parameter_name) noexcept
-{ return wrapped_p_.list_value_string(i, current_group_,parameter_name, "").c_str(); }
 
 //----------------------------------------------------------------------
 
