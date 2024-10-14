@@ -49,7 +49,6 @@ CkReductionMsg * r_reduce_performance(int n, CkReductionMsg ** msgs)
   return CkReductionMsg::buildNew(length*sizeof(long long),&accum[0]);
 }
 
-
 //======================================================================
 
 CkReduction::reducerType r_reduce_method_debug_type;

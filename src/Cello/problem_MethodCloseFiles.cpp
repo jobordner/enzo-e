@@ -38,7 +38,7 @@ MethodCloseFiles::MethodCloseFiles(ParameterGroup p) throw()
 void MethodCloseFiles::compute( Block * block) throw()
 {
 #ifdef CONFIG_SMP_MODE
-  const bool is_first_cycle = (block->cycle() == cello::config()->initial_cycle);
+  const bool is_first_cycle = (block->state()->cycle() == cello::config()->initial_cycle);
   if (is_first_cycle) {
     throttle_stagger_();
     CmiLock(MethodCloseFiles::node_lock);
