@@ -16,10 +16,10 @@
 EnzoMethodAccretion::EnzoMethodAccretion
 (ParameterGroup p)
   : Method(),
-    accretion_radius_cells_(p.value_float("accretion_radius_cells", 4.0)),
-    physical_density_threshold_cgs_(p.value_float
+    accretion_radius_cells_(p.value<double>("accretion_radius_cells", 4.0)),
+    physical_density_threshold_cgs_(p.value<double>
                                     ("physical_density_threshold_cgs", 1.e-24)),
-    max_mass_fraction_(p.value_float("max_mass_fraction", 0.25)),
+    max_mass_fraction_(p.value<double>("max_mass_fraction", 0.25)),
     ir_accretion_(-1)
 {
   // This method requires three dimensions.

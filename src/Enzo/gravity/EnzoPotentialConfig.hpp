@@ -66,18 +66,18 @@ struct EnzoPotentialConfigGalaxy {
   double rcore;
 
   static EnzoPotentialConfigGalaxy from_parameters(ParameterGroup p) {
-    double DM_mass = p.value_float("DM_mass",-1.0);
-    double DM_mass_radius = p.value_float("DM_mass_radius", 0.0);
-    double stellar_r = p.value_float("stellar_scale_height_r", 1.0E-10);
-    double stellar_z = p.value_float("stellar_scale_height_z", 1.0E-10);
-    double stellar_mass = p.value_float("stellar_mass", 0.0);
-    double bulge_mass = p.value_float("bulge_mass", 0.0);
-    double bulge_radius = p.value_float("bulge_radius", 1.0E-10);
+    double DM_mass = p.value<double>("DM_mass",-1.0);
+    double DM_mass_radius = p.value<double>("DM_mass_radius", 0.0);
+    double stellar_r = p.value<double>("stellar_scale_height_r", 1.0E-10);
+    double stellar_z = p.value<double>("stellar_scale_height_z", 1.0E-10);
+    double stellar_mass = p.value<double>("stellar_mass", 0.0);
+    double bulge_mass = p.value<double>("bulge_mass", 0.0);
+    double bulge_radius = p.value<double>("bulge_radius", 1.0E-10);
 
     // deal with angular-momentum argument
     std::array<double,3> amom;
     for (int axis = 0; axis < 3; axis++) {
-      amom[axis] = p.list_value_float(axis,"angular_momentum",0);
+      amom[axis] = p.value<double>(axis,"angular_momentum",0);
     }
     double amom_mag = std::hypot(amom[0], amom[1], amom[2]);
     ASSERT("EnzoPotentialConfigGalaxy::from_parameters",
@@ -85,7 +85,7 @@ struct EnzoPotentialConfigGalaxy {
     std::array<double, 3> amom_uvec = {amom[0]/amom_mag, amom[1]/amom_mag,
                                        amom[2]/amom_mag};
 
-    double rcore = p.value_float("core_radius", 1.0E-10);
+    double rcore = p.value<double>("core_radius", 1.0E-10);
 
     ASSERT1("EnzoPotentialConfigGalaxy::from_parameters",
             "DM halo mass (=%e code_units) must be positive and specified in "
@@ -140,8 +140,8 @@ struct EnzoPotentialConfigPointMass {
   double rcore;
 
   static EnzoPotentialConfigPointMass from_parameters(ParameterGroup p) {
-    return {p.value_float("mass",0.0),
-            p.value_float("core_radius", 1.0E-10)};
+    return {p.value<double>("mass",0.0),
+            p.value<double>("core_radius", 1.0E-10)};
   }
 
   /// static method to convert from default units to code units

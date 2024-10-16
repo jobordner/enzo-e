@@ -18,7 +18,7 @@ class BoundaryValue : public Boundary
   /// @brief    [\ref Problem] Encapsulate a BoundaryValue conditions generator
 
   /// associates a value object with a list of one or more fields
-  using ValueFListPair = std::pair<Value,std::vector<std::string>>;
+  using ValueFListPair = std::pair<Value,std::vector<std::string> >;
 
 public: // interface
 

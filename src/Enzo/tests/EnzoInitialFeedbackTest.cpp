@@ -21,9 +21,9 @@ int nlines(std::string fname);
 EnzoInitialFeedbackTest::EnzoInitialFeedbackTest(int cycle, double time,
                                                  ParameterGroup p) throw ()
   : Initial(cycle, time),
-    density_CGS_(p.value_float("density", 1.0E-24)),
-    temperature_(p.value_float("temperature", 1.0E4)),
-    metal_fraction_(p.value_float("metal_fraction", 0.01)),
+    density_CGS_(p.value<double>("density", 1.0E-24)),
+    temperature_(p.value<double>("temperature", 1.0E4)),
+    metal_fraction_(p.value<double>("metal_fraction", 0.01)),
     species_densities_CGS_(),
     num_particles(0),
     position{},
@@ -36,14 +36,14 @@ EnzoInitialFeedbackTest::EnzoInitialFeedbackTest(int cycle, double time,
   // I kept things consistent when I transfered the parsing of parameters out
   // of EnzoConfig, but it seems like HI_density should default to the value
   // this->density_CGS_
-  species_densities_CGS_["HI_density"] = p.value_float("HI_density", 1.0E-24);
+  species_densities_CGS_["HI_density"] = p.value<double>("HI_density", 1.0E-24);
   const std::vector<std::string> other_species =
     {"HII_density","HeI_density","HeII_density","HeIII_density","e_density"};
   for (const std::string species : other_species) {
-    species_densities_CGS_[species] = p.value_float(species, 1.0E-100);
+    species_densities_CGS_[species] = p.value<double>(species, 1.0E-100);
   }
 
-  if (p.value_logical("from_file", false)){
+  if (p.value<bool>("from_file", false)){
     this->num_particles = nlines("initial_feedback_stars.in");
 
     for (int dim = 0; dim < 3; dim++){
@@ -74,10 +74,10 @@ EnzoInitialFeedbackTest::EnzoInitialFeedbackTest(int cycle, double time,
     for (int dim = 0; dim < 3; dim++){
       this->position[dim].resize(this->num_particles);
 
-      this->position[dim][0] = p.list_value_float(dim, "position", 0.5);
+      this->position[dim][0] = p.value<double>(dim, "position", 0.5);
     }
-    this->mass[0] = p.value_float("star_mass", 1000.0);
-    this->luminosity[0] = p.value_float("luminosity", 0.0);
+    this->mass[0] = p.value<double>("star_mass", 1000.0);
+    this->luminosity[0] = p.value<double>("luminosity", 0.0);
   }
 
   return;

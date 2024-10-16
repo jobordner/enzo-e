@@ -17,8 +17,7 @@ Parameters g_parameters;
 
 Parameters::Parameters(Monitor * monitor) 
   throw()
-  : current_group_(),
-    parameter_map_(),
+  : parameter_map_(),
     parameter_tree_("Cello"),
     monitor_(monitor),
     lmonitor_(true)
@@ -61,8 +60,6 @@ Parameters::~Parameters()
 void Parameters::pup (PUP::er &p)
 {
   TRACEPUP;
-
-  p | current_group_;
 
   // pup parameter_map_:
   int n = 0;
@@ -278,185 +275,203 @@ void Parameters::write ( FILE * fp, int type )
 //----------------------------------------------------------------------
 
 int Parameters::value_integer 
-( std::string parameter,
+( const parameter_path_type & path,
+  const parameter_name_type & name,
   int         deflt ) throw()
-/// @param   parameter Parameter name
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 /// @param   deflt     Default parameter value
 /// @return  Return integer parameter value if it exists, deflt if not
 {
-  Param * param = this->param(parameter);
+  Param * param = this->param(path,name);
 
   ASSERT1 ("Parameters::value_integer",
-	   "Parameter %s is not an integer", parameter.c_str(),
+	   "Parameter %s is not an integer", name.c_str(),
 	   ( ! param || param->is_type(parameter_integer)));
 
   char deflt_string[MAX_PARAMETER_FILE_WIDTH];
   snprintf (deflt_string,MAX_PARAMETER_FILE_WIDTH,"%d",deflt);
-  monitor_access_(parameter,deflt_string);
+  monitor_access_(path,name,deflt_string);
   return (param != NULL) ? param->get_integer() : deflt;
 }
 
 //----------------------------------------------------------------------
 
 void Parameters::set_integer 
-( std::string parameter,
+( const parameter_path_type & path,
+  const parameter_name_type & name,
   int         value ) throw()
-/// @param   parameter Parameter name
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 /// @param   value     Value to set the parameter
 {
-  Param * param = this->param(parameter_name_(parameter));
+  Param * param = this->param(path,parameter_name_(path,name));
 
   ASSERT1 ("Parameters::set_integer",
-	   "Parameter %s is not an integer", parameter.c_str(),
+	   "Parameter %s is not an integer", name.c_str(),
 	   ( ! param || param->is_type(parameter_integer)));
 
   if ( ! param ) {
     param = new Param;
-    new_param_ (parameter_name_(parameter),param);
+    new_param_ (parameter_name_(path,name),param);
   }
 
   param->set_integer_(value);
-  monitor_write_(parameter);
+  monitor_write_(path,name);
 }
 
 //----------------------------------------------------------------------
 
 double Parameters::value_float
-( std::string parameter,
+( const parameter_path_type & path,
+  const parameter_name_type & name,
   double      deflt ) throw()
-/// @param   parameter Parameter name
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 /// @param   deflt     Default parameter value
 /// @return  Return floating point (double) parameter value if it exists, deflt if not
 {
-  Param * param = this->param(parameter);
+  Param * param = this->param(path,name);
 
   ASSERT1 ("Parameters::value_float",
-	   "Parameter %s is not a float", parameter.c_str(),
+	   "Parameter %s is not a float", name.c_str(),
 	   ( ! param || param->is_type(parameter_float)));
 
   char deflt_string[MAX_PARAMETER_FILE_WIDTH];
   // '#' format character forces a decimal point
   snprintf (deflt_string,MAX_PARAMETER_FILE_WIDTH,FLOAT_FORMAT,deflt);
-  monitor_access_(parameter,deflt_string);
+  monitor_access_(path,name,deflt_string);
   return (param != NULL) ? param->get_float() : deflt;
 }
 
 //----------------------------------------------------------------------
 
 void Parameters::set_float
-( std::string parameter,
+( const parameter_path_type & path,
+  const parameter_name_type & name,
   double      value ) throw()
-/// @param   parameter Parameter name
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 /// @param   value     Value to set the parameter
 {
-  Param * param = this->param(parameter);
+  Param * param = this->param(path,name);
 
   ASSERT1 ("Parameters::set_float",
-	   "Parameter %s is not a float", parameter.c_str(),
+	   "Parameter %s is not a float", name.c_str(),
 	   (!param || param->is_type(parameter_float)));
 
-  if ( ! param ) {
-    param = new Param;
-    new_param_ (parameter_name_(parameter),param);
-  }
+ if ( ! param ) {
+   param = new Param;
+   new_param_ (parameter_name_(path,name),param);
+ }
 
-  param->set_float_(value);
-  monitor_write_(parameter);
+ param->set_float_(value);
+ monitor_write_(path,name);
 }
 
 //----------------------------------------------------------------------
 
 bool Parameters::value_logical 
-( std::string parameter,
+( const parameter_path_type & path,
+  const parameter_name_type & name,
   bool        deflt ) throw()
-/// @param   parameter Parameter name
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 /// @param   deflt     Default parameter value
 /// @return  Return logical parameter value if it exists, deflt if not
 {
-  Param * param = this->param(parameter);
+  Param * param = this->param(path,name);
 
   ASSERT2 ("Parameters::value_logical",
 	   "Parameter %s is type %d not a logical",
-	   parameter.c_str(),param->type(),
+	   name.c_str(),param->type(),
 	   ( ! param || param->is_type(parameter_logical)));
 
   char deflt_string[MAX_PARAMETER_FILE_WIDTH];
   snprintf (deflt_string,MAX_PARAMETER_FILE_WIDTH,
             "%s",deflt ? "true" : "false");
-  monitor_access_(parameter,deflt_string);
+  monitor_access_(path,name,deflt_string);
   return (param != NULL) ? param->get_logical() : deflt;
 }
 
 //----------------------------------------------------------------------
 
 void Parameters::set_logical
-( std::string parameter,
+(
+  const parameter_path_type & path,
+  const parameter_name_type & name,
   bool        value ) throw()
-/// @param   parameter Parameter name
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 /// @param   value     Value to set the parameter
 {
-  Param * param = this->param(parameter);
+  Param * param = this->param(path,name);
 
   ASSERT1 ("Parameters::set_logical",
-	   "Parameter %s is not logical", parameter.c_str(),
+	   "Parameter %s is not logical", name.c_str(),
 	   (!param || param->is_type(parameter_logical)));
 
   if ( ! param ) {
     param = new Param;
-    new_param_ (parameter_name_(parameter),param);
+    new_param_ (parameter_name_(path,name),param);
   }
 
   param->set_logical_(value);
-  monitor_write_(parameter);
+  monitor_write_(path,name);
 }
 
 //----------------------------------------------------------------------
 
 std::string Parameters::value_string 
-( std::string parameter,
+( const parameter_path_type & path,
+  const parameter_name_type & name,
   std::string deflt ) throw()
-/// @param   parameter Parameter name
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 /// @param   deflt     Default parameter value
 /// @return  Return string parameter value if it exists, deflt if not
 {
-  Param * param = this->param(parameter);
+  Param * param = this->param(path,name);
 
   ASSERT1 ("Parameters::value_string",
-	   "Parameter %s is not a string", parameter.c_str(),
+	   "Parameter %s is not a string", name.c_str(),
 	   ( ! param || param->is_type(parameter_string)));
 
-  monitor_access_(parameter,deflt);
+  monitor_access_(path,name,deflt);
   return (param != NULL) ? param->get_string() : deflt;
 }
 
 //----------------------------------------------------------------------
 
 void Parameters::set_string
-( std::string  parameter,
+( const parameter_path_type & path,
+  const parameter_name_type &  name,
   const char * value ) throw()
-/// @param   parameter Parameter name
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 /// @param   value     Value to set the parameter
 {
-  Param * param = this->param(parameter);
+  Param * param = this->param(path,name);
 
   ASSERT1 ("Parameters::set_string_string",
-	   "Parameter %s is not a string", parameter.c_str(),
+	   "Parameter %s is not a string", name.c_str(),
 	   ( ! param || param->is_type(parameter_string)));
 
   if ( ! param ) {
     param = new Param;
-    new_param_ (parameter_name_(parameter),param);
+    new_param_ (parameter_name_(path,name),param);
   }
 
   param->set_string_(strdup(value));
-  monitor_write_(parameter);
+  monitor_write_(path,name);
 }
 
 //----------------------------------------------------------------------
 
 void Parameters::evaluate_float 
 (
- std::string parameter,
+ const parameter_path_type & path,
+ const parameter_name_type & name,
  int         n, 
  double    * result, 
  double    * deflt,
@@ -464,7 +479,8 @@ void Parameters::evaluate_float
  double    * y, 
  double    * z, 
  double    t) throw()
-/// @param   parameter Parameter name
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 /// @param   n         Length of variable arrays
 /// @param   result    Output array of evaluated floating point parameters values if it exists, or deflt if not
 /// @param   deflt     Array of default values
@@ -473,9 +489,9 @@ void Parameters::evaluate_float
 /// @param   z         Array of z values
 /// @param   t         t value
 {
-  Param * param = this->param(parameter);
+  Param * param = this->param(path,name);
   ASSERT1 ("Parameters::evaluate_float",
-	   "Parameter %s is not a floating-point expression", parameter.c_str(),
+	   "Parameter %s is not a floating-point expression", name.c_str(),
 	   ( ! param || param->is_type(parameter_float_expr)));
   if (param != NULL) {
     param->evaluate_float(n,result,x,y,z,t);
@@ -488,7 +504,8 @@ void Parameters::evaluate_float
 
 void Parameters::evaluate_logical 
 (
- std::string parameter,
+ const parameter_path_type & path,
+ const parameter_name_type & name,
  int         n, 
  bool      * result, 
  bool      * deflt,
@@ -496,7 +513,8 @@ void Parameters::evaluate_logical
  double    * y, 
  double    * z, 
  double    t) throw()
-/// @param   parameter Parameter name
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 /// @param   n         Length of variable arrays
 /// @param   result    Output array of evaluated logical parameters values if it exists, or deflt if not
 /// @param   deflt     Array of default values
@@ -505,9 +523,9 @@ void Parameters::evaluate_logical
 /// @param   z         Array of Z values
 /// @param   t         T value
 {
-  Param * param = this->param(parameter);
+  Param * param = this->param(path,name);
   ASSERT1 ("Parameters::evaluate_logical",
-	   "Parameter %s is not a logical expression", parameter.c_str(),
+	   "Parameter %s is not a logical expression", name.c_str(),
 	   (! param || param->is_type(parameter_logical_expr)));
   if (param != NULL) {
     param->evaluate_logical(n,result,x,y,z,t);
@@ -520,12 +538,15 @@ void Parameters::evaluate_logical
 
 //----------------------------------------------------------------------
 
-int Parameters::list_length(std::string parameter)
-/// @param   parameter Parameter name
+int Parameters::list_length
+(const parameter_path_type & path,
+ const parameter_name_type & name)
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 {
-  Param * param = this->param(parameter);
+  Param * param = this->param(path,name);
   ASSERT1 ("Parameters::list_length",
-	   "Parameter %s is not a list", full_name(parameter).c_str(),
+	   "Parameter %s is not a list", full_name(path,name).c_str(),
 	   ( ! param || param->is_type(parameter_list)));
   return (param != NULL) ? (param->value_list_)->size() : 0;
 }
@@ -534,21 +555,23 @@ int Parameters::list_length(std::string parameter)
 
 int Parameters::list_value_integer 
 ( int index,
-  std::string parameter,
+  const parameter_path_type & path,
+  const parameter_name_type & name,
   int         deflt ) throw()
+/// @param   path      Parameter group path
 /// @param   index     Index of the integer list parameter element
-/// @param   parameter Parameter name
+/// @param   name      Parameter name
 /// @param   deflt     Default parameter value
 /// @return  Return integer list parameter element value if it exists, deflt if not
 {
-  Param * param = this->param(parameter,index);
+  Param * param = this->param(path,name,index);
   ASSERT2 ("Parameters::list_value_integer",
 	   "Parameter %s[%d] is not an integer", 
-	   parameter.c_str(),index,
+	   name.c_str(),index,
 	   ( ! param || param->is_type(parameter_integer)));
   char deflt_string[MAX_PARAMETER_FILE_WIDTH];
   snprintf (deflt_string,MAX_PARAMETER_FILE_WIDTH,"%d",deflt);
-  monitor_access_(parameter,deflt_string,index);
+  monitor_access_(path,name,deflt_string,index);
   return (param != NULL) ? param->value_integer_ : deflt;
 }
 
@@ -556,22 +579,24 @@ int Parameters::list_value_integer
 
 double Parameters::list_value_float 
 ( int index,
-  std::string parameter,
+  const parameter_path_type & path,
+  const parameter_name_type & name,
   double      deflt ) throw()
 /// @param   index     Index of the floating point (double) list parameter element
-/// @param   parameter Parameter name
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 /// @param   deflt     Default parameter value
 /// @return  Return floating point (double) list parameter element value if it exists, deflt if not
 {
-  Param * param = this->param(parameter,index);
+  Param * param = this->param(path,name,index);
   ASSERT2 ("Parameters::list_value_float",
 	   "Parameter %s[%d] is not a float", 
-	   parameter.c_str(),index,
+	   name.c_str(),index,
 	   ( ! param || param->is_type(parameter_float)));
   char deflt_string[MAX_PARAMETER_FILE_WIDTH];
   // '#' format character forces a decimal point
   snprintf (deflt_string,MAX_PARAMETER_FILE_WIDTH,FLOAT_FORMAT,deflt);
-  monitor_access_(parameter,deflt_string,index);
+  monitor_access_(path,name,deflt_string,index);
   return (param != NULL) ? param->value_float_ : deflt;
 }
 
@@ -579,22 +604,24 @@ double Parameters::list_value_float
 
 bool Parameters::list_value_logical 
 ( int index,
-  std::string parameter,
+  const parameter_path_type & path,
+  const parameter_name_type & name,
   bool        deflt ) throw()
 /// @param   index     Index of the logical list parameter element
-/// @param   parameter Parameter name
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 /// @param   deflt     Default parameter value
 /// @return  Return logical list parameter element value if it exists, deflt if not
 {
-  Param * param = this->param(parameter,index);
+  Param * param = this->param(path,name,index);
   ASSERT2 ("Parameters::list_value_logical",
 	   "Parameter %s[%d] is not a logical", 
-	   parameter.c_str(),index,
+	   name.c_str(),index,
 	   ( ! param || param->is_type(parameter_logical)));
   char deflt_string[MAX_PARAMETER_FILE_WIDTH];
   snprintf (deflt_string,MAX_PARAMETER_FILE_WIDTH,
             "%s",deflt ? "true" : "false");
-  monitor_access_(parameter,deflt_string,index);
+  monitor_access_(path,name,deflt_string,index);
   return (param != NULL) ? param->value_logical_ : deflt;
 }
 
@@ -602,19 +629,21 @@ bool Parameters::list_value_logical
 
 std::string Parameters::list_value_string 
 ( int index,
-  std::string parameter,
+  const parameter_path_type & path,
+  const parameter_name_type & name,
   std::string deflt ) throw()
 /// @param   index     Index of the string list parameter element
-/// @param   parameter Parameter name
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 /// @param   deflt     Default parameter value
 /// @return  Return string list parameter element value if it exists, deflt if not
 {
-  Param * param = this->param (parameter,index);
+  Param * param = this->param (path,name,index);
   ASSERT2 ("Parameters::list_value_string",
 	   "Parameter %s[%d] is not a string",
-	   parameter.c_str(),index,
+	   name.c_str(),index,
 	   ( ! param || param->is_type(parameter_string)));
-  monitor_access_(parameter,deflt,index);
+  monitor_access_(path,name,deflt,index);
   return (param != NULL) ? param->value_string_ : deflt;
 }
 
@@ -622,19 +651,20 @@ std::string Parameters::list_value_string
 
 void Parameters::set_list_length 
 (
- std::string parameter,
+ const parameter_path_type & path,
+ const parameter_name_type & name,
  int         length
- )
+ ) throw()
 {
-  Param * param = this->param(parameter);
+  Param * param = this->param(path,name);
 
   ASSERT1 ("Parameters::set_list_length",
-	   "Parameter %s is not a list", parameter.c_str(),
+	   "Parameter %s is not a list", name.c_str(),
 	   ( ! param || param->is_type(parameter_list)));
 
   if ( ! param ) {
     param = new Param;
-    new_param_ (parameter_name_(parameter),param);
+    new_param_ (parameter_name_(path,name),param);
     param->type_ = parameter_list;
     typedef std::vector<class Param *> list_type;
     param->value_list_ = new list_type;
@@ -651,15 +681,16 @@ void Parameters::set_list_length
 void Parameters::set_list_integer 
 (
  int         index,
- std::string parameter,
+ const parameter_path_type & path,
+ const parameter_name_type & name,
  int         value
 ) throw()
 {
-  Param * param = this->param(parameter,index);
+  Param * param = this->param(path,name,index);
 
   if ( ! param ) {
     param = new Param;
-    new_param_ (parameter_name_(parameter),param);
+    new_param_ (parameter_name_(path,name),param);
   }
 
   param->set_integer_(value);
@@ -671,16 +702,17 @@ void Parameters::set_list_integer
 void Parameters::set_list_float
 (
  int         index,
- std::string parameter,
+ const parameter_path_type & path,
+ const parameter_name_type & name,
  double      value
 ) throw()
 {
 
-  Param * param = this->param(parameter,index);
+  Param * param = this->param(path,name,index);
 
   if ( ! param ) {
     param = new Param;
-    new_param_ (parameter_name_(parameter),param);
+    new_param_ (parameter_name_(path,name),param);
   }
 
   param->set_float_(value);
@@ -692,15 +724,16 @@ void Parameters::set_list_float
 void Parameters::set_list_logical
 (
  int         index,
- std::string parameter,
+ const parameter_path_type & path,
+ const parameter_name_type & name,
  bool        value
 ) throw()
 {
-  Param * param = this->param(parameter,index);
+  Param * param = this->param(path,name,index);
 
   if ( ! param ) {
     param = new Param;
-    new_param_ (parameter_name_(parameter),param);
+    new_param_ (parameter_name_(path,name),param);
   }
 
   param->set_logical_(value);
@@ -708,19 +741,19 @@ void Parameters::set_list_logical
 
 //----------------------------------------------------------------------
 
-
 void Parameters::set_list_string
 (
  int          index,
- std::string  parameter,
+ const parameter_path_type & path,
+ const parameter_name_type &  name,
  const char * value
 ) throw()
 {
-  Param * param = this->param(parameter,index);
+  Param * param = this->param(path,name,index);
 
   if ( ! param ) {
     param = new Param;
-    new_param_ (parameter_name_(parameter),param);
+    new_param_ (parameter_name_(path,name),param);
   }
 
   param->set_string_(strdup(value));
@@ -731,7 +764,8 @@ void Parameters::set_list_string
 void Parameters::list_evaluate_float 
 (
  int index,
- std::string parameter,
+ const parameter_path_type & path,
+ const parameter_name_type & name,
  int         n, 
  double    * result, 
  double    * deflt,
@@ -741,7 +775,8 @@ void Parameters::list_evaluate_float
  double    t
  ) throw()
 /// @param   index     Index into the list
-/// @param   parameter Parameter name
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 /// @param   n         Length of variable arrays
 /// @param   result    Output array of evaluated floating point expression list parameter element values if it exists, or deflt if not
 /// @param   deflt     Array of default values
@@ -751,10 +786,10 @@ void Parameters::list_evaluate_float
 /// @param   t         T value
 {
 
-  Param * param = this->param(parameter,index);
+  Param * param = this->param(path,name,index);
   ASSERT2 ("Parameters::list_evaluate_float",
 	   "Parameter %s[%d] is not a floating-point expression",
-	   parameter.c_str(),index,
+	   name.c_str(),index,
 	   ( ! param || param->is_type(parameter_float_expr)));
   if (param != NULL) {
     param->evaluate_float(n,result,x,y,z,t);
@@ -768,7 +803,8 @@ void Parameters::list_evaluate_float
 void Parameters::list_evaluate_logical 
 (
  int index,
- std::string parameter,
+ const parameter_path_type & path,
+ const parameter_name_type & name,
  int         n, 
  bool      * result, 
  bool      * deflt,
@@ -777,7 +813,8 @@ void Parameters::list_evaluate_logical
  double    * z, 
  double    t) throw()
 /// @param   index     Index into the list
-/// @param   parameter Parameter name
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 /// @param   n         Length of variable arrays
 /// @param   result    Output array of evaluated logical expression list parameter element values if it exists, or deflt if not
 /// @param   deflt     Array of default values
@@ -786,10 +823,10 @@ void Parameters::list_evaluate_logical
 /// @param   z         Array of Z values
 /// @param   t         Array of T values
 {
-  Param * param = this->param(parameter,index);
+  Param * param = this->param(path,name,index);
   ASSERT2 ("Parameters::list_evaluate_logical",
 	   "Parameter %s[%d] is not a logical",
-	   parameter.c_str(),index,
+	   name.c_str(),index,
 	   ( ! param || param->is_type(parameter_logical_expr)));
   if (param != NULL) {
     param->evaluate_logical(n,result,x,y,z,t);
@@ -803,23 +840,24 @@ void Parameters::list_evaluate_logical
 //----------------------------------------------------------------------
 
 std::vector<std::string> Parameters::value_full_strlist
-(const std::string& parameter, bool coerce_string_to_list,
+(const parameter_path_type & path,
+ const parameter_name_type & name, bool coerce_string_to_list,
  bool suppress_err) throw()
 {
-  int type = this->type(parameter);
+  int type = this->type(path,name);
 
-  if (this->param(parameter) == nullptr){
+  if (this->param(path,name) == nullptr){
     return {};
   } else if (type == parameter_list) {
-    const int len = this->list_length(parameter);
+    const int len = this->list_length(path,name);
     if (len == 0) return {};
 
     std::vector<std::string> out(len);
-    for (int i=0; i<len; i++) { out[i] = this->value(i, parameter, "none"); }
+    for (int i=0; i<len; i++) { out[i] = this->value(i, path,name, "none"); }
     return out;
 
   } else if ((type == parameter_string) && coerce_string_to_list) {
-    return { this->value_string(parameter,"none") };
+    return { this->value_string(path,name,"none") };
   } else if (suppress_err) {
     return {};
   }
@@ -829,78 +867,7 @@ std::vector<std::string> Parameters::value_full_strlist
   ERROR3("Parameters::value_full_strlist",
          ("Parameter \"%s\" expects to be assigned a %s; it was instead "
           "assigned a value of type %d"),
-         parameter.c_str(), type_description, type);
-}
-
-//----------------------------------------------------------------------
-
-std::string Parameters::group(int i) const throw()
-{
-  return (i < (int) current_group_.size()) ? current_group_[i] : "";
-}
-
-//----------------------------------------------------------------------
-
-int Parameters::group_depth() const throw()
-{
-  return current_group_.size();
-}
-
-//----------------------------------------------------------------------
-
-int Parameters::group_count() const throw()
-{
-  // Find the parameter node for the current list of groups
-  const ParamNode * param_node = &parameter_tree_;
-  for (size_t i=0; i<current_group_.size(); i++) {
-    if (param_node->subnode(current_group_[i]) != 0) {
-      param_node = param_node->subnode(current_group_[i]);
-    }
-  }
-  int value = (param_node) ? param_node->size() : 0;
-  return value;
-}
-
-//----------------------------------------------------------------------
-
-void Parameters::group_push(std::string str) throw()
-{
-  current_group_.push_back(str);
-}
-
-//----------------------------------------------------------------------
-
-void Parameters::group_pop(std::string group) throw()
-{
-  int n = current_group_.size();
-  
-  ASSERT("Parameters::group_pop",
-	"More calls to group_pop() than group_push()",
-	 (n > 0));
-
-  if (group != "" && group != current_group_[n-1]) {
-    WARNING2("Parameters::group_pop",
-	     "group_pop(%s) does not match group_push(%s)",
-	     group.c_str(),current_group_[n-1].c_str());
-  }
-
-  current_group_.resize(n - 1);
-  
-}
-
-//----------------------------------------------------------------------
-
-void Parameters::group_set(int index, std::string group) throw()
-{
-  current_group_.resize(index+1);
-  current_group_[index] = group;
-}
-
-//----------------------------------------------------------------------
-
-void Parameters::group_clear() throw ()
-{
-  current_group_.clear();
+         name.c_str(), type_description, type);
 }
 
 //----------------------------------------------------------------------
@@ -934,8 +901,8 @@ void validate_abs_group_name_(const char* func_name, const std::string& name)
 
 //----------------------------------------------------------------------
 
-std::vector<std::string> Parameters::leaf_parameter_names
-(const std::string& full_group_name) const throw()
+const parameter_path_type Parameters::leaf_parameter_names
+(const parameter_name_type & full_group_name) const throw()
 {
   // validate full_group_name
   validate_abs_group_name_("Parameters::leaf_parameter_names",
@@ -979,9 +946,9 @@ std::vector<std::string> Parameters::leaf_parameter_names
 
 //----------------------------------------------------------------------
 
-std::vector<std::string> Parameters::leaf_parameter_names() const throw()
+const parameter_path_type Parameters::leaf_parameter_names(const parameter_path_type & path) const throw()
 {
-  std::string full_group_name = full_name("");
+  std::string full_group_name = full_name(path,"");
   ASSERT("Parameters::leaf_parameter_names",
          "the version of this method that returns the leaf parameter names in "
          "the current parameter-group can't be called when the current "
@@ -992,25 +959,28 @@ std::vector<std::string> Parameters::leaf_parameter_names() const throw()
 
 //----------------------------------------------------------------------
 
-std::string Parameters::full_name(std::string parameter) const throw()
+const parameter_name_type Parameters::full_name(const parameter_path_type & path,
+                                  const parameter_name_type & name) const throw()
 {
-  int n = current_group_.size();
+  int n = path.size();
   std::string full_name = "";
   for (int i=0; i<n; i++) {
-    full_name = full_name + current_group_[i] + ":";
+    full_name = full_name + path[i] + ":";
   }
-  full_name = full_name + parameter;
+  full_name = full_name + name;
   return full_name;
 
 }
 //----------------------------------------------------------------------
 
 parameter_type Parameters::type
-( std::string  parameter) throw()
-/// @param   parameter Parameter name
+(const parameter_path_type & path,
+ const parameter_name_type & name) throw()
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 /// @return  Return type of the given parameter
 {
-  Param * param = this->param(parameter);
+  Param * param = this->param(path,name);
   return param ? param->type() : parameter_unknown ;
 }
 
@@ -1019,13 +989,15 @@ parameter_type Parameters::type
 parameter_type Parameters::list_type
 ( 
  int index,
- std::string  parameter
+ const parameter_path_type & path,
+ const parameter_name_type & name
   ) throw()
-/// @param   index Index into the list
-/// @param   parameter Parameter name
+/// @param   index     Index into the list
+/// @param   path      Parameter group path
+/// @param   name      Parameter name
 /// @return  Return type of the given parameter
 {
-  Param * list = this->param(parameter);
+  Param * list = this->param(path,name);
   Param * param = NULL;
   if (list != NULL) {
     int list_length = list->value_list_->size();
@@ -1040,7 +1012,8 @@ parameter_type Parameters::list_type
 
 void Parameters::monitor_access_ 
 (
- std::string parameter,
+ const parameter_path_type & path,
+ const parameter_name_type & name,
  std::string deflt_string,
  int index
  ) throw()
@@ -1051,10 +1024,10 @@ void Parameters::monitor_access_
 
   if (index == -1) {
     // not a list element
-    param = this->param(parameter);
+    param = this->param(path,name);
   } else {
     // a list element
-    param = this->param(parameter,index);
+    param = this->param(path,name,index);
   }
 
   std::string value;
@@ -1069,19 +1042,21 @@ void Parameters::monitor_access_
     std::string("[") + std::to_string(index) + std::string("]");
 
   std::string buffer = std::string("accessed ") +
-    parameter_name_(parameter) + index_string + " " + value;
+    parameter_name_(path,name) + index_string + " " + value;
 
   if (lmonitor_) monitor_->print_verbatim("Parameters",buffer.data());
 }
 
 //----------------------------------------------------------------------
 
-void Parameters::monitor_write_ (std::string parameter) throw()
+void Parameters::monitor_write_
+( const parameter_path_type & path,
+  const parameter_name_type & name) throw()
 {
-  Param * param = this->param(parameter);
+  Param * param = this->param(path,name);
   char buffer[MONITOR_LENGTH];
   snprintf (buffer,MONITOR_LENGTH,"Parameter write %s = %s",
-	   parameter_name_(parameter).c_str(),
+	   parameter_name_(path,name).c_str(),
 	   param ?
 	   param->value_to_string(param_write_monitor).c_str() : "[undefined]");
 
@@ -1140,10 +1115,12 @@ int Parameters::readline_
 //----------------------------------------------------------------------
 
 /// Return the Param pointer for the specified parameter
-Param * Parameters::param (std::string parameter, int index)
+Param * Parameters::param
+( const parameter_path_type & path,
+  const parameter_name_type & name, int index)
 {
   if (index == -1) {
-    std::string full_name = parameter_name_(parameter);
+    std::string full_name = parameter_name_(path,name);
     // this branch was previously equivalent to:
     //     return parameter_map_[full_name];
     // however, when full_name wasn't a key within parameter_map_, that
@@ -1154,7 +1131,7 @@ Param * Parameters::param (std::string parameter, int index)
     auto search = parameter_map_.find(full_name);
     return (search != parameter_map_.end()) ? search->second : nullptr;
   } else {
-    Param * list = this->param(parameter);
+    Param * list = this->param(path,name);
     Param * param = NULL;
     if (list != NULL) {
       list->set_accessed();
@@ -1171,11 +1148,11 @@ Param * Parameters::param (std::string parameter, int index)
 
 size_t Parameters::extract_groups_
 (
- const std::string parameter, 
+ const parameter_name_type & name, 
  std::string * group
  )
 {
-  std::string p = parameter;
+  std::string p = name;
   size_t i_group=0;  // group index for group[]
   size_t i_stop  = p.find(":");
   while (i_stop != std::string::npos &&
@@ -1191,12 +1168,12 @@ size_t Parameters::extract_groups_
 
 void Parameters::new_param_
 (
- std::string full_parameter,
+ const parameter_name_type & full_parameter,
  Param * param
  ) throw()
 {
   parameter_map_ [full_parameter] = param;
-    
+
   std::string groups[MAX_GROUP_DEPTH];
 
   int num_groups = extract_groups_(full_parameter,groups);
@@ -1215,7 +1192,7 @@ void Parameters::new_param_
 
 //----------------------------------------------------------------------
 
-void Parameters::check()
+void Parameters::check() const
 {
   for (auto it_param =  parameter_map_.begin();
        it_param != parameter_map_.end();

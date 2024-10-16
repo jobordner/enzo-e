@@ -637,7 +637,8 @@ void EnzoConfig::read_initial_burkertbodenheimer_(Parameters * p)
 {
   // Burkert Bodenheimer initialization
 
-  initial_burkertbodenheimer_rank =  p->value_integer("Initial:burkertbodenheimer:rank",0);
+  initial_burkertbodenheimer_rank =
+    p->value_integer("Initial:burkertbodenheimer:rank",0);
   for (int i=0; i<initial_burkertbodenheimer_rank; i++) {
     initial_burkertbodenheimer_array[i] =
       p->list_value_integer (i,"Initial:burkertbodenheimer:array",1);
@@ -667,9 +668,12 @@ void EnzoConfig::read_initial_sedov_(Parameters * p)
 {
   initial_sedov_rank = p->value_integer ("Initial:sedov:rank",0);
 
-  initial_sedov_array[0] = p->list_value_integer (0,"Initial:sedov:array",1);
-  initial_sedov_array[1] = p->list_value_integer (1,"Initial:sedov:array",1);
-  initial_sedov_array[2] = p->list_value_integer (2,"Initial:sedov:array",1);
+  initial_sedov_array[0] = p->list_value_integer
+    (0,"Initial:sedov:array",1);
+  initial_sedov_array[1] = p->list_value_integer
+    (1,"Initial:sedov:array",1);
+  initial_sedov_array[2] = p->list_value_integer
+    (2,"Initial:sedov:array",1);
 
   initial_sedov_radius_relative =
     p->value_float("Initial:sedov:radius_relative",0.1);
@@ -875,26 +879,25 @@ void EnzoConfig::read_initial_bb_test_(Parameters * p)
 
 void EnzoConfig::read_method_check_(Parameters * p)
 {
-  p->group_set(0,"Method");
-  p->group_push("check");
+  parameter_path_type path;
+  path.push_back("Method");
+  path.push_back("check");
 
-  method_check_num_files = p->value_integer
-    ("num_files",1);
-  method_check_ordering = p->value_string
-    ("ordering","order_morton");
+  method_check_num_files = p->value_integer (path,"num_files",1);
+  method_check_ordering = p->value_string (path,"ordering","order_morton");
 
-  if (p->type("dir") == parameter_string) {
+  if (p->type(path,"dir") == parameter_string) {
     method_check_dir.resize(1);
-    method_check_dir[0] = p->value_string("dir","");
-  } else if (p->type("dir") == parameter_list) {
-    int size = p->list_length("dir");
+    method_check_dir[0] = p->value_string(path,"dir","");
+  } else if (p->type(path,"dir") == parameter_list) {
+    int size = p->list_length(path,"dir");
     if (size > 0) method_check_dir.resize(size);
     for (int i=0; i<size; i++) {
-      method_check_dir[i] = p->list_value_string(i,"dir","");
+      method_check_dir[i] = p->list_value_string(i,path,"dir","");
     }
   }
-  method_check_monitor_iter   = p->value_integer("monitor_iter",0);
-  method_check_include_ghosts = p->value_logical("include_ghosts",false);
+  method_check_monitor_iter   = p->value_integer(path,"monitor_iter",0);
+  method_check_include_ghosts = p->value_logical(path,"include_ghosts",false);
 }
 
 //----------------------------------------------------------------------
@@ -909,19 +912,20 @@ void EnzoConfig::read_method_gravity_(Parameters * p)
 
 void EnzoConfig::read_method_inference_(Parameters* p)
 {
-  p->group_set(0,"Method");
-  p->group_push("inference");
+  parameter_path_type path;
+  path.push_back("Method");
+  path.push_back("inference");
 
-  method_inference_level_base = p->value_integer ("level_base");
-  method_inference_level_array = p->value_integer ("level_array");
-  method_inference_level_infer = p->value_integer ("level_infer");
+  method_inference_level_base =  p->value_integer (path,"level_base");
+  method_inference_level_array = p->value_integer (path,"level_array");
+  method_inference_level_infer = p->value_integer (path,"level_infer");
 
   const int rank = p->value_integer("Mesh:root_rank",0);
 
-  method_inference_field_group = p->value_string  ("field_group");
+  method_inference_field_group = p->value_string  (path,"field_group");
 
   method_inference_overdensity_threshold = p->value_float
-    ("Method:inference:overdensity_threshold",0.0);
+    (path,"overdensity_threshold",0.0);
 }
 
 //----------------------------------------------------------------------
@@ -1000,22 +1004,25 @@ namespace{
   /// parse a parameter that is allowed to be a float or a list of floats
   ///
   /// returns an empty vector if the parameter does not exist
-  std::vector<double> coerce_param_list_(Parameters * p,
-                                         const std::string& parameter)
+  std::vector<double> coerce_param_list_float_
+    (Parameters * p,
+     const parameter_path_type & path,
+     const parameter_name_type & name)
   {
     std::vector<double> out;
-    if (p->type(parameter) == parameter_float) {
-      out.push_back(p->value_float(parameter));
-    } else if (p->type(parameter) == parameter_list) {
-      const int list_length = p->list_length(parameter);
+
+    if (p->type(path, name) == parameter_float) {
+      out.push_back(p->value_float(path, name));
+    } else if (p->type(path, name) == parameter_list) {
+      const int list_length = p->list_length(path, name);
       for (int i = 0; i < list_length; i++){
-        out.push_back(p->list_value_float(i, parameter));
+        out.push_back(p->list_value_float(i, path, name));
       }
-    } else if (p->param(parameter) != nullptr) {
-      ERROR1("coerce_param_list_",
+    } else if (p->param(path, name) != nullptr) {
+      ERROR1("coerce_param_list_float_",
              "The \"%s\" parameter was specified with an invalid type. When "
              "specified, it must be a float or list of floats",
-             parameter.c_str());
+             name.c_str());
     }
     return out;
   }
@@ -1028,19 +1035,20 @@ namespace{
     EnzoDualEnergyConfig out = EnzoDualEnergyConfig::build_disabled();
 
     // fetch names of parameters in Physics:fluid_props:dual_energy
-    p->group_set(0, "Physics");
-    p->group_set(1, "fluid_props");
-    p->group_set(2, "dual_energy");
-    std::vector<std::string> names = p->leaf_parameter_names();
+    parameter_path_type path;
+    path.push_back("Physics");
+    path.push_back("fluid_props");
+    path.push_back("dual_energy");
+
+    std::vector<std::string> names = p->leaf_parameter_names(path);
 
     const bool missing_de_config = names.size() == 0;
     if (!missing_de_config){ // parse Physics:fluid_props:dual_energy
       const std::string type = p->value_string
-        ("Physics:fluid_props:dual_energy:type", "disabled");
+        (path,"type", "disabled");
 
-      const std::string eta_paramname = "Physics:fluid_props:dual_energy:eta";
-      const bool eta_exists = p->param(eta_paramname) != nullptr;
-      const std::vector<double> eta_list = coerce_param_list_(p, eta_paramname);
+      const bool eta_exists = p->param(path,"eta") != nullptr;
+      const std::vector<double> eta_list = coerce_param_list_float_(p, path,"eta");
 
       // raise an error if parameters were specified if there are unexpected
       // parameters. We are being a little extra careful here.
@@ -1054,13 +1062,13 @@ namespace{
       if (type == "disabled"){
         ASSERT1("parse_de_config_",
                 "when dual energy is disabled, \"%s\" can't be specified",
-                eta_paramname.c_str(), !eta_exists);
+                "eta", !eta_exists);
         out = EnzoDualEnergyConfig::build_disabled();
       } else if (type == "modern"){
         ASSERT3("parse_de_config_",
                 "\"%s\" was used to specify %d values. When specified for the "
                 "\"%s\" dual energy formalism, it must provide 1 value.",
-                eta_paramname.c_str(), (int)names.size(), type.c_str(),
+                "Physics:fluid_props:dual_energy:eta", (int)names.size(), type.c_str(),
                 (eta_list.size() == 1) | !eta_exists);
         double eta = eta_exists ? eta_list[0] : 0.001;
         out = EnzoDualEnergyConfig::build_modern_formulation(eta);
@@ -1068,7 +1076,7 @@ namespace{
         ASSERT3("parse_de_config_",
                 "\"%s\" was used to specify %d value(s). When specified for "
                 "the \"%s\" dual energy formalism, it must provide 2 value.",
-                eta_paramname.c_str(), (int)names.size(), type.c_str(),
+                "Physics:fluid_props:dual_energy:eta", (int)names.size(), type.c_str(),
                 (eta_list.size() == 2) | !eta_exists);
         double eta_1 = eta_exists ? eta_list[0] : 0.001;
         double eta_2 = eta_exists ? eta_list[1] : 0.1;
@@ -1138,10 +1146,11 @@ namespace{
     const bool legacy_gamma_specified = p->param("Field:gamma") != nullptr;
 
     // fetch names of parameters in Physics:fluid_props:eos
-    p->group_set(0, "Physics");
-    p->group_set(1, "fluid_props");
-    p->group_set(2, "eos");
-    std::vector<std::string> names = p->leaf_parameter_names();
+    parameter_path_type path;
+    path.push_back("Physics");
+    path.push_back("fluid_props");
+    path.push_back("eos");
+    std::vector<std::string> names = p->leaf_parameter_names(path);
 
     const bool missing_eos_config = names.size() == 0;
 
@@ -1154,15 +1163,14 @@ namespace{
       // this branch does the main work of the function
 
       // STEP 1: define some useful variables
-      const std::string prefix = "Physics:fluid_props:eos:";
-      const bool is_type_specified = p->param(prefix + "type") != nullptr;
+      const bool is_type_specified = p->param(path,"type") != nullptr;
       // following variable is used for maintaining backwards compatability
-      const bool is_gamma_specified = p->param(prefix + "gamma") != nullptr;
+      const bool is_gamma_specified = p->param(path, "gamma") != nullptr;
 
       // STEP 2: determine the eos-type
       std::string type;
       if (is_type_specified) {
-        type = p->value(prefix + "type","");
+        type = p->value(path, "type","");
       } else if (is_gamma_specified) {
         WARNING1("parse_eos_choice_",
                  "Going forward, \"Physics:fluid_props:eos:type\" must be set "
@@ -1188,7 +1196,7 @@ namespace{
                 "the \"Physics:fluid_props:eos\" parameter group when making "
                 "an \"%s\" eos", type.c_str(),
                 (num_params == names.size()) && is_gamma_specified);
-        double gamma = p->value_float(prefix+"gamma", -1.0);
+        double gamma = p->value_float(path,"gamma", -1.0);
         return EnzoEOSVariant(EnzoEOSIdeal::construct(gamma));
 
       } else if ( type == EnzoEOSIsothermal::name() ){
@@ -1272,10 +1280,12 @@ namespace{
 
     // fetch names of parameters in Physics:fluid_props:floors. If any of them
     // exist, let's parse them
-    p->group_set(0, "Physics");
-    p->group_set(1, "fluid_props");
-    p->group_set(2, "floors");
-    std::vector<std::string> floor_l = p->leaf_parameter_names();
+    parameter_path_type path;
+    path.push_back("Physics");
+    path.push_back("fluid_props");
+    path.push_back("floors");
+
+    std::vector<std::string> floor_l = p->leaf_parameter_names(path);
 
     const bool no_legacy = (floor_l.size() > 0);
     if (no_legacy){
@@ -1285,10 +1295,10 @@ namespace{
           ERROR1("EnzoConfig::read_physics_fluid_props_",
                  "no support for placing a floor on \"%s\"", name.c_str());
         } else if (name == "metallicity") {
-          *ptr = (p->value_float(p->full_name(name)) *
+          *ptr = (p->value_float(path,name) *
                   enzo_constants::metallicity_solar);
         } else {
-          *ptr = p->value_float(p->full_name(name));
+          *ptr = p->value_float(path,name);
         }
       }
     }

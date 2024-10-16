@@ -104,11 +104,11 @@ std::string vector_to_string_(std::vector<std::string> &vec)
 EnzoInitialShockTube::EnzoInitialShockTube(int cycle, double time,
 					   ParameterGroup p)
   : Initial(cycle, time),
-    setup_name_(p.value_string("setup_name","")),
+    setup_name_(p.value<std::string>("setup_name","")),
     aligned_ax_(0),
-    axis_velocity_(p.value_float("axis_velocity",0.0)),
-    trans_velocity_(p.value_float("transverse_velocity",0.0)),
-    flipped_initialize_(p.value_logical("flip_initialize", false))
+    axis_velocity_(p.value<double>("axis_velocity",0.0)),
+    trans_velocity_(p.value<double>("transverse_velocity",0.0)),
+    flipped_initialize_(p.value<bool>("flip_initialize", false))
 {
 
   if (std::find(shock_tube_setups.begin(),
@@ -125,7 +125,7 @@ EnzoInitialShockTube::EnzoInitialShockTube(int cycle, double time,
 	   param_name.c_str(), allowed_names.c_str(), setup_name_.c_str());
   }
 
-  std::string aligned_ax_name = p.value_string("aligned_ax","x");
+  std::string aligned_ax_name = p.value<std::string>("aligned_ax","x");
   if (aligned_ax_name == "x") {
     aligned_ax_ = 0;
   } else if (aligned_ax_name == "y") {

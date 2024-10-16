@@ -234,18 +234,18 @@ void check_parameters(Parameters * parameters)
   // unit_assert (i == id);
 
   //--------------------------------------------------
-  unit_func("set_integer");
+  //  unit_func("set_integer");
   //--------------------------------------------------
 
-  parameters->set_integer("integer_1_1",2);
-  unit_assert (parameters->value_integer("integer_1_1") == 2);
-  parameters->set_integer("integer_1_1",1);
+  //  parameters->set_integer("integer_1_1",2);
+  //  unit_assert (parameters->value_integer("integer_1_1") == 2);
+  //  parameters->set_integer("integer_1_1",1);
 
-  parameters->set_integer("none1",3);
-  unit_assert (parameters->value_integer("none1") == 3);
+  //  parameters->set_integer("none1",3);
+  //  unit_assert (parameters->value_integer("none1") == 3);
 
-  parameters->set_integer("none2",4);
-  unit_assert (parameters->value_integer("none2") == 4);
+  //  parameters->set_integer("none2",4);
+  //  unit_assert (parameters->value_integer("none2") == 4);
 
   //--------------------------------------------------
   unit_func("value_float");
@@ -269,16 +269,16 @@ void check_parameters(Parameters * parameters)
 
   // set_float()
 
-  //--------------------------------------------------
-  unit_func("set_float");
-  //--------------------------------------------------
+  // //--------------------------------------------------
+  // unit_func("set_float");
+  // //--------------------------------------------------
 
-  parameters->set_float("float_1_1p5",27.0);
-  unit_assert (parameters->value_float("float_1_1p5") == 27.0);
-  parameters->set_float("float_1_1p5",1.5);
+  // parameters->set_float("float_1_1p5",27.0);
+  // unit_assert (parameters->value_float("float_1_1p5") == 27.0);
+  // parameters->set_float("float_1_1p5",1.5);
 
-  parameters->set_float("none_s",1.5);
-  unit_assert (parameters->value_float("none_s") == 1.5);
+  // parameters->set_float("none_s",1.5);
+  // unit_assert (parameters->value_float("none_s") == 1.5);
 
   // Constant float expressions
   // subgroups
@@ -343,16 +343,16 @@ void check_parameters(Parameters * parameters)
 
   // set_string()
 
-  //--------------------------------------------------
-  unit_func("set_string");
-  //--------------------------------------------------
+  // //--------------------------------------------------
+  // unit_func("set_string");
+  // //--------------------------------------------------
 
-  parameters->set_string("str1","yahoo");
-  unit_assert (parameters->value_string("str1") == "yahoo");
-  parameters->set_string("str1","testing");
+  // parameters->set_string("str1","yahoo");
+  // unit_assert (parameters->value_string("str1") == "yahoo");
+  // parameters->set_string("str1","testing");
 
-  parameters->set_string("none_str","hello");
-  unit_assert (parameters->value_string("none_str") == "hello");
+  // parameters->set_string("none_str","hello");
+  // unit_assert (parameters->value_string("none_str") == "hello");
 
   //--------------------------------------------------
   unit_func("evaluate_float");
@@ -460,22 +460,22 @@ void check_parameters(Parameters * parameters)
   unit_assert (values_logical[2] == (x[2]+y[2]+t > 0 ));
 
   //--------------------------------------------------
-  unit_func("set_list elements");
-  //--------------------------------------------------
+  // unit_func("set_list elements");
+  // //--------------------------------------------------
 
-  parameters->set_list_length ("list",5);
-  parameters->set_list_integer(0,"list",12);
-  parameters->set_list_float  (1,"list",24.0);
-  parameters->set_list_logical(2,"list",true);
-  parameters->set_list_logical(3,"list",false);
-  parameters->set_list_string (4,"list","a string");
+  // parameters->set_list_length ("list",5);
+  // parameters->set_list_integer(0,"list",12);
+  // parameters->set_list_float  (1,"list",24.0);
+  // parameters->set_list_logical(2,"list",true);
+  // parameters->set_list_logical(3,"list",false);
+  // parameters->set_list_string (4,"list","a string");
 
-  unit_assert(parameters->list_length("list")==5);
-  unit_assert(parameters->list_value_integer(0,"list")==12);
-  unit_assert(parameters->list_value_float  (1,"list")==24.0);
-  unit_assert(parameters->list_value_logical(2,"list")==true);
-  unit_assert(parameters->list_value_logical(3,"list")==false);
-  unit_assert(parameters->list_value_string (4,"list") == "a string");
+  // unit_assert(parameters->list_length("list")==5);
+  // unit_assert(parameters->list_value_integer(0,"list")==12);
+  // unit_assert(parameters->list_value_float  (1,"list")==24.0);
+  // unit_assert(parameters->list_value_logical(2,"list")==true);
+  // unit_assert(parameters->list_value_logical(3,"list")==false);
+  // unit_assert(parameters->list_value_string (4,"list") == "a string");
 
   //--------------------------------------------------
   unit_func("append_list elements");

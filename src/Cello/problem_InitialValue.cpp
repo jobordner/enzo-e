@@ -69,10 +69,9 @@ void InitialValue::enforce_block ( Block * block,
 	 "Block does not exist",
 	 block != NULL);
   
-  //--------------------------------------------------
-  parameters_->group_set(0,"Initial");
-  parameters_->group_set(1,"value");
-  //--------------------------------------------------
+  parameter_path_type path;
+  path.push_back("Initial");
+  path.push_back("value");
 
   Data *data = block->data();
 
@@ -93,9 +92,9 @@ void InitialValue::enforce_block ( Block * block,
   for (int index_field = 0;
        index_field < field_descr->field_count();
        index_field++) {
-    
+
     std::string field_name = field_descr->field_name(index_field);
-    parameter_type parameter_type = parameters_->type(field_name);
+    parameter_type parameter_type = parameters_->type(path,field_name);
 
     if ((index_field>=num_fields_) && (parameter_type != parameter_unknown)){
       // It is possiblefor a permanent field to be initialized after
@@ -110,7 +109,7 @@ void InitialValue::enforce_block ( Block * block,
 
       if (parameter_type == parameter_float) {
 	field_data->clear(field_descr,
-			  parameters_->value_float(field_name,0.0), 
+			  parameters_->value_float(path,field_name,0.0), 
 			  index_field);
       } else if (parameter_type != parameter_unknown){
 	int cx,cy,cz;
@@ -255,21 +254,23 @@ void InitialValue::initialize_values_()
 {
 
   // skip, if values_ has already been initialized
-  if (initialized_values_){return;}
 
-  parameters_->group_set(0,"Initial");
-  parameters_->group_set(1,"value");
+  if (initialized_values_) return;
+
+  parameter_path_type path;
+  path.push_back("Initial");
+  path.push_back("value");
 
   values_ = new Value*[num_fields_];
 
   // Initialize Value objects
   for (int index_field = 0; index_field < num_fields_; index_field++) {
     std::string field_name = cello::field_descr()->field_name(index_field);
-    parameter_type parameter_type = parameters_->type(field_name);
+    parameter_type parameter_type = parameters_->type(path,field_name);
 
     if ((parameter_type != parameter_unknown) &&
 	(parameter_type != parameter_float)){
-      values_[index_field] = new Value(parameters_, field_name);
+      values_[index_field] = new Value(parameters_, path,field_name);
     } else {
       values_[index_field] = NULL;
     }

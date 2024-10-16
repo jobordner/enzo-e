@@ -7,7 +7,9 @@
 
 #include "problem.hpp"
 
-std::shared_ptr<Mask> Mask::create(Param * param, Parameters * parameters)
+std::shared_ptr<Mask> Mask::create
+( Param * param,
+  Parameters * parameters)
 {
   std::shared_ptr<Mask> mask;
   if (param) {

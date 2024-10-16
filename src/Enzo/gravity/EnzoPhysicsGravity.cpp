@@ -14,7 +14,7 @@
 
 namespace{ // stuff inside an anonymous namespace is local to this file)
 
-double parse_grav_const_codeU_(ParameterGroup p) {
+double parse_grav_const_codeU_(ParameterGroup p_group) {
   // for anybody looking at this implementation as an example of "How to access
   // parameters of a physics object," THIS IS A POOR EXAMPLE!!!
   // -> As a general rule, you should ONLY be accessing parameters within the
@@ -27,28 +27,28 @@ double parse_grav_const_codeU_(ParameterGroup p) {
   Parameters * all_parameters = cello::simulation()->parameters();
 
   std::string legacy_parname = "Method:gravity:grav_const";
-  std::string actual_par_basename = "grav_const_codeU";
+  std::string actual_par_basename = "Physics:gravity:grav_const_codeU";
 
   const std::vector<std::string>& method_list = enzo::config()->method_list;
   bool has_grav_method = std::find(method_list.begin(), method_list.end(),
                             "gravity") != method_list.end();
   bool has_legacy_par = (has_grav_method &&
                          (all_parameters->param(legacy_parname) != nullptr));
-  bool has_actual_par = p.param(actual_par_basename) != nullptr;
+  bool has_actual_par = p_group.param(actual_par_basename) != nullptr;
 
   if (has_legacy_par && has_actual_par) {
     ERROR3("parse_grav_const_codeU_",
            "\"%s\" isn't valid since \"%s:%s\" is specified.",
-           legacy_parname.c_str(), p.get_group_path().c_str(),
+           legacy_parname.c_str(), p_group.get_group_path().c_str(),
            actual_par_basename.c_str());
   } else if (has_legacy_par) {
     WARNING3("parse_grav_const_codeU_",
              "\"%s\" is a legacy parameter that is replaced by \"%s:%s\"",
-             legacy_parname.c_str(), p.get_group_path().c_str(),
+             legacy_parname.c_str(), p_group.get_group_path().c_str(),
              actual_par_basename.c_str());
     return all_parameters->value_float(legacy_parname, -1.0);
   } else {
-    return p.value_float(actual_par_basename, -1.0);
+    return p_group.value<double>(actual_par_basename, -1.0);
   }
 
 }

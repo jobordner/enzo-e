@@ -24,9 +24,9 @@ void method_close_files_mutex_init()
 
 MethodCloseFiles::MethodCloseFiles(ParameterGroup p) throw()
   : Method(),
-    seconds_stagger_( p.value_float("seconds_stagger",0.0) ),
-    seconds_delay_( p.value_float("seconds_delay",0.0) ),
-    group_size_(p.value_integer("group_size", std::numeric_limits<int>::max()))
+    seconds_stagger_( p.value("seconds_stagger",0.0) ),
+    seconds_delay_( p.value("seconds_delay",0.0) ),
+    group_size_(p.value("group_size", std::numeric_limits<int>::max()))
 {
   cello::simulation()->refresh_set_name(ir_post_,"close_files");
   Refresh * refresh = cello::refresh(ir_post_);

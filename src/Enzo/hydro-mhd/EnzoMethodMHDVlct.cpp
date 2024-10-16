@@ -43,16 +43,16 @@ parse_mhdchoice_pack_pair_(ParameterGroup p)
   { return p.param(param_name) != nullptr; };
 
   // parse time-scheme & reconstruct-method (they affect backwards compat.)
-  const std::string time_scheme = p.value_string("time_scheme", "vl");
+  const std::string time_scheme = p.value<std::string>("time_scheme", "vl");
   std::vector<std::string> recon_names;
   if (time_scheme == "euler") {
-    recon_names = {p.value_string("reconstruct_method", "plm")};
+    recon_names = {p.value<std::string>("reconstruct_method", "plm")};
     WARNING("parse_mhdchoice_pack_pair_",
             "\"euler\" temporal integration exists for debugging purposes. It "
             "has not been rigorously tested. USE WITH CAUTION");
   } else if (time_scheme == "vl") {
     // ALWAYS use nearest-neighbor reconstruction for partial timestep!
-    recon_names = {"nn", p.value_string("reconstruct_method", "plm")};
+    recon_names = {"nn", p.value<std::string>("reconstruct_method", "plm")};
   } else {
     ERROR1("parse_mhdchoice_pack_pair_",
            "\"%s:time_scheme\" must be \"vl\" or \"euler\"",
@@ -77,10 +77,10 @@ parse_mhdchoice_pack_pair_(ParameterGroup p)
   }
 
   EnzoMHDIntegratorStageArgPack *argpack_ptr =
-    new EnzoMHDIntegratorStageArgPack {p.value_string("riemann_solver","hlld"),
+    new EnzoMHDIntegratorStageArgPack {p.value<std::string>("riemann_solver","hlld"),
                                        recon_names,
-                                       p.value_float("theta_limiter", 1.5),
-                                       p.value_string("mhd_choice", "")};
+                                       p.value<double>("theta_limiter", 1.5),
+                                       p.value<std::string>("mhd_choice", "")};
 
   return {time_scheme, argpack_ptr};
 }
@@ -98,7 +98,7 @@ EnzoMethodMHDVlct::EnzoMethodMHDVlct (ParameterGroup p,
   time_scheme_ = pair.first;
   integrator_arg_pack_ = pair.second;
   const double dflt_courant = (time_scheme_ == "vl") ? 0.3 : 1.0;
-  this->set_courant(p.value_float("courant",dflt_courant));
+  this->set_courant(p.value<double>("courant",dflt_courant));
 
   int nstages = static_cast<int>(integrator_arg_pack_->recon_names.size());
 

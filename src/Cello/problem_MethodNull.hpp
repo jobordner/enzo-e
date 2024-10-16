@@ -21,7 +21,7 @@ public: // interface
   /// Create a new MethodNull object
   MethodNull ( ParameterGroup p )
     : Method(),
-      dt_(p.value_float("dt", std::numeric_limits<double>::max()))
+      dt_(p.value("dt", std::numeric_limits<double>::max()))
   {
     init_refresh_();
   }

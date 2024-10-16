@@ -330,26 +330,26 @@ EnzoMethodDistributedFeedback::EnzoMethodDistributedFeedback
 
 
   // Fraction of total energy to deposit as kinetic rather than thermal energy
-  kinetic_fraction_    = p.value_float("ke_fraction", 0.0);;
+  kinetic_fraction_    = p.value<double>("ke_fraction", 0.0);;
 
   // Values related to CIC cell deposit. Stencil is the number of cells across
   // in the stencil. stencil_rad  is the number of cells off-from-center
 
   //
-  stencil_                   = p.value_integer("stencil",3);
+  stencil_                   = p.value<int>("stencil",3);
   stencil_rad_               = ( (int) ((stencil_ - 1) / 2.0));
   number_of_feedback_cells_  = stencil_ * stencil_ * stencil_;
 
   // Flag to turn on / off particle kicking from boundaries
-  shift_cell_center_         = p.value_logical("shift_cell_center", true);
+  shift_cell_center_         = p.value<bool>("shift_cell_center", true);
 
   // Flag to turn on / off single-zone ionization routine
-  use_ionization_feedback_   = p.value_logical("use_ionization_feedback",
+  use_ionization_feedback_   = p.value<bool>("use_ionization_feedback",
                                                false);
 
   // Time of first SN (input in Myr, stored in yr)
   //     Forces a fixed delay time for all SNe
-  time_first_sn_ = p.value_float("time_first_sn", -1.0) * 1.0E6;
+  time_first_sn_ = p.value<double>("time_first_sn", -1.0) * 1.0E6;
 
 
 

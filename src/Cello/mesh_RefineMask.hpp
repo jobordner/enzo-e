@@ -22,10 +22,11 @@ public: // interface
 
   /// Constructor
   RefineMask(Parameters * parameters,
-	     const std::string parameter_name,
-	     int max_level,
-	     bool include_ghosts,
-	     std::string output) throw();
+             const parameter_path_type & path,
+             const parameter_name_type & name,
+             int max_level,
+             bool include_ghosts,
+             std::string output) throw();
 
   /// Destructor
   ~RefineMask();
