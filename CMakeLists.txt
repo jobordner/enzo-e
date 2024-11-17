@@ -322,3 +322,6 @@ endif()
 get_directory_property( CELLO_CPPDEFINES DIRECTORY src/Cello COMPILE_DEFINITIONS )
 # now generate the the config
 configure_file(auto_config.def.in auto_config.def ESCAPE_QUOTES @ONLY)
+
+set_property(CACHE CMAKE_INSTALL_PREFIX PROPERTY VALUE ${CMAKE_SOURCE_DIR})
+install(TARGETS enzo-e)
