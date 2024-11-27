@@ -17,8 +17,8 @@
 
 #ifdef DEBUG_INITIAL
 #   define TRACE_INITIAL(MSG,BLOCK)                     \
-  CkPrintf ("TRACE_CONTROL_INITIAL %s %s\n",                    \
-            BLOCK->name().c_str(),MSG); fflush(stdout);
+  CkPrintf ("TRACE_CONTROL_INITIAL %s %s %d\n",                    \
+            BLOCK->name().c_str(),MSG,index_initial_); fflush(stdout);
 
 #   define TRACE_INITIAL_SIM(MSG)                       \
   CkPrintf ("TRACE_CONTROL_INITIAL %s\n",MSG); fflush(stdout);
@@ -71,36 +71,32 @@ void Simulation::initialize() throw()
   if (is_root) {
     bool allocate_data = true;
     block_array = hierarchy_->new_block_proxy (allocate_data);
+    // broadcast block_array to other Simulation objects
+    thisProxy.p_set_block_array(block_array);
   }
+}
 
-  // --------------------------------------------------
-#ifdef TRACE_CONTRIBUTE
-  CkPrintf ("%s:%d DEBUG_CONTRIBUTE r_initialize_block_array()\n",
-            __FILE__,__LINE__); fflush(stdout);
-#endif
+//----------------------------------------------------------------------
+
+void Simulation::p_set_block_array(CProxy_Block block_array)
+{
+  hierarchy_->set_block_array(block_array);
+
+  // barrier to ensure all Hierarchy block_array proxies are
+  // initialized before continuing
 
   CkCallback callback
-    (CkIndex_Simulation::r_initialize_block_array(NULL), thisProxy);
-
-  // contribute the created block_array proxy if root pe, otherwise null
-  if (is_root) {
-    contribute(sizeof(CProxy_Block),&block_array,CkReduction::concat,callback);
-  } else {
-    contribute(0,0,CkReduction::concat,callback);
-  }
-  // --------------------------------------------------
+    (CkIndex_Simulation::r_initialize_block_array(nullptr), thisProxy);
+  contribute(callback);
 }
 
 //----------------------------------------------------------------------
 
 void Simulation::r_initialize_block_array(CkReductionMsg * msg) 
 {
-  // set block_array to the value created on the root pe
-  hierarchy_->set_block_array(*((CProxy_Block*)msg->getData()));
-
   TRACE_INITIAL_SIM("Simulation::r_initialize_block_array_()");
-  performance_->start_region(perf_initial);
   delete msg;
+  performance_->start_region(perf_initial);
   initialize_block_array_();
 }
 

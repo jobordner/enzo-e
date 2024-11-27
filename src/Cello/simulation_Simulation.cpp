@@ -811,12 +811,15 @@ int Simulation::initial_block_count() throw() {
   return block_count;
 }
 
+//----------------------------------------------------------------------
+
 void Simulation::p_initial_block_created() throw() {
   if (sync_init_block_count_.next()) {
     hierarchy_->block_array().doneInserting();
     hierarchy_->block_array().p_initial_begin();
   }
 }
+
 //----------------------------------------------------------------------
 
 void Simulation::deallocate_() throw()
