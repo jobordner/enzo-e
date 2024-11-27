@@ -44,7 +44,7 @@ void Block::compute_next_ ()
   Method * method = this->method();
 
 #ifdef DEBUG_COMPUTE
-  if (cycle() >= CYCLE)
+  if (state_->cycle() >= CYCLE)
     CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_next_(%s)\n",CkMyPe(), name().c_str(),method?method->name().c_str():"NULL");
 #endif
 
@@ -73,7 +73,7 @@ void Block::compute_continue_ ()
 {
   performance_start_(perf_compute,__FILE__,__LINE__);
 #ifdef DEBUG_COMPUTE
-  if (cycle() >= CYCLE)
+  if (state_->cycle() >= CYCLE)
     CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_continue_()\n", CkMyPe(),name().c_str());
 #endif
 
@@ -92,7 +92,7 @@ void Block::compute_continue_ ()
 	    index_method_,method); fflush(stdout);
 
 #ifdef DEBUG_COMPUTE
-    if (cycle() >= CYCLE)
+    if (state_->cycle() >= CYCLE)
       CkPrintf ("%d %s DEBUG_COMPUTE applying Method %s\n",
 	      CkMyPe(),name().c_str(),method->name().c_str());
     CkPrintf ("DEBUG_TRACE_REFRESH Method %s compute()\n",method->name().c_str());
@@ -116,7 +116,7 @@ void Block::compute_continue_ ()
 void Block::compute_done ()
 {
 #ifdef DEBUG_COMPUTE
-  if (cycle() >= CYCLE)
+  if (state_->cycle() >= CYCLE)
     CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_done_()\n", CkMyPe(),name().c_str());
 #endif
   compute_update_method_state_(index_method_);
@@ -147,7 +147,7 @@ void Block::compute_update_method_state_(int index_method)
 void Block::compute_end_ ()
 {
 #ifdef DEBUG_COMPUTE
-  if (cycle() >= CYCLE)
+  if (state_->cycle() >= CYCLE)
     CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_end_()\n", CkMyPe(),name().c_str());
 #endif
 

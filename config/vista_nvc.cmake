@@ -11,7 +11,7 @@ if(NOT __processedUserDefaults)
   set(CMAKE_Fortran_COMPILER nvfortran CACHE STRING "")
   set(CMAKE_Fortran_FLAGS "-Mextend " CACHE STRING "Default Fortran flags")
 
-  set(__ARCH_C_OPT_FLAGS "-O3 -Mnounroll -g")  ### WORKS
+    set(__ARCH_C_OPT_FLAGS "-O3 -Mnounroll -g")  ### WORKS
   #  set(__ARCH_C_OPT_FLAGS "-O3 -g")  ### BROKEN
 #  set(__ARCH_C_OPT_FLAGS "-O0 -g")
 #  set(CMAKE_C_FLAGS_RELEASE "${__ARCH_C_OPT_FLAGS}")
