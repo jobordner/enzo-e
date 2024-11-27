@@ -37,7 +37,6 @@ module simulation {
     entry void p_monitor_performance();
     entry void p_monitor_output();
 
-    entry void p_set_block_array (CProxy_Block block_array);
     entry void p_initial_block_created();
 
     entry void p_initialize_state(MsgState *);

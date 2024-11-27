@@ -66,20 +66,28 @@ void Simulation::initialize() throw()
 
   // Create the Block chare array and distribute proxy to all other processes
   CProxy_Block block_array;
-  if (CkMyPe() == 0) {
+  const bool is_root = (CkMyPe() == 0);
+
+  if (is_root) {
     bool allocate_data = true;
     block_array = hierarchy_->new_block_proxy (allocate_data);
-    thisProxy.p_set_block_array(block_array);
   }
 
-  CkCallback callback 
+  // --------------------------------------------------
+#ifdef TRACE_CONTRIBUTE
+  CkPrintf ("%s:%d DEBUG_CONTRIBUTE r_initialize_block_array()\n",
+            __FILE__,__LINE__); fflush(stdout);
+#endif
+
+  CkCallback callback
     (CkIndex_Simulation::r_initialize_block_array(NULL), thisProxy);
 
-  // --------------------------------------------------
-#ifdef TRACE_CONTRIBUTE  
-  CkPrintf ("%s:%d DEBUG_CONTRIBUTE r_initialize_block_array()\n",__FILE__,__LINE__); fflush(stdout);
-#endif  
-  contribute(0,0,CkReduction::concat,callback);
+  // contribute the created block_array proxy if root pe, otherwise null
+  if (is_root) {
+    contribute(sizeof(CProxy_Block),&block_array,CkReduction::concat,callback);
+  } else {
+    contribute(0,0,CkReduction::concat,callback);
+  }
   // --------------------------------------------------
 }
 
@@ -87,10 +95,12 @@ void Simulation::initialize() throw()
 
 void Simulation::r_initialize_block_array(CkReductionMsg * msg) 
 {
+  // set block_array to the value created on the root pe
+  hierarchy_->set_block_array(*((CProxy_Block*)msg->getData()));
+
   TRACE_INITIAL_SIM("Simulation::r_initialize_block_array_()");
   performance_->start_region(perf_initial);
   delete msg;
-  
   initialize_block_array_();
 }
 

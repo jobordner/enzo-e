@@ -298,9 +298,6 @@ public: // virtual functions
   // Data
   //--------------------------------------------------
 
-  /// Set block_array proxy on all processes
-  void p_set_block_array(CProxy_Block block_array);
-  
   /// Add a new Block to this local branch
   void data_insert_block(Block *) ;
 

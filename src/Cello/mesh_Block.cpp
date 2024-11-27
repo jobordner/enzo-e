@@ -178,7 +178,6 @@ void Block::init_refine_
 
   child_data_ = NULL;
 
-
   sync_coarsen_.reset();
   sync_coarsen_.set_stop(cello::num_children());
 
