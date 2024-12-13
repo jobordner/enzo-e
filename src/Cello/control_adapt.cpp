@@ -32,7 +32,7 @@
 #ifdef TRACE_ADAPT
 #   undef TRACE_ADAPT
 #   define TRACE_ADAPT(MSG,BLOCK)                                       \
-  if (BLOCK->cycle() >= DEBUG_CYCLE_START) {                            \
+  if (BLOCK->state()->cycle() >= DEBUG_CYCLE_START) {			\
     CkPrintf ("TRACE_ADAPT %s %s step %d ready %d self conv %d neighb conv %d\n", \
               BLOCK->name().c_str(),                                    \
               std::string(MSG).c_str(),                                 \

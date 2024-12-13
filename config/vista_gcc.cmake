@@ -14,7 +14,8 @@ if(NOT __processedUserDefaults)
   # PPM solver
   set(CMAKE_Fortran_FLAGS "-ffixed-line-length-132" CACHE STRING "Default Fortran flags")
 
-  set(__ARCH_C_OPT_FLAGS "-O3 -mcpu=neoverse-v2 -g")
+  #  set(__ARCH_C_OPT_FLAGS "-O3 -mcpu=neoverse-v2 -g") ##### WARNING: HANGS
+  set(__ARCH_C_OPT_FLAGS "-O3 -g")
   set(CMAKE_CXX_FLAGS_RELEASE "${__ARCH_C_OPT_FLAGS}")
   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g ${__ARCH_C_OPT_FLAGS}")
 
