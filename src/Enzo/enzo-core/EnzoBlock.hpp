@@ -44,9 +44,6 @@ public: // interface
   EnzoBlock()
     :  CBase_EnzoBlock()
   {
-
-    PERF_START(perf_block);
-
     // replace Block's State with EnzoState
     state_ = std::make_shared<EnzoState> (0, 0.0, 0.0, false);
 

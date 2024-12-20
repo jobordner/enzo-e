@@ -36,6 +36,54 @@ const char * phase_name[] = {
 
 // #define TRACE_BLOCK
 
+//----------------------------------------------------------------------
+
+Block::Block ()
+  : CBase_Block(),
+    data_(NULL),
+    child_data_(NULL),
+    level_next_(0),
+    state_(new State (0, 0.0, 0.0, false)),
+    index_initial_(0),
+    children_(),
+    sync_coarsen_(),
+    sync_count_(),
+    sync_max_(),
+    adapt_(),
+    child_face_level_curr_(),
+    child_face_level_next_(),
+    count_coarsen_(0),
+    adapt_step_(0),
+    adapt_ready_(false),
+    adapt_balanced_(false),
+    adapt_changed_(0),
+    coarsened_(false),
+    is_leaf_((thisIndex.level() >= 0)),
+    age_(0),
+    ip_next_(-1),
+    name_(""),
+    index_method_(-1),
+    index_solver_(),
+    refresh_()
+{
+  init_refresh_();
+  init_adapt_(nullptr);
+
+  for (int i=0; i<3; i++) array_[i]=0;
+}
+
+//----------------------------------------------------------------------
+
+Block::Block (CkMigrateMessage *m)
+  : CBase_Block(m)
+{
+  if (method()) {
+    PERF_METHOD_START(method());
+  }
+}
+
+//----------------------------------------------------------------------
+
 Block::Block ( process_type ip_source, MsgType msg_type )
   : CBase_Block(),
     data_(NULL),
@@ -675,44 +723,6 @@ void Block::p_refresh_child
   PERF_STOP(perf_refresh_child);
   PERF_START(perf_refresh_child_post);
 }
-
-//----------------------------------------------------------------------
-
-Block::Block ()
-  : CBase_Block(),
-    data_(NULL),
-    child_data_(NULL),
-    level_next_(0),
-    state_(new State (0, 0.0, 0.0, false)),
-    index_initial_(0),
-    children_(),
-    sync_coarsen_(),
-    sync_count_(),
-    sync_max_(),
-    adapt_(),
-    child_face_level_curr_(),
-    child_face_level_next_(),
-    count_coarsen_(0),
-    adapt_step_(0),
-    adapt_ready_(false),
-    adapt_balanced_(false),
-    adapt_changed_(0),
-    coarsened_(false),
-    is_leaf_((thisIndex.level() >= 0)),
-    age_(0),
-    ip_next_(-1),
-    name_(""),
-    index_method_(-1),
-    index_solver_(),
-    refresh_()
-{
-  init_refresh_();
-  init_adapt_(nullptr);
-
-  for (int i=0; i<3; i++) array_[i]=0;
-}
-
-//----------------------------------------------------------------------
 
 void Block::init_adapt_(Adapt * adapt_parent)
 {

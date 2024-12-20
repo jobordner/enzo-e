@@ -39,6 +39,10 @@ class Block : public CBase_Block
 
 public: // interface
 
+  /// Initialize an empty Block
+  Block();
+  /// Initialize a migrated Block
+  Block (CkMigrateMessage *m);
   /// create a Block whose MsgRefine is on the creating process
   Block ( process_type ip_source, MsgType msg_type );
   /// Initialize Block using MsgRefine returned by creating process
@@ -58,12 +62,6 @@ public:
   //----------------------------------------------------------------------
   // CHARM
   //----------------------------------------------------------------------
-
-  /// Initialize an empty Block
-  Block();
-
-  /// Initialize a migrated Block
-  Block (CkMigrateMessage *m) : CBase_Block(m) { }
 
   /// CHARM pupper
   virtual void pup(PUP::er &p);

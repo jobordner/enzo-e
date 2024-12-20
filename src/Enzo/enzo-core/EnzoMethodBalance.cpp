@@ -14,7 +14,6 @@
 EnzoMethodBalance::EnzoMethodBalance()
   : Method()
 {
-
   cello::define_field("density");
   // Initialize default Refresh object
 
@@ -126,6 +125,7 @@ void EnzoMethodBalance::do_migrate(EnzoBlock * enzo_block)
 #endif
 
     enzo_block->migrateMe(ip_next);
+    PERF_METHOD_STOP(this);
   }
 }
 

@@ -23,7 +23,6 @@ EnzoBlock::EnzoBlock (CkMigrateMessage *m)
   state_ = std::make_shared<EnzoState>(0, 0.0, 0.0, false);
 
   TRACE("CkMigrateMessage");
-  PERF_START(perf_block);
   // EnzoSimulation[0] counts migrated Blocks
   proxy_enzo_simulation[0].p_method_balance_check();
 }

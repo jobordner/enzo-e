@@ -21,6 +21,10 @@ done
 topdir=$(dirname $file)
 topdir="$PWD/$topdir"
 bindir="`dirname $0`"
+if [ "$bindir" == "${bindir#/}" ]; then
+    # convert to absolute if relative
+    bindir="$PWD/$bindir"
+fi
 # Get input file $input
 input="$PWD/$1"
 
@@ -53,67 +57,72 @@ MESH=`awk '/perf:mesh /{print $(NF-1)}' $input | sort | uniq`
 num_procs=`awk '/CkNumPes/  {print $5}' $input`
 num_nodes=`awk '/CkNumNodes/{print $5}' $input`
 
+input_clean="input-clean.data"
+grep -v WARNING $input > $input_clean
 # ==============================
 # Generate data files
 # ==============================
 
 echo "nodes $num_nodes procs $num_procs"
 if [[ ! -e "cycle.data" ]]; then
-    awk '/Simulation cycle/{if ($NF==0) {t0=$2}; print $NF,'"$num_procs"'*($2-t0)}' $input > cycle.data
+    awk '/Simulation cycle/{if ($NF==0) {t0=$2}; print $NF,'"$num_procs"'*($2-t0)}' $input_clean > cycle.data
 fi
 
 
 for adapt in $ADAPT; do
     if [[ ! -e "$adapt.data" ]]; then
            echo "Generating $adapt.data"
-           awk '/Simulation cycle/{c=$NF}; /perf:region '"$adapt"' /{print c,$NF}' $input > $adapt.data
+           awk '/Simulation cycle/{c=$NF}; /perf:region '"$adapt"' /{print c,$NF}' $input_clean > $adapt.data
        fi
 done
 
 for refresh in $REFRESH; do
     if [[ ! -e "$refresh.data" ]]; then
            echo "Generating $refresh.data"
-           awk '/Simulation cycle/{c=$NF}; /perf:region '"$refresh"' /{print c,$NF}' $input > $refresh.data
+           awk '/Simulation cycle/{c=$NF}; /perf:region '"$refresh"' /{print c,$NF}' $input_clean > $refresh.data
        fi
 done
 
 for method in $METHOD; do
     if [[ ! -e "$method.data" ]]; then
         echo "Generating $method.data"
-        awk '/Simulation cycle/{c=$NF}; /perf:region '"$method"' /{print c,$NF}' $input > $method.data
+        awk '/Simulation cycle/{c=$NF}; /perf:region '"$method"' /{print c,$NF}' $input_clean > $method.data
     fi
 done
 
 for solver in $SOLVER; do
     if [[ ! -e "$solver.data" ]]; then
         echo "Generating $solver.data"
-        awk '/Simulation cycle/{c=$NF}; /perf:region '"$solver"' /{print c,$NF}' $input > $solver.data
+        awk '/Simulation cycle/{c=$NF}; /perf:region '"$solver"' /{print c,$NF}' $input_clean > $solver.data
     fi
 done
 
 for memory in $MEMORY; do
     if [[ ! -e "$memory.data" ]]; then
         echo "Generating $memory.data"
-        awk '/Simulation cycle/{c=$NF}; /perf:region cycle '"$memory"' /{print c,$NF}' $input > $memory.data
+        awk '/Simulation cycle/{c=$NF}; /perf:region cycle '"$memory"' /{print c,$NF}' $input_clean > $memory.data
     fi
 done
 for mesh in $MESH; do
     if [[ ! -e "$mesh.data" ]]; then
         echo "Generating $mesh.data"
-        awk '/Simulation cycle/{c=$NF}; /perf:mesh '"$mesh"' /{print c,$NF}' $input > $mesh.data
+        awk '/Simulation cycle/{c=$NF}; /perf:mesh '"$mesh"' /{print c,$NF}' $input_clean > $mesh.data
     fi
 done
 
 for balance in $BALANCE_MAX $BALANCE_EFF; do
     if [[ ! -e "$balance.data" ]]; then
            echo "Generating $balance.data"
-           awk '/Simulation cycle/{c=$NF}; /perf:balance '"$balance"' /{print c,$(NF-1)}' $input > $balance.data
+           awk '/Simulation cycle/{c=$NF}; /perf:balance '"$balance"' /{print c,$(NF-1)}' $input_clean > $balance.data
        fi
 done
 
 # ==============================
 # Generate plots from data files
 # ==============================
+
+
+$bindir/_plot-perf.py
 
 if [[ ! -e "plot-adapt.png" ]]; then
     echo "Generating plot-adapt.png"
