@@ -21,7 +21,8 @@ Method::Method (double courant) throw()
     super_field_curr_(),
     super_field_prev_(),
     is_time_curr_(-1),
-    is_time_prev_(-1)
+    is_time_prev_(-1),
+    index_perf_(-1)
 {
   ir_post_ = add_refresh_();
   cello::refresh(ir_post_)->set_callback(CkIndex_Block::p_compute_continue());
@@ -51,6 +52,7 @@ void Method::pup (PUP::er &p)
   p | super_field_prev_;
   p | is_time_curr_;
   p | is_time_prev_;
+  p | index_perf_;
 }
 
 //----------------------------------------------------------------------

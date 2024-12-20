@@ -72,20 +72,21 @@ Block::Block ( process_type ip_source, MsgType msg_type )
 
 #endif
 
-  performance_start_(perf_block);
+  PERF_START(perf_block);
 
   init_refresh_();
   usesAtSync = true;
 
   thisIndex.array(array_,array_+1,array_+2);
 
+  PERF_STOP(perf_block);
 }
 
 //----------------------------------------------------------------------
 
 void Block::p_set_msg_refine(MsgRefine * msg)
 {
-  performance_start_(perf_block);
+  PERF_START(perf_block);
 
   std::vector<int> face_level;
   face_level.clear();
@@ -104,8 +105,6 @@ void Block::p_set_msg_refine(MsgRefine * msg)
 
   apply_initial_(msg);
 
-  performance_stop_(perf_block);
-
 #ifdef TRACE_BLOCK
   {
   CkPrintf ("%d %s index TRACE_BLOCK p_set_msg_refine(MsgRefine) done\n",
@@ -117,8 +116,8 @@ void Block::p_set_msg_refine(MsgRefine * msg)
   CkPrintf ("TRACE_REFINE %s\n",name().c_str());
   fflush(stdout);
 #endif
-
-   delete msg;
+  delete msg;
+  PERF_STOP(perf_block);
 }
 
 //----------------------------------------------------------------------
@@ -662,7 +661,7 @@ void Block::p_refresh_child
  int    ic3[3]
  )
 {
-  performance_start_(perf_refresh_child);
+  PERF_START(perf_refresh_child);
   int if3[3] = {0,0,0};
   int  g3[3] = {0,0,0};
   Refresh * refresh = new Refresh;
@@ -673,8 +672,8 @@ void Block::p_refresh_child
 
   field_face -> array_to_face (buffer, data()->field());
   delete field_face;
-  performance_stop_(perf_refresh_child);
-  performance_start_(perf_refresh_child_sync);
+  PERF_STOP(perf_refresh_child);
+  PERF_START(perf_refresh_child_post);
 }
 
 //----------------------------------------------------------------------
@@ -1133,26 +1132,6 @@ Index Block::neighbor_
 
 //----------------------------------------------------------------------
 
-void Block::performance_start_
-(int index_region, std::string file, int line)
-{
-  Simulation * simulation = cello::simulation();
-  if (simulation)
-    simulation->performance()->start_region(index_region,file,line);
-}
-
-//----------------------------------------------------------------------
-
-void Block::performance_stop_
-(int index_region, std::string file, int line)
-{
-  Simulation * simulation = cello::simulation();
-  if (simulation)
-    simulation->performance()->stop_region(index_region,file,line);
-}
-
-//----------------------------------------------------------------------
-
 void Block::check_leaf_()
 {
   if (level() >= 0 &&
@@ -1165,7 +1144,6 @@ void Block::check_leaf_()
 	     children_.size());
   }
 }
-
 
 //----------------------------------------------------------------------
 
