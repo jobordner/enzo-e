@@ -408,8 +408,17 @@ void Simulation::initialize_performance_() throw()
   p->new_region(perf_refresh_recv_post,     "refresh_recv_post",in_charm);
   p->new_region(perf_refresh_exit,          "refresh_exit");
   p->new_region(perf_refresh_exit_post,     "refresh_exit_post",in_charm);
-  p->new_region(perf_refresh_child,          "refresh_child");
-  p->new_region(perf_refresh_child_post,     "refresh_child_post",in_charm);
+  p->new_region(perf_refresh_child,         "refresh_child");
+  p->new_region(perf_refresh_child_post,    "refresh_child_post",in_charm);
+#ifdef CONFIG_SMP_MODE
+  p->new_region(perf_smp,                     "smp");
+  p->new_region(perf_smp_field_face,          "smp_field_face");
+  p->new_region(perf_smp_hierarchy,           "smp_hierarchy");
+  p->new_region(  perf_smp_initial_music,     "smp_initial_music");
+  p->new_region(  perf_smp_initial_value,     "smp_initial_value");
+  p->new_region(  perf_smp_method_close_files,"smp_method_close_files");
+  p->new_region(  perf_smp_solver_bcg,        "smp_solver_bcg");
+#endif
   p->new_region(perf_method,                "method");
   p->new_region(perf_solver,                "solver");
   p->new_region(perf_control,               "control");
@@ -1058,8 +1067,10 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
     long long num_leaf_blocks = 0;
     for (int i=hierarchy_->min_level(); i<=hierarchy_->max_level(); i++) {
       const long long num_blocks_level = counters_reduce[m++]; // NL
-      monitor()->print("perf:mesh","blocks-level_%d %lld",
-                       i,num_blocks_level);
+      if (i>=0) {
+        monitor()->print("perf:mesh","blocks-level_%d %lld",
+                         i,num_blocks_level);
+      }
 
       num_total_blocks += num_blocks_level;
       // compute leaf blocks given number of blocks per level

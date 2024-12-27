@@ -66,6 +66,10 @@ public:
   /// CHARM pupper
   virtual void pup(PUP::er &p);
 
+  /// Pre- and post-migration functions called by Charm++
+  void ckAboutToMigrate(void);
+  void ckJustMigrated(void);
+
   //----------------------------------------------------------------------
   // ACCESS METHODS
   //----------------------------------------------------------------------

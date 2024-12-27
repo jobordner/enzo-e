@@ -46,13 +46,14 @@ mkdir $outdir
 cd $outdir
 
 ADAPT=`awk '/perf:region adapt/{print $(NF-2)}' $input | sort | uniq`
-REFRESH=`awk '/perf:region refresh/{print $(NF-2)}' $input | sort | uniq`
-METHOD=`awk '/perf:region method/{print $(NF-2)}' $input | sort | uniq`
-SOLVER=`awk '/perf:region solver/{print $(NF-2)}' $input | sort | uniq`
-MEMORY=`awk '/perf:region cycle /{print $(NF-1)}' $input | sort | uniq`
-BALANCE_MAX=`awk '/perf:balance max-/{print $(NF-1)}' $input | sort | uniq`
 BALANCE_EFF=`awk '/perf:balance eff-/{print $(NF-2)}' $input | sort | uniq`
+BALANCE_MAX=`awk '/perf:balance max-/{print $(NF-1)}' $input | sort | uniq`
+MEMORY=`awk '/perf:region cycle /{print $(NF-1)}' $input | sort | uniq`
 MESH=`awk '/perf:mesh /{print $(NF-1)}' $input | sort | uniq`
+METHOD=`awk '/perf:region method/{print $(NF-2)}' $input | sort | uniq`
+REFRESH=`awk '/perf:region refresh/{print $(NF-2)}' $input | sort | uniq`
+SMP=`awk '/perf:region smp/{print $(NF-2)}' $input | sort | uniq`
+SOLVER=`awk '/perf:region solver/{print $(NF-2)}' $input | sort | uniq`
 
 num_procs=`awk '/CkNumPes/  {print $5}' $input`
 num_nodes=`awk '/CkNumNodes/{print $5}' $input`
@@ -83,6 +84,13 @@ for refresh in $REFRESH; do
        fi
 done
 
+for smp in $SMP; do
+    if [[ ! -e "$smp.data" ]]; then
+           echo "Generating $smp.data"
+           awk '/Simulation cycle/{c=$NF}; /perf:region '"$smp"' /{print c,$NF}' $input_clean > $smp.data
+       fi
+done
+
 for method in $METHOD; do
     if [[ ! -e "$method.data" ]]; then
         echo "Generating $method.data"
@@ -103,17 +111,24 @@ for memory in $MEMORY; do
         awk '/Simulation cycle/{c=$NF}; /perf:region cycle '"$memory"' /{print c,$NF}' $input_clean > $memory.data
     fi
 done
+
 for mesh in $MESH; do
     if [[ ! -e "$mesh.data" ]]; then
         echo "Generating $mesh.data"
-        awk '/Simulation cycle/{c=$NF}; /perf:mesh '"$mesh"' /{print c,$NF}' $input_clean > $mesh.data
+        awk '/Simulation cycle/{c=$NF}; /perf:mesh '"$mesh"' /{print c,$NF}' $input_clean > mesh_$mesh.data
     fi
 done
 
-for balance in $BALANCE_MAX $BALANCE_EFF; do
+for balance in $BALANCE_EFF; do
     if [[ ! -e "$balance.data" ]]; then
            echo "Generating $balance.data"
-           awk '/Simulation cycle/{c=$NF}; /perf:balance '"$balance"' /{print c,$(NF-1)}' $input_clean > $balance.data
+           awk '/Simulation cycle/{c=$NF}; /perf:balance '"$balance"' /{print c,$(NF-1)}' $input_clean > balance_$balance.data
+       fi
+done
+for balance in $BALANCE_MAX; do
+    if [[ ! -e "$balance.data" ]]; then
+           echo "Generating $balance.data"
+           awk '/Simulation cycle/{c=$NF}; /perf:balance '"$balance"' /{print c,$NF}' $input_clean > balance_$balance.data
        fi
 done
 
@@ -123,69 +138,3 @@ done
 
 
 $bindir/_plot-perf.py
-
-if [[ ! -e "plot-adapt.png" ]]; then
-    echo "Generating plot-adapt.png"
-    gnuplot $bindir/plot-adapt.gnu >& /dev/null
-fi
-if [[ ! -e "plot-adapt-post.png" ]]; then
-    echo "Generating plot-adapt-post.png"
-    gnuplot $bindir/plot-adapt-post.gnu >& /dev/null
-fi
-
-if [[ ! -e "plot-refresh.png" ]]; then 
-    echo "Generating plot-refresh.png"
-    gnuplot $bindir/plot-refresh.gnu >& /dev/null
-fi
-# if [[ ! -e "plot-refresh-post.png" ]]; then
-#     echo "Generating plot-refresh-post.png"
-#     gnuplot $bindir/plot-refresh-post.gnu >& /dev/null
-# fi
-
-if [[ ! -e "plot-method.png" ]]; then
-    echo "Generating plot-method.png"
-    gnuplot $bindir/plot-method.gnu >& /dev/null
-fi
-if [[ ! -e "plot-balance.png" ]]; then
-    echo "Generating plot-balance.png"
-    gnuplot $bindir/plot-balance.gnu >& /dev/null
-fi
-if [[ ! -e "plot-solver.png" ]]; then
-    echo "Generating plot-solver.png"
-    gnuplot $bindir/plot-solver.gnu >& /dev/null
-fi
-if [[ ! -e "plot-memory.png" ]]; then
-    echo "Generating plot-memory.png"
-    gnuplot $bindir/plot-memory.gnu >& /dev/null
-fi
-if [[ ! -e "plot-mesh.png" ]]; then
-    echo "Generating plot-mesh.png"
-    gnuplot $bindir/plot-mesh.gnu >& /dev/null
-fi
-if [[ ! -e "plot-perf.png" ]]; then
-    echo "Generating plot-perf.png"
-    gnuplot $bindir/plot-perf.gnu >& /dev/null
-fi
-
-#====================
-# Create index.html
-#====================
-
-touch index.html
-echo "<html><body>" >> index.html
-echo "<table>"      >> index.html
-column=0
-for png in *.png; do
-    if [[ $((column % 4)) == 0 ]]; then
-        echo "<tr>" >> index.html
-    fi
-    column=$((column + 1))
-    echo "<td>" >> index.html
-    echo "<a href=\"$png\"><img width=400 src=\"$png\"></img></a>" \
-         >> index.html
-    echo "</td>" >> index.html
-    if [[ $((column % 4)) == 0 ]]; then
-        echo "</tr>" >> index.html
-    fi
-done
-echo "</table>"      >> index.html
