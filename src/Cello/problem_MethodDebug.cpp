@@ -216,7 +216,6 @@ void MethodDebug::compute_continue
   if (block->index().is_root()) {
     int nx,ny,nz;
     cello::hierarchy()->root_size(&nx,&ny,&nz);
-    //    long int root_cells = nx*ny*nz;
     for (int i_f=0; i_f<num_fields_; i_f++) {
       std::string name = field.field_name(i_f).c_str();
       cello::monitor()->print
