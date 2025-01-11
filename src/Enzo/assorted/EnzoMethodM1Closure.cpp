@@ -1622,6 +1622,7 @@ void EnzoMethodM1Closure::call_inject_photons(EnzoBlock * enzo_block) throw()
     CkCallback callback (CkIndex_EnzoBlock::p_method_m1_closure_set_global_averages(NULL),
              enzo_block->proxy_array());
 
+    PERF_REDUCE_START(perf_reduce_method_m1_closure);
     enzo_block->contribute(temp, CkReduction::sum_double, callback);
   } else { // just set sigmaN = sigmaE = either sigma_vernier or custom value, and eps = mean(energy)
 
@@ -1666,6 +1667,7 @@ void EnzoMethodM1Closure::call_inject_photons(EnzoBlock * enzo_block) throw()
 
 void EnzoBlock::p_method_m1_closure_set_global_averages(CkReductionMsg * msg)
 {
+  PERF_REDUCE_STOP(perf_reduce_method_m1_closure);
   EnzoMethodM1Closure * method = static_cast<EnzoMethodM1Closure*> (this->method()); 
   method->set_global_averages(this, msg);
 }

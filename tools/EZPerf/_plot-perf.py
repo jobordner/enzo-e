@@ -42,7 +42,6 @@ def plot_list(plt,file_list,type='total',scale=1e-6,sort=True):
                 data =  loadtxt(file,dtype=float)
                 glob_x = data[:,0]
                 glob_y = data[:,1]
-                print (len(glob_y)-1,file)
                 file_times.append([glob_y[len(glob_y)-1],file])
         i=1
         # plot by revert end time
@@ -62,7 +61,6 @@ def plot_list(plt,file_list,type='total',scale=1e-6,sort=True):
         i=1
         # plot by revert end time
         for file in sorted(file_list):
-            print ("plot_list unsorted ",file)
             data =  loadtxt(file,dtype=float)
             glob_x = data[:,0]
             glob_y = data[:,1]
@@ -114,7 +112,7 @@ def html_stop_row(html):
 
 def html_image(html,image):
     html.write('            <td>\n')
-    html.write('              <a href="' +image+'"><img width=512 src="'+image+'"></img></a>\n')
+    html.write('              <a href="' +image+'"><img width=480 src="'+image+'"></img></a>\n')
     html.write('            </td>\n')
 
 # ----------------------------------------------------------------------
@@ -140,22 +138,20 @@ html_start_table(html)
 html_start_row(html)
 
 # ----------------------------------------------------------------------
+region_list = ['method.data', 'solver.data', 'refresh.data', 'adapt.data', 'reduce.data']
+if os.path.exists('smp.data'):
+    region_list.append(['smp.data'])
+
 plot_open(plt,'Enzo-E: cumulative times','cycle','time (s)');
 plot_total(plt,'cycle.data','cycle',scale=1.0)
-if os.path.exists('smp.data'):
-    plot_list(plt,['method.data', 'solver.data', 'refresh.data', 'adapt.data', 'smp.data'])
-else:
-    plot_list(plt,['method.data', 'solver.data', 'refresh.data', 'adapt.data'])
+plot_list(plt,region_list)
 plt.legend(loc='lower center',ncols=3)
 plt.yscale('log')
 plot_write('plot_time_total',html)
 # ----------------------------------------------------------------------
 plot_open(plt,'Enzo-E: per-cycle times','cycle','time (s)');
 plot_total(plt,'cycle.data','cycle',scale=1.0,type='cycle')
-if os.path.exists('smp.data'):
-    plot_list(plt,['method.data', 'solver.data', 'refresh.data', 'adapt.data', 'smp.data'],type='cycle')
-else:
-    plot_list(plt,['method.data', 'solver.data', 'refresh.data', 'adapt.data'],type='cycle')
+plot_list(plt,region_list,type='cycle')
 plt.legend(loc='lower center',ncols=3)
 plot_write('plot_time_cycle',html)
 # ----------------------------------------------------------------------
