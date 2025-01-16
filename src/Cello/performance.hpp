@@ -12,7 +12,6 @@
 #include "_parallel.hpp"
 #include "_parameters.hpp"
 #include "_memory.hpp"
-
 #include "_performance.hpp"
 
 #endif /* PERFORMANCE_HPP */

@@ -10,6 +10,9 @@
 #include "cello.hpp"
 
 #include "performance.hpp"
+#ifdef CONFIG_USE_PROJECTIONS
+#  include "io_Schedule.hpp"
+#endif
 
 // #define TRACE_PERFORMANCE
 
@@ -92,6 +95,37 @@ Performance::~Performance()
   delete [] papi_counters_;
   papi_counters_ = NULL;
 #endif
+}
+
+//----------------------------------------------------------------------
+void Performance::pup (PUP::er &p)
+{
+  TRACEPUP;
+
+  // NOTE: change this function whenever attributes change
+
+#ifdef CONFIG_USE_PAPI
+  p | papi_;
+#endif
+
+  p | counter_name_;
+  p | counter_type_;
+  p | counter_values_;
+  p | counter_values_reduced_;
+  p | region_name_;
+  p | region_counters_;
+  p | region_index_;
+  p | region_multiplicity_;
+  p | region_in_charm_;
+
+#ifdef CONFIG_USE_PROJECTIONS
+  p | projections_tracing_;
+  p | projections_schedule_on_;
+  p | projections_schedule_off_;
+#endif
+
+  p | warnings_;
+  p | index_region_current_;
 }
 
 //----------------------------------------------------------------------

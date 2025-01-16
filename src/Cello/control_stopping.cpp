@@ -129,8 +129,10 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
   Performance * performance = cello::performance();
   Schedule * schedule_on = performance->projections_schedule_on();
   Schedule * schedule_off = performance->projections_schedule_off();
-  bool turn_on  = schedule_on  ? schedule_on->write_this_cycle(cycle_,time_) : false;
-  bool turn_off = schedule_off ? schedule_off->write_this_cycle(cycle_,time_) : false;
+  bool turn_on  = schedule_on  ?
+    schedule_on->write_this_cycle(state_->cycle(),state_->time()) : false;
+  bool turn_off = schedule_off ?
+    schedule_off->write_this_cycle(state_->cycle(),state_->time()) : false;
 
   static bool active = false;
   if (!active && turn_on) {

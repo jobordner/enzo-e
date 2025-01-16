@@ -187,12 +187,16 @@ void Config::pup (PUP::er &p)
 
   // Performance
 
-  p | performance_papi_counters;
-  p | performance_projections_on_at_start;
   p | performance_warnings;
+#ifdef CONFIG_USE_PAPI
+  p | performance_papi_counters;
+#endif
+#ifdef CONFIG_USE_PROJECTIONS
+  p | performance_projections_on_at_start;
   p | performance_on_schedule_index;
   p | performance_off_schedule_index;
-
+#endif
+  
   // Physics
   
   p | num_physics;

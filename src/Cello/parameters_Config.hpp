@@ -135,11 +135,15 @@ public: // interface
     particle_attribute_type(),
     particle_batch_size(0),
     particle_group_list(),
+#ifdef CONFIG_USE_PAPI
     performance_papi_counters(),
+#endif    
+#ifdef CONFIG_USE_PROJECTIONS    
     performance_projections_on_at_start(true),
     performance_warnings(false),
     performance_on_schedule_index(-1),
     performance_off_schedule_index(-1),
+#endif    
     num_physics(0),
     physics_list(),
     num_solvers(),
@@ -289,11 +293,15 @@ public: // interface
       particle_attribute_type(),
       particle_batch_size(0),
       particle_group_list(),
-      performance_papi_counters(),
-      performance_projections_on_at_start(true),
       performance_warnings(false),
+#ifdef CONFIG_USE_PAPI
+      performance_papi_counters(),
+#endif
+#ifdef CONFIG_USE_PROJECTIONS    
+      performance_projections_on_at_start(true),
       performance_on_schedule_index(-1),
       performance_off_schedule_index(-1),
+#endif
       num_physics(0),
       physics_list(),
       num_solvers(),
@@ -516,11 +524,15 @@ public: // attributes
 
   // Performance
 
-  std::vector<std::string>   performance_papi_counters;
-  bool                       performance_projections_on_at_start;
   bool                       performance_warnings;
+#ifdef CONFIG_USE_PAPI
+  std::vector<std::string>   performance_papi_counters;
+#endif
+#ifdef CONFIG_USE_PROJECTIONS    
+  bool                       performance_projections_on_at_start;
   int                        performance_on_schedule_index;
   int                        performance_off_schedule_index;
+#endif
 
   // Physics
   
