@@ -86,7 +86,9 @@ void Block::stopping_begin_()
 #ifdef TRACE_CONTRIBUTE
     CkPrintf ("%s %s:%d DEBUG_CONTRIBUTE\n",
 	      name().c_str(),__FILE__,__LINE__); fflush(stdout);
+
 #endif
+    /*    PERF_REDUCE_START(perf_reduce_stopping); */
     contribute(n*sizeof(double), min_reduce.data(), CkReduction::min_double, callback);
 
   } else {
@@ -101,6 +103,7 @@ void Block::stopping_begin_()
 
 void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 {
+  /* PERF_REDUCE_STOP(perf_reduce_stopping); */
   PERF_START(perf_stopping);
   
   TRACE_STOPPING("Block::r_stopping_compute_timestep");
@@ -260,6 +263,7 @@ void Block::stopping_balance_()
       (CkIndex_Block::r_stopping_load_balance(nullptr),
        proxy_array());
     adapt_ready_ = true;
+    PERF_REDUCE_START(perf_reduce_balance);
     contribute(callback);
   } else {
 
@@ -270,8 +274,10 @@ void Block::stopping_balance_()
 
 //----------------------------------------------------------------------
 
-void Block::stopping_load_balance_()
+void Block::r_stopping_load_balance(CkReductionMsg *msg)
 {
+  delete msg;
+  PERF_REDUCE_STOP(perf_reduce_balance);
   PERF_START(perf_stopping);
   TRACE_STOPPING("load_balance begin");
   cello::simulation()->set_phase (phase_balance);

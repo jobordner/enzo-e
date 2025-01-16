@@ -160,9 +160,10 @@ void MethodDebug::compute ( Block * block) throw()
     }
   }
 #endif
-    CkCallback callback (CkIndex_Block::r_method_debug_sum_fields(NULL),
+  CkCallback callback (CkIndex_Block::r_method_debug_sum_fields(NULL),
                        block->proxy_array());
 
+  PERF_REDUCE_START(perf_reduce_method_debug);
   block->contribute
     ((1+num_reduce)*sizeof(cello_reduce_type), reduce,
      r_reduce_method_debug_type, callback);
@@ -174,6 +175,7 @@ void MethodDebug::compute ( Block * block) throw()
 
 void Block::r_method_debug_sum_fields(CkReductionMsg * msg)
 {
+  PERF_REDUCE_STOP(perf_reduce_method_debug);
   static_cast<MethodDebug*>
     (this->method())->compute_continue(this,msg);
 }
@@ -214,7 +216,6 @@ void MethodDebug::compute_continue
   if (block->index().is_root()) {
     int nx,ny,nz;
     cello::hierarchy()->root_size(&nx,&ny,&nz);
-    //    long int root_cells = nx*ny*nz;
     for (int i_f=0; i_f<num_fields_; i_f++) {
       std::string name = field.field_name(i_f).c_str();
       cello::monitor()->print

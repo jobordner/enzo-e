@@ -257,8 +257,9 @@ void EnzoSolverMg0::enter_solver_ (EnzoBlock * enzo_block) throw()
     /// sum and count
 
     CkCallback callback(CkIndex_EnzoBlock::r_solver_mg0_begin_solve(nullptr),
-			enzo::block_array());
+                        enzo::block_array());
 
+    PERF_REDUCE_START(perf_reduce_solver_mg0);
     enzo_block->contribute(2*sizeof(cello_reduce_type), &reduce,
 			   sum_cello_reduce_2_type, callback);
   } else {
@@ -292,6 +293,7 @@ void EnzoSolverMg0::compute_shift_
 
 void EnzoBlock::r_solver_mg0_begin_solve(CkReductionMsg* msg)
 {
+  PERF_REDUCE_STOP(perf_reduce_solver_mg0);
   static_cast<EnzoSolverMg0*> (solver())->begin_solve(this,msg);
 }
 
@@ -405,6 +407,7 @@ void EnzoBlock::p_solver_mg0_solve_coarse()
 
   cello_reduce_type data[1] = {solver->rr_local()};
 
+  PERF_REDUCE_START(perf_reduce_solver_mg0);
   contribute(sizeof(cello_reduce_type), data,  sum_cello_reduce_type, callback);
 }
 
@@ -412,6 +415,7 @@ void EnzoBlock::p_solver_mg0_solve_coarse()
 
 void EnzoBlock::r_solver_mg0_barrier(CkReductionMsg* msg)
 {
+  PERF_REDUCE_STOP(perf_reduce_solver_mg0);
   EnzoSolverMg0 * solver =
     static_cast<EnzoSolverMg0*> (this->solver());
 
