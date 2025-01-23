@@ -14,8 +14,12 @@
 #include "charm_mesh.hpp"
 
 // #define DEBUG_COMPUTE
-
+#define CHECK_HANG
 #define CYCLE 0
+
+#ifdef CHECK_HANG
+int last_method[CONFIG_NODE_SIZE] = {};
+#endif
 
 //======================================================================
 
@@ -40,6 +44,15 @@ void Block::compute_begin_ ()
 void Block::compute_next_ ()
 {
   Method * method = this->method();
+
+#ifdef CHECK_HANG
+  const int in = cello::index_static();
+  if (method != nullptr && last_method[in] != index_method_) {
+    CkPrintf ("hang-check: ip %d time %.1f method %s\n",
+              CkMyPe(),method->name().c_str(),cello::simulation()->timer());
+    last_method[in] = index_method_;
+  }
+#endif
 
 #ifdef DEBUG_COMPUTE
   if (state_->cycle() >= CYCLE)
