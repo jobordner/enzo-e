@@ -793,7 +793,7 @@ namespace cello {
   }
 
   inline int index_static()
-  { return CkMyPe() % CONFIG_NODE_SIZE; }
+  { return CkMyRank(); }
 
   inline void af_to_xyz (int axis, int face, int r3[3])
   {
