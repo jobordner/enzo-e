@@ -65,17 +65,25 @@ void Simulation::initialize() throw()
   // on all processors before Blocks are created
 
   // Create the Block chare array and distribute proxy to all other processes
-  CProxy_Block block_array;
-  const bool is_root = (CkMyPe() == 0);
 
-  if (is_root) {
+  CkCallback callback
+    (CkIndex_Simulation::r_initialize_next(nullptr), thisProxy);
+  
+  contribute(callback);
+}
+
+//----------------------------------------------------------------------
+
+void Simulation::r_initialize_next(CkReductionMsg * msg) 
+{  
+  if (CkMyPe() == 0) {
+    CProxy_Block block_array;
     bool allocate_data = true;
     block_array = hierarchy_->new_block_proxy (allocate_data);
     // broadcast block_array to other Simulation objects
     thisProxy.p_set_block_array(block_array);
   }
 }
-
 //----------------------------------------------------------------------
 
 void Simulation::p_set_block_array(CProxy_Block block_array)

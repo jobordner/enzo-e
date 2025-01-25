@@ -20,6 +20,7 @@ module simulation {
 
     entry void p_refine_create_block (MsgRefine *);
 
+    entry void r_initialize_next (CkReductionMsg * msg);
     entry void r_initialize_block_array (CkReductionMsg * msg);
 
     entry void s_write ();
