@@ -9,6 +9,8 @@
 #include "charm_simulation.hpp"
 #include "test.hpp"
 
+#define PRINT_VELOCITIES
+
 // #define DEBUG_DEBUG
 //----------------------------------------------------------------------
 
@@ -238,6 +240,40 @@ void MethodDebug::compute_continue
 
   if (block->is_leaf()) {
 
+#ifdef PRINT_VELOCITIES
+    static FILE * fp = nullptr;
+    char filename[20];
+    sprintf (filename,"vel-%02d.data",CkMyPe());
+    if (!fp) fp = fopen (filename,"w");
+    const int ivx=field.field_id("velocity_x");
+    const int ivy=field.field_id("velocity_y");
+    const int ivz=field.field_id("velocity_z");
+    cello_float * vx = (cello_float*)field.values(ivx);
+    cello_float * vy = (cello_float*)field.values(ivy);
+    cello_float * vz = (cello_float*)field.values(ivz);
+
+    double vmax = 0.0;
+    double vmin = std::numeric_limits<double>::max();
+    int gx=0,gy=0,gz=0;
+    int mx,my,mz;
+    field.dimensions (ivx,&mx,&my,&mz);
+    field.ghost_depth (ivx,&gx,&gy,&gz);
+    for (int iz=gz; iz<mz-gz; iz++) {
+      for (int iy=gy; iy<my-gy; iy++) {
+        for (int ix=gx; ix<mx-gx; ix++) {
+          int i=ix + mx*(iy + my*iz);
+          double v=sqrt(vx[i]*vx[i]+vy[i]*vy[i]+vz[i]*vz[i]);
+          vmax=std::max(v,vmax);
+          vmin=std::min(v,vmin);
+        }
+      }
+    }
+
+    fprintf (fp,"%d %d %14.12f %14.12f\n",
+             block->state()->cycle(),
+             block->level(),vmin,vmax);
+
+#endif
     for (int i_f=0; i_f<num_fields_; i_f++) {
 
       int mx,my,mz;
