@@ -10,8 +10,65 @@
 #include "test.hpp"
 
 #define PRINT_VELOCITIES
+#define MAX_LENGTH_REDUCTION 1000
 
-// #define DEBUG_DEBUG
+//======================================================================
+
+CkReduction::reducerType r_reduce_method_debug_type;
+void register_reduce_method_debug(void)
+{ r_reduce_method_debug_type = CkReduction::addReducer(r_reduce_method_debug); }
+
+//----------------------------------------------------------------------
+
+CkReductionMsg * r_reduce_method_debug(int n, CkReductionMsg ** msgs)
+{
+  if (n <= 0) return NULL;
+
+  const int k_min=0;
+  const int k_max=1;
+  const int k_sum=2;
+  const int k_num=3;
+
+  cello_reduce_type length = ((cello_reduce_type*) (msgs[0]->getData()))[0];
+
+  const int num_reduce = (length - 1)/4;
+  
+  std::vector<cello_reduce_type> accum;
+  ASSERT1 ("r_reduce_method_debug",
+	   "Sanity check failed on expected accumulator array %d",
+	   length, (length < MAX_LENGTH_REDUCTION));
+  accum.resize(length);
+  accum.clear();
+
+  // save length
+  accum [0] = length;
+
+  // initialize reductions min max sum count
+  int j=1;
+  for (int i=0; i < num_reduce; i++) {
+    accum [j] = std::numeric_limits<cello_reduce_type>::max();
+    ++j;
+    accum [j] = -std::numeric_limits<cello_reduce_type>::max();
+    ++j;
+    accum [j] = 0.0;
+    ++j;
+    accum [j] = 0.0;
+    ++j;
+  }
+  for (int i=0; i<n; i++) {
+    cello_reduce_type * values = (cello_reduce_type *) msgs[i]->getData();
+    for (int i=0; i < num_reduce; i++) {
+      const int k=1+4*i;
+      accum [k+k_min] = std::min(accum[k],values[k+k_min]);
+      accum [k+k_max] = std::max(accum[k],values[k+k_max]);
+      accum [k+k_sum] += values[k+k_sum];
+      accum [k+k_num] += values[k+k_num];
+    }
+  }
+
+  return CkReductionMsg::buildNew(length*sizeof(cello_reduce_type),&accum[0]);
+}
+
 //----------------------------------------------------------------------
 
 MethodDebug::MethodDebug
@@ -58,18 +115,21 @@ MethodDebug::MethodDebug
 
 void MethodDebug::compute ( Block * block) throw()
 {
-  const int num_reduce = 4*(num_fields_+3*num_particles_);
-  cello_reduce_type * reduce = new cello_reduce_type [1+num_reduce];
-  reduce[0] = num_reduce+1;
-  const int kmin=0;
-  const int kmax=1;
-  const int ksum=2;
-  const int knum=3;
-  for (int k=1; k<num_reduce; k+=4) {
-    reduce[k+kmin] = std::numeric_limits<cello_reduce_type>::max();
-    reduce[k+kmax] = -std::numeric_limits<cello_reduce_type>::max();
-    reduce[k+ksum] = 0;
-    reduce[k+knum] = 0;
+  const int num_reduce = num_fields_ + 3*num_particles_;
+  const int length = 1 + 4*num_reduce;
+
+  cello_reduce_type * reduce = new cello_reduce_type [length];
+  reduce[0] = length;
+  const int k_min=0;
+  const int k_max=1;
+  const int k_sum=2;
+  const int k_num=3;
+  for (int i=0; i<num_reduce; i++) {
+    int k = 1 + 4*i;
+    reduce[k+k_min] = std::numeric_limits<cello_reduce_type>::max();
+    reduce[k+k_max] = -std::numeric_limits<cello_reduce_type>::max();
+    reduce[k+k_sum] = 0;
+    reduce[k+k_num] = 0;
   }
 
   if (block->is_leaf()) {
@@ -93,10 +153,10 @@ void MethodDebug::compute ( Block * block) throw()
           for (int ix=gx; ix<mx-gx; ix++) {
             int i=ix + mx*(iy + my*iz);
             cello_reduce_type value = values[i];
-            reduce[k+kmin] = std::min(reduce[k+kmin], value);
-            reduce[k+kmax] = std::max(reduce[k+kmax], value);
-            reduce[k+ksum] += value;
-            reduce[k+knum] += rel_vol;
+            reduce[k+k_min] = std::min(reduce[k+k_min], value);
+            reduce[k+k_max] = std::max(reduce[k+k_max], value);
+            reduce[k+k_sum] += value;
+            reduce[k+k_num] += rel_vol;
           }
         }
       }
@@ -115,13 +175,13 @@ void MethodDebug::compute ( Block * block) throw()
       for (int ib=0; ib<nb; ib++) {
         particle.position(it,ib,position[0].data(),position[1].data(),position[2].data());
         const int np = particle.num_particles(it,ib);
-        for (int i=0; i<cello::rank(); i++) {
+        for (int axis=0; axis<cello::rank(); axis++) {
           for (int ip=0; ip<np; ip++) {
-            cello_reduce_type value = position[i][ip];
-            reduce[k+4*i+kmin] = std::min(reduce[k+4*i+0],value);
-            reduce[k+4*i+kmax] = std::max(reduce[k+4*i+1],value);
-            reduce[k+4*i+ksum] += value;
-            reduce[k+4*i+knum] += 1;
+            cello_reduce_type value = position[axis][ip];
+            reduce[k+4*axis+k_min] = std::min(reduce[k+4*axis+0],value);
+            reduce[k+4*axis+k_max] = std::max(reduce[k+4*axis+1],value);
+            reduce[k+4*axis+k_sum] += value;
+            reduce[k+4*axis+k_num] += 1;
           }
         }
       }
@@ -167,7 +227,7 @@ void MethodDebug::compute ( Block * block) throw()
 
   PERF_REDUCE_START(perf_reduce_method_debug);
   block->contribute
-    ((1+num_reduce)*sizeof(cello_reduce_type), reduce,
+    ((length)*sizeof(cello_reduce_type), reduce,
      r_reduce_method_debug_type, callback);
 
   delete [] reduce;
