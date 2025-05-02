@@ -52,56 +52,6 @@ CkReductionMsg * r_reduce_performance(int n, CkReductionMsg ** msgs)
 
 //======================================================================
 
-CkReduction::reducerType r_reduce_method_debug_type;
-
-void register_reduce_method_debug(void)
-{ r_reduce_method_debug_type = CkReduction::addReducer(r_reduce_method_debug); }
-
-CkReductionMsg * r_reduce_method_debug(int n, CkReductionMsg ** msgs)
-{
-  if (n <= 0) return NULL;
-
-  cello_reduce_type num_fields = ((cello_reduce_type*) (msgs[0]->getData()))[0];
-
-  const int length = 1 + 4*num_fields;
-  std::vector<cello_reduce_type> accum;
-  ASSERT1 ("r_reduce_method_debug",
-	   "Sanity check failed on expected accumulator array %d",
-	   length, (length < MAX_LENGTH_REDUCTION));
-  accum.resize(length);
-  accum.clear();
-
-  // save length
-  accum [0] = num_fields;
-
-  // initialize reductions min max sum count
-  int j=1;
-  for (int i_f=0; i_f < num_fields; i_f++) {
-    accum [j] = std::numeric_limits<cello_reduce_type>::max();
-    ++j;
-    accum [j] = -std::numeric_limits<cello_reduce_type>::max();
-    ++j;
-    accum [j] = 0.0;
-    ++j;
-    accum [j] = 0.0;
-    ++j;
-  }
-  for (int i=0; i<n; i++) {
-    cello_reduce_type * values = (cello_reduce_type *) msgs[i]->getData();
-    j = 1;
-    for (int i_f=0; i_f < num_fields; i_f++) {
-      accum [j] = std::min(accum[j],values[j]); ++j;
-      accum [j] = std::max(accum[j],values[j]); ++j;
-      accum [j] += values[j]; ++j;
-      accum [j] += values[j]; ++j;
-    }
-  }
-
-  return CkReductionMsg::buildNew(length*sizeof(cello_reduce_type),&accum[0]);
-}
-
-//======================================================================
-
 CkReduction::reducerType sum_cello_reduce_type;
 
 void register_sum_cello_reduce(void)
