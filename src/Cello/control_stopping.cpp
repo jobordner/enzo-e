@@ -27,6 +27,8 @@
 
 // #define DEBUG_STATE
 
+#define PRINT_DT
+
 #ifdef DEBUG_STOPPING
 #   define TRACE_STOPPING(A)					\
   CkPrintf ("%d %s:%d %s TRACE %s\n",					\
@@ -79,6 +81,21 @@ void Block::stopping_begin_()
     for (int k=0; k<problem->num_methods(); k++) {
       min_reduce[k+1] = problem->method(k)->timestep(this);
     }
+
+#ifdef PRINT_DT
+    if (is_leaf()) {
+      static FILE * fp = nullptr;
+      char filename[20];
+      sprintf (filename,"dt-%02d.data",CkMyPe());
+      if (!fp) fp = fopen (filename,"w");
+
+      double dt_min=stopping_compute_global_dt_ (min_reduce.data());
+
+      fprintf (fp,"%d %d %14.12f\n",
+               state()->cycle(),
+               level(),dt_min);
+    }
+#endif
 
     CkCallback callback (CkIndex_Block::r_stopping_compute_timestep(NULL),
 			 thisProxy);
@@ -167,7 +184,7 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 
 //----------------------------------------------------------------------
 
-double Block::stopping_compute_global_dt_ (double min_reduce[])
+double Block::stopping_compute_global_dt_ (const double min_reduce[])
 {
   Simulation * simulation = cello::simulation();
   Problem * problem = simulation->problem();
@@ -202,7 +219,7 @@ double Block::stopping_compute_global_dt_ (double min_reduce[])
 
 //----------------------------------------------------------------------
 
-void Block::stopping_update_method_state_(double min_reduce[], double dt_global)
+void Block::stopping_update_method_state_(const double min_reduce[], double dt_global)
 {
   // update Method states for supercycling
   Simulation * simulation = cello::simulation();

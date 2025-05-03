@@ -148,7 +148,7 @@ void Block::p_output_write (int index_output, int step)
   Config        * config         = (Config *) cello::config();
 
   // update derived fields (if any)
-  this->compute_derived(config->output_field_list[index_output]);
+  compute_derived(config->output_field_list[index_output]);
 
   output->write_block(this);
 

@@ -167,8 +167,6 @@ public: // virtual functions
   /// stopping criteria
   virtual void update_state(int cycle, double time, double dt, double stop) ;
 
-  void p_initialize_state(MsgState *);
-
   /// initialize the Simulation given a parameter file
   virtual void initialize() throw();
 
@@ -202,6 +200,10 @@ public: // virtual functions
     fp_debug_ = 0;
 #endif
   }
+
+  // Initialize
+
+  void p_initialize_state(MsgState *);
 
   /// Wait for all Hierarchy to be initialized before creating any Blocks
   void r_initialize_block_array(CkReductionMsg * msg);
