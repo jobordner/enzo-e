@@ -89,11 +89,14 @@ void Block::stopping_begin_()
       sprintf (filename,"dt-%02d.data",CkMyPe());
       if (!fp) fp = fopen (filename,"w");
 
-      double dt_min=stopping_compute_global_dt_ (min_reduce.data());
+      int id_method=-1;
+      double dt_min=stopping_compute_global_dt_ (min_reduce.data(),&id_method);
 
-      fprintf (fp,"%d %d %14.12f\n",
+      fprintf (fp,"%d %d %d %14.12f\n",
                state()->cycle(),
-               level(),dt_min);
+               level(),
+	       id_method,
+	       dt_min);
     }
 #endif
 
@@ -184,7 +187,8 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 
 //----------------------------------------------------------------------
 
-double Block::stopping_compute_global_dt_ (const double min_reduce[])
+double Block::stopping_compute_global_dt_
+(const double min_reduce[], int * id_method)
 {
   Simulation * simulation = cello::simulation();
   Problem * problem = simulation->problem();
@@ -194,6 +198,9 @@ double Block::stopping_compute_global_dt_ (const double min_reduce[])
   for (int k=0; k<problem->num_methods(); k++) {
     const double dt_method = min_reduce[k+1];
     dt_global = std::min(dt_global,dt_method);
+    // save method id determining block dt if id_method != nullptr
+    if (id_method != nullptr && dt_global == dt_method)
+      (*id_method) = k;
   }
 
   // Adjust timestep dt for global courant condition
@@ -213,6 +220,9 @@ double Block::stopping_compute_global_dt_ (const double min_reduce[])
   double time_stop = stopping->stop_time();
 
   dt_global = std::min (dt_global, (time_stop - time_curr));
+  // save method id as num_methods() if determined by schedule
+  if (id_method != nullptr && dt_global == time_stop - time_curr)
+    (*id_method) = problem->num_methods();
 
   return dt_global;
 }

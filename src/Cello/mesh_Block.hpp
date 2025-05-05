@@ -727,8 +727,11 @@ protected:
   void stopping_balance_();
   void stopping_load_balance_();
   void stopping_exit_();
-  double stopping_compute_global_dt_(const double min_reduce[]);
-  void stopping_update_method_state_(const double min_reduce[],double dt_global);
+  
+  double stopping_compute_global_dt_(const double min_reduce[],
+				     int * id_method = nullptr);
+  void stopping_update_method_state_(const double min_reduce[],
+				     double dt_global);
 
 public:
   /// Exit the stopping phase to exit
