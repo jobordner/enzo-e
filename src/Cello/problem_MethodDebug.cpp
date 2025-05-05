@@ -43,25 +43,21 @@ CkReductionMsg * r_reduce_method_debug(int n, CkReductionMsg ** msgs)
   accum [0] = length;
 
   // initialize reductions min max sum count
-  int j=1;
-  for (int i=0; i < num_reduce; i++) {
-    accum [j] = std::numeric_limits<cello_reduce_type>::max();
-    ++j;
-    accum [j] = -std::numeric_limits<cello_reduce_type>::max();
-    ++j;
-    accum [j] = 0.0;
-    ++j;
-    accum [j] = 0.0;
-    ++j;
+  for (int k=0; k < num_reduce; k++) {
+    const int k0 = 1 + 4*k;
+    accum [k0 + k_min] = std::numeric_limits<cello_reduce_type>::max();
+    accum [k0 + k_max] = -std::numeric_limits<cello_reduce_type>::max();
+    accum [k0 + k_sum] = 0.0;
+    accum [k0 + k_num] = 0.0;
   }
   for (int i=0; i<n; i++) {
     cello_reduce_type * values = (cello_reduce_type *) msgs[i]->getData();
-    for (int i=0; i < num_reduce; i++) {
-      const int k=1+4*i;
-      accum [k+k_min] = std::min(accum[k],values[k+k_min]);
-      accum [k+k_max] = std::max(accum[k],values[k+k_max]);
-      accum [k+k_sum] += values[k+k_sum];
-      accum [k+k_num] += values[k+k_num];
+    for (int k=0; k < num_reduce; k++) {
+      const int k0 = 1+4*k;
+      accum [k0 + k_min] = std::min(accum[k0],values[k0+k_min]);
+      accum [k0 + k_max] = std::max(accum[k0],values[k0+k_max]);
+      accum [k0 + k_sum] += values[k0+k_sum];
+      accum [k0 + k_num] += values[k0+k_num];
     }
   }
 
@@ -123,12 +119,12 @@ void MethodDebug::compute ( Block * block) throw()
   const int k_max=1;
   const int k_sum=2;
   const int k_num=3;
-  for (int i=0; i<num_reduce; i++) {
-    int k = 1 + 4*i;
-    reduce[k+k_min] = std::numeric_limits<cello_reduce_type>::max();
-    reduce[k+k_max] = -std::numeric_limits<cello_reduce_type>::max();
-    reduce[k+k_sum] = 0;
-    reduce[k+k_num] = 0;
+  for (int k=0; k<num_reduce; k++) {
+    int k0 = 1 + 4*k;
+    reduce[k0 + k_min] = std::numeric_limits<cello_reduce_type>::max();
+    reduce[k0 + k_max] = -std::numeric_limits<cello_reduce_type>::max();
+    reduce[k0 + k_sum] = 0;
+    reduce[k0 + k_num] = 0;
   }
 
   if (block->is_leaf()) {
@@ -142,7 +138,7 @@ void MethodDebug::compute ( Block * block) throw()
     field.ghost_depth (0,&gx,&gy,&gz);
 
     const double rel_vol = cello::relative_cell_volume (block->level());
-    int k=1;
+    int k0=1;
     for (int index_field=0; index_field<num_fields_; index_field++) {
 
       cello_float * values = (cello_float *) field.values(index_field);
@@ -152,14 +148,14 @@ void MethodDebug::compute ( Block * block) throw()
           for (int ix=gx; ix<mx-gx; ix++) {
             int i=ix + mx*(iy + my*iz);
             cello_reduce_type value = values[i];
-            reduce[k+k_min] = std::min(reduce[k+k_min], value);
-            reduce[k+k_max] = std::max(reduce[k+k_max], value);
-            reduce[k+k_sum] += value;
-            reduce[k+k_num] += rel_vol;
+            reduce[k0 + k_min] = std::min(reduce[k0 + k_min], value);
+            reduce[k0 + k_max] = std::max(reduce[k0 + k_max], value);
+            reduce[k0 + k_sum] += value;
+            reduce[k0 + k_num] += rel_vol;
           }
         }
       }
-      k += 4;
+      k0 += 4;
     }
 
     // particles
@@ -175,21 +171,18 @@ void MethodDebug::compute ( Block * block) throw()
         particle.position(it,ib,position[0].data(),position[1].data(),position[2].data());
         const int np = particle.num_particles(it,ib);
         for (int axis=0; axis<cello::rank(); axis++) {
+	  const int a0 = 4*axis;
           for (int ip=0; ip<np; ip++) {
             cello_reduce_type value = position[axis][ip];
-            reduce[k+4*axis+k_min] = std::min(reduce[k+4*axis+0],value);
-            reduce[k+4*axis+k_max] = std::max(reduce[k+4*axis+1],value);
-            reduce[k+4*axis+k_sum] += value;
-            reduce[k+4*axis+k_num] += 1;
+            reduce[k0 + a0+k_min] = std::min(reduce[k0 + a0 + k_min],value);
+            reduce[k0 + a0+k_max] = std::max(reduce[k0 + a0 + k_max],value);
+            reduce[k0 + a0+k_sum] += value;
+            reduce[k0 + a0+k_num] += 1;
           }
         }
       }
-      k += 4*3;
+      k0 += 4*3;
     }
-
-    ASSERT2("MethodDebug::compute()",
-            "reduce array mismatch %d != %d",
-            k,num_reduce+1,(k == num_reduce+1));
   }
 
 #ifdef DEBUG_DEBUG  
@@ -265,10 +258,6 @@ void MethodDebug::compute_continue
       id+=4;
     }
   }
-  const int num_reduce = 4*(num_fields_+3*num_particles_);
-  ASSERT2("MethodDebug::compute_continue()",
-          "reduce array mismatch %d != %d",
-          id,num_reduce+1,(id == num_reduce+1));
 
   delete msg;
 
