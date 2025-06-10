@@ -15,35 +15,58 @@ class State : public PUP::able {
   /// @brief    [\ref Data] 
 
 public: // component classes
-  
+
   class MethodState {
     /// @class    MethodState
     /// @ingroup  Data
     /// @brief    [\ref Data] State of individual methods
+
     friend State;
+
   public:
-    void init() {
-      dt_        = 0.0;
-      time_      = 0.0;
-      num_steps_ = 0;
-      step_      = 0;
+
+    MethodState(int max_level = 0)
+    {
+      init(max_level);
     }
+
+    void init(int max_level = 0) {
+      time_.     resize (max_level+1, 0.0);
+      dt_.       resize (max_level+1, 0.0);
+      num_steps_.resize (max_level+1, 0);
+      step_.     resize (max_level+1, 0);
+    }
+
     void pup (PUP::er &p) {
-      p | dt_;
       p | time_;
+      p | dt_;
       p | num_steps_;
       p | step_;
     }
 
-    double dt() const { return dt_; }
-    double time() const { return time_; }
-    int num_steps() const { return num_steps_; }
-    int step() const { return step_; }
+    void set_time (double time, int level = 0)
+    { time_[level] = time; }
 
-    void set_dt(double dt) { dt_ = dt; }
-    void set_time(double time) { time_ = time; }
-    void set_num_steps(int num_steps) { num_steps_ = num_steps; }
-    void set_step(int step) { step_ = step; }
+    double time (int level = 0) const
+    { return time_[level]; }
+
+    void set_dt (double dt, int level = 0)
+    { dt_[level] = dt; }
+
+    double dt  (int level = 0) const
+    { return dt_[level]; }
+
+    void set_num_steps (int num_steps, int level = 0)
+    { num_steps_[level] = num_steps; }
+
+    int num_steps (int level = 0) const
+    { return num_steps_[level]; }
+
+    void set_step (int step, int level = 0)
+    { step_[level] = step; }
+
+    int step (int level = 0) const
+    { return step_[level]; }
 
   //----------------------------------------------------------------------
   /// Packing / unpacking
@@ -52,10 +75,10 @@ public: // component classes
     int data_size () const
     {
       int size = 0;
-      SIZE_SCALAR_TYPE(size,double,dt_);
-      SIZE_SCALAR_TYPE(size,double,time_);
-      SIZE_SCALAR_TYPE(size,int,num_steps_);
-      SIZE_SCALAR_TYPE(size,int,step_);
+      SIZE_VECTOR_TYPE(size,double,time_);
+      SIZE_VECTOR_TYPE(size,double,dt_);
+      SIZE_VECTOR_TYPE(size,int,num_steps_);
+      SIZE_VECTOR_TYPE(size,int,step_);
       return size;
     }
 
@@ -63,10 +86,10 @@ public: // component classes
     char * save_data (char * buffer) const
     {
       char * pc = buffer;
-      SAVE_SCALAR_TYPE(pc,double,dt_);
-      SAVE_SCALAR_TYPE(pc,double,time_);
-      SAVE_SCALAR_TYPE(pc,int,num_steps_);
-      SAVE_SCALAR_TYPE(pc,int,step_);
+      SAVE_VECTOR_TYPE(pc,double,time_);
+      SAVE_VECTOR_TYPE(pc,double,dt_);
+      SAVE_VECTOR_TYPE(pc,int,num_steps_);
+      SAVE_VECTOR_TYPE(pc,int,step_);
       return pc;
     }
 
@@ -74,46 +97,54 @@ public: // component classes
     char * load_data (char * buffer)
     {
       char * pc = buffer;
-      LOAD_SCALAR_TYPE(pc,double,dt_);
-      LOAD_SCALAR_TYPE(pc,double,time_);
-      LOAD_SCALAR_TYPE(pc,int,num_steps_);
-      LOAD_SCALAR_TYPE(pc,int,step_);
+      LOAD_VECTOR_TYPE(pc,double,time_);
+      LOAD_VECTOR_TYPE(pc,double,dt_);
+      LOAD_VECTOR_TYPE(pc,int,num_steps_);
+      LOAD_VECTOR_TYPE(pc,int,step_);
       return pc;
     }
 
   protected:
+
+    /// Method's current time_
+    std::vector<double> time_;
+
     /// Method's timestep
-    double dt_;
-    /// Method's current time_    
-    double time_;
+    std::vector<double> dt_;
+
     /// Number of steps expected for method ( > 1 for supercycling)
-    int num_steps_;
-    /// Number of steps remaining for method
-    int step_;
+    std::vector<int> num_steps_;
+
+    /// Current supercycling step
+    std::vector<int> step_;
+
   };
 
 public: // interface
 
   /// Constructor
-  State() throw()
+  State(int max_level = 0) throw()
   : PUP::able(),
-    cycle_(0),
-    time_(0.0),
-    dt_(0.0),
+    cycle_(),
+    time_(),
+    dt_(),
     stopping_(false),
     method_state_()
  {
+   cycle_.resize(max_level+1, 0);
+   time_. resize(max_level+1, 0.0);
+   dt_.   resize(max_level+1, 0.0);
   }
 
   /// Constructor
   State(int cycle, double time, double dt, bool stopping) throw()
     : PUP::able(),
-      cycle_(cycle),
-      time_(time),
-      dt_(dt),
       stopping_(stopping),
       method_state_()
   {
+   cycle_.resize(1, cycle);
+   time_. resize(1, time);
+   dt_.   resize(1, dt);
   }
 
   /// CHARM++ PUP::able declaration
@@ -122,6 +153,7 @@ public: // interface
   State (CkMigrateMessage *m)
     : PUP::able(m)
   { }
+
   /// CHARM++ Pack / Unpack function
   void pup (PUP::er &p)
   {
@@ -138,25 +170,25 @@ public: // interface
   /// Initializers
   //----------------------------------------------------------------------
 
-  virtual void set_cycle(int cycle) { cycle_ = cycle; }
-  virtual void set_time (double time) { time_ = time; }
-  virtual void set_dt (double dt) { dt_ = dt; }
+  virtual void set_cycle(int cycle, int level = 0) { cycle_[level] = cycle; }
+  virtual void set_time (double time, int level = 0) { time_[level] = time; }
+  virtual void set_dt (double dt, int level = 0) { dt_[level] = dt; }
   virtual void set_stopping (bool stopping) { stopping_ = stopping; }
 
-  void init (int cycle, double time, double dt, bool stopping)
+  void init (int cycle, double time, double dt, bool stopping, int max_level = 0)
   {
-    set_cycle (cycle);
-    set_time (time);
-    set_dt (dt);
+    set_cycle (cycle,max_level);
+    set_time  (time, max_level);
+    set_dt    (dt,   max_level);
     set_stopping (stopping);
   }
 
-  void init_method(int n = 0)
+  void init_method(int num_methods = 0)
   {
-    if (n==0) {
+    if (num_methods == 0) {
       method_state_.clear();
     } else {
-      method_state_.resize(n);
+      method_state_.resize(num_methods);
       for (auto & m : method_state_)
         m.init();
     }
@@ -166,9 +198,15 @@ public: // interface
   /// Accessors
   //----------------------------------------------------------------------
 
-  int cycle() const { return cycle_; }
-  double time() const { return time_; }
-  double dt() const { return dt_; }
+  int cycle(int level = 0) const
+  { return cycle_[level]; }
+
+  double time(int level = 0) const
+  { return time_[level]; }
+
+  double dt(int level = 0) const
+  { return dt_[level]; }
+
   bool stopping () const { return stopping_; }
 
   /// Get ith MethodState
@@ -192,9 +230,9 @@ public: // interface
   int data_size () const
   {
     int size = 0;
-    SIZE_SCALAR_TYPE(size,int,cycle_);
-    SIZE_SCALAR_TYPE(size,double,time_);
-    SIZE_SCALAR_TYPE(size,double,dt_);
+    SIZE_VECTOR_TYPE(size,int,cycle_);
+    SIZE_VECTOR_TYPE(size,double,time_);
+    SIZE_VECTOR_TYPE(size,double,dt_);
     SIZE_SCALAR_TYPE(size,bool,stopping_);
     SIZE_VECTOR_OBJECT_TYPE(size, MethodState, method_state_);
     return size;
@@ -204,9 +242,9 @@ public: // interface
   char * save_data (char * buffer) const
   {
     char * pc = buffer;
-    SAVE_SCALAR_TYPE(pc,int,cycle_);
-    SAVE_SCALAR_TYPE(pc,double,time_);
-    SAVE_SCALAR_TYPE(pc,double,dt_);
+    SAVE_VECTOR_TYPE(pc,int,cycle_);
+    SAVE_VECTOR_TYPE(pc,double,time_);
+    SAVE_VECTOR_TYPE(pc,double,dt_);
     SAVE_SCALAR_TYPE(pc,bool,stopping_);
     SAVE_VECTOR_OBJECT_TYPE(pc, MethodState, method_state_);
     return pc;
@@ -216,9 +254,9 @@ public: // interface
   char * load_data (char * buffer)
   {
     char * pc = buffer;
-    LOAD_SCALAR_TYPE(pc,int,cycle_);
-    LOAD_SCALAR_TYPE(pc,double,time_);
-    LOAD_SCALAR_TYPE(pc,double,dt_);
+    LOAD_VECTOR_TYPE(pc,int,cycle_);
+    LOAD_VECTOR_TYPE(pc,double,time_);
+    LOAD_VECTOR_TYPE(pc,double,dt_);
     LOAD_SCALAR_TYPE(pc,bool,stopping_);
     LOAD_VECTOR_OBJECT_TYPE(pc, MethodState, method_state_);
     return pc;
@@ -230,15 +268,20 @@ public: // interface
   void print(std::string msg)
   {
     CkPrintf ("State %s\n",msg.c_str());
-    CkPrintf ("  cycle    %d\n",cycle_);
-    CkPrintf ("  time     %g\n",time_);
-    CkPrintf ("  dt       %g\n",dt_);
+    for (int level=0; level<time_.size(); level++) {
+      CkPrintf ("  level %d cycle %d  time %g  dt %g\n",
+                cycle_[level],time_[level],dt_[level]);
+    }
     CkPrintf ("  stopping %d\n",stopping_?1:0);
     for (int i=0; i<method_state_.size(); i++) {
-      CkPrintf ("       Method %d time      %g\n",i,method_state_[i].time());
-      CkPrintf ("       Method %d dt        %g\n",i,method_state_[i].dt());
-      CkPrintf ("       Method %d num_steps %d\n",i,method_state_[i].num_steps());
-      CkPrintf ("       Method %d step      %d\n",i,method_state_[i].step());
+      for (int level=0; level<method_state_[i].time_.size(); level++) {
+        CkPrintf ("       Method %d level %d time %g  dt %g  num_steps %d  step %d\n",
+                  i,level,
+                  method_state_[i].time_[level],
+                  method_state_[i].dt_[level],
+                  method_state_[i].num_steps_[level],
+                  method_state_[i].step_[level]);
+      }
     }
   }
 private: // functions
@@ -249,13 +292,13 @@ protected: // attributes
   // NOTE: change pup() function whenever attributes change
 
   /// Current cycle number
-  int cycle_;
+  std::vector<int> cycle_;
 
   /// Current time
-  double time_;
+  std::vector<double> time_;
 
   /// Current global timestep
-  double dt_;
+  std::vector<double> dt_;
 
   /// Current stopping criteria
   bool stopping_;
