@@ -27,22 +27,23 @@ public: // interface
       time_(),
       dt_(),
       stopping_(false),
-      method_state_()
+      method_state_(),
+      level_lower_(0),
+      level_upper_(1)
   {
-    cycle_.resize(max_level+1, 0);
-    time_. resize(max_level+1, 0.0);
-    dt_.   resize(max_level+1, 0.0);
   }
 
   /// Constructor
   State(int cycle, double time, double dt, bool stopping) throw()
     : PUP::able(),
       stopping_(stopping),
-      method_state_()
+      method_state_(),
+      level_lower_(0),
+      level_upper_(1)
   {
-    cycle_.resize(1, cycle);
-    time_. resize(1, time);
-    dt_.   resize(1, dt);
+    set_cycle(cycle);
+    set_time(time);
+    set_dt(dt);
   }
 
   /// CHARM++ PUP::able declaration
@@ -62,16 +63,39 @@ public: // interface
     p | dt_;
     p | stopping_;
     p | method_state_;
+    p | level_lower_;
+    p | level_upper_;
   };
 
   //----------------------------------------------------------------------
   /// Initializers
   //----------------------------------------------------------------------
 
-  virtual void set_cycle(int cycle, int level = 0) { cycle_[level] = cycle; }
-  virtual void set_time (double time, int level = 0) { time_[level] = time; }
-  virtual void set_dt (double dt, int level = 0) { dt_[level] = dt; }
-  virtual void set_stopping (bool stopping) { stopping_ = stopping; }
+  virtual void set_cycle(int cycle, int level = 0)
+  {
+    set_(cycle_,level,cycle);
+  }
+
+  virtual void set_time (double time, int level = 0)
+  {
+    set_(time_,level,time);
+  }
+
+  virtual void set_dt (double dt, int level = 0)
+  {
+    set_(dt_,level,dt);
+  }
+
+  virtual void set_stopping (bool stopping)
+  {
+    stopping_ = stopping;
+  }
+
+  virtual void set_levels (int level_lower, int level_upper = 0)
+  {
+    level_lower_ = level_lower;
+    level_upper_ = level_upper ? level_upper : level_lower_ + 1;
+  }
 
   void init (int cycle, double time, double dt, bool stopping, int max_level = 0)
   {
@@ -79,6 +103,7 @@ public: // interface
     set_time  (time, max_level);
     set_dt    (dt,   max_level);
     set_stopping (stopping);
+    set_levels (0);
   }
 
   void init_method(int num_methods = 0)
@@ -133,6 +158,8 @@ public: // interface
     SIZE_VECTOR_TYPE(size,double,dt_);
     SIZE_SCALAR_TYPE(size,bool,stopping_);
     SIZE_VECTOR_OBJECT_TYPE(size, MethodState, method_state_);
+    SIZE_SCALAR_TYPE(size,int,level_lower_);
+    SIZE_SCALAR_TYPE(size,int,level_upper_);
     return size;
   }
 
@@ -145,6 +172,8 @@ public: // interface
     SAVE_VECTOR_TYPE(pc,double,dt_);
     SAVE_SCALAR_TYPE(pc,bool,stopping_);
     SAVE_VECTOR_OBJECT_TYPE(pc, MethodState, method_state_);
+    SAVE_SCALAR_TYPE(pc,int,level_lower_);
+    SAVE_SCALAR_TYPE(pc,int,level_upper_);
     return pc;
   }
 
@@ -157,6 +186,8 @@ public: // interface
     LOAD_VECTOR_TYPE(pc,double,dt_);
     LOAD_SCALAR_TYPE(pc,bool,stopping_);
     LOAD_VECTOR_OBJECT_TYPE(pc, MethodState, method_state_);
+    LOAD_SCALAR_TYPE(pc,int,level_lower_);
+    LOAD_SCALAR_TYPE(pc,int,level_upper_);
     return pc;
   }
 
@@ -167,10 +198,12 @@ public: // interface
   {
     CkPrintf ("State %s\n",msg.c_str());
     for (int level=0; level<time_.size(); level++) {
-      CkPrintf ("  level %d cycle %d  time %g  dt %g\n",
-                cycle_[level],time_[level],dt_[level]);
+      CkPrintf ("   cycle_[%d] %d  time_[%d] %g  dt_[%d] %g\n",
+                level,cycle_[level],
+                level,time_[level],
+                level,dt_[level]);
     }
-    CkPrintf ("  stopping %d\n",stopping_?1:0);
+    CkPrintf ("  stopping_ %d\n",stopping_?1:0);
     for (int i=0; i<method_state_.size(); i++) {
       for (int level=0; level<method_state_[i].time_.size(); level++) {
         CkPrintf ("       Method %d level %d time %g  dt %g  num_steps %d  step %d\n",
@@ -181,8 +214,20 @@ public: // interface
                   method_state_[i].step_[level]);
       }
     }
+    CkPrintf ("   level_lower_ %d\n",level_lower_);
+    CkPrintf ("   level_upper_ %d\n",level_upper_);
   }
+
 private: // functions
+
+  /// Ensure vector is long enough for the given index; resize if needed
+  template <typename T>
+  void set_ (std::vector<T> & vector, int index, T value)
+  {
+    if ( ! (index < vector.size()) )
+      vector.resize(index+1);
+    vector[index] = value;
+  }
 
 
 protected: // attributes
@@ -203,6 +248,10 @@ protected: // attributes
 
   /// Method-specific state scalars
   std::vector<MethodState> method_state_;
+
+  /// Range of levels active
+  int level_lower_;
+  int level_upper_;
 };
 
 #endif /* DATA_STATE_HPP */
