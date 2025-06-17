@@ -232,7 +232,7 @@ void Block::control_sync_neighbor(int entry_point, int id_sync,
 
   int num_neighbors = 0;
 
-  const int min_level = cello::config()->mesh_min_level;
+  const int min_level = cello::min_level();
   
   ItNeighbor it_neighbor = this->it_neighbor
     (index_,min_face_rank,neighbor_type,min_level,root_level);

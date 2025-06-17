@@ -923,16 +923,9 @@ Method * Problem::create_method_
     // we probably don't have to directly pass factory...
     method = new MethodOutput(factory, p_group);
   } else if (name == "order_morton") {
-
-    // TODO: refactor to use a factory method/default constructor
-    //   - can we look up mesh_min_level from an existing object? Like Adapt or
-    //     Hierarchy?
-    method = new MethodOrderMorton(config->mesh_min_level);
-
+    method = new MethodOrderMorton(cello::min_level());
   } else if (name == "order_hilbert") {
-
-    method = new MethodOrderHilbert(config->mesh_min_level);
-
+    method = new MethodOrderHilbert(cello::min_level());
   } else if (name == "refresh") {
     method = new MethodRefresh(p_group);
   } else if (name == "debug") {
@@ -979,9 +972,10 @@ Output * Problem::create_output_
     bool        image_log        = config->output_image_log[index];
     bool        image_abs        = config->output_image_abs[index];
     int         image_face_rank  = config->output_image_face_rank[index];
-    int         min_level        = config->output_min_level[index];
-    int         max_level        = std::min(config->output_max_level[index],
-					    config->mesh_max_level);
+    int         min_level        = std::max (config->output_min_level[index],
+                                             cello::min_level());
+    int         max_level        = std::min (config->output_max_level[index],
+                                             cello::max_level());
     bool        leaf_only        = config->output_leaf_only[index];
     int         image_size[2] = { config->output_image_size[index][0],
                                   config->output_image_size[index][1] };

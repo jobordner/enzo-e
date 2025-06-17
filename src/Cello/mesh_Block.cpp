@@ -377,7 +377,7 @@ ItNeighbor Block::it_neighbor (Index index,
     min_face_rank = cello::config()->adapt_min_face_rank;
   }
   if (min_level == INDEX_UNDEFINED_LEVEL) {
-    min_level = cello::config()->mesh_min_level;
+    min_level = cello::min_level();
   }
   int n3[3];
   size_array(&n3[0],&n3[1],&n3[2]);
@@ -726,8 +726,8 @@ void Block::init_adapt_(Adapt * adapt_parent)
   cello::hierarchy()->root_blocks(b3,b3+1,b3+2);
 
   adapt_.set_rank(rank);
-  adapt_.set_min_level(cello::config()->mesh_min_level);
-  adapt_.set_max_level(cello::config()->mesh_max_level);
+  adapt_.set_min_level(cello::min_level());
+  adapt_.set_max_level(cello::max_level());
   adapt_.set_index(index_);
   adapt_.set_periodicity(p3);
   adapt_.set_valid(true);

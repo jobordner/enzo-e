@@ -17,16 +17,16 @@ class EnzoState : public State {
 public: // interface
 
   /// Constructor
-  EnzoState(int max_level = 1) throw()
-    : State(max_level)
+  EnzoState() throw()
+    : State(),
+      redshift_level_()
   {
-    redshift_.resize(max_level,0.0);
   }
 
   EnzoState(int cycle, double time, double dt, bool stopping) throw() :
-  State(cycle,time,dt,stopping)
+    State(cycle,time,dt,stopping),
+    redshift_(0.0)
   {
-    redshift_.resize(1,0.0);
   }
 
   /// CHARM++ PUP::able declaration
@@ -45,23 +45,32 @@ public: // interface
     State::pup(p);
 
     p | redshift_;
+    p | redshift_level_;
   };
 
 
   /// Update the current time including redshift
-  virtual void set_time (double time, int level = 0);
+  virtual void set_time (double time);
+  virtual void set_time (double time, int level);
 
-  void set_redshift (double redshift, int level = 0)
-  { redshift_[level] = redshift; }
+  void set_redshift (double redshift)
+  { redshift_ = redshift; }
 
-  double redshift (int level = 0) const
-  { return redshift_[level]; }
+  void set_redshift (double redshift, int level)
+  { redshift_level_[level] = redshift; }
+
+  double redshift () const
+  { return redshift_; }
+
+  double redshift (int level) const
+  { return redshift_level_[level]; }
 
   int data_size () const
   {
     int size = 0;
     size += ((State*)this)->data_size();
-    SIZE_VECTOR_TYPE(size,double,redshift_);
+    SIZE_SCALAR_TYPE(size,double,redshift_);
+    SIZE_VECTOR_TYPE(size,double,redshift_level_);
     return size;
   }
 
@@ -69,7 +78,8 @@ public: // interface
   {
     char * pc = buffer;
     pc = ((State *)this) -> save_data(pc);
-    SAVE_VECTOR_TYPE(pc,double,redshift_);
+    SAVE_SCALAR_TYPE(pc,double,redshift_);
+    SAVE_VECTOR_TYPE(pc,double,redshift_level_);
     return pc;
   }
 
@@ -77,7 +87,8 @@ public: // interface
   {
     char * pc = buffer;
     pc = ((State *)this) -> load_data(pc);
-    LOAD_VECTOR_TYPE(pc,double,redshift_);
+    LOAD_SCALAR_TYPE(pc,double,redshift_);
+    LOAD_VECTOR_TYPE(pc,double,redshift_level_);
     return pc;
   }
 
@@ -86,7 +97,8 @@ protected: // attributes
   // NOTE: change pup() function whenever attributes change
 
   /// Current redshift
-  std::vector<double> redshift_;
+  double redshift_;
+  std::vector<double> redshift_level_;
 };
 
 #endif /* ENZO_STATE_HPP */

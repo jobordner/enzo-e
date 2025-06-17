@@ -252,7 +252,7 @@ int Block::refresh_load_field_faces_ (Refresh & refresh)
 
     // Loop over neighbor leaf Blocks (not necessarily same level)
 
-    const int min_level = cello::config()->mesh_min_level;
+    const int min_level = cello::min_level();
 
     ItNeighbor it_neighbor =
       this->it_neighbor(index_,min_face_rank,
@@ -394,7 +394,7 @@ int Block::refresh_load_coarse_face_
     ItNeighbor it_extra =
       this->it_neighbor(index_,refresh.min_face_rank(),
                         refresh.neighbor_type(),
-                        cello::config()->mesh_min_level,
+                        cello::min_level(),
                         refresh.root_level());
 
     // ... determine intersection region
@@ -761,7 +761,7 @@ void Block::refresh_coarse_apply_ (Refresh * refresh)
     const int min_face_rank = refresh->min_face_rank();
     const int neighbor_type = refresh->neighbor_type();
     const int root_level    = refresh->root_level();
-    const int min_level     = cello::config()->mesh_min_level;
+    const int min_level     = cello::min_level();
 
     if (neighbor_type == neighbor_leaf ||
         neighbor_type == neighbor_tree) {
@@ -1420,7 +1420,7 @@ int Block::refresh_load_flux_faces_ (Refresh & refresh)
 
   // Loop over neighbor leaf Blocks (not necessarily same level)
 
-  const int min_level = cello::config()->mesh_min_level;
+  const int min_level = cello::min_level();
 
   ItNeighbor it_neighbor =
     this->it_neighbor(index_,min_face_rank,

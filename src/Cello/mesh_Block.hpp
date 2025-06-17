@@ -737,7 +737,10 @@ protected:
   void stopping_load_balance_();
   void stopping_exit_();
   double stopping_compute_global_dt_(double min_reduce[]);
-  void stopping_update_method_state_(double min_reduce[],double dt_global);
+  void stopping_compute_level_dt_(double min_reduce[],
+                                  std::vector <double> & dt_level);
+  void stopping_update_method_state_
+  (double min_reduce[],double dt_global);
 
 public:
   /// Exit the stopping phase to exit
@@ -769,7 +772,10 @@ protected:
   void performance_stop_
   (int index_region, std::string file="", int line=0);
 
-  //--------------------------------------------------
+  /// Update projections logging on / off
+  void performance_projections_update_logging_();
+
+//--------------------------------------------------
   // TESTING
   //--------------------------------------------------
 

@@ -451,7 +451,17 @@ namespace cello {
   {
     return hierarchy() ? hierarchy()->num_blocks() : 0;
   }
-  
+
+  //----------------------------------------------------------------------
+
+  int min_level()
+  { return config()->mesh_min_level; }
+
+  //----------------------------------------------------------------------
+
+  int max_level()
+  { return config()->mesh_max_level; }
+
   //----------------------------------------------------------------------
 
   double relative_cell_volume (int level)

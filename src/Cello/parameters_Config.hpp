@@ -165,7 +165,8 @@ public: // interface
     units_time(1.0),
     testing_cycle_final(0),
     testing_time_final(),
-    testing_time_tolerance(0.0)
+    testing_time_tolerance(0.0),
+    timestep_type()
   { }
 
   /// CHARM++ PUP::able declaration
@@ -318,7 +319,8 @@ public: // interface
       units_time(1.0),
       testing_cycle_final(0),
       testing_time_final(),
-      testing_time_tolerance(0.0)
+      testing_time_tolerance(0.0),
+      timestep_type()
   {
     for (int axis=0; axis<3; axis++) {
       domain_lower[axis] = 0.0;
@@ -559,6 +561,10 @@ public: // attributes
   std::vector<double>        testing_time_final;
   double                     testing_time_tolerance;
 
+  // Timestep
+
+  std::string                timestep_type;
+
 protected: // functions
 
   void read_adapt_       ( Parameters * ) throw();
@@ -578,6 +584,7 @@ protected: // functions
   void read_solver_      ( Parameters * ) throw();
   void read_stopping_    ( Parameters * ) throw();
   void read_testing_     ( Parameters * ) throw();
+  void read_timestep_    ( Parameters * ) throw();
   void read_units_       ( Parameters * ) throw();
 
   int read_schedule_( Parameters * ,

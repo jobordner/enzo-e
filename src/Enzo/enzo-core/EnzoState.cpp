@@ -8,14 +8,26 @@
 #include "Enzo/cosmology/cosmology.hpp"
 #include "Enzo/enzo.hpp"
 
-void EnzoState::set_time (double time, int level)
+void EnzoState::set_time (double time)
 {
-  time_[level] = time;
+  time_ = time;
   Simulation * simulation = cello::simulation();
   EnzoUnits * units = (EnzoUnits * )simulation->problem()->units();
   EnzoPhysicsCosmology * cosmology = enzo::cosmology();
   if (cosmology) {
     cosmology->set_current_time(time);
-    redshift_[level] = cosmology->current_redshift();
+    redshift_ = cosmology->current_redshift();
+  }
+}
+
+void EnzoState::set_time (double time, int level)
+{
+  set_(time_level_,level,time);
+  Simulation * simulation = cello::simulation();
+  EnzoUnits * units = (EnzoUnits * )simulation->problem()->units();
+  EnzoPhysicsCosmology * cosmology = enzo::cosmology();
+  if (cosmology) {
+    cosmology->set_current_time(time);
+    set_(redshift_level_,level,cosmology->current_redshift());
   }
 }
