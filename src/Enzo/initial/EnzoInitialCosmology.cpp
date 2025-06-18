@@ -49,8 +49,8 @@ void EnzoInitialCosmology::enforce_block
       pow((1.0 + cosmology->initial_redshift())/(1.0 + 200.00), 2.0);
   }
 
-  double time = enzo::simulation()->state()->time();
-  block->state()->set_time (time);
+  //  double time = enzo::simulation()->state()->time();
+  //  block->state()->set_time (time);
 
   const double default_mu = 0.6;
 

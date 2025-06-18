@@ -145,7 +145,10 @@ void Block::compute_exit_ ()
 {
   TRACE_CONTROL("compute_exit");
 
-  control_sync_barrier(CkIndex_Block::r_adapt_enter(NULL));
+  // Update Simulation state
+  *cello::simulation()->state() = *state();
+
+  adapt_enter_();
 }
 
 //----------------------------------------------------------------------

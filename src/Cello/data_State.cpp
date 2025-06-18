@@ -13,8 +13,14 @@
 
 void State::advance()
 {
-  for (int level=level_lower_; level<level_upper_; level++) {
-    time_level_[level] += dt_level_[level];
+  if (state_type_ == Type::Global) {
+    cycle_++;
+    time_+= dt_;
+  } else if (state_type_ == Type::Level) {
+    for (int level=level_lower_; level<level_upper_; level++) {
+      cycle_level_[level]++;
+      time_level_[level] += dt_level_[level];
+    }
   }
 }
 
@@ -22,14 +28,22 @@ void State::advance()
 
 bool State::is_active ( int level )
 {
-  return (level_lower_ <= level) && (level < level_upper_);
+  bool retval = true;
+  if (state_type_ == Type::Level) {
+    retval = (level_lower_ <= level) && (level < level_upper_);
+  }
+  return retval;
 }
 
 //----------------------------------------------------------------------
 
 bool State::in_barrier ( int level )
 {
-  return (level_lower_ <= level) && (level < level_upper_);
+  bool retval = true;
+  if (state_type_ == Type::Level) {
+    retval = (level_lower_ <= level) && (level < level_upper_);
+  }
+  return retval;
 }
 
 

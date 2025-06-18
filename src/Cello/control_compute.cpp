@@ -157,11 +157,7 @@ void Block::compute_end_ ()
 #endif
 
   // Update block cycle and time
-  int cycle   = state_->cycle();
-  double time = state_->time();
-  double dt   = state_->dt();
-  state_->set_cycle(cycle + 1);
-  state_->set_time (time + dt);
+  state_->advance();
 
   // Push back fields if saving old ones
   data()->field().save_history(state_->time());
@@ -169,12 +165,7 @@ void Block::compute_end_ ()
   // delete fluxes
   data()->flux_data()->deallocate();
 
-  // Update Simulation cycle and time (redundant)
-  auto & global_state = cello::simulation()->state();
-  global_state->set_cycle(state_->cycle());
-  global_state->set_time(state_->time());
-
-  compute_exit_();
+  control_sync_barrier(CkIndex_Block::r_compute_exit(NULL));
 
   TRACE ("END   PHASE COMPUTE");
 }
