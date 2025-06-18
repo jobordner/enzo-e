@@ -913,7 +913,9 @@ Method * Problem::create_method_
   // No default method
   Method * method = nullptr;
 
-  if (name == "trace") {
+  if (name == "ats") {
+    method = new MethodATS(p_group);
+  } else if (name == "trace") {
     method = new MethodTrace(p_group);
   } else if (name == "null") {
     method = new MethodNull(p_group);
