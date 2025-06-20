@@ -21,7 +21,6 @@ double MethodATS::timestep ( Block * block) throw()
   const int level = block->level();
   if (0 <= level && level < dt_level_.size())
     retval = dt_level_[level];
-  CkPrintf ("TRACE_ATS %s %g\n",block->name().c_str(),retval);
   return retval;
 }
 

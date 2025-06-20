@@ -129,16 +129,8 @@ void Block::compute_done ()
 void Block::compute_update_method_state_(int index_method)
 {
   auto & method_state = state_->method(index_method);
-  const double dt_global = state_->dt();
-  const double time_global = state_->time();
-  const double time_method = method_state.time();
-  const double dt_method = method_state.dt();
-  const int step_method = method_state.step();
-  const int num_step_method = method_state.num_steps();
-  const int max_supercycle = method()->max_supercycle();
 
-  method_state.set_time(time_method + dt_global);
-  method_state.set_step(step_method + 1);
+  method_state.advance();
 
 }
 
@@ -151,12 +143,8 @@ void Block::compute_end_ ()
     CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_end_()\n", CkMyPe(),name().c_str());
 #endif
 
-
-#ifdef CONFIG_USE_PROJECTIONS
-  //  traceUserBracketEvent(10,time_start, CmiWallTimer());
-#endif
-
   // Update block cycle and time
+
   state_->advance();
 
   // Push back fields if saving old ones

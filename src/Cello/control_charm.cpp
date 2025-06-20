@@ -18,6 +18,7 @@
 // #define DEBUG_CONTROL
 // #define TRACE_CONTRIBUTE
 // #define DEBUG_ADAPT
+#define TRACE_ATS
 
 // #define BLOCK  "B0:100_0:101"
 
@@ -145,8 +146,16 @@ void Block::compute_exit_ ()
 {
   TRACE_CONTROL("compute_exit");
 
-  // Update Simulation state
-  *cello::simulation()->state() = *state();
+  // Update Simulation state (first block only)
+
+  int cs = cello::simulation()->state()->cycle();
+  int cb = state()->cycle();
+  if (cs != cb) *cello::simulation()->state() = *state();
+
+#ifdef TRACE_ATS
+  if (index().is_root())
+    cello::simulation()->state()->print ("simulation");
+#endif
 
   adapt_enter_();
 }

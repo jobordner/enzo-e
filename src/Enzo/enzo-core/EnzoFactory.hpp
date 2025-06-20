@@ -9,6 +9,7 @@
 #define ENZO_ENZO_FACTORY_HPP
 
 class EnzoMsgCheck;
+class State;
 
 class EnzoFactory : public Factory {
 
@@ -80,6 +81,11 @@ public: // interface
    Simulation * simulation = 0,
    int io_reader = -1,
    int ip = -1) const throw() override;
+
+protected:
+
+  State create_state_() const;
+
 };
 
 #endif /* ENZO_ENZO_FACTORY_HPP */

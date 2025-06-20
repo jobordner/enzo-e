@@ -69,6 +69,7 @@ void Block::stopping_begin_()
   // Determine whether stopping criteria satisfied
   Stopping * stopping = problem->stopping();
   const int stop_block = stopping->complete(state_->cycle(),state_->time());
+
   min_reduce[0] = stop_block ? 1.0 : 0.0;
 
   // Evaluate dt for each method and update for method and this level

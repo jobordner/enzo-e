@@ -86,6 +86,12 @@ public:
   void set_step (int step, int level )
   { step_level_[level] = step; }
 
+  /// Increment step and advance time by dt
+  void advance()
+  {
+    time_ += dt_;
+    step_++;
+  };
 
   //----------------------------------------------------------------------
   /// Packing / unpacking

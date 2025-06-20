@@ -160,7 +160,7 @@ Simulation::Simulation (CkMigrateMessage *m)
     rank_(0),
     cycle_watch_(-1),
     cycle_initial_(-1),
-    state_(new State (0, 0.0, 0.0, false)),
+    state_(),
     phase_(phase_unknown),
     config_(&g_config),
     problem_(NULL),
