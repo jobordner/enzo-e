@@ -773,8 +773,9 @@ DataMsg * MethodOutput::create_data_msg_ (Block * block)
     // all fields
     refresh->add_all_fields();
   } else if (field_list_.size() > 0) {
-    // some fields
-    refresh->set_field_list(field_list_);
+    for (auto f: field_list_) {
+      refresh->add_field(f);
+    }
   } else {
     // no fields
     any_fields = false;

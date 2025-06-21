@@ -50,7 +50,7 @@ void State::update_dt (std::vector<double> & dt_level)
 
 //----------------------------------------------------------------------
 
-bool State::is_active ( int level )
+bool State::is_active ( int level ) const
 {
   bool retval = true;
   if (state_type_ == Type::Level) {
@@ -61,7 +61,7 @@ bool State::is_active ( int level )
 
 //----------------------------------------------------------------------
 
-bool State::in_barrier ( int level )
+bool State::in_barrier ( int level ) const
 {
   bool retval = true;
   if (state_type_ == Type::Level) {

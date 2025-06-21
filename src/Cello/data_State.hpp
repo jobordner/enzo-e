@@ -108,7 +108,8 @@ public: // interface
 
   void set_levels (int level_lower, int level_upper = 0)
   { level_lower_ = level_lower;
-    level_upper_ = level_upper ? level_upper : level_lower_ + 1; }
+    level_upper_ = level_upper ? level_upper : level_lower_ + 1;
+  }
 
   void init (int cycle, double time, double dt, bool stopping)
   {
@@ -173,7 +174,7 @@ public: // interface
     } else if (level_type == "concurrent") {
       state_next_ = Next::Concurrent;
       level_lower_ = 0;
-      level_upper_ = max_level;
+      level_upper_ = max_level+1;
     } else {
       ERROR1 ("State::set_level_type()",
               "Unknown State level_type %s (should be \"sequential\" or \"concurrent\"",
@@ -212,15 +213,26 @@ public: // interface
   }
   double time(int level) const
   {
+    if (state_type_ == Type::Global) return time_;
     alloc_(time_level_,level);
     return time_level_[level]; }
 
   double dt() const
   { return dt_; }
+
   double dt(int level) const
   {
+    if (state_type_ == Type::Global) return dt_;
     alloc_(dt_level_,level);
-    return dt_level_[level]; }
+    double dt = is_active(level) ? dt_level_[level] : 0.0;
+    double t =  time_level_[level] ;
+    double tc = std::numeric_limits<double>::max();
+    if (level > 0) tc = time_level_[level-1];
+    double dtc = 0.0;
+    if (level > 0) dtc = dt_level_[level-1];
+    if (is_active(level-1)) tc += dtc;
+    return (level == 0) ? dt : std::min(dt, tc-t);
+  }
 
   bool stopping () const { return stopping_; }
 
@@ -248,10 +260,10 @@ public: // interface
   void advance();
 
   /// Return whether blocks in the given level can advance
-  bool is_active ( int level );
+  bool is_active ( int level ) const;
 
   /// Return whether blocks in the given level participate in barriers
-  bool in_barrier ( int level );
+  bool in_barrier ( int level ) const;
 
   /// Packing / unpacking
   //----------------------------------------------------------------------
