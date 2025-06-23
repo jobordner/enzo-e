@@ -10,17 +10,18 @@
 //----------------------------------------------------------------------
 
 ItFace::ItFace(int rank, 
-	       int rank_limit,
+	       int min_face_rank,
 	       int periodic[3],
 	       int n3[3],
 	       Index index,
 	       const int * ic3,
 	       const int * ipf3) throw()
-  : if3_(),
+  : ItType(),
+    if3_(),
     ic3_(),
     ipf3_(),
     rank_(rank),
-    rank_limit_(rank_limit),
+    min_face_rank_(min_face_rank),
     index_(index)
 {
   reset();
@@ -38,12 +39,6 @@ ItFace::ItFace(int rank,
     n3_[axis] = n3[axis];
     periodicity_[axis] = periodic[axis];
   }
-}
-
-//----------------------------------------------------------------------
-
-ItFace::~ItFace() throw() 
-{
 }
 
 //----------------------------------------------------------------------
@@ -130,7 +125,7 @@ bool ItFace::valid_() const
   if (is_reset()) return true;
   int rank_face = rank_ - 
     (abs(if3_[0]) + abs(if3_[1]) + abs(if3_[2]));
-  bool l_range = (rank_limit_ <= rank_face && rank_face < rank_);
+  bool l_range = (min_face_rank_ <= rank_face && rank_face < rank_);
   bool l_face = true;
   bool l_parent = true;
   if (ic3_.size() > 0) {

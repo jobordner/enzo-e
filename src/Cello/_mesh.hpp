@@ -111,6 +111,7 @@ enum adapt_type {
 #include "mesh_Factory.hpp"
 
 // Iterators
+#include "mesh_ItType.hpp"
 #include "mesh_ItFace.hpp"
 #include "mesh_ItNeighbor.hpp"
 #include "mesh_ItChild.hpp"

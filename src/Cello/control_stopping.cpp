@@ -283,7 +283,7 @@ void Block::stopping_update_method_state_
     state()->print("update_method_state");
   }
 #endif
-  for (int k=0; k<problem->num_methods(); k++) {
+  for (int k=0; k<state()->num_methods(); k++) {
     const double dt_method = min_reduce[k+1];
     const int max_super = problem->method(k)->max_supercycle();
     const double max_dt_method = dt_global*max_super;

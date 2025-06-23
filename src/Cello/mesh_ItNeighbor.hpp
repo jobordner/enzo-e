@@ -9,7 +9,7 @@
 #ifndef MESH_IT_NEIGHBOR_HPP
 #define MESH_IT_NEIGHBOR_HPP
 
-class ItNeighbor {
+class ItNeighbor : public ItType {
 
   /// @class    ItNeighbor
   /// @ingroup  Mesh
@@ -29,14 +29,19 @@ public: // interface
    int min_level,
    int root_level);
 
-  /// Destructor
-  ~ItNeighbor();
+  /// Charm++ PUP::able declarations
+  PUPable_decl(ItNeighbor);
+
+  ItNeighbor (CkMigrateMessage *m)
+    : ItType (m)
+  { }
 
   /// CHARM++ Pack / Unpack function
   inline void pup (PUP::er &p)
   {
     // NOTE: change this function whenever attributes change
     TRACEPUP;
+    ItType::pup(p);
     const bool up = p.isUnpacking();
     if (up) block_ = new Block;
     p | *block_;
@@ -54,8 +59,12 @@ public: // interface
     p | root_level_;
   }
 
+
+  // public interface
+public:
+
   /// Reduce another value
-  bool next (int of3[3])
+  bool next (int of3[3]) override
   {
     const bool retval = next_();
     if (retval) face_(of3);
@@ -66,14 +75,14 @@ public: // interface
   int face_level () const  throw () 
   { return block_->face_level(of3_); }
 
-  void child(int ic3[3]) const ;
+  void child(int ic3[3]) const  override;
 
-  Index index() const ;
+  Index index() const  override;
 
   /// Reset the Iterator to the beginning
-  void reset();
+  void reset() override;
 
-  bool is_reset() const;
+  bool is_reset() const override;
 
 private: // functions
 

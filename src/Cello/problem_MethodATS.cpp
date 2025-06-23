@@ -11,30 +11,77 @@
 void MethodATS::compute( Block * block) throw()
 {
   const int level = block->level();
+
   if (block->state()->is_active(level)) {
 
     Field field = block->data()->field();
     int it = field.field_id("test_ats");
     int mx,my,mz;
-    int nx,ny,nz;
     int gx,gy,gz;
-    field.dimensions (it,&mx,&my,&mz);
-    cello_float * d = (cello_float *) field.values(it);
+    field.dimensions  (it,&mx,&my,&mz);
+    field.ghost_depth (it,&gx,&gy,&gz);
+    cello_float * array = (cello_float *) field.values(it);
 
+    // Test ghosts
+
+    const int ixm = gx - 1;
+    const int ix0 = mx/2;
+    const int ixp = mx - gx;
+
+    const int iym = gy - 1;
+    const int iy0 = my/2;
+    const int iyp = my - gy;
+
+    const int izm = gz - 1;
+    const int iz0 = mz/2;
+    const int izp = mz - gz;
+
+    const int i0 = ix0 + mx * (iy0 + my*iz0);
+    double t0 = array[i0];
+
+    int i = 0;
+    cello_float txm,tym,tzm;
+    cello_float txp,typ,tzp;
+    if (cello::rank() >= 1) {
+      i = ixm + mx * (iy0 + my*iz0);
+      txm = array[i];
+      i = ixp + mx * (iy0 + my*iz0);
+      txp = array[i];
+      if ( ! ((t0==txm) && (t0==txp)) )
+        CkPrintf ("DEBUG_METHOD x-axis mismatch level %d: %g  %g %g\n",
+                  level,t0,txm,txp);
+    }
+    if (cello::rank() >= 2) {
+      i = ix0 + mx * (iym + my*iz0);
+      tym = array[i];
+      i = ix0 + mx * (iyp + my*iz0);
+      typ = array[i];
+      if ( ! ((t0==tym) && (t0==typ)) )
+        CkPrintf ("DEBUG_METHOD y-axis mismatch level %d: %g  %g %g\n",
+                  level,t0,tym,typ);
+    }
+    if (cello::rank() >= 3) {
+      i = ix0 + mx * (iy0 + my*izm);
+      tzm = array[i];
+      i = ix0 + mx * (iy0 + my*izp);
+      tzp = array[i];
+      if ( ! ((t0==tzm) && (t0==tzp)) )
+        CkPrintf ("DEBUG_METHOD z-axis mismatch level %d: %g  %g %g\n",
+                  level,t0,tzm,tzp);
+    }
+
+
+    const double value = block->state()->time(level) + block->state()->dt(level);
+    // Set field = (time + dt)
     for (int iz=0; iz<mz; iz++) {
       for (int iy=0; iy<my; iy++) {
         for (int ix=0; ix<mx; ix++){
           const int i=ix + mx*(iy + my*iz);
-          d[i] = block->state()->time(level) + block->state()->dt(level);
+          array[i] = value;
         }
       }
     }
   }
-  // CkPrintf ("TRACE_METHOD_ATS level %d time %g dt %g active %d\n",
-  //           level,
-  //           block->state()->time(level),
-  //           block->state()->dt(level),
-  //           block->state()->is_active(level));
 
   block->compute_done();
 }

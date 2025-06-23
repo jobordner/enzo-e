@@ -19,7 +19,8 @@ ItNeighbor::ItNeighbor
  int neighbor_type,
  int min_level,
  int root_level)
-  : block_(block),
+  : ItType (),
+    block_(block),
     rank_(cello::rank()),
     min_face_rank_(min_face_rank),
     index_(index),
@@ -42,22 +43,6 @@ ItNeighbor::ItNeighbor
 
 //----------------------------------------------------------------------
 
-ItNeighbor::~ItNeighbor() 
-{
-}
-
-//----------------------------------------------------------------------
-
-bool ItNeighbor::next_ ()
-{
-  do {
-    increment_();
-  } while ( ! valid_() );
-  return (! is_reset()) ;
-}
-
-//----------------------------------------------------------------------
-
 Index ItNeighbor::index() const
 {
   Index index_neighbor = index_.index_neighbor(of3_,n3_);
@@ -72,15 +57,6 @@ Index ItNeighbor::index() const
     return index_neighbor;
   }
 }
-
-//----------------------------------------------------------------------
-
-void ItNeighbor::face_(int of3[3]) const
-{
-  of3[0] = (rank_ >= 1) ? of3_[0] : 0;
-  of3[1] = (rank_ >= 2) ? of3_[1] : 0;
-  of3[2] = (rank_ >= 3) ? of3_[2] : 0;
-} 
 
 //----------------------------------------------------------------------
 
@@ -111,18 +87,37 @@ void ItNeighbor::reset()
 
 //----------------------------------------------------------------------
 
+bool ItNeighbor::is_reset() const
+{
+  return (of3_[0] == -2);
+}
+
+//======================================================================
+
+bool ItNeighbor::next_ ()
+{
+  do {
+    increment_();
+  } while ( ! valid_() );
+  return (! is_reset()) ;
+}
+
+//----------------------------------------------------------------------
+
+void ItNeighbor::face_(int of3[3]) const
+{
+  of3[0] = (rank_ >= 1) ? of3_[0] : 0;
+  of3[1] = (rank_ >= 2) ? of3_[1] : 0;
+  of3[2] = (rank_ >= 3) ? of3_[2] : 0;
+} 
+
+//----------------------------------------------------------------------
+
 void ItNeighbor::reset_child_()
 {
   ic3_[0] = -2;
   ic3_[1] = 0;
   ic3_[2] = 0;
-}
-
-//----------------------------------------------------------------------
-
-bool ItNeighbor::is_reset() const
-{
-  return (of3_[0] == -2);
 }
 
 //----------------------------------------------------------------------

@@ -49,6 +49,8 @@ module mesh {
   PUPable IoSimulation;
   PUPable ItIndexList;
   PUPable ItIndexRange;
+  PUPable ItFace;
+  PUPable ItNeighbor;
   PUPable MaskExpr;
   PUPable MaskPng;
   PUPable MethodATS;

@@ -138,6 +138,10 @@ public: // interface
     }
   }
 
+  bool method_solve_step(int index) const {
+    return (method_state_.size() == 0) ?
+      true : (method_state_[index].step() == 0);
+  }
   void set_type (const std::string & type, int max_level)
   {
     if (type == "global") {

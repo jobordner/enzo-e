@@ -188,7 +188,7 @@ void EnzoMethodGravity::compute(Block * block) throw()
 #endif
 
   // Solve only if this method's current substep is 0
-  bool solve_this_step = (block->state()->method(index()).step() == 0);
+  bool solve_this_step = block->state()->method_solve_step(index());
 
   if (solve_this_step) {
 

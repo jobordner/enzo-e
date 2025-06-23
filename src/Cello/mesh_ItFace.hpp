@@ -9,7 +9,7 @@
 #ifndef MESH_IT_FACE_HPP
 #define MESH_IT_FACE_HPP
 
-class ItFace {
+class ItFace : public ItType {
 
   /// @class    ItFace
   /// @ingroup  Mesh
@@ -19,45 +19,55 @@ public: // interface
 
   /// Constructor
   ItFace(int rank,
-	 int rank_limit,
+	 int min_face_rank,
 	 int periodic[3],
 	 int n3[3],
 	 Index index,
 	 const int * ic3=0,
 	 const int * if3=0) throw();
 
-  /// Destructor
-  ~ItFace() throw();
+  /// Charm++ PUP::able declarations
+  PUPable_decl(ItFace);
 
-  /// CHARM++ Pack / Unpack function
+  ItFace (CkMigrateMessage *m)
+    : ItType (m)
+  { }
+
   inline void pup (PUP::er &p)
   {
     // NOTE: change this function whenever attributes change
     TRACEPUP;
+    ItType::pup(p);
     PUParray(p,if3_,3);
     p | ic3_;
     p | ipf3_;
     p | rank_;
-    p | rank_limit_;
+    p | min_face_rank_;
     PUParray (p,periodicity_,3);
     PUParray (p,n3_,3);
     p | index_;
   }
 
   /// Go to the next face if any and return it through of3[]
-  bool next (int of3[3]) throw()
+  bool next (int of3[3]) throw() override
   {
     const bool retval = next_();
     if (retval) face_(of3);
     return retval;
   }
 
-  Index index() const ;
+  int face_level () const  throw () override
+  { return 0; }
+
+  virtual void child(int ic3[3]) const override
+  { }
+
+  Index index() const  override;
 
   /// Reset the Iterator to the beginning
-  void reset() throw();
+  void reset() throw() override;
 
-  bool is_reset() const;
+  bool is_reset() const override;
 
 private: // functions
 
@@ -94,7 +104,7 @@ private: // attributes
   int rank_;
 
   /// face rank limit
-  int rank_limit_;
+  int min_face_rank_;
 
   /// Periodicity
   int periodicity_[3];
