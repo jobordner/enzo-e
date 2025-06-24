@@ -63,8 +63,8 @@ int Method::add_refresh_ (int neighbor_type)
   const int min_face_rank = 0; // cello::config()->adapt_min_face_rank;
 
   // Set default refresh object
-  Refresh refresh_default
-    (ghost_depth,min_face_rank, neighbor_type, sync_neighbor, 0);
+  Refresh * refresh_default = 
+    Refresh::create (ghost_depth,min_face_rank, neighbor_type, sync_neighbor, 0);
 
   return cello::simulation()->new_register_refresh(refresh_default);
 }

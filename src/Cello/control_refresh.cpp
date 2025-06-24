@@ -252,11 +252,9 @@ int Block::refresh_load_field_faces_ (Refresh & refresh)
 
     // Loop over neighbor leaf Blocks (not necessarily same level)
 
-    const int min_level = cello::min_level();
-
     ItNeighbor it_neighbor =
       this->it_neighbor(index_,min_face_rank,
-			neighbor_type,min_level,refresh.root_level());
+			neighbor_type,refresh.root_level());
 
     int if3[3];
     while (it_neighbor.next(if3)) {
@@ -394,7 +392,6 @@ int Block::refresh_load_coarse_face_
     ItNeighbor it_extra =
       this->it_neighbor(index_,refresh.min_face_rank(),
                         refresh.neighbor_type(),
-                        cello::min_level(),
                         refresh.root_level());
 
     // ... determine intersection region
@@ -761,14 +758,12 @@ void Block::refresh_coarse_apply_ (Refresh * refresh)
     const int min_face_rank = refresh->min_face_rank();
     const int neighbor_type = refresh->neighbor_type();
     const int root_level    = refresh->root_level();
-    const int min_level     = cello::min_level();
 
     if (neighbor_type == neighbor_leaf ||
         neighbor_type == neighbor_tree) {
 
       ItNeighbor it_neighbor =
-        this->it_neighbor(index_,min_face_rank,neighbor_type,
-                          min_level,root_level);
+        this->it_neighbor(index_,min_face_rank,neighbor_type, root_level);
 
       const int level = this->level();
 
@@ -1079,7 +1074,7 @@ int Block::particle_create_array_neighbors_
   const int min_face_rank = refresh->min_face_rank();
 
   ItNeighbor it_neighbor =
-    this->it_neighbor(index_, min_face_rank,neighbor_leaf,0,0);
+    this->it_neighbor(index_, min_face_rank,neighbor_leaf,0);
 
   int il = 0;
 
@@ -1189,7 +1184,7 @@ void Block::particle_apply_periodic_update_
   // Compute position updates for particles crossing periodic boundaries
 
   ItNeighbor it_neighbor =
-    this->it_neighbor(index_, min_face_rank,neighbor_leaf,0,0);
+    this->it_neighbor(index_, min_face_rank,neighbor_leaf,0);
 
   int il=0;
 
@@ -1420,11 +1415,9 @@ int Block::refresh_load_flux_faces_ (Refresh & refresh)
 
   // Loop over neighbor leaf Blocks (not necessarily same level)
 
-  const int min_level = cello::min_level();
-
   ItNeighbor it_neighbor =
     this->it_neighbor(index_,min_face_rank,
-                      neighbor_type,min_level,refresh.root_level());
+                      neighbor_type,refresh.root_level());
 
   int if3[3];
   while (it_neighbor.next(if3)) {

@@ -425,7 +425,7 @@ namespace cello {
 
   Refresh * refresh(int ir)
   {
-    return simulation() ? &simulation()->refresh_list(ir) : nullptr;
+    return simulation() ? simulation()->refresh_list(ir) : nullptr;;
   }
 
   //----------------------------------------------------------------------

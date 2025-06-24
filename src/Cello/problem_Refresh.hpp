@@ -19,31 +19,8 @@ class Refresh : public PUP::able {
   /// @ingroup  Problem
   /// @brief    [\ref Problem]
 
-public: // interface
 
-  /// empty constructor for charm++ pup()
-  Refresh() throw()
-  : all_fields_(false),
-    field_list_src_(),
-    field_list_dst_(),
-    all_particles_(false),
-    particles_are_copied_(false),
-    particle_list_(),
-    all_fluxes_(false),
-    ghost_depth_(0),
-    min_face_rank_(0),
-    neighbor_type_(neighbor_leaf),
-    accumulate_(false),
-    sync_type_   (sync_unknown),
-    sync_id_ (-1),
-    active_(true),
-    callback_(0) ,
-    root_level_(0),
-    id_refresh_(-1),
-    id_prolong_(0),
-    id_restrict_(0)
-  {
-  }
+  private:
 
   /// Create an initialized Refresh object
   Refresh
@@ -72,6 +49,49 @@ public: // interface
       id_refresh_(-1),
       id_prolong_(0),
       id_restrict_(0)
+  {
+  }
+
+public: // interface
+
+  static Refresh * create
+  (int ghost_depth,
+   int min_face_rank,
+   int neighbor_type,
+   int sync_type,
+   int sync_id,
+   bool active=true)
+  {
+    return new Refresh
+      (ghost_depth,
+       min_face_rank,
+       neighbor_type,
+       sync_type,
+       sync_id,
+       active);
+  }
+
+  /// empty constructor for charm++ pup()
+  Refresh() throw()
+  : all_fields_(false),
+    field_list_src_(),
+    field_list_dst_(),
+    all_particles_(false),
+    particles_are_copied_(false),
+    particle_list_(),
+    all_fluxes_(false),
+    ghost_depth_(0),
+    min_face_rank_(0),
+    neighbor_type_(neighbor_leaf),
+    accumulate_(false),
+    sync_type_   (sync_unknown),
+    sync_id_ (-1),
+    active_(true),
+    callback_(0) ,
+    root_level_(0),
+    id_refresh_(-1),
+    id_prolong_(0),
+    id_restrict_(0)
   {
   }
 

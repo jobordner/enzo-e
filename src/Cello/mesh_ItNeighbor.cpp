@@ -17,7 +17,6 @@ ItNeighbor::ItNeighbor
  int n3[3],
  Index index,
  int neighbor_type,
- int min_level,
  int root_level)
   : ItType (),
     block_(block),
@@ -26,7 +25,6 @@ ItNeighbor::ItNeighbor
     index_(index),
     level_(index.level()),
     neighbor_type_(neighbor_type),
-    min_level_(min_level),
     root_level_(root_level)
 {
   if (!block->is_leaf()) {
@@ -212,7 +210,7 @@ bool ItNeighbor::valid_()
   // Return false if neighbor_tree type and in different root-level tree
 
   if ((neighbor_type_ == neighbor_tree) &&
-      (! index().is_in_same_subtree(index_,min_level_,root_level_))) {
+      (! index().is_in_same_subtree(index_,cello::min_level(),root_level_))) {
       return false;
   }
 

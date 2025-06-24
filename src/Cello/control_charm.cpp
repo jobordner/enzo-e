@@ -236,18 +236,16 @@ void Block::control_sync_neighbor(int entry_point, int id_sync,
 	  id_sync,
 	  (id_sync >= 0));
 
-#ifdef DEBUG_REFRESH    
+#ifdef DEBUG_REFRESH
   CkPrintf ("%d DEBUG_REFRESH %s neighbor sync id %d\n",
 	    CkMyPe(), name().c_str(),id_sync);
   fflush(stdout);
-#endif    
+#endif
 
   int num_neighbors = 0;
 
-  const int min_level = cello::min_level();
-  
   ItNeighbor it_neighbor = this->it_neighbor
-    (index_,min_face_rank,neighbor_type,min_level,root_level);
+    (index_,min_face_rank,neighbor_type,root_level);
 
   int of3[3];  // ignored
   while (it_neighbor.next(of3)) {

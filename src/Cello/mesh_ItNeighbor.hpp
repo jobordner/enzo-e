@@ -26,7 +26,6 @@ public: // interface
    int n3[3],
    Index index,
    int neighbor_type,
-   int min_level,
    int root_level);
 
   /// Charm++ PUP::able declarations
@@ -55,7 +54,6 @@ public: // interface
     p | index_;
     p | level_;
     p | neighbor_type_;
-    p | min_level_;
     p | root_level_;
   }
 
@@ -149,9 +147,6 @@ private: // attributes
   /// Neighbor type (neighbor_leaf or neighbor_tree)
   int neighbor_type_;
 
-  /// Minimum level of the Mesh (may be negative)
-  int min_level_;
-  
   /// Level of coarse grid when neighbor_type_ == neighbor_leaf
   int root_level_;
 

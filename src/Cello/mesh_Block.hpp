@@ -226,7 +226,6 @@ public:
   ItNeighbor it_neighbor(Index index,
                          int min_face_rank = -1,
 			 int neighbor_type = neighbor_leaf,
-			 int min_level = INDEX_UNDEFINED_LEVEL,
 			 int root_level = 0) throw();
 
   //--------------------------------------------------

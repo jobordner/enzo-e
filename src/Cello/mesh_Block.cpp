@@ -374,13 +374,10 @@ ItFace Block::it_face
 ItNeighbor Block::it_neighbor (Index index,
                                int min_face_rank,
 			       int neighbor_type,
-			       int min_level, int coarse_level) throw()
+                               int coarse_level) throw()
 {
   if (min_face_rank == -1) {
     min_face_rank = cello::config()->adapt_min_face_rank;
-  }
-  if (min_level == INDEX_UNDEFINED_LEVEL) {
-    min_level = cello::min_level();
   }
   int n3[3];
   size_array(&n3[0],&n3[1],&n3[2]);
@@ -388,7 +385,7 @@ ItNeighbor Block::it_neighbor (Index index,
   cello::hierarchy()->get_periodicity(p3,p3+1,p3+2);
   return ItNeighbor
     (this,min_face_rank,p3,n3,index,
-     neighbor_type,min_level,coarse_level);
+     neighbor_type,coarse_level);
 }
 
 //----------------------------------------------------------------------
