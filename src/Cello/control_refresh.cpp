@@ -8,6 +8,7 @@
 
 // #define TRACE_LOAD_FACE
 // #define TRACE_PROLONG
+// #define TRACE_REFRESH
 
 // #define PRINT_COARSE_FIELD
 // #define DEBUG_ARRAY
@@ -38,13 +39,21 @@
 #  define TRACE_PROLONG(MSG,PROLONG,mf3,if3,nf3,mc3,ic3,nc3) /* ... */
 #endif
 
-//======================================================================
 
 void Block::refresh_start (int id_refresh, int callback)
 {
   CHECK_ID(id_refresh);
   Refresh * refresh = cello::refresh(id_refresh);
   Sync * sync = sync_(id_refresh);
+
+#ifdef TRACE_REFRESH
+  int a3[3];
+  index().array(a3,a3+1,a3+2);
+  if ( ! (a3[0]+a3[1]+a3[2])) {
+    CkPrintf ("TRACE_REFRESH %s %d  %d %d\n",name().c_str(),id_refresh,
+              refresh->level_lower(),refresh->level_upper());
+  }
+#endif
 
   // Send field and/or particle data associated with the given refresh
   // object to corresponding neighbors
@@ -230,12 +239,16 @@ void Block::refresh_exit (Refresh & refresh)
 {
   CHECK_ID(refresh.id());
   update_boundary_();
-  control_sync (refresh.callback(),
-  		refresh.sync_type(),
-  		refresh.sync_exit(),
-  		refresh.min_face_rank(),
-  		refresh.neighbor_type(),
-  		refresh.root_level());
+  control_sync
+    (refresh.callback(),
+     refresh.sync_type(),
+     refresh.sync_exit(),
+     refresh.min_face_rank(),
+     refresh.neighbor_type(),
+     refresh.root_level(),
+     DirType::Both,
+     refresh.level_lower(),
+     refresh.level_upper());
 }
 
 //----------------------------------------------------------------------
@@ -254,7 +267,11 @@ int Block::refresh_load_field_faces_ (Refresh & refresh)
 
     ItNeighbor it_neighbor =
       this->it_neighbor(index_,min_face_rank,
-			neighbor_type,refresh.root_level());
+			neighbor_type,
+                        refresh.root_level(),
+                        DirType::Send,
+                        refresh.level_lower(),
+                        refresh.level_upper());
 
     int if3[3];
     while (it_neighbor.next(if3)) {
@@ -387,13 +404,6 @@ int Block::refresh_load_coarse_face_
     Box box_se (rank,n3,g3);
     Box box_er (rank,n3,g3);
 
-    // Create iterator over extra blocks
-
-    ItNeighbor it_extra =
-      this->it_neighbor(index_,refresh.min_face_rank(),
-                        refresh.neighbor_type(),
-                        refresh.root_level());
-
     // ... determine intersection region
 
     const bool l_send = (level < level_face);
@@ -444,6 +454,16 @@ int Block::refresh_load_coarse_face_
     if (l_send) {
 
       // SENDER LOOP OVER EXTRA BLOCKS
+
+      // Create iterator over extra blocks
+
+      ItNeighbor it_extra =
+        this->it_neighbor(index_,refresh.min_face_rank(),
+                          refresh.neighbor_type(),
+                          refresh.root_level(),
+                          DirType::Send,
+                          refresh.level_lower(),
+                          refresh.level_upper());
 
       int ef3[3];
       while (it_extra.next(ef3)) {
@@ -524,6 +544,16 @@ int Block::refresh_load_coarse_face_
     } else if (l_recv) {
 
       // RECEIVER LOOP OVER EXTRA BLOCKS
+
+      // Create iterator over extra blocks
+
+      ItNeighbor it_extra =
+        this->it_neighbor(index_,refresh.min_face_rank(),
+                          refresh.neighbor_type(),
+                          refresh.root_level(),
+                          DirType::Recv,
+                          refresh.level_lower(),
+                          refresh.level_upper());
 
       int ef3[3];
       while (it_extra.next(ef3)) {
@@ -763,7 +793,11 @@ void Block::refresh_coarse_apply_ (Refresh * refresh)
         neighbor_type == neighbor_tree) {
 
       ItNeighbor it_neighbor =
-        this->it_neighbor(index_,min_face_rank,neighbor_type, root_level);
+        this->it_neighbor(index_,min_face_rank,neighbor_type,
+                          root_level,
+                          DirType::Recv,
+                          refresh->level_lower(),
+                          refresh->level_upper());
 
       const int level = this->level();
 
@@ -1074,7 +1108,10 @@ int Block::particle_create_array_neighbors_
   const int min_face_rank = refresh->min_face_rank();
 
   ItNeighbor it_neighbor =
-    this->it_neighbor(index_, min_face_rank,neighbor_leaf,0);
+    this->it_neighbor(index_, min_face_rank,neighbor_leaf,0,
+                      DirType::Send,
+                      refresh->level_lower(),
+                      refresh->level_upper());
 
   int il = 0;
 
@@ -1184,7 +1221,10 @@ void Block::particle_apply_periodic_update_
   // Compute position updates for particles crossing periodic boundaries
 
   ItNeighbor it_neighbor =
-    this->it_neighbor(index_, min_face_rank,neighbor_leaf,0);
+    this->it_neighbor(index_, min_face_rank,neighbor_leaf,0,
+                      DirType::Send,
+                      refresh->level_lower(),
+                      refresh->level_upper());
 
   int il=0;
 
@@ -1255,15 +1295,15 @@ void Block::particle_scatter_neighbors_
     // Loop over particle types
     for (auto it_type=type_list.begin(); it_type!=type_list.end(); it_type++) {
 
-       int it = *it_type;
+      int it = *it_type;
 
-       const std::string type_name = particle.type_name(it);
+      const std::string type_name = particle.type_name(it);
        
-       ASSERT1("Block::particle_scatter_neighbors_",
-	       "Trying to copy particle type %s, but it has no "
-	       "is_copy attribute",
-	       type_name.c_str(),
-	       particle.has_attribute(it,"is_copy"));
+      ASSERT1("Block::particle_scatter_neighbors_",
+              "Trying to copy particle type %s, but it has no "
+              "is_copy attribute",
+              type_name.c_str(),
+              particle.has_attribute(it,"is_copy"));
 
       int ia_copy = particle.attribute_index(it, "is_copy");
       int d_copy = particle.stride(it,ia_copy);
@@ -1417,7 +1457,10 @@ int Block::refresh_load_flux_faces_ (Refresh & refresh)
 
   ItNeighbor it_neighbor =
     this->it_neighbor(index_,min_face_rank,
-                      neighbor_type,refresh.root_level());
+                      neighbor_type,refresh.root_level(),
+                      DirType::Recv,
+                      refresh.level_lower(),
+                      refresh.level_upper());
 
   int if3[3];
   while (it_neighbor.next(if3)) {

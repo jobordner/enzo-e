@@ -226,7 +226,10 @@ public:
   ItNeighbor it_neighbor(Index index,
                          int min_face_rank = -1,
 			 int neighbor_type = neighbor_leaf,
-			 int root_level = 0) throw();
+			 int root_level = 0,
+                         DirType dir_type = DirType::Both,
+                         int level_lower = std::numeric_limits<int>::min(),
+                         int level_upper = std::numeric_limits<int>::max()) throw();
 
   //--------------------------------------------------
   // Charm++ virtual
@@ -521,7 +524,10 @@ public:
 
   /// Syncronize before continuing with next callback
   void control_sync (int entry_point, int sync_type, int id, int min_face_rank,
-		     int neighbor_type,int root_level);
+		     int neighbor_type,int root_level,
+                     DirType dir_type = DirType::Both,
+                     int level_lower = std::numeric_limits<int>::min(),
+                     int level_upper = std::numeric_limits<int>::max());
 
   /// synchronize with count other chares; count only needs to be
   /// supplied once with others count arguments 0.
@@ -533,7 +539,10 @@ public:
   }
 
   void control_sync_neighbor (int entry_point, int id,
-			      int neighbor_type,int min_face_rank,int root_level);
+			      int neighbor_type,int min_face_rank,int root_level,
+                              DirType dir_type = DirType::Both,
+                              int level_lower = std::numeric_limits<int>::min(),
+                              int level_upper = std::numeric_limits<int>::max());
   void control_sync_face     (int entry_point, int id, int min_face_rank);
   void control_sync_barrier  (int entry_point);
   void control_sync_quiescence (int entry_point);

@@ -7,6 +7,8 @@
 
 #include "mesh.hpp"
 
+// #define TEST_LEVEL_RANGE
+
 //----------------------------------------------------------------------
 
 ItNeighbor::ItNeighbor
@@ -17,15 +19,20 @@ ItNeighbor::ItNeighbor
  int n3[3],
  Index index,
  int neighbor_type,
- int root_level)
+ int root_level,
+ DirType dir_type,
+ int level_lower,
+ int level_upper)
   : ItType (),
     block_(block),
     rank_(cello::rank()),
     min_face_rank_(min_face_rank),
     index_(index),
-    level_(index.level()),
     neighbor_type_(neighbor_type),
-    root_level_(root_level)
+    root_level_(root_level),
+    dir_type_(dir_type),
+    level_lower_(level_lower),
+    level_upper_(level_upper)
 {
   if (!block->is_leaf()) {
     WARNING1("ItNeighbor::ItNeighbor",
@@ -44,15 +51,31 @@ ItNeighbor::ItNeighbor
 Index ItNeighbor::index() const
 {
   Index index_neighbor = index_.index_neighbor(of3_,n3_);
-  int face_level = block_->face_level(of3_);
-  if (face_level == level_) {
+
+  const int face_level = this->face_level();
+  const int this_level = this->this_level();
+
+  if (face_level == this_level) {
+
     return index_neighbor;
-  } else if (face_level == level_ + 1) {
+
+  } else if (face_level == this_level + 1) {
+
     return index_neighbor.index_child(ic3_);
-  } else if (face_level == level_ - 1) {
+
+  } else if (face_level == this_level - 1) {
+
     return index_neighbor.index_parent();
+
   } else {
+
+    WARNING2("ItNeighbor::index",
+             "ItNeighbor assumes a balanced mesh, but "
+             "|level %d - face_level %d| > 1",
+             this_level,face_level);
+
     return index_neighbor;
+
   }
 }
 
@@ -68,8 +91,8 @@ void ItNeighbor::child(int ic3[3]) const
     ic3[1] = 0;
     ic3[2] = 0;
   }
-  if (face_level() < level_) {
-    index_.child (level_,&ic3[0],&ic3[1],&ic3[2]);
+  if (face_level() < this_level()) {
+    index_.child (this_level(),&ic3[0],&ic3[1],&ic3[2]);
   }
 } 
 
@@ -132,7 +155,7 @@ void ItNeighbor::increment_()
   if (is_reset()) {
     set_first_();
   } else {
-    if ( face_level() > level_ ) {
+    if ( face_level() > this_level() ) {
       if (is_reset_child_())
 	set_first_child_();
       else 
@@ -197,6 +220,19 @@ bool ItNeighbor::valid_()
 {
   if (is_reset()) return true;
 
+  // Check that the level is in range
+
+  // Check level range for adaptive time-stepping
+#ifdef TEST_LEVEL_RANGE  
+  if ( (dir_type_ == DirType::Send || dir_type_ == DirType::Both) &&
+       ! (level_lower_ <= face_level() && face_level() < level_upper_) )
+    return false;
+
+  if ( (dir_type_ == DirType::Recv || dir_type_ == DirType::BOTH) &&
+      ! (level_lower_ <= this_level() && this_level() < level_upper_) )
+    return false;
+#endif
+
   // Check that face rank is in range
 
   int face_rank = rank_;
@@ -239,7 +275,7 @@ bool ItNeighbor::valid_()
   //            |      | true|false|   
   //  ----------+      +-----+-----+
 
-  if (face_level() > level_) {
+  if (face_level() > this_level()) {
 
     if (is_reset_child_()) return false;
 
@@ -253,12 +289,12 @@ bool ItNeighbor::valid_()
       if (! valid) return false;
     }
 
-  } else if (face_level() < level_) {
+  } else if (face_level() < this_level()) {
 
     // Skip coarse oblique neighbors
 
     int ic3[3] = {0,0,0};
-    index_.child (level_,&ic3[0],&ic3[1],&ic3[2]);
+    index_.child (this_level(),&ic3[0],&ic3[1],&ic3[2]);
 
     bool valid = true;
 

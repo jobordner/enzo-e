@@ -18,7 +18,7 @@
 // #define DEBUG_CONTROL
 // #define TRACE_CONTRIBUTE
 // #define DEBUG_ADAPT
-#define TRACE_ATS
+// #define TRACE_ATS
 
 // #define BLOCK  "B0:100_0:101"
 
@@ -163,7 +163,9 @@ void Block::compute_exit_ ()
 //----------------------------------------------------------------------
 
 void Block::control_sync (int entry_point, int sync_type, int id_sync,
-			  int min_face_rank, int neighbor_type, int root_level)
+			  int min_face_rank, int neighbor_type, int root_level,
+                          DirType dir_type,
+                          int level_lower, int level_upper)
 {
   TRACE_CONTROL("control_sync()");
   TRACE_SYNC("control_sync()");
@@ -179,7 +181,8 @@ void Block::control_sync (int entry_point, int sync_type, int id_sync,
   } else if (sync_type == sync_neighbor) {
 
     control_sync_neighbor
-      (entry_point,id_sync,min_face_rank, neighbor_type,root_level);
+      (entry_point,id_sync,min_face_rank, neighbor_type,root_level,
+       dir_type, level_lower,level_upper);
 
   } else if (sync_type == sync_face) {
  
@@ -216,9 +219,12 @@ void Block::control_sync_barrier (int entry_point)
 //----------------------------------------------------------------------
 
 void Block::control_sync_neighbor(int entry_point, int id_sync,
-				  int min_face_rank,
-				  int neighbor_type,
-				  int root_level)
+                                  int min_face_rank,
+                                  int neighbor_type,
+                                  int root_level,
+                                  DirType dir_type,
+                                  int level_lower,
+                                  int level_upper)
 {
   TRACE_CONTROL("control_sync_neighbor");
   TRACE_SYNC("control_sync_neighbhor()");
@@ -245,7 +251,8 @@ void Block::control_sync_neighbor(int entry_point, int id_sync,
   int num_neighbors = 0;
 
   ItNeighbor it_neighbor = this->it_neighbor
-    (index_,min_face_rank,neighbor_type,root_level);
+    (index_,min_face_rank,neighbor_type,root_level,
+     dir_type, level_lower, level_upper);
 
   int of3[3];  // ignored
   while (it_neighbor.next(of3)) {

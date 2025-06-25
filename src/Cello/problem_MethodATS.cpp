@@ -10,6 +10,16 @@
 
 void MethodATS::compute( Block * block) throw()
 {
+
+   Refresh * refresh = cello::refresh(ir_post_);
+
+   refresh -> set_level_lower(block->state()->level_lower());
+   refresh -> set_level_upper(block->state()->level_upper());
+   if (block->index().is_root())
+     CkPrintf ("DEBUG_ATS refresh level range %d %d\n",
+               refresh->level_lower(),
+               refresh->level_upper());
+
   const int level = block->level();
 
   if (block->state()->is_active(level)) {
@@ -72,10 +82,18 @@ void MethodATS::compute( Block * block) throw()
 
 
     const double value = block->state()->time(level) + block->state()->dt(level);
-    // Set field = (time + dt)
     for (int iz=0; iz<mz; iz++) {
       for (int iy=0; iy<my; iy++) {
         for (int ix=0; ix<mx; ix++){
+          const int i=ix + mx*(iy + my*iz);
+          array[i] = 0.0;
+        }
+      }
+    }
+    // Set field = (time + dt)
+    for (int iz=gz; iz<mz-gz; iz++) {
+      for (int iy=gy; iy<my-gy; iy++) {
+        for (int ix=gx; ix<mx-gx; ix++){
           const int i=ix + mx*(iy + my*iz);
           array[i] = value;
         }
@@ -102,4 +120,6 @@ double MethodATS::timestep ( Block * block) throw()
 void MethodATS::init_refresh_()
 {
   cello::simulation()->refresh_set_name(ir_post_,name());
+  Refresh * refresh = cello::refresh(ir_post_);
+  refresh->add_field("test_ats");
 }

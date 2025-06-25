@@ -35,7 +35,7 @@ public: // interface
       stopping_(false),
       method_state_(),
       level_lower_(0),
-      level_upper_(1)
+      level_upper_(std::numeric_limits<int>::max())
   {
   }
 
@@ -51,7 +51,7 @@ public: // interface
       stopping_(stopping),
       method_state_(),
       level_lower_(0),
-      level_upper_(1),
+      level_upper_(std::numeric_limits<int>::max()),
       state_type_(Type::Global),
       state_next_(Next::Sequential)
   {
@@ -105,11 +105,6 @@ public: // interface
 
   void set_stopping (bool stopping)
   { stopping_ = stopping; }
-
-  void set_levels (int level_lower, int level_upper = 0)
-  { level_lower_ = level_lower;
-    level_upper_ = level_upper ? level_upper : level_lower_ + 1;
-  }
 
   void init (int cycle, double time, double dt, bool stopping)
   {
@@ -175,6 +170,8 @@ public: // interface
   {
     if (level_type == "sequential") {
       state_next_ = Next::Sequential;
+      level_lower_ = 0;
+      level_upper_ = 1;
     } else if (level_type == "concurrent") {
       state_next_ = Next::Concurrent;
       level_lower_ = 0;

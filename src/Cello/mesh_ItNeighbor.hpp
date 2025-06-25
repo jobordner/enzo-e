@@ -26,7 +26,10 @@ public: // interface
    int n3[3],
    Index index,
    int neighbor_type,
-   int root_level);
+   int root_level,
+   DirType dir_type = DirType::Both,
+   int level_lower = std::numeric_limits<int>::min(),
+   int level_upper = std::numeric_limits<int>::max());
 
   /// Charm++ PUP::able declarations
   PUPable_decl(ItNeighbor);
@@ -52,9 +55,11 @@ public: // interface
     PUParray (p,periodic_,3);
     PUParray (p,n3_,3);
     p | index_;
-    p | level_;
     p | neighbor_type_;
     p | root_level_;
+    p | dir_type_;
+    p | level_lower_;
+    p | level_upper_;
   }
 
 
@@ -68,6 +73,10 @@ public:
     if (retval) face_(of3);
     return retval;
   }
+
+  /// Return the level of this blocke current face
+  int this_level () const  throw () 
+  { return index_.level(); }
 
   /// Return the level of the current face
   int face_level () const  throw () 
@@ -141,14 +150,18 @@ private: // attributes
   /// Index
   Index index_;
 
-  /// Level of this block
-  int level_;
-
   /// Neighbor type (neighbor_leaf or neighbor_tree)
   int neighbor_type_;
 
   /// Level of coarse grid when neighbor_type_ == neighbor_leaf
   int root_level_;
+
+  /// Direction for adaptive time-stepping
+  DirType dir_type_;
+
+  /// Level range for adaptive time-stepping
+  int level_lower_;
+  int level_upper_;
 
 };
 

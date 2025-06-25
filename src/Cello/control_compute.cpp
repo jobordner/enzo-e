@@ -56,7 +56,7 @@ void Block::compute_next_ ()
 
     int ir_post = method->refresh_id_post();
 
-    cello::refresh(ir_post)->set_active (is_leaf());
+    refresh = cello::refresh(ir_post)->set_active (is_leaf());
 
     refresh_start (ir_post,CkIndex_Block::p_compute_continue());
 
