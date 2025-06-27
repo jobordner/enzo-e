@@ -31,6 +31,9 @@ public: // interface
    int level_lower = std::numeric_limits<int>::min(),
    int level_upper = std::numeric_limits<int>::max());
 
+  ItNeighbor (ItNeighbor &&) = default;
+  ItNeighbor & operator = (ItNeighbor &&) = default;
+
   /// Charm++ PUP::able declarations
   PUPable_decl(ItNeighbor);
 
@@ -44,22 +47,22 @@ public: // interface
     // NOTE: change this function whenever attributes change
     TRACEPUP;
     ItType::pup(p);
-    const bool up = p.isUnpacking();
-    if (up) block_ = new Block;
-    p | *block_;
-    PUParray(p,of3_,3);
-    PUParray(p,ic3_,3);
-    PUParray(p,ipf3_,3);
-    p | rank_;
-    p | min_face_rank_;
-    PUParray (p,periodic_,3);
-    PUParray (p,n3_,3);
-    p | index_;
-    p | neighbor_type_;
-    p | root_level_;
-    p | dir_type_;
-    p | level_lower_;
-    p | level_upper_;
+    // const bool up = p.isUnpacking();
+    // if (up) block_ = new Block;
+    // p | *block_;
+    // PUParray(p,of3_,3);
+    // PUParray(p,ic3_,3);
+    // PUParray(p,ipf3_,3);
+    // p | rank_;
+    // p | min_face_rank_;
+    // PUParray (p,periodic_,3);
+    // PUParray (p,n3_,3);
+    // p | index_;
+    // p | neighbor_type_;
+    // p | root_level_;
+    // p | dir_type_;
+    // p | level_lower_;
+    // p | level_upper_;
   }
 
 

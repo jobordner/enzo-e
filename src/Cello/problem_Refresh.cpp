@@ -238,3 +238,22 @@ char * Refresh::load_data (char * buffer)
   return p;
 }
 
+//----------------------------------------------------------------------
+
+ItNeighbor Refresh::it_neighbor
+(Block * block, DirType dir_type)
+{
+  int n3[3], p3[3];
+  cello::hierarchy()->root_blocks    (n3,n3+1,n3+2);
+  cello::hierarchy()->get_periodicity(p3,p3+1,p3+2);
+  return ItNeighbor
+    (block,
+     min_face_rank(),
+     p3,n3,block->index(),
+     neighbor_type(),
+     root_level(),
+     dir_type,
+     level_lower(),
+     level_upper());
+}
+

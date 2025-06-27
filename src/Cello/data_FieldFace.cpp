@@ -18,6 +18,10 @@
 // #define DEBUG_PRINT true
 // #define DEBUG_BLOCK_ONLY true
 
+#define USE_NEW_VALUES
+// #define FORCE_NEW_VALUES
+// #define TRACE_NEW_VALUES
+
 //----------------------------------------------------------------------
 
 #define CONFIG_SMP_MODE
@@ -126,12 +130,16 @@ FieldFace::FieldFace (int rank) throw()
   : rank_(rank),
     refresh_type_(refresh_unknown),
     refresh_(NULL),
-    new_refresh_(false)
+    new_refresh_(false),
+    use_time_(false),
+    time_(0.0)
+    
 {
   ++counter[cello::index_static()]; 
   TRACE_FIELD_FACE("FieldFace(int)");
   for (int i=0; i<3; i++) {
     face_[i] = 0;
+    ghost_[i] = 0;
     child_[i] = 0;
   }
 
@@ -180,8 +188,8 @@ FieldFace & FieldFace::operator= (const FieldFace & field_face) throw ()
 void FieldFace::copy_(const FieldFace & field_face)
 {
   for (int i=0; i<3; i++) {
-    ghost_[i] = field_face.ghost_[i];
     face_[i]  = field_face.face_[i];
+    ghost_[i] = field_face.ghost_[i];
     child_[i] = field_face.child_[i];
   }
   refresh_type_   = field_face.refresh_type_;
@@ -207,6 +215,8 @@ void FieldFace::pup (PUP::er &p)
   p | refresh_type_;
   p | refresh_;
   p | new_refresh_;
+  p | use_time_;
+  p | time_;
 }
 
 //======================================================================
@@ -239,13 +249,18 @@ void FieldFace::face_to_array ( Field field,char * array) throw()
   for (size_t i_f=0; i_f < field_list_src.size(); i_f++) {
 
     const size_t index_field = field_list_src[i_f];
-    
     CHECK_COARSE(field,index_field);
 
     precision_type precision = field.precision(index_field);
 
-    void * field_face = field.values(index_field);
-
+#ifdef USE_NEW_VALUES
+    char * field_face = new_values_(field,index_field);
+#ifdef TRACE_NEW_VALUES
+    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)field_face);
+#endif
+#else
+    char * field_face = field.values(index_field);
+#endif
     char * array_face  = &array[index_array];
 
     int m3[3],g3[3],c3[3];
@@ -299,9 +314,8 @@ void FieldFace::face_to_array ( Field field,char * array) throw()
       union { float * f4; double * f8;long double * f16;  };
       a4 = (float *) array_face;
       f4 = (float *) field_face;
-      
+
       // Copy field to array
-      
       if (precision == precision_single) {
 	index_array += load_ ( a4,  f4,  m3,n3,i3, accumulate);
       } else if (precision == precision_double) {
@@ -315,6 +329,13 @@ void FieldFace::face_to_array ( Field field,char * array) throw()
 
     // unscale by density if needed to convert back from conservative form
     div_by_density_(field,index_field,i3,n3,m3);
+
+#ifdef USE_NEW_VALUES
+    del_values_(&field_face);
+#ifdef TRACE_NEW_VALUES
+    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)field_face);
+#endif
+#endif
   }
 
 }
@@ -333,11 +354,18 @@ void FieldFace::array_to_face (char * array, Field field) throw()
     size_t index_field = field_list_dst[i_f];
 
     CHECK_COARSE(field,index_field);
-    
+
     precision_type precision = field.precision(index_field);
 
-    char * field_ghost = field.values(index_field);
-    
+#ifdef USE_NEW_VALUES
+    char * field_ghost =  new_values_ (field, index_field);
+#ifdef TRACE_NEW_VALUES
+    CkPrintf ("TRACE_NEW_VALUES :%d field= %p\n",__LINE__,(void *)field_ghost);
+#endif
+#else
+    char * field_ghost =  field.values( index_field);
+#endif
+
     char * array_ghost  = array + index_array;
 
     int m3[3],g3[3],c3[3];
@@ -432,7 +460,14 @@ void FieldFace::array_to_face (char * array, Field field) throw()
     // unscale by density if needed to convert back from conservative form
     div_by_density_(field,index_field,i3,n3,m3);
 
+#ifdef USE_NEW_VALUES
+    del_values_ (&field_ghost);
+#ifdef TRACE_NEW_VALUES
+    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)field_ghost);
+#endif
+#endif
   }
+  
 }
 
 //----------------------------------------------------------------------
@@ -487,9 +522,20 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
     // on neighbor axes
 
     precision_type precision = field_src.precision(index_src);
-    
+
+#ifdef USE_NEW_VALUES
+    char * values_src = new_values_ (field_src,index_src);
+    char * values_dst = new_values_ (field_dst,index_dst);
+#ifdef TRACE_NEW_VALUES
+    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)values_src);
+#endif
+#ifdef TRACE_NEW_VALUES
+    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)values_dst);
+#endif
+#else
     char * values_src = field_src.values(index_src);
     char * values_dst = field_dst.values(index_dst);
+#endif
 
     // scale by density if needed to convert to conservative form
     mul_by_density_(field_src,index_src,is3,ns3,m3);
@@ -556,6 +602,17 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
     // unscale by density if needed to convert back from conservative form
     div_by_density_(field_src,index_src,is3,ns3,m3);
     div_by_density_(field_dst,index_dst,id3,nd3,m3);
+
+#ifdef USE_NEW_VALUES
+    del_values_(&values_dst);
+    del_values_(&values_src);
+#ifdef TRACE_NEW_VALUES
+    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)values_dst);
+#endif
+#ifdef TRACE_NEW_VALUES
+    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)values_src);
+#endif
+#endif
   }
 #ifdef CONFIG_SMP_MODE
   CmiUnlock(field_face_node_lock);
@@ -865,24 +922,38 @@ void FieldFace::mul_by_density_
  const int i3[3], const int n3[3], const int m3[3])
 {
   if (field.is_temporary(index_field)) return;
-  
-  precision_type precision = field.precision(index_field);
-  void * field_face = field.values(index_field);
 
   Grouping * groups = cello::field_groups();
-
-  void * field_density = field.values("density");
-  
   const std::string field_name = field.field_name(index_field);
 
   const bool scale_by_density =
     (refresh_type_ != refresh_same) &&
     groups->is_in (field_name,"make_field_conservative");
+
   if (scale_by_density) {
+
+    const int index_density = field.field_id ("density");
+
+#ifdef USE_NEW_VALUES
+    char * field_density = new_values_(field,index_density);
+    char * field_face =    new_values_(field,index_field);
+#ifdef TRACE_NEW_VALUES
+    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)field_density);
+#endif
+#ifdef TRACE_NEW_VALUES
+    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)field_face);
+#endif
+#else
+    char * field_density = field.values(index_density);
+    char * field_face =    field.values(index_field);
+#endif
+
     union { float * d4; double * d8; long double * d16; };
     union { float * f4; double * f8;long double * f16;  };
     d4 = (float *) field_density;
     f4 = (float *) field_face;
+
+    const precision_type precision = field.precision(index_field);
 
     if (precision == precision_single) {
       for (int iz=i3[2]; iz<i3[2]+n3[2]; iz++) {
@@ -914,6 +985,16 @@ void FieldFace::mul_by_density_
     } else {
       ERROR("FieldFace::mul_by_density_()", "Unsupported precision");
     }
+#ifdef USE_NEW_VALUES
+    del_values_(&field_density);
+    del_values_(&field_face);
+#ifdef TRACE_NEW_VALUES
+    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)field_density);
+#endif
+#ifdef TRACE_NEW_VALUES
+    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)field_face);
+#endif
+#endif
   }
 }
 
@@ -923,16 +1004,17 @@ void FieldFace::div_by_density_
 (Field field, int index_field,
  const int i3[3], const int n3[3], const int m3[3])
 {
-      
+
   if (field.is_temporary(index_field)) return;
 
   precision_type precision = field.precision(index_field);
-  void * field_face = field.values(index_field);
+
+  char *  field_face = field.values (index_field);
 
   Grouping * groups = cello::field_groups();
 
-  void * field_density = field.values("density");
- 
+  void * field_density = field.values ("density");
+
   const std::string field_name = field.field_name(index_field);
 
   const bool scale_by_density =
@@ -1002,17 +1084,92 @@ void FieldFace::box_adjust_accumulate_ (Box * box, int accumulate, int g3[3])
 {
 
   int gs3[3];
+
   if (accumulate) {
-    gs3[0] = (face_[0]!=0)?g3[0]:0;
-    gs3[1] = (face_[1]!=0)?g3[1]:0;
-    gs3[2] = (face_[2]!=0)?g3[2]:0;
-                           
+
+    gs3[0] = (face_[0]) ? g3[0] : 0;
+    gs3[1] = (face_[1]) ? g3[1] : 0;
+    gs3[2] = (face_[2]) ? g3[2] : 0;
+
   } else {
-    gs3[0] = (ghost_[0]&&face_[0]==0)?g3[0]:0;
-    gs3[1] = (ghost_[1]&&face_[1]==0)?g3[1]:0;
-    gs3[2] = (ghost_[2]&&face_[2]==0)?g3[2]:0;
+
+    gs3[0] = (ghost_[0] && face_[0]) ? g3[0] : 0;
+    gs3[1] = (ghost_[1] && face_[1]) ? g3[1] : 0;
+    gs3[2] = (ghost_[2] && face_[2]) ? g3[2] : 0;
+
   }
+
   box->set_send_ghosts(gs3);
   box->compute_block_start(BoxType_receive);
   box->compute_region();
+}
+
+//----------------------------------------------------------------------
+
+char * FieldFace::new_values_ (Field field, int index_field)
+{
+  char * values = nullptr;
+
+#ifdef FORCE_NEW_VALUES
+  if (true)
+#else
+    if (use_time_)
+#endif
+      {
+        double time_prev = field.history_time(1);
+        double time_curr = field.history_time(0);
+
+        const int cycle = cello::simulation()->state()->cycle();
+        if (cycle > 0) {
+          ASSERT3 ("FieldFace::new_values_()",
+                   "Trying to access field at time %20.16g but only %20.16g and %20.16g available",
+                   ((time_prev <= time_) && (time_ <= time_curr)),
+                   time_, time_prev,time_curr);
+        }
+        cello_float * values_curr = (cello_float*) field.values (index_field,0);
+        cello_float * values_prev = (cello_float*) field.values (index_field,1);
+
+        double cp,cc;
+        if (cycle == 0) {
+          cp = 0.0;
+          cc = 1.0;
+        } else {
+          cp = 0.0;
+          cc = 1.0;
+        }
+
+        int mx,my,mz;
+        const int m = field.dimensions (index_field,&mx,&my,&mz);  
+        cello_float * new_values      = new cello_float[m];
+
+        for (int i=0; i<m; i++) {
+          new_values[i] = cp*values_prev[i] + cc*values_curr[i];
+        }
+
+        values = (char * ) new_values;
+
+      } else {
+
+      values = field.values(index_field);
+
+    }
+
+  return values;
+
+}
+
+//----------------------------------------------------------------------
+
+void FieldFace::del_values_ (char ** values)
+{
+#ifdef FORCE_NEW_VALUES
+  if (true)
+#else
+    if (use_time_)
+#endif
+      {
+        delete [] *values;
+        *values = nullptr;
+      }
+  return;
 }

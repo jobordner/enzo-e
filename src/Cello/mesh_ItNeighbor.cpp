@@ -228,7 +228,7 @@ bool ItNeighbor::valid_()
        ! (level_lower_ <= face_level() && face_level() < level_upper_) )
     return false;
 
-  if ( (dir_type_ == DirType::Recv || dir_type_ == DirType::BOTH) &&
+  if ( (dir_type_ == DirType::Recv || dir_type_ == DirType::Both) &&
       ! (level_lower_ <= this_level() && this_level() < level_upper_) )
     return false;
 #endif

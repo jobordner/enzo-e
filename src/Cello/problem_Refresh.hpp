@@ -13,6 +13,9 @@
 class Box;
 class Prolong;
 class Restrict;
+class ItNeighbor;
+enum class DirType;
+
 class Refresh : public PUP::able {
 
   /// @class    Refresh
@@ -384,6 +387,10 @@ public: // interface
 
   /// Return the sync object associated with this refresh object
   Sync * sync( Block * block );
+
+  ItNeighbor it_neighbor (Block * block, DirType dir_type);
+
+  //----------------------------------------------------------------------
 
   void print(FILE * fp = nullptr) const
   {
