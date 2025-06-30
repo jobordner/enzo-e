@@ -516,7 +516,7 @@ void IoEnzoWriter::file_write_block_ (EnzoMsgCheck * msg_check)
      cello::field_descr(),
      cello::particle_descr());
 
-  data->allocate();
+  data->allocate(index_block.level());
 
   msg_check->update(data);
 

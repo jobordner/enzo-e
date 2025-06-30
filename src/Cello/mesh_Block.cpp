@@ -177,7 +177,7 @@ void Block::init_refine_
 		     num_field_blocks,
 		     xm,xp, ym,yp, zm,zp);
 
-  data_->allocate();
+  data_->allocate(index.level());
 
   child_data_ = NULL;
 

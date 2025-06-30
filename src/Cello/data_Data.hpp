@@ -124,7 +124,8 @@ public: // interface
 
   //----------------------------------------------------------------------
 
-  void allocate () throw();
+  /// Allocate all data for a block in given level
+  void allocate (int level) throw();
 
   //----------------------------------------------------------------------
   // fields

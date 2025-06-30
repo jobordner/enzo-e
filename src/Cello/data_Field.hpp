@@ -119,8 +119,8 @@ public: // interface
   { return field_descr_->is_field(name); }
 
   /// Return the integer handle for the named field
-  int field_id(const std::string & name) const throw()
-  { return field_descr_->field_id(name); }
+  int field_id(const std::string & name, int ih = 0) const throw()
+  { return field_descr_->field_id(name,ih); }
 
   //----------------------------------------------------------------------
   // Properties

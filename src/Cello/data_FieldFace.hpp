@@ -88,7 +88,6 @@ public: // interface
 
   /// Set refresh type: refresh_fine(prolong),
   /// refresh_coarse(restrict), or refresh_same(copy)
-
   void set_refresh_type (int refresh_type)
   {  refresh_type_ = refresh_type;  }
 
@@ -103,20 +102,6 @@ public: // interface
   {
     refresh_ = refresh;
     new_refresh_ = new_refresh;
-  }
-
-  void set_time_(double time)
-  {
-    use_time_ = true;
-    time_ = time;
-  }
-
-  bool get_time (double & time)
-  {
-    if (use_time_) {
-      time = time_;
-    }
-    return use_time_;
   }
 
   /// Return the Refresh object
@@ -207,14 +192,6 @@ private: // functions
   /// Adjust box for accumulating values instead of assigning them
   void box_adjust_accumulate_ (Box * box, int accumulate, int g3[3]);
 
-  /// Return array of values, either at latest time, or time given
-  /// by time_ if use_time_ is true. New indicates array may be
-  /// allocated. Subsequent del_values_() should be called to
-  /// delete array if needed.
-  char * new_values_ (Field field, int index_field);
-  /// Free values that may have been allocated by new_values_;
-  void del_values_(char **);
-
 private: // attributes
 
   /// Rank of the problem
@@ -239,13 +216,6 @@ private: // attributes
   /// Whether refresh object should be deleted in destructor
   bool new_refresh_;
 
-  /// Whether to interpolate field values to the given time.
-  /// Used in adaptive time-stepping
-  bool use_time_;
-
-  /// Time of field values if interpolating to given time. Used
-  /// in adaptive time-stepping
-  double time_;
 };
 
 #endif /* DATA_FIELD_FACE_HPP */

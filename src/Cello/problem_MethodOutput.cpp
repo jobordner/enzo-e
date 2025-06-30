@@ -592,7 +592,7 @@ void MethodOutput::file_write_block_
      cello::particle_descr());
 
     // Allocate fields
-    data->allocate();
+    data->allocate(block->level());
 
     msg_output->update(data);
   }

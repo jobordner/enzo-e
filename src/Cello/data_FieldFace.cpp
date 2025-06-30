@@ -9,93 +9,20 @@
 #include "data.hpp"
 
 #define FORTRAN_STORE
-// #define DEBUG_NEW_BOX
-// #define TRACE_FIELD_FACE
-// #define TRACE_PROLONG
-//======================================================================
-// #define DEBUG_ARRAY
-// #define DEBUG_ARRAY_CYCLE 00
-// #define DEBUG_PRINT true
-// #define DEBUG_BLOCK_ONLY true
-
-#define USE_NEW_VALUES
-// #define FORCE_NEW_VALUES
-// #define TRACE_NEW_VALUES
 
 //----------------------------------------------------------------------
 
-#define CONFIG_SMP_MODE
+// #define CONFIG_SMP_MODE
+
 static CmiNodeLock field_face_node_lock;
 void mutex_init_field_face()
 {  field_face_node_lock = CmiCreateLock(); }
 
-//----------------------------------------------------------------------
-
-#ifdef TRACE_FIELD_FACE
-#  undef TRACE_FIELD_FACE
-#  define TRACE_FIELD_FACE(MSG)                         \
-  CkPrintf ("TRACE_FIELD_FACE %d %s:%d %p %d %s\n",        \
-            CkMyPe(), __FILE__,__LINE__,this,               \
-            FieldFace::counter[cello::index_static()],  \
-            MSG);
-#else
-#  define TRACE_FIELD_FACE(MSG) /* ... */
-#endif
-
-
-#ifdef TRACE_PROLONG
-#  undef TRACE_PROLONG
-#  define TRACE_PROLONG(MSG,PROLONG,mf3,if3,nf3,mc3,ic3,nc3)            \
-  CkPrintf ("TRACE_PROLONG %s:%d %s %s mf %d %d %d nf %d %d %d if %d %d %d\n",__FILE__,__LINE__,MSG, PROLONG->name().c_str(), \
-            mf3[0],mf3[1],mf3[2],nf3[0],nf3[1],nf3[2],if3[0],if3[1],if3[2]); \
-  CkPrintf ("TRACE_PROLONG %s:%d %s %s mc %d %d %d nc %d %d %d ic %d %d %d\n",__FILE__,__LINE__,MSG, PROLONG->name().c_str(), \
-            mc3[0],mc3[1],mc3[2],nc3[0],nc3[1],nc3[2],ic3[0],ic3[1],ic3[2]); \
-  
-#else
-#  undef TRACE_PROLONG
-#  define TRACE_PROLONG(MSG,PROLONG,mf3,if3,nf3,mc3,ic3,nc3) /* ... */
-#endif
-
-#ifdef DEBUG_ARRAY
-#   define DEBUG_PRINT_ARRAY0(NAME,ARRAY,m3,n3,o3)              \
-  DEBUG_PRINT_ARRAY_(NAME,ARRAY,m3,n3,o3[0],o3[1],o3[2])
-#   define DEBUG_PRINT_ARRAY(NAME,ARRAY,m3,n3)  \
-  DEBUG_PRINT_ARRAY_(NAME,ARRAY,m3,n3,0,0,0)
-#   define DEBUG_PRINT_ARRAY_(NAME,ARRAY,m3,n3,ox,oy,oz)                \
-  if (cello::simulation()->cycle() >= DEBUG_ARRAY_CYCLE) {              \
-    if (n3[0]> 6 && (n3[1]>6||n3[1]==1) && (n3[2]>6||n3[2]==1)) {       \
-      if (DEBUG_PRINT) CkPrintf ("PADDED_ARRAY_VALUES %s:%d %s %p\n",   \
-                                 __FILE__,__LINE__,NAME,(void*)ARRAY);  \
-      const int o = ox + m3[0]*(oy + m3[1]*oz);                         \
-      double min=1e100,max=-1e100,avg=0.0;                              \
-      for (int iz=0; iz<n3[2]; iz++) {                                  \
-        for (int iy=0; iy<n3[1]; iy++) {                                \
-          if (DEBUG_PRINT) CkPrintf ("PADDED_ARRAY_VALUES %s %p %d %d %d: ", \
-                                     NAME,(void*)ARRAY,0,iy,iz);        \
-          for (int ix=0; ix<n3[0]; ix++) {                              \
-            int i = ix+ m3[0]*(iy+ m3[1]*iz);                           \
-            if (DEBUG_PRINT) CkPrintf (" %6.3g",ARRAY[o+i]);            \
-            min=std::min(min,ARRAY[o+i]);                               \
-            max=std::max(max,ARRAY[o+i]);                               \
-            avg+=ARRAY[o+i];                                            \
-          }                                                             \
-          if (DEBUG_PRINT) CkPrintf ("\n");                             \
-        }                                                               \
-      }                                                                 \
-      CkPrintf ("DEBUG_ARRAY_SUM %s %g  %g  %g\n",NAME,min,avg,max);    \
-    }                                                                   \
-  }
-
-#else
-
-#   define DEBUG_PRINT_ARRAY0(NAME,ARRAY,m3,n3,o3)  /* ... */
-#   define DEBUG_PRINT_ARRAY(NAME,ARRAY,m3,n3)  /* ... */
-#   define DEBUG_PRINT_ARRAY_(NAME,ARRAY,m3,n3,ox,oy,oz)  /* ... */
-#endif
-
 //======================================================================
 
 long FieldFace::counter[CONFIG_NODE_SIZE] = {0};
+
+//----------------------------------------------------------------------
 
 #define FORTRAN_NAME(NAME) NAME##_
 
@@ -106,12 +33,16 @@ extern "C" void FORTRAN_NAME(field_face_store_8)
 extern "C" void FORTRAN_NAME(field_face_store_16)
   (long double * field, long double * array, int * m3, int * n3, int * accumulate);
 
+//----------------------------------------------------------------------
+
 enum enum_op_type {
   op_unknown,
   op_load,
   op_store
 };
 
+
+//----------------------------------------------------------------------
 
 #ifdef CHECK_COARSE
 #   undef  CHECK_COARSE
@@ -130,13 +61,9 @@ FieldFace::FieldFace (int rank) throw()
   : rank_(rank),
     refresh_type_(refresh_unknown),
     refresh_(NULL),
-    new_refresh_(false),
-    use_time_(false),
-    time_(0.0)
-    
+    new_refresh_(false)
 {
   ++counter[cello::index_static()]; 
-  TRACE_FIELD_FACE("FieldFace(int)");
   for (int i=0; i<3; i++) {
     face_[i] = 0;
     ghost_[i] = 0;
@@ -150,7 +77,6 @@ FieldFace::FieldFace (int rank) throw()
 FieldFace::~FieldFace() throw ()
 {
   --counter[cello::index_static()];
-  TRACE_FIELD_FACE("~FieldFace()");
 
   if (new_refresh_) {
     delete refresh_;
@@ -167,7 +93,6 @@ FieldFace::FieldFace(const FieldFace & field_face) throw ()
 
 {
   ++counter[cello::index_static()];
-  TRACE_FIELD_FACE("FieldFace(FieldFace)");
 
   copy_(field_face);
 }
@@ -215,8 +140,6 @@ void FieldFace::pup (PUP::er &p)
   p | refresh_type_;
   p | refresh_;
   p | new_refresh_;
-  p | use_time_;
-  p | time_;
 }
 
 //======================================================================
@@ -253,14 +176,7 @@ void FieldFace::face_to_array ( Field field,char * array) throw()
 
     precision_type precision = field.precision(index_field);
 
-#ifdef USE_NEW_VALUES
-    char * field_face = new_values_(field,index_field);
-#ifdef TRACE_NEW_VALUES
-    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)field_face);
-#endif
-#else
     char * field_face = field.values(index_field);
-#endif
     char * array_face  = &array[index_array];
 
     int m3[3],g3[3],c3[3];
@@ -283,14 +199,7 @@ void FieldFace::face_to_array ( Field field,char * array) throw()
     // limits for Send block 
     //    box.get_start_size(i3,n3,BlockType::receive,BlockType::send);
     bool lpad;
-    TRACE_ONCE;
     box.get_start_size(i3,n3,BlockType::send,BlockType::send,lpad=true);
-#ifdef DEBUG_NEW_BOX
-    if (i_f == 0) {
-      CkPrintf ("DEBUG_NEW_BOX face_to_array() %d %d %d\n",i3[0],i3[1],i3[2]);
-      CkPrintf ("DEBUG_NEW_BOX face_to_array() %d %d %d\n",n3[0],n3[1],n3[2]);
-    }
-#endif
 
     // scale by density if needed to convert to conservative form
     mul_by_density_(field,index_field,i3,n3,m3);
@@ -330,14 +239,7 @@ void FieldFace::face_to_array ( Field field,char * array) throw()
     // unscale by density if needed to convert back from conservative form
     div_by_density_(field,index_field,i3,n3,m3);
 
-#ifdef USE_NEW_VALUES
-    del_values_(&field_face);
-#ifdef TRACE_NEW_VALUES
-    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)field_face);
-#endif
-#endif
   }
-
 }
 
 //----------------------------------------------------------------------
@@ -357,14 +259,7 @@ void FieldFace::array_to_face (char * array, Field field) throw()
 
     precision_type precision = field.precision(index_field);
 
-#ifdef USE_NEW_VALUES
-    char * field_ghost =  new_values_ (field, index_field);
-#ifdef TRACE_NEW_VALUES
-    CkPrintf ("TRACE_NEW_VALUES :%d field= %p\n",__LINE__,(void *)field_ghost);
-#endif
-#else
     char * field_ghost =  field.values( index_field);
-#endif
 
     char * array_ghost  = array + index_array;
 
@@ -390,17 +285,8 @@ void FieldFace::array_to_face (char * array, Field field) throw()
     box_adjust_accumulate_(&box,accumulate,g3);
 
     bool lpad;
-    TRACE_ONCE;
     box.get_start_size(i3,n3,BlockType::receive,BlockType::receive,lpad=false);
 
-#ifdef DEBUG_NEW_BOX
-    box.print("array_to_face");
-    if (i_f == 0) {
-      CkPrintf ("DEBUG_NEW_BOX array_to_face %d %d %d\n",i3[0],i3[1],i3[2]);
-      CkPrintf ("DEBUG_NEW_BOX array_to_face %d %d %d\n",n3[0],n3[1],n3[2]);
-    }
-#endif
-    
     if (refresh_type_ == refresh_fine) {
 
       // Prolong array to field
@@ -411,7 +297,6 @@ void FieldFace::array_to_face (char * array, Field field) throw()
         
       int ic3[3];
       int nc3[3];
-      TRACE_ONCE;
       box.get_start_size(ic3,nc3,BlockType::send,BlockType::send,lpad=true);
       int mc3[3] = {nc3[0],nc3[1],nc3[2]};
       // reset ic3 for array
@@ -420,18 +305,11 @@ void FieldFace::array_to_face (char * array, Field field) throw()
       ic3[2] = 0;
 
       // adjust for full-block interpolation to child
-      TRACE_PROLONG("array_to_face",prolong(),m3,i3,n3,mc3,ic3,nc3);
       prolong()->apply
         (precision,
          field_ghost,m3, i3,  n3,
          array_ghost,mc3,ic3, nc3,
          accumulate);
-
-#ifdef DEBUG_ARRAY            
-      CkPrintf ("field %lu\n",  i_f);
-#endif      
-      DEBUG_PRINT_ARRAY0("array_to_face array_ghost",((cello_float *)array_ghost),nc3,nc3,ic3);
-      DEBUG_PRINT_ARRAY0("array_to_face field_ghost",((cello_float *)field_ghost),m3,n3,i3);
 
       index_array += cello::sizeof_precision(precision)*
         nc3[0]*nc3[1]*nc3[2];
@@ -460,14 +338,7 @@ void FieldFace::array_to_face (char * array, Field field) throw()
     // unscale by density if needed to convert back from conservative form
     div_by_density_(field,index_field,i3,n3,m3);
 
-#ifdef USE_NEW_VALUES
-    del_values_ (&field_ghost);
-#ifdef TRACE_NEW_VALUES
-    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)field_ghost);
-#endif
-#endif
   }
-  
 }
 
 //----------------------------------------------------------------------
@@ -505,41 +376,23 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
     bool lpad;
     int is3[3], ns3[3];
     int id3[3], nd3[3];
-    TRACE_ONCE;
+
     box.get_start_size
       (is3,ns3,BlockType::send,BlockType::send,lpad=true);
     box.get_start_size
       (id3,nd3,BlockType::receive,BlockType::receive,lpad=false);
-#ifdef DEBUG_NEW_BOX
-    if (i_f == 0) {
-      CkPrintf ("DEBUG_NEW_BOX face_to_face() %d %d %d\n",is3[0],is3[1],is3[2]);
-      CkPrintf ("DEBUG_NEW_BOX face_to_face() %d %d %d\n",ns3[0],ns3[1],ns3[2]);
-      CkPrintf ("DEBUG_NEW_BOX face_to_face() %d %d %d\n",id3[0],id3[1],id3[2]);
-      CkPrintf ("DEBUG_NEW_BOX face_to_face() %d %d %d\n",nd3[0],nd3[1],nd3[2]);
-    }
-#endif
+
     // Adjust loop limits if accumulating to include ghost zones
     // on neighbor axes
 
     precision_type precision = field_src.precision(index_src);
 
-#ifdef USE_NEW_VALUES
-    char * values_src = new_values_ (field_src,index_src);
-    char * values_dst = new_values_ (field_dst,index_dst);
-#ifdef TRACE_NEW_VALUES
-    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)values_src);
-#endif
-#ifdef TRACE_NEW_VALUES
-    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)values_dst);
-#endif
-#else
     char * values_src = field_src.values(index_src);
     char * values_dst = field_dst.values(index_dst);
-#endif
 
     // scale by density if needed to convert to conservative form
     mul_by_density_(field_src,index_src,is3,ns3,m3);
-    
+
     if (refresh_type_ == refresh_fine) {
 
       // Prolong field
@@ -547,27 +400,14 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
       bool need_padding = (g3[0]%2==1) || (g3[1]%2==1) || (g3[2]%2==1);
 
       ASSERT("FieldFace::face_to_face()",
-	     "Odd ghost zones not implemented yet: prolong needs padding",
-	     ! need_padding);
-
-
-#ifdef DEBUG_ARRAY
-      CkPrintf ("DEBUG_ARRAY face_to_face calling Prolong::apply\n");
-#endif            
+             "Odd ghost zones not implemented yet: prolong needs padding",
+             (! need_padding) );
 
       // adjust for full-block interpolation to child
-      TRACE_PROLONG("face_to_face",prolong(),m3,id3,nd3,m3,is3,ns3);
       prolong()->apply (precision,
                         values_dst,m3,id3, nd3,
                         values_src,m3,is3, ns3,
                         accumulate);
-
-#ifdef DEBUG_ARRAY            
-      CkPrintf ("field %lu\n",  i_f);
-#endif      
-      DEBUG_PRINT_ARRAY0("face_to_face values_src",((cello_float *)values_src),m3,ns3,is3);
-      DEBUG_PRINT_ARRAY0("face_to_face values_dst",((cello_float *)values_dst),m3,nd3,id3);
-
 
     } else if (refresh_type_ == refresh_coarse) {
 
@@ -603,16 +443,6 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
     div_by_density_(field_src,index_src,is3,ns3,m3);
     div_by_density_(field_dst,index_dst,id3,nd3,m3);
 
-#ifdef USE_NEW_VALUES
-    del_values_(&values_dst);
-    del_values_(&values_src);
-#ifdef TRACE_NEW_VALUES
-    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)values_dst);
-#endif
-#ifdef TRACE_NEW_VALUES
-    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)values_src);
-#endif
-#endif
   }
 #ifdef CONFIG_SMP_MODE
   CmiUnlock(field_face_node_lock);
@@ -654,15 +484,8 @@ int FieldFace::num_bytes_array(Field field) throw()
 
     bool lpad;
     int i3[3];
-    TRACE_ONCE;
     box.get_start_size(i3,n3,BlockType::send,BlockType::send,lpad=true);
-    
-#ifdef DEBUG_NEW_BOX
-    if (i_f == 0) {
-      CkPrintf ("DEBUG_NEW_BOX num_bytes_array() %d %d %d\n",i3[0],i3[1],i3[2]);
-      CkPrintf ("DEBUG_NEW_BOX num_bytes_array() %d %d %d\n",n3[0],n3[1],n3[2]);
-    }
-#endif
+
     array_size += n3[0]*n3[1]*n3[2]*bytes_per_element;
 
   }
@@ -934,19 +757,8 @@ void FieldFace::mul_by_density_
 
     const int index_density = field.field_id ("density");
 
-#ifdef USE_NEW_VALUES
-    char * field_density = new_values_(field,index_density);
-    char * field_face =    new_values_(field,index_field);
-#ifdef TRACE_NEW_VALUES
-    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)field_density);
-#endif
-#ifdef TRACE_NEW_VALUES
-    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)field_face);
-#endif
-#else
     char * field_density = field.values(index_density);
     char * field_face =    field.values(index_field);
-#endif
 
     union { float * d4; double * d8; long double * d16; };
     union { float * f4; double * f8;long double * f16;  };
@@ -985,16 +797,6 @@ void FieldFace::mul_by_density_
     } else {
       ERROR("FieldFace::mul_by_density_()", "Unsupported precision");
     }
-#ifdef USE_NEW_VALUES
-    del_values_(&field_density);
-    del_values_(&field_face);
-#ifdef TRACE_NEW_VALUES
-    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)field_density);
-#endif
-#ifdef TRACE_NEW_VALUES
-    CkPrintf ("TRACE_NEW_VALUES :%d field = %p\n",__LINE__,(void *)field_face);
-#endif
-#endif
   }
 }
 
@@ -1104,72 +906,3 @@ void FieldFace::box_adjust_accumulate_ (Box * box, int accumulate, int g3[3])
   box->compute_region();
 }
 
-//----------------------------------------------------------------------
-
-char * FieldFace::new_values_ (Field field, int index_field)
-{
-  char * values = nullptr;
-
-#ifdef FORCE_NEW_VALUES
-  if (true)
-#else
-    if (use_time_)
-#endif
-      {
-        double time_prev = field.history_time(1);
-        double time_curr = field.history_time(0);
-
-        const int cycle = cello::simulation()->state()->cycle();
-        if (cycle > 0) {
-          ASSERT3 ("FieldFace::new_values_()",
-                   "Trying to access field at time %20.16g but only %20.16g and %20.16g available",
-                   ((time_prev <= time_) && (time_ <= time_curr)),
-                   time_, time_prev,time_curr);
-        }
-        cello_float * values_curr = (cello_float*) field.values (index_field,0);
-        cello_float * values_prev = (cello_float*) field.values (index_field,1);
-
-        double cp,cc;
-        if (cycle == 0) {
-          cp = 0.0;
-          cc = 1.0;
-        } else {
-          cp = 0.0;
-          cc = 1.0;
-        }
-
-        int mx,my,mz;
-        const int m = field.dimensions (index_field,&mx,&my,&mz);  
-        cello_float * new_values      = new cello_float[m];
-
-        for (int i=0; i<m; i++) {
-          new_values[i] = cp*values_prev[i] + cc*values_curr[i];
-        }
-
-        values = (char * ) new_values;
-
-      } else {
-
-      values = field.values(index_field);
-
-    }
-
-  return values;
-
-}
-
-//----------------------------------------------------------------------
-
-void FieldFace::del_values_ (char ** values)
-{
-#ifdef FORCE_NEW_VALUES
-  if (true)
-#else
-    if (use_time_)
-#endif
-      {
-        delete [] *values;
-        *values = nullptr;
-      }
-  return;
-}

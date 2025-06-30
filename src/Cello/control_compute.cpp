@@ -153,7 +153,7 @@ void Block::compute_end_ ()
   state_->advance();
 
   // Push back fields if saving old ones
-  data()->field().save_history(state_->time());
+  data()->field().save_history(state_->time(level()));
 
   // delete fluxes
   data()->flux_data()->deallocate();

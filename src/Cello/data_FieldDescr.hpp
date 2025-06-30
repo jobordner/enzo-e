@@ -103,47 +103,16 @@ public: // functions
   /// Return whether the field has been inserted
   bool is_field(const std::string & name) const throw();
 
-  /// Return the integer handle for the named field
-  int field_id(const std::string & name) const throw();
+  /// Return the integer handle for the named field. If history > 0 return
+  /// older version if available
+  int field_id(const std::string & name, int history = 0) const throw();
 
   //----------------------------------------------------------------------
   // History
   //----------------------------------------------------------------------
 
   /// Set the history depth for storing old field values
-  void set_history (int history) throw()
-  {
-    const int np = num_permanent();
-    const int nh = history;
-
-    if (history > history_) {
-      history_id_.resize(np*nh);
-      for (int ih=0; ih<nh; ih++) {
-	for (int ip=0; ip<np; ip++) {
-
-	  int i = ip + np*ih;
-
-	  const int ih = insert_temporary();
-
-	  history_id_[i] = ih;
-
-	  // set precision
-	  set_precision (ih, precision(ip));
-
-	  // set ghost zones
-	  int gx,gy,gz;
-	  ghost_depth(ip,&gx,&gy,&gz);
-	  set_ghost_depth(ih,gx,gy,gz);
-
-	  // set centering
-	  int cx,cy,cz;
-	  centering(ip,&cx,&cy,&cz);
-	  set_centering(ih,cx,cy,cz);
-	}
-      }
-    }
-    history_ = history;
-  }
+  void set_history (int history) throw();
 
   void reset_history(int history) throw()
   {

@@ -27,10 +27,12 @@ public: // interface
   State() throw()
     : PUP::able(),
       cycle_(0),
-      time_(0.0),
+      time_curr_(0.0),
+      time_prev_(0.0),
       dt_(0.0),
       cycle_level_(),
-      time_level_(),
+      time_level_curr_(),
+      time_level_prev_(),
       dt_level_(),
       stopping_(false),
       method_state_(),
@@ -43,10 +45,12 @@ public: // interface
   State(int cycle, double time, double dt, bool stopping) throw()
     : PUP::able(),
       cycle_(cycle),
-      time_(time),
+      time_curr_(time),
+      time_prev_(time),
       dt_(dt),
       cycle_level_(),
-      time_level_(),
+      time_level_curr_(),
+      time_level_prev_(),
       dt_level_(),
       stopping_(stopping),
       method_state_(),
@@ -70,10 +74,12 @@ public: // interface
     TRACEPUP;
     PUP::able::pup(p);
     p | cycle_;
-    p | time_;
+    p | time_curr_;
+    p | time_prev_;
     p | dt_;
     p | cycle_level_;
-    p | time_level_;
+    p | time_level_curr_;
+    p | time_level_prev_;
     p | dt_level_;
     p | stopping_;
     p | method_state_;
@@ -93,9 +99,9 @@ public: // interface
   { set_(cycle_level_,level,cycle); }
 
   virtual void set_time (double time)
-  { time_ = time; }
+  { time_curr_ = time; }
   virtual void set_time (double time, int level)
-  { set_(time_level_,level,time); }
+  { set_(time_level_curr_,level,time); }
 
   void set_dt (double dt)
   { dt_ = dt; }
@@ -149,12 +155,12 @@ public: // interface
 
       // allocate level states and initialize from global 
       cycle_level_.resize(max_level+1);
-      time_level_.resize(max_level+1);
+      time_level_curr_.resize(max_level+1);
       dt_level_.resize(max_level+1);
       for (int i=0; i<=max_level; i++) {
         cycle_level_[i]  = cycle_;
         dt_level_[i]  = dt_;
-        time_level_[i]  = time_;
+        time_level_curr_[i]  = time_curr_;
       }
 
     } else {
@@ -206,17 +212,25 @@ public: // interface
 
   double time() const
   {
-    double time = time_;
+    double time = time_curr_;
     if ( state_type_ == Type::Level ) {
-      time = *std::min_element(time_level_.begin(), time_level_.end());
+      time = *std::min_element(time_level_curr_.begin(),
+                               time_level_curr_.end());
     }
     return time;
   }
   double time(int level) const
   {
-    if (state_type_ == Type::Global) return time_;
-    alloc_(time_level_,level);
-    return time_level_[level]; }
+    if (state_type_ == Type::Global) return time_curr_;
+    alloc_(time_level_curr_,level);
+    return time_level_curr_[level]; }
+
+  /// Return the time for the previous cycle in the given level
+  double time_prev(int level) const
+  {
+    if (state_type_ == Type::Global) return time_prev_;
+    alloc_(time_level_prev_,level);
+    return time_level_prev_[level]; }
 
   double dt() const
   { return dt_; }
@@ -226,9 +240,9 @@ public: // interface
     if (state_type_ == Type::Global) return dt_;
     alloc_(dt_level_,level);
     double dt = is_active(level) ? dt_level_[level] : 0.0;
-    double t =  time_level_[level] ;
+    double t =  time_level_curr_[level] ;
     double tc = std::numeric_limits<double>::max();
-    if (level > 0) tc = time_level_[level-1];
+    if (level > 0) tc = time_level_curr_[level-1];
     double dtc = 0.0;
     if (level > 0) dtc = dt_level_[level-1];
     if (is_active(level-1)) tc += dtc;
@@ -274,10 +288,12 @@ public: // interface
   {
     int size = 0;
     SIZE_SCALAR_TYPE(size,int,cycle_);
-    SIZE_SCALAR_TYPE(size,double,time_);
+    SIZE_SCALAR_TYPE(size,double,time_curr_);
+    SIZE_SCALAR_TYPE(size,double,time_prev_);
     SIZE_SCALAR_TYPE(size,double,dt_);
     SIZE_VECTOR_TYPE(size,int,cycle_level_);
-    SIZE_VECTOR_TYPE(size,double,time_level_);
+    SIZE_VECTOR_TYPE(size,double,time_level_curr_);
+    SIZE_VECTOR_TYPE(size,double,time_level_prev_);
     SIZE_VECTOR_TYPE(size,double,dt_level_);
     SIZE_SCALAR_TYPE(size,bool,stopping_);
     SIZE_VECTOR_OBJECT_TYPE(size, MethodState, method_state_);
@@ -293,10 +309,12 @@ public: // interface
   {
     char * pc = buffer;
     SAVE_SCALAR_TYPE(pc,int,cycle_);
-    SAVE_SCALAR_TYPE(pc,double,time_);
+    SAVE_SCALAR_TYPE(pc,double,time_curr_);
+    SAVE_SCALAR_TYPE(pc,double,time_prev_);
     SAVE_SCALAR_TYPE(pc,double,dt_);
     SAVE_VECTOR_TYPE(pc,int,cycle_level_);
-    SAVE_VECTOR_TYPE(pc,double,time_level_);
+    SAVE_VECTOR_TYPE(pc,double,time_level_curr_);
+    SAVE_VECTOR_TYPE(pc,double,time_level_prev_);
     SAVE_VECTOR_TYPE(pc,double,dt_level_);
     SAVE_SCALAR_TYPE(pc,bool,stopping_);
     SAVE_VECTOR_OBJECT_TYPE(pc, MethodState, method_state_);
@@ -312,10 +330,12 @@ public: // interface
   {
     char * pc = buffer;
     LOAD_SCALAR_TYPE(pc,int,cycle_);
-    LOAD_SCALAR_TYPE(pc,double,time_);
+    LOAD_SCALAR_TYPE(pc,double,time_curr_);
+    LOAD_SCALAR_TYPE(pc,double,time_prev_);
     LOAD_SCALAR_TYPE(pc,double,dt_);
     LOAD_VECTOR_TYPE(pc,int,cycle_level_);
-    LOAD_VECTOR_TYPE(pc,double,time_level_);
+    LOAD_VECTOR_TYPE(pc,double,time_level_curr_);
+    LOAD_VECTOR_TYPE(pc,double,time_level_prev_);
     LOAD_VECTOR_TYPE(pc,double,dt_level_);
     LOAD_SCALAR_TYPE(pc,bool,stopping_);
     LOAD_VECTOR_OBJECT_TYPE(pc, MethodState, method_state_);
@@ -336,38 +356,39 @@ public: // interface
     if (state_type_ == Type::Global) {
 
       CkPrintf ("   cycle_ = %d",cycle_);
-      CkPrintf ("   time_  = %g",time_);
+      CkPrintf ("   time_curr_ = %g",time_curr_);
+      CkPrintf ("   time_prev_ = %g",time_prev_);
       CkPrintf ("   dt_    = %g",dt_);
 
     } else if (state_type_ == Type::Level) {
 
       CkPrintf ("   cycle_level_[] = ");
-      for (int level=0; level<cycle_level_.size(); level++) {
-        CkPrintf (" %d",cycle_level_[level]);
-      }
+      for (auto cycle: cycle_level_) CkPrintf (" %d",cycle);
       CkPrintf ("\n");
 
-      CkPrintf ("   time_level_[] = ");
-      for (int level=0; level<time_level_.size(); level++) {
-        CkPrintf (" %g",time_level_[level]);
-      }
+      CkPrintf ("   time_level_curr_[] = ");
+      for (auto time: time_level_curr_) CkPrintf (" %g",time);
+      CkPrintf ("\n");
+
+      CkPrintf ("   time_level_prev_[] = ");
+      for (auto time: time_level_prev_) CkPrintf (" %g",time);
       CkPrintf ("\n");
 
       CkPrintf ("   dt_level_[] = ");
-      for (int level=0; level<dt_level_.size(); level++) {
-        CkPrintf (" %g",dt_level_[level]);
-      }
+      for (auto dt: dt_level_) CkPrintf (" %g",dt);
       CkPrintf ("\n");
 
     }
 
     CkPrintf ("  stopping_ %d\n",stopping_?1:0);
 
-    for (int i=0; i<method_state_.size(); i++) {
-      CkPrintf ("       Method %d time      %g\n",i,method_state_[i].time());
-      CkPrintf ("       Method %d dt        %g\n",i,method_state_[i].dt());
-      CkPrintf ("       Method %d num_steps %d\n",i,method_state_[i].num_steps());
-      CkPrintf ("       Method %d step      %d\n",i,method_state_[i].step());
+    int i=0;
+    for (auto & method_state: method_state_) {
+      CkPrintf ("       Method %d time      %g\n",i,method_state.time());
+      CkPrintf ("       Method %d dt        %g\n",i,method_state.dt());
+      CkPrintf ("       Method %d num_steps %d\n",i,method_state.num_steps());
+      CkPrintf ("       Method %d step      %d\n",i,method_state.step());
+      i++;
     }
 
     CkPrintf ("   level_lower_ %d\n",level_lower_);
@@ -419,7 +440,10 @@ protected: // attributes
   int cycle_;
 
   /// Current global time 
-  double time_;
+  double time_curr_;
+
+  /// Previous global time 
+  double time_prev_;
 
   /// Current global timestep
   double dt_;
@@ -428,7 +452,9 @@ protected: // attributes
   mutable std::vector<int> cycle_level_;
 
   /// Current level time (mutable for resizing)
-  mutable std::vector<double> time_level_;
+  mutable std::vector<double> time_level_curr_;
+  /// Previous level time (mutable for resizing)
+  mutable std::vector<double> time_level_prev_;
 
   /// Current level timestep (mutable for resizing)
   mutable std::vector<double> dt_level_;
