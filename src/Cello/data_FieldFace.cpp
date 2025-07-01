@@ -59,7 +59,7 @@ enum enum_op_type {
 
 FieldFace::FieldFace (int rank) throw()
   : rank_(rank),
-    refresh_type_(refresh_unknown),
+    face_type_(0),
     refresh_(NULL),
     new_refresh_(false)
 {
@@ -87,7 +87,7 @@ FieldFace::~FieldFace() throw ()
 //----------------------------------------------------------------------
 
 FieldFace::FieldFace(const FieldFace & field_face) throw ()
-  :  refresh_type_(refresh_unknown),
+  :  face_type_(0),
      refresh_(NULL),
      new_refresh_(false)
 
@@ -117,8 +117,8 @@ void FieldFace::copy_(const FieldFace & field_face)
     ghost_[i] = field_face.ghost_[i];
     child_[i] = field_face.child_[i];
   }
-  refresh_type_   = field_face.refresh_type_;
-  refresh_        = field_face.refresh_;
+  face_type_ = field_face.face_type_;
+  refresh_    = field_face.refresh_;
   // new_refresh_ must not be true in more than one FieldFace to avoid
   // multiple deletes
   new_refresh_  = false;
@@ -137,7 +137,7 @@ void FieldFace::pup (PUP::er &p)
   PUParray(p,face_,3);
   PUParray(p,ghost_,3);
   PUParray(p,child_,3);
-  p | refresh_type_;
+  p | face_type_;
   p | refresh_;
   p | new_refresh_;
 }
@@ -191,6 +191,7 @@ void FieldFace::face_to_array ( Field field,char * array) throw()
     field.size(n3,n3+1,n3+2);
     Box box(rank_,n3,g3);
     box.set_centering(c3);
+
     set_box_(&box);
 
     box_adjust_accumulate_(&box,accumulate,g3);
@@ -204,7 +205,7 @@ void FieldFace::face_to_array ( Field field,char * array) throw()
     // scale by density if needed to convert to conservative form
     mul_by_density_(field,index_field,i3,n3,m3);
 
-    if (refresh_type_ == refresh_coarse) {
+    if (face_type_ < 0) {
 
       // Restrict field to array
 
@@ -287,14 +288,14 @@ void FieldFace::array_to_face (char * array, Field field) throw()
     bool lpad;
     box.get_start_size(i3,n3,BlockType::receive,BlockType::receive,lpad=false);
 
-    if (refresh_type_ == refresh_fine) {
+    if (face_type_ > 0) {
 
       // Prolong array to field
 
       ASSERT ("FieldFace::array_to_face()",
               "No prolongation operator",
               (prolong() != nullptr));
-        
+
       int ic3[3];
       int nc3[3];
       box.get_start_size(ic3,nc3,BlockType::send,BlockType::send,lpad=true);
@@ -321,7 +322,7 @@ void FieldFace::array_to_face (char * array, Field field) throw()
       union { float * fd4; double * fd8; long double * fd16; };
       as4 = (float *) array_ghost;
       fd4 = (float *) field_ghost;
-      
+
       // Copy field to array
 
       if (precision == precision_single) {
@@ -393,7 +394,7 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
     // scale by density if needed to convert to conservative form
     mul_by_density_(field_src,index_src,is3,ns3,m3);
 
-    if (refresh_type_ == refresh_fine) {
+    if (face_type_ > 0) {
 
       // Prolong field
 
@@ -409,7 +410,7 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
                         values_src,m3,is3, ns3,
                         accumulate);
 
-    } else if (refresh_type_ == refresh_coarse) {
+    } else if (face_type_ < 0) {
 
       // Restrict field
 
@@ -508,7 +509,7 @@ int FieldFace::data_size () const
   count += 3*sizeof(int); // ghost_[3]
   count += 3*sizeof(int);  // child_[3];
 
-  count += 1*sizeof(int);  // refresh_type_
+  count += 1*sizeof(int);  // face_type_
 
   count += refresh_->data_size(); // refresh_
 
@@ -527,7 +528,7 @@ char * FieldFace::save_data (char * buffer) const
   memcpy(p,ghost_,n=3*sizeof(int));  p+=n;
   memcpy(p,child_,n=3*sizeof(int));  p+=n;
 
-  memcpy(p,&refresh_type_,n=sizeof(int));   p+=n;
+  memcpy(p,&face_type_,n=sizeof(int));   p+=n;
 
   p = refresh_->save_data(p);
 
@@ -551,7 +552,7 @@ char * FieldFace::load_data (char * buffer)
   memcpy(ghost_,p,n=3*sizeof(int)); p+=n;
   memcpy(child_,p,n=3*sizeof(int)); p+=n;
 
-  memcpy(&refresh_type_,p,n=sizeof(int));   p+=n;
+  memcpy(&face_type_,p,n=sizeof(int));   p+=n;
 
   Refresh * refresh = new Refresh;
   set_refresh(refresh,true);
@@ -727,7 +728,7 @@ void FieldFace::print(const char * message)
   CkPrintf ("    face_    %d %d %d\n",face_[0],face_[1],face_[2]);
   CkPrintf ("    ghost_   %d %d %d\n",ghost_[0],ghost_[1],ghost_[2]);
   CkPrintf ("    child_   %d %d %d\n",child_[0],child_[1],child_[2]);
-  CkPrintf ("    refresh_type_ %d\n",refresh_type_);
+  CkPrintf ("    face_type_ %d\n",face_type_);
   if (refresh_) refresh_->print();
 }
 
@@ -750,7 +751,7 @@ void FieldFace::mul_by_density_
   const std::string field_name = field.field_name(index_field);
 
   const bool scale_by_density =
-    (refresh_type_ != refresh_same) &&
+    (face_type_ != 0) &&
     groups->is_in (field_name,"make_field_conservative");
 
   if (scale_by_density) {
@@ -820,7 +821,7 @@ void FieldFace::div_by_density_
   const std::string field_name = field.field_name(index_field);
 
   const bool scale_by_density =
-    (refresh_type_ != refresh_same) &&
+    (face_type_ != 0) &&
     groups->is_in (field_name,"make_field_conservative");
   if (scale_by_density) {
     union { float * d4; double * d8; long double * d16; };
@@ -865,15 +866,11 @@ void FieldFace::div_by_density_
 
 void FieldFace::set_box_(Box * box)
 {
-  const int level =
-    (refresh_type_==refresh_coarse) ? -1
-    : (refresh_type_==refresh_same) ?  0 : +1;
-
-  box->set_block(BoxType_receive,level,face_,child_);
+  box->set_block(BoxType_receive,face_type_,face_,child_);
 
   Prolong * prolong = this->prolong();
   int pad = prolong ? refresh_->coarse_padding(prolong) : 0;
-  if (refresh_type_ != refresh_fine) pad = 0;
+  if (face_type_ <= 0) pad = 0;
 
   box->set_padding(pad);
 
@@ -895,9 +892,9 @@ void FieldFace::box_adjust_accumulate_ (Box * box, int accumulate, int g3[3])
 
   } else {
 
-    gs3[0] = (ghost_[0] && face_[0]) ? g3[0] : 0;
-    gs3[1] = (ghost_[1] && face_[1]) ? g3[1] : 0;
-    gs3[2] = (ghost_[2] && face_[2]) ? g3[2] : 0;
+    gs3[0] = (ghost_[0] && ! face_[0]) ? g3[0] : 0;
+    gs3[1] = (ghost_[1] && ! face_[1]) ? g3[1] : 0;
+    gs3[2] = (ghost_[2] && ! face_[2]) ? g3[2] : 0;
 
   }
 

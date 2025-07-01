@@ -24,7 +24,7 @@ public: // interface
 	 int n3[3],
 	 Index index,
 	 const int * ic3=0,
-	 const int * if3=0) throw();
+	 const int * if3=0);
 
   /// Charm++ PUP::able declarations
   PUPable_decl(ItFace);
@@ -49,15 +49,22 @@ public: // interface
   }
 
   /// Go to the next face if any and return it through of3[]
-  bool next (int of3[3]) throw() override
+  bool next (int of3[3]) override
   {
     const bool retval = next_();
     if (retval) face_(of3);
     return retval;
   }
 
-  int face_level () const  throw () override
-  { return 0; }
+  /// Return the level of the current face
+  int face_level () const override
+  { return index_.level(); }
+
+  /// Return the type of face: positive if finer, negative if coarser, 0 if same
+  virtual int face_type() const override
+  {
+    return 0;;
+  }
 
   virtual void child(int ic3[3]) const override
   { }
@@ -65,14 +72,14 @@ public: // interface
   Index index() const  override;
 
   /// Reset the Iterator to the beginning
-  void reset() throw() override;
+  void reset() override;
 
   bool is_reset() const override;
 
 private: // functions
 
   /// Go to the next face if any
-  bool next_ () throw();
+  bool next_ ();
 
   /// Return the current face through of3[]
   void face_ (int of3[3]) const ;

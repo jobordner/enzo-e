@@ -148,12 +148,13 @@ void Block::compute_end_ ()
     CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_end_()\n", CkMyPe(),name().c_str());
 #endif
 
+  // Push back fields if saving old ones
+  if ( state_->is_active(level()) )
+      data()->field().save_history(state_->time(level()));
+
   // Update block cycle and time
 
   state_->advance();
-
-  // Push back fields if saving old ones
-  data()->field().save_history(state_->time(level()));
 
   // delete fluxes
   data()->flux_data()->deallocate();

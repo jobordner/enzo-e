@@ -105,6 +105,7 @@ public: // interface
     output_image_face_rank(),
     output_image_min(),
     output_image_max(),
+    output_image_history(),
     output_schedule_index(),
     output_max_level(),
     output_min_level(),
@@ -259,6 +260,7 @@ public: // interface
       output_image_face_rank(),
       output_image_min(),
       output_image_max(),
+      output_image_history(),
       output_schedule_index(),
       output_max_level(),
       output_min_level(),
@@ -473,6 +475,7 @@ public: // attributes
   std::vector < int >         output_image_face_rank;
   std::vector < double>       output_image_min;
   std::vector < double>       output_image_max;
+  std::vector < int>          output_image_history;
   std::vector < int >         output_schedule_index;
   std::vector < int >         output_max_level;
   std::vector < int >         output_min_level;

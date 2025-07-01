@@ -107,10 +107,6 @@ Prolong * Refresh::prolong ()
 {
   Problem * problem = cello::problem();
   Prolong * prolong = problem ? problem->prolong(id_prolong_) : nullptr;
-  if (prolong == nullptr) {
-    WARNING("Refresh::prolong()",
-            "Creating new ProlongLinear, potential memory leak");
-  }
   return prolong ? prolong : new ProlongLinear;
 }
 
@@ -120,10 +116,6 @@ Restrict * Refresh::restrict ()
 {
   Problem * problem = cello::problem();
   Restrict * restrict = problem ? problem->restrict(id_restrict_) : nullptr;
-  if (restrict == nullptr) {
-    WARNING("Refresh::restrict()",
-            "Creating new RestrictLinear, potential memory leak");
-  }
   return restrict ? restrict : new RestrictLinear;
 }
   

@@ -33,7 +33,7 @@ public: // interface
    int nx, int ny, int nz,
    int num_field_blocks,
    int num_adapt_steps,
-   int refresh_type,
+   int face_type,
    const std::vector<int> & face_level,
    Adapt * adapt_parent,
    State * state,
@@ -93,7 +93,7 @@ protected: // attributes
   int nx_, ny_, nz_;     // attribute-04
   int num_field_blocks_; // attribute-05
   int num_adapt_steps_;  // attribute-06
-  int refresh_type_;     // attribute-08
+  int face_type_;        // attribute-08
   std::vector<int> face_level_;   // attribute-09
   /// Mesh connectivity of parent block to update child's
   Adapt * adapt_parent_;        // attribute-11

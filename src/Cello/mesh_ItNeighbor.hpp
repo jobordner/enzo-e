@@ -78,12 +78,17 @@ public:
   }
 
   /// Return the level of this blocke current face
-  int this_level () const  throw () 
+  int this_level () const
   { return index_.level(); }
 
   /// Return the level of the current face
-  int face_level () const  throw () 
+  int face_level () const override
   { return block_->face_level(of3_); }
+
+  int face_type() const override
+  {
+    return face_level() - this_level();
+  }
 
   void child(int ic3[3]) const  override;
 

@@ -32,11 +32,14 @@ public: // interface
     PUP::able::pup(p);
   }
 
+  /// Return the type of face: positive if finer, negative if coarser, 0 if same
+  virtual int face_type() const = 0;
+
   /// Get next face;  return false when done
   virtual bool next (int of3[3]) = 0;
 
   /// Return the level of the current face
-  virtual int face_level () const  throw () = 0;
+  virtual int face_level () const = 0;
 
   /// Return index of child adjacent to fine neighbor
   virtual void child(int ic3[3]) const = 0;

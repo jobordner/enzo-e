@@ -179,7 +179,7 @@ void EnzoSolverDd::restrict_send(EnzoBlock * enzo_block) throw()
   int ic3[3];
   index.child(level,&ic3[0],&ic3[1],&ic3[2],min_level_);
 
-  FieldMsg * msg = pack_field_(enzo_block,ib_,refresh_coarse,ic3);
+  FieldMsg * msg = pack_field_(enzo_block,ib_,-1,ic3);
 
   // Send packed field to parent
   Index index_parent = enzo_block->index().index_parent(min_level_);
@@ -211,7 +211,7 @@ void EnzoSolverDd::restrict_recv
       msg = *pmsg_restrict(enzo_block,i);
       *pmsg_restrict(enzo_block,i) = NULL;
       // Unpack field from message then delete message
-      unpack_field_(enzo_block,msg,ib_,refresh_coarse);
+      unpack_field_(enzo_block,msg,ib_,-1);
     }
 
     begin_solve(enzo_block);
@@ -287,7 +287,7 @@ void EnzoSolverDd::prolong_send_(EnzoBlock * enzo_block) throw()
 
     while (it_child.next(ic3)) {
 
-      FieldMsg * msg = pack_field_(enzo_block,ixc_,refresh_fine,ic3);
+      FieldMsg * msg = pack_field_(enzo_block,ixc_,+1,ic3);
 
       Index index_child = enzo_block->index().index_child(ic3,min_level_);
 
@@ -325,7 +325,7 @@ void EnzoSolverDd::prolong_recv
     *pmsg_prolong(enzo_block) = NULL;
 
     // Unpack field from message then delete message
-    unpack_field_(enzo_block,msg,ixc_,refresh_fine);
+    unpack_field_(enzo_block,msg,ixc_,+1);
 
     // copy X = XC
     // copy X_copy = XC (using Solver::reuse_solution_(cycle) )
@@ -435,13 +435,13 @@ void EnzoSolverDd::end (Block* block) throw ()
 
 FieldMsg * EnzoSolverDd::pack_field_(EnzoBlock * enzo_block,
 				     int index_field,
-				     int refresh_type,
+				     int face_type,
 				     int * ic3)
 {
   int  if3[3] = {0,0,0};
   int g3[3];
   cello::field_descr()->ghost_depth(index_field,g3,g3+1,g3+2);
-  if (refresh_type != refresh_fine)
+  if (face_type <= 0)
     for (int i=0; i<3; i++) g3[i]=0;
 
   Refresh * refresh = new Refresh;
@@ -450,11 +450,11 @@ FieldMsg * EnzoSolverDd::pack_field_(EnzoBlock * enzo_block,
   refresh->add_field(index_field);
 
   FieldFace * field_face = enzo_block->create_face
-    (if3, ic3, g3, refresh_type, refresh);
+    (if3, ic3, g3, face_type, refresh);
 
-  if (refresh_type == refresh_fine) {
+  if (face_type > 0) {
     refresh->set_prolong(index_prolong_);
-  } else if (refresh_type == refresh_coarse) {
+  } else if (face_type < 0) {
     refresh->set_restrict(index_restrict_);
   }
 
@@ -485,12 +485,12 @@ void EnzoSolverDd::unpack_field_
 (EnzoBlock * enzo_block,
  FieldMsg * msg,
  int index_field,
- int refresh_type)
+ int face_type)
 {
   int if3[3] = {0,0,0};
   int g3[3];
   cello::field_descr()->ghost_depth(index_field,g3,g3+1,g3+2);
-  if (refresh_type != refresh_fine)
+  if (face_type <= 0 )
     for (int i=0; i<3; i++) g3[i]=0;
   Refresh * refresh = new Refresh;
   refresh->set_prolong(index_prolong_);
@@ -500,11 +500,11 @@ void EnzoSolverDd::unpack_field_
   int * ic3 = msg->ic3;
 
   FieldFace * field_face = enzo_block->create_face
-    (if3, ic3, g3, refresh_type, refresh);
+    (if3, ic3, g3, face_type, refresh);
 
-  if (refresh_type == refresh_fine) {
+  if (face_type > 0) {
     refresh->set_prolong(index_prolong_);
-  } else if (refresh_type == refresh_coarse) {
+  } else if (face_type < 0) {
     refresh->set_restrict(index_restrict_);
   }
 

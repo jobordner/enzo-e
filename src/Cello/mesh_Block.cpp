@@ -94,7 +94,7 @@ void Block::set_msg_refine(MsgRefine * msg)
      msg->num_field_blocks_,
      msg->num_adapt_steps_,
      0, nullptr,
-     msg->refresh_type_,
+     msg->face_type_,
      msg->face_level_,
      msg->adapt_parent_,
      msg->state_);
@@ -128,7 +128,7 @@ void Block::init_refine_
  int nx, int ny, int nz,
  int num_field_blocks,
  int num_adapt_steps,
- int narray, char * array, int refresh_type,
+ int narray, char * array, int face_type,
  const std::vector<int> & face_level,
  Adapt * adapt,
  State * state)
@@ -238,7 +238,7 @@ void Block::init_refine_
     refresh->add_all_data();
 
     FieldFace * field_face = create_face
-      (if3, ic3, g3, refresh_fine, refresh);
+      (if3, ic3, g3, +1, refresh);
 
     // Copy refined field data
     field_face -> array_to_face (array, data()->field());
@@ -632,7 +632,7 @@ Block::~Block()
     refresh->add_all_data();
 
     FieldFace * field_face = create_face
-      ( if3,ic3,g3,refresh_coarse,refresh);
+      ( if3,ic3,g3,-1,refresh);
 
     field_face->face_to_array(data()->field(),&n,&array);
     delete field_face;
@@ -675,7 +675,7 @@ void Block::p_refresh_child
   refresh->add_all_data();
 
   FieldFace * field_face = create_face
-    (if3, ic3, g3, refresh_coarse,refresh);
+    (if3, ic3, g3, -1,refresh);
 
   field_face -> array_to_face (buffer, data()->field());
   delete field_face;
@@ -983,11 +983,11 @@ Index Block::index_from_global(int ix, int iy, int iz, int level, int min_level)
 
 FieldFace * Block::create_face
 (int if3[3], int ic3[3], int g3[3],
- int refresh_type, Refresh * refresh, bool new_refresh) const
+ int face_type, Refresh * refresh, bool new_refresh) const
 {
   FieldFace  * field_face = new FieldFace(cello::rank());
 
-  field_face -> set_refresh_type (refresh_type);
+  field_face -> set_face_type (face_type);
   field_face -> set_child (ic3[0],ic3[1],ic3[2]);
   field_face -> set_face (if3[0],if3[1],if3[2]);
   field_face -> set_ghost(g3[0],g3[1],g3[2]);

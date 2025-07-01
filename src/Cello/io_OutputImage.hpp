@@ -1,7 +1,7 @@
 // See LICENSE_CELLO file for license and copyright information
 
-/// @file     io_OutputImage.hpp 
-/// @author   James Bordner (jobordner@ucsd.edu) 
+/// @file     io_OutputImage.hpp
+/// @author   James Bordner (jobordner@ucsd.edu)
 /// @date     Mon Mar 14 17:35:56 PDT 2011
 /// @brief    [\ref Io] Declaration for the OutputImage class
 
@@ -32,27 +32,28 @@ public: // functions
 
   /// Create an uninitialized OutputImage object
   OutputImage(int index,
-	      const Factory * factory,
-	      int process_count,
-	      const int root_size[3],
-	      const int root_blocks[3],
-	      int min_level, int max_level,
+              const Factory * factory,
+              int process_count,
+              const int root_size[3],
+              const int root_blocks[3],
+              int min_level, int max_level,
               int leaf_only,
-	      std::string image_type,
-	      int         image_size[2],
-	      std::string image_reduce_type,
-	      std::string image_mesh_color,
-	      std::string image_color_scalar,
-	      std::string image_color_particle_attribute,
-	      double      image_lower[],
-	      double      image_upper[],
-	      int face_rank,
-	      int axis,
-	      bool image_log,
-	      bool image_abs,
-	      bool include_ghost,
+              std::string image_type,
+              int         image_size[2],
+              std::string image_reduce_type,
+              std::string image_mesh_color,
+              std::string image_color_scalar,
+              std::string image_color_particle_attribute,
+              double      image_lower[],
+              double      image_upper[],
+              int image_history,
+              int face_rank,
+              int axis,
+              bool image_log,
+              bool image_abs,
+              bool include_ghost,
               bool use_min_max,
-	      double min_value, double max_value) throw();
+              double min_value, double max_value) throw();
 
   /// OutputImage destructor: free allocated image data
   virtual ~OutputImage() throw();
@@ -69,6 +70,7 @@ public: // functions
       mesh_color_type_(mesh_color_unknown),
       image_color_scalar_(),
       color_particle_attribute_(""),
+      image_history_(0),
       axis_(axis_all),
       min_value_(std::numeric_limits<double>::max()),
       max_value_(-std::numeric_limits<double>::max()),
@@ -134,12 +136,12 @@ public: // virtual functions
 
   /// Write fields
   virtual void write_field_data
-  ( const FieldData * field_data, 
+  ( const FieldData * field_data,
     int index_field) throw();
 
   /// Write particles
   virtual void write_particle_data
-  ( const ParticleData * particle_data, 
+  ( const ParticleData * particle_data,
     int index_particle) throw();
 
   /// Prepare local array with data to be sent to remote chare for processing
@@ -177,16 +179,16 @@ private: // functions
   void reduce_point_
   ( double * data,  int ix, int iy, double value, double alpha=1.0) throw();
 
-  void reduce_line_(double * data, int ixm, int ixp, int iym, int iyp, 
-		    double value, double alpha=1.0);
-  void reduce_line_x_(double * data, int ixm, int ixp, int iy, 
-		      double value, double alpha=1.0);
-  void reduce_line_y_(double * data, int ix, int iym, int iyp, 
-		      double value, double alpha=1.0);
-  void reduce_box_(double * data, int ixm, int ixp, int iym, int iyp, 
-		   double value, reduce_type reduce, double alpha=1.0);
-  void reduce_box_filled_(double * data, int ixm, int ixp, int iym, int iyp, 
-		    double value, double alpha=1.0);
+  void reduce_line_(double * data, int ixm, int ixp, int iym, int iyp,
+                    double value, double alpha=1.0);
+  void reduce_line_x_(double * data, int ixm, int ixp, int iy,
+                      double value, double alpha=1.0);
+  void reduce_line_y_(double * data, int ix, int iym, int iyp,
+                      double value, double alpha=1.0);
+  void reduce_box_(double * data, int ixm, int ixp, int iym, int iyp,
+                   double value, reduce_type reduce, double alpha=1.0);
+  void reduce_box_filled_(double * data, int ixm, int ixp, int iym, int iyp,
+                          double value, double alpha=1.0);
 
 private: // attributes
 
@@ -225,7 +227,7 @@ private: // attributes
   /// Image type: data or mesh
   std::string image_type_;
 
-  /// Minimal rank of faces to include face level indicators 
+  /// Minimal rank of faces to include face level indicators
   int face_rank_;
 
   /// Whether to plot the log of the field
@@ -249,7 +251,9 @@ private: // attributes
   /// Lower and upper bounds on image (can be used for slices)
   double image_lower_[3];
   double image_upper_[3];
-  
+
+  /// History of field to write: 0 = current, 1 = previous, etc.
+  int image_history_;
 };
 
 #endif /* IO_OUTPUT_IMAGE_HPP */

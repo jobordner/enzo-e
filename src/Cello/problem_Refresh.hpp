@@ -428,7 +428,7 @@ public: // interface
   /// for the given neighbor
   void get_particle_bin_limits
   (int rank,
-   int refresh_type,
+   int face_type,
    int if3[3], int ic3[3],
    int lower[3], int upper[3])
   {
@@ -440,20 +440,15 @@ public: // interface
 	lower[axis] = 3;
 	upper[axis] = 4;
       } else {
-	if (refresh_type == refresh_same) {
+	if (face_type == 0) {
 	  lower[axis] = 1;
 	  upper[axis] = 3;
-	} else if (refresh_type == refresh_fine) {
+	} else if (face_type > 0) {
 	  lower[axis] = ic3[axis] + 1;
 	  upper[axis] = ic3[axis] + 2;
-	} else if (refresh_type == refresh_coarse) {
+	} else if (face_type < 0) {
 	  lower[axis] = 1 - ic3[axis];
 	  upper[axis] = 4 - ic3[axis];
-	} else {
-	  print();
-	  ERROR1 ("Refresh::get_particle_bin_limits()",
-		  "unknown refresh_type %d",
-		  refresh_type);
 	}
       }
     }

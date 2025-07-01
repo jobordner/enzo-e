@@ -147,6 +147,7 @@ void Config::pup (PUP::er &p)
   p | output_image_face_rank;
   p | output_image_min;
   p | output_image_max;
+  p | output_image_history;
   p | output_min_level;
   p | output_max_level;
   p | output_leaf_only;
@@ -929,6 +930,7 @@ void Config::read_output_ (Parameters * p) throw()
   output_image_face_rank.resize(num_output);
   output_image_min.resize(num_output);
   output_image_max.resize(num_output);
+  output_image_history.resize(num_output);
   output_min_level.resize(num_output);
   output_max_level.resize(num_output);
   output_leaf_only.resize(num_output);
@@ -1072,6 +1074,9 @@ void Config::read_output_ (Parameters * p) throw()
 	p->value_float("image_min",std::numeric_limits<double>::max());
       output_image_max[index_output] =
 	p->value_float("image_max",-std::numeric_limits<double>::max());
+
+      output_image_history[index_output] =
+	p->value_integer("image_history",0);
 
       output_min_level[index_output] = p->value_integer("min_level",0);
       output_max_level[index_output] =

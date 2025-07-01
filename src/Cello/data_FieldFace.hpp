@@ -86,10 +86,10 @@ public: // interface
     child_[2] = icz;
   }
 
-  /// Set refresh type: refresh_fine(prolong),
-  /// refresh_coarse(restrict), or refresh_same(copy)
-  void set_refresh_type (int refresh_type)
-  {  refresh_type_ = refresh_type;  }
+  /// Set face type: > 0 for finer level, < 0 for coarser level, 0 for
+  /// same level
+  void set_face_type (int face_type)
+  {  face_type_ = face_type;  }
 
   Prolong * prolong ()
   { return refresh_->prolong(); }
@@ -206,8 +206,8 @@ private: // attributes
   /// Child index (0,0,0) to (1,1,1) if restriction or prolongation are used
   int child_[3];
 
-  /// Refresh type: fine, coarse, or same
-  int refresh_type_;
+  /// Face type: finer (> 0) , coarser (< 0), or same (0)
+  int face_type_;
 
   /// Refresh object for lists of particles and fields to copy,
   /// and whether to copy or add

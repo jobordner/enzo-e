@@ -15,7 +15,7 @@ ItFace::ItFace(int rank,
 	       int n3[3],
 	       Index index,
 	       const int * ic3,
-	       const int * ipf3) throw()
+	       const int * ipf3)
   : ItType(),
     if3_(),
     ic3_(),
@@ -41,9 +41,9 @@ ItFace::ItFace(int rank,
   }
 }
 
-//----------------------------------------------------------------------
+//======================================================================
 
-bool ItFace::next_ () throw()
+bool ItFace::next_ ()
 {
   do {
     increment_() ;
@@ -70,7 +70,7 @@ Index ItFace::index() const
 
 //----------------------------------------------------------------------
 
-void ItFace::reset() throw()
+void ItFace::reset()
 {
   if3_[0] = -2;
   if3_[1] = 0;

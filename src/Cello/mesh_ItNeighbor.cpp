@@ -7,7 +7,7 @@
 
 #include "mesh.hpp"
 
-// #define TEST_LEVEL_RANGE
+#define TEST_LEVEL_RANGE
 
 //----------------------------------------------------------------------
 

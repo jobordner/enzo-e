@@ -390,7 +390,7 @@ void Block::adapt_refine_()
       Refresh * refresh = new Refresh;
       refresh->add_all_data();
       FieldFace * field_face = create_face
-	(if3,ic3,g3, refresh_fine, refresh);
+	(if3,ic3,g3, +1, refresh);
 
       // Create data message object to send
       DataMsg * data_msg = new DataMsg;
@@ -423,7 +423,7 @@ void Block::adapt_refine_()
 	 nx,ny,nz,
 	 num_field_data,
 	 adapt_step_,
-	 narray, array, refresh_fine,
+	 narray, array, +1,
          face_level,
          &adapt_,state_.get(),
 	 cello::simulation());
@@ -949,7 +949,7 @@ void Block::adapt_coarsen_()
   refresh->add_all_data();
 
   FieldFace * field_face = create_face
-    (if3, ic3, g3, refresh_coarse, refresh);
+    (if3, ic3, g3, -1, refresh);
 
   const Index index_parent = index_.index_parent();
 

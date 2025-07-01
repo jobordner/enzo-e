@@ -61,8 +61,6 @@ void EnzoFactory::create_block_array
 #endif  
   CProxy_EnzoBlock enzo_block_array = enzo::block_array();
 
-  int count_adapt;
-
   State state = create_state_();
 
 #ifdef TRACE_FACTORY
@@ -86,12 +84,15 @@ void EnzoFactory::create_block_array
 
           Index index(ix,iy,iz);
 
+          int count_adapt;
+          int face_type;
+
           MsgRefine * msg = new MsgRefine 
             (index,
              nx,ny,nz,
              num_field_blocks,
              count_adapt = 0,
-             refresh_same,
+             face_type = 0,
              face_level,
              nullptr,
              &state);
@@ -148,8 +149,6 @@ void EnzoFactory::create_subblock_array
     if (nby > 1) nby = ceil(0.5*nby);
     if (nbz > 1) nbz = ceil(0.5*nbz);
 
-    int count_adapt;
-
 #ifdef TRACE_FACTORY
     CkPrintf ("TRACE_FACTORY %s:%d\n",__FILE__,__LINE__); fflush(stdout);
 #endif
@@ -171,12 +170,15 @@ void EnzoFactory::create_subblock_array
 
             TRACE3 ("inserting %d %d %d",ix,iy,iz);
 
+            int count_adapt;
+            int face_type;
+
             MsgRefine * msg = new MsgRefine 
               (index,
                nx,ny,nz,
                num_field_blocks,
-               count_adapt=0,
-               refresh_same,
+               count_adapt = 0,
+               face_type = 0,
                face_level,
                nullptr,
                &state);

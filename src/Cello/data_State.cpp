@@ -27,7 +27,6 @@ void State::advance()
       time_level_curr_[level] = (level > 0) ?
         std::min(time_level_curr_[level-1],time_next) : time_next;
     }
-
   }
 
   // Update level range if LTS

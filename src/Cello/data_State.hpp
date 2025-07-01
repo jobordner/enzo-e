@@ -156,11 +156,13 @@ public: // interface
       // allocate level states and initialize from global 
       cycle_level_.resize(max_level+1);
       time_level_curr_.resize(max_level+1);
+      time_level_prev_.resize(max_level+1);
       dt_level_.resize(max_level+1);
       for (int i=0; i<=max_level; i++) {
         cycle_level_[i]  = cycle_;
         dt_level_[i]  = dt_;
         time_level_curr_[i]  = time_curr_;
+        time_level_prev_[i]  = time_prev_;
       }
 
     } else {

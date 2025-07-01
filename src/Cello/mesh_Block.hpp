@@ -203,7 +203,7 @@ public:
    int nx, int ny, int nz,
    int num_field_blocks,
    int num_adapt_steps,
-   int narray, char * array, int refresh_type,
+   int narray, char * array, int face_type,
    const std::vector<int> & face_level,
    Adapt * adapt,
    State * state);
@@ -580,12 +580,12 @@ public:
   int refresh_load_flux_faces_ (Refresh & refresh);
 
   void refresh_load_field_face_
-  (Refresh & refresh, int refresh_type, Index index, int if3[3], int ic3[3]);
+  (Refresh & refresh, int face_type, Index index, int if3[3], int ic3[3]);
   /// Send particles in list to corresponding indices
   void particle_send_(Refresh & refresh, int nl,Index index_list[],
                       ParticleData * particle_list[]);
   void refresh_load_flux_face_
-  (Refresh & refresh, int refresh_type, Index index, int if3[3], int ic3[3]);
+  (Refresh & refresh, int face_type, Index index, int if3[3], int ic3[3]);
 
   void refresh_exit (Refresh & refresh);
 
@@ -624,7 +624,7 @@ protected:
   /// Handle the special case of refresh on interpolated faces
   /// requiring extra padding
   int refresh_load_coarse_face_
-  (Refresh refresh,  int refresh_type,
+  (Refresh refresh,  int face_type,
    Index index_neighbor, int if3[3],int ic3[3]);
 
   /// Send padded array of fields to neighbor for interpolations whose
@@ -644,9 +644,9 @@ protected:
   int refresh_load_particle_faces_ (Refresh * refresh);
 
   // void refresh_load_field_face_
-  // (int refresh_type, Index index, int if3[3], int ic3[3]);
+  // (int face_type, Index index, int if3[3], int ic3[3]);
   void refresh_load_particle_face_
-  (int refresh_type, Index index, int if3[3], int ic3[3]);
+  (int face_type, Index index, int if3[3], int ic3[3]);
 
   //--------------------------------------------------
   // PARTICLES
@@ -805,7 +805,7 @@ public: // virtual functions
 
   FieldFace * create_face
   (int if3[3], int ic3[3], int g3[3],
-   int refresh_type,
+   int face_type,
    Refresh * refresh,
    bool new_refresh = true) const;
 
