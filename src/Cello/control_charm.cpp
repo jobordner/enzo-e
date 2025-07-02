@@ -13,6 +13,8 @@
 #include "charm_simulation.hpp"
 #include "charm_mesh.hpp"
 
+#define PRE_ATS
+
 // #define DEBUG_REFRESH
 // #define TRACE_CONTROL
 // #define DEBUG_CONTROL
@@ -146,18 +148,14 @@ void Block::compute_exit_ ()
 {
   TRACE_CONTROL("compute_exit");
 
-  // Update Simulation state (first block only)
-
-  int cs = cello::simulation()->state()->cycle();
-  int cb = state()->cycle();
-  if (cs != cb) *cello::simulation()->state() = *state();
-
-#ifdef TRACE_ATS
-  if (index().is_root())
-    cello::simulation()->state()->print ("simulation");
-#endif
+#ifdef PRE_ATS
+  control_sync_barrier(CkIndex_Block::r_adapt_enter(NULL));
+#else
+  // Update Simulation state
+  *cello::simulation()->state() = *state();
 
   adapt_enter_();
+#endif
 }
 
 //----------------------------------------------------------------------
