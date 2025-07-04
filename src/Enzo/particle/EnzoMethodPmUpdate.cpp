@@ -193,54 +193,53 @@ void EnzoMethodPmUpdate::compute ( Block * block) throw()
 
         if (rank >= 1) {
 
-	        for (int ip=0; ip<np; ip++) {
+          for (int ip=0; ip<np; ip++) {
 
-	          const int ipdv = ip*dv;
-	          const int ipdp = ip*dp;
-	          const int ipda = ip*da;
+            const int ipdv = ip*dv;
+            const int ipdp = ip*dp;
+            const int ipda = ip*da;
 
 #ifdef DEBUG_UPDATE
       	    v3sum[0]+=std::abs(vx[ipdv]);
       	    a3sum[0]+=std::abs(ax[ipda]);
       	    v3sum2[0]+=vx[ipdv]*vx[ipdv];
       	    a3sum2[0]+=ax[ipda]*ax[ipda];
-      	    CkPrintf ("DEBUG_UPDATE x %g v %g a %g\n",x[ipdp],vx[ipdv],ax[ipda]);
 #endif
       	    vx[ipdv] = cvv*vx[ipdv] + cva*ax[ipda];
       	    x [ipdp] += cp*vx[ipdv];
       	    vx[ipdv] = cvv*vx[ipdv] + cva*ax[ipda];
 
-	        } // ip
+          } // ip
         }
 
         if (rank >= 2) {
 
-	         for (int ip=0; ip<np; ip++) {
+          for (int ip=0; ip<np; ip++) {
 
-        	   const int ipdv = ip*dv;
-        	   const int ipdp = ip*dp;
-        	   const int ipda = ip*da;
+            const int ipdv = ip*dv;
+            const int ipdp = ip*dp;
+            const int ipda = ip*da;
 
 #ifdef DEBUG_UPDATE
-      	     v3sum[1]+=std::abs(vy[ipdv]);
-      	     a3sum[1]+=std::abs(ay[ipda]);
-      	     v3sum2[1]+=vy[ipdv]*vy[ipdv];
-      	     a3sum2[1]+=ay[ipda]*ay[ipda];
+            v3sum[1]+=std::abs(vy[ipdv]);
+            a3sum[1]+=std::abs(ay[ipda]);
+            v3sum2[1]+=vy[ipdv]*vy[ipdv];
+            a3sum2[1]+=ay[ipda]*ay[ipda];
 #endif
-             vy[ipdv] = cvv*vy[ipdv] + cva*ay[ipda];
-             y [ipdp] += cp*vy[ipdv];
-             vy[ipdv] = cvv*vy[ipdv] + cva*ay[ipda];
+            vy[ipdv] = cvv*vy[ipdv] + cva*ay[ipda];
+            y [ipdp] += cp*vy[ipdv];
+            vy[ipdv] = cvv*vy[ipdv] + cva*ay[ipda];
 
-	         } // ip
+          } // ip
         }
 
         if (rank >= 3) {
 
-	        for (int ip=0; ip<np; ip++) {
+          for (int ip=0; ip<np; ip++) {
 
-	          const int ipdv = ip*dv;
-	          const int ipdp = ip*dp;
-	          const int ipda = ip*da;
+            const int ipdv = ip*dv;
+            const int ipdp = ip*dp;
+            const int ipda = ip*da;
 
 #ifdef DEBUG_UPDATE
       	    v3sum[2]+=std::abs(vz[ipdv]);
@@ -253,7 +252,7 @@ void EnzoMethodPmUpdate::compute ( Block * block) throw()
       	    z [ipdp] += cp*vz[ipdv];
       	    vz[ipdv] = cvv*vz[ipdv] + cva*az[ipda];
 
-	        } // ip
+          } // ip
         } // rank 3
       } // ib loop
     } // end loop over particle types

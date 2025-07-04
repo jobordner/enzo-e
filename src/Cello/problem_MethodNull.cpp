@@ -18,7 +18,6 @@ void MethodNull::init_refresh_()
   cello::simulation()->refresh_set_name(ir_post_,name());
 
   Refresh * refresh = cello::refresh(ir_post_);
-  //  refresh->add_all_fields();
-    refresh->add_field(0);
-  //  refresh->add_all_particles();
+  refresh->add_all_fields();
+  refresh->add_all_particles();
 }

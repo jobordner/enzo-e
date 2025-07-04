@@ -90,8 +90,8 @@ void MethodDebug::compute ( Block * block) throw()
         for (int iy=gy; iy<my-gy; iy++) {
           for (int ix=gx; ix<mx-gx; ix++) {
             int i=ix + mx*(iy + my*iz);
-            reduce[k+kmin] = std::min(reduce[k],(long double)(values[i]));
-            reduce[k+kmax] = std::max(reduce[k+1],(long double)(values[i]));
+            reduce[k+kmin] = std::min(reduce[k+kmin],(long double)(values[i]));
+            reduce[k+kmax] = std::max(reduce[k+kmax],(long double)(values[i]));
             reduce[k+ksum] += values[i];
             reduce[k+knum] += rel_vol;
           }
@@ -115,8 +115,8 @@ void MethodDebug::compute ( Block * block) throw()
         for (int i=0; i<cello::rank(); i++) {
           for (int ip=0; ip<np; ip++) {
             double value = position[i][ip];
-            reduce[k+4*i+kmin] = std::min(reduce[k+4*i+0],(long double)(value));
-            reduce[k+4*i+kmax] = std::max(reduce[k+4*i+1],(long double)(value));
+            reduce[k+4*i+kmin] = std::min(reduce[k+4*i+kmin],(long double)(value));
+            reduce[k+4*i+kmax] = std::max(reduce[k+4*i+kmax],(long double)(value));
             reduce[k+4*i+ksum] += value;
             reduce[k+4*i+knum] += 1;
           }
