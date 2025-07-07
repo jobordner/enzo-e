@@ -348,7 +348,24 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
 {
   auto field_list_src = refresh_->field_list_src();
   auto field_list_dst = refresh_->field_list_dst();
-  
+
+  if (refresh_->adaptive_timestep()) {
+
+    // Prolong: include history fields
+    const int n = refresh_->field_list_src().size();
+    for (int k=0; k<n; k++) {
+      int id_src_new = refresh_->field_list_src()[k];
+      int id_dst_new = refresh_->field_list_dst()[k];
+
+      int id_src_old = field_src.history_id(id_src_new,1);
+      int id_dst_old = field_dst.history_id(id_dst_new,1);
+      if (id_src_new != id_src_old && id_dst_new != id_dst_old) {
+        field_list_src.push_back(id_src_old);
+        field_list_dst.push_back(id_dst_old);
+      }
+    }
+  }
+
 #ifdef CONFIG_SMP_MODE
   CmiLock(field_face_node_lock);
 #endif  

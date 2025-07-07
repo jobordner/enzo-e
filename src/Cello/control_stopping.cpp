@@ -81,14 +81,13 @@ void Block::stopping_begin_()
     }
   }
 
-  CkCallback callback (CkIndex_Block::r_stopping_compute_timestep(NULL),
-                       thisProxy);
-
 #ifdef TRACE_CONTRIBUTE
   CkPrintf ("%s %s:%d DEBUG_CONTRIBUTE\n",
             name().c_str(),__FILE__,__LINE__); fflush(stdout);
 #endif
 
+  CkCallback callback (CkIndex_Block::r_stopping_compute_timestep(NULL),
+                       thisProxy);
   contribute
     (n*sizeof(double), min_reduce.data(), CkReduction::min_double, callback);
 
@@ -104,7 +103,10 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 
   double * min_reduce = (double * )msg->getData();
 
-  state_->set_stopping(min_reduce[0] == 1.0);
+  auto & state_global = cello::simulation()->state();
+
+  state_       -> set_stopping(min_reduce[0] == 1.0);
+  state_global -> set_stopping(min_reduce[0] == 1.0);
 
   // Compute timestep
   double dt_global = stopping_compute_global_dt_(min_reduce);
@@ -116,26 +118,17 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 
   delete msg;
 
-  // Update Block state timesteps
-  //    global
-  state_->set_dt(dt_global);
-  //    level
+  // Update Block and Simulation state global and level timesteps
+
+  state_      ->set_dt (dt_global);
+  state_global->set_dt (dt_global);
+
   int level = 0;
   for (auto & dt : dt_level) {
-    state_->set_dt(dt,level++);
+    state_      ->set_dt (dt,level);
+    state_global->set_dt (dt,level);
+    level++;
   }
-
-  // Update simulation state to block state
-  Simulation * simulation = cello::simulation();
-  //    global
-  simulation->state()->set_dt (dt_global);
-  //    level
-  level = 0;
-  for (auto & dt : dt_level) {
-    simulation->state()->set_dt (dt,level++);
-  }
-
-  simulation->state()->set_stopping(state_->stopping());
 
   performance_projections_update_logging_();
 

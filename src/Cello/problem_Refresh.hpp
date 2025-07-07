@@ -49,6 +49,7 @@ class Refresh : public PUP::able {
       active_(active),
       callback_(0),
       root_level_(0),
+      adaptive_timestep_(false),
       level_lower_(std::numeric_limits<int>::min()),
       level_upper_(std::numeric_limits<int>::max()),
       id_refresh_(-1),
@@ -94,6 +95,7 @@ public: // interface
       active_(true),
       callback_(0) ,
       root_level_(0),
+      adaptive_timestep_(false),
       level_lower_(std::numeric_limits<int>::min()),
       level_upper_(std::numeric_limits<int>::max()),
       id_refresh_(-1),
@@ -124,6 +126,7 @@ public: // interface
       active_(true),
       callback_(0),
       root_level_(0),
+      adaptive_timestep_(false),
       level_lower_(std::numeric_limits<int>::min()),
       level_upper_(std::numeric_limits<int>::max()),
       id_refresh_(-1),
@@ -154,6 +157,7 @@ public: // interface
     p | active_;
     p | callback_;
     p | root_level_;
+    p | adaptive_timestep_;
     p | level_lower_;
     p | level_upper_;
     p | id_refresh_;
@@ -314,6 +318,12 @@ public: // interface
   void set_root_level(int root_level)
   { root_level_ = root_level; }
 
+  /// Set whether using adptive timestepping
+  void set_adaptive_timestep (bool adaptive_timestep)
+  { adaptive_timestep_ = adaptive_timestep; }
+  int adaptive_timestep () const
+  { return adaptive_timestep_; }
+
   /// Set the lower and puper limits (plus one) on levels being refreshed
   void set_level_lower(int level_lower)
   { level_lower_ = level_lower; }
@@ -422,6 +432,9 @@ public: // interface
     fprintf (fp,"     active: %d\n",active_);
     fprintf (fp,"     callback: %d\n",callback_);
     fprintf (fp,"     root_level: %d\n",root_level_);
+    fprintf (fp,"     adaptive_timestep: %d\n",adaptive_timestep_?1:0);
+    fprintf (fp,"     level_lower: %d\n",level_lower_);
+    fprintf (fp,"     level_upper: %d\n",level_upper_);
   }
 
   /// Return loop limits 0:3 for 4x4x4 particle data array indices
@@ -554,6 +567,9 @@ private: // attributes
 
   /// Coarse level for neighbor_tree type
   int root_level_;
+
+  /// Whether adaptive timestepping is used
+  bool adaptive_timestep_;
 
   /// Level range for adaptive time-stepping
   int level_lower_;

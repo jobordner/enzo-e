@@ -371,6 +371,12 @@ void Simulation::initialize_simulation_() throw()
               config_->initial_time,
               0.0, false);
 
+  const std::string type = cello::config()->timestep_type;
+  const std::string level_type = cello::config()->timestep_level_type;
+  const int max_level = cello::max_level();
+  state_->set_type ( type, max_level );
+  state_->set_level_type ( level_type, max_level );
+
   cycle_watch_   = config_->initial_cycle - 1;
   cycle_initial_ = config_->initial_cycle;
 }
@@ -911,6 +917,16 @@ void Simulation::monitor_output()
   monitor()-> print("Simulation", "cycle %04d",      state_->cycle());
   monitor()-> print("Simulation", "time-sim %15.12e",state_->time());
   monitor()-> print("Simulation", "dt %15.12e",      state_->dt());
+  if (state_->state_type() == State::Type::Level) {
+    for (int level=0; level<=hierarchy_->max_level(); level++) {
+      monitor()-> print("Simulation", "cycle-level %d %04d",
+                        level,state_->cycle(level));
+      monitor()-> print("Simulation", "time-sim-level %d %15.12e",
+                        level,state_->time(level));
+      monitor()-> print("Simulation", "dt-level %d %15.12e",
+                        level,state_->dt_level(level));
+    }
+  }
   thisProxy.p_monitor_performance();
 }
 

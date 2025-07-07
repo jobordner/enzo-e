@@ -15,8 +15,6 @@
 
 // #define DEBUG_COMPUTE
 
-#define PRE_ATS
-
 #define CYCLE 0
 
 //======================================================================
@@ -161,15 +159,19 @@ void Block::compute_end_ ()
   // delete fluxes
   data()->flux_data()->deallocate();
 
-#ifdef PRE_ATS
-  auto & global_state = cello::simulation()->state();
-  global_state->set_cycle(state_->cycle());
-  global_state->set_time(state_->time());
+  auto & state_global = cello::simulation()->state();
+  state_global->set_cycle(state_->cycle());
+  state_global->set_time(state_->time());
+  if (state()->state_type() == State::Type::Level) {
+    for (int level=state()->level_lower();
+         level < state()->level_upper();
+         level ++) {
+      state_global->set_cycle(state_->cycle(level),level);
+      state_global->set_time(state_->time(level),level);
+    }
+  }
 
   compute_exit_();
-#else
-  control_sync_barrier(CkIndex_Block::r_compute_exit(NULL));
-#endif
 
   TRACE ("END   PHASE COMPUTE");
 }

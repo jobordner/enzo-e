@@ -174,6 +174,8 @@ public: // interface
     }
   }
 
+  Type state_type() const { return state_type_; }
+
   void set_level_type (const std::string & level_type, int max_level)
   {
     if (level_type == "sequential") {
@@ -232,7 +234,8 @@ public: // interface
   {
     if (state_type_ == Type::Global) return time_prev_;
     alloc_(time_level_prev_,level);
-    return time_level_prev_[level]; }
+    return time_level_prev_[level];
+  }
 
   double dt() const
   { return dt_; }
@@ -251,6 +254,12 @@ public: // interface
     return (level == 0) ? dt : std::min(dt, tc-t);
   }
 
+  double dt_level(int level) const
+  {
+    if (state_type_ == Type::Global) return dt_;
+    alloc_(dt_level_,level);
+    return dt_level_[level];
+  }
   bool stopping () const { return stopping_; }
 
   /// Get ith MethodState

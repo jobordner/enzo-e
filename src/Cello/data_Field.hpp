@@ -197,6 +197,11 @@ public: // interface
   int num_history () const
   { return field_descr_->num_history(); }
 
+  /// Return the temporary field id for ih'th generation of permanent
+  /// field ip (0 is current, 1 first generation, etc.)
+  int history_id (int ip, int ih) const throw()
+  { return field_descr_->history_id(ip,ih);  }
+
   /// Copy "current" fields to history = 1 fields (saving time), and push
   /// back older generations up to num_history()
   void save_history (double time)

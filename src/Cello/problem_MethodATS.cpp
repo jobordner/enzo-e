@@ -13,8 +13,10 @@ void MethodATS::compute( Block * block) throw()
 
    Refresh * refresh = cello::refresh(ir_post_);
 
+   refresh -> set_adaptive_timestep (true);
    refresh -> set_level_lower(block->state()->level_lower());
    refresh -> set_level_upper(block->state()->level_upper());
+
    if (block->index().is_root())
      CkPrintf ("DEBUG_ATS refresh level range %d %d\n",
                refresh->level_lower(),
@@ -26,6 +28,7 @@ void MethodATS::compute( Block * block) throw()
 
     Field field = block->data()->field();
     int it = field.field_id("test_ats");
+
     int mx,my,mz;
     int gx,gy,gz;
     field.dimensions  (it,&mx,&my,&mz);
@@ -53,35 +56,29 @@ void MethodATS::compute( Block * block) throw()
     cello_float txm,tym,tzm;
     cello_float txp,typ,tzp;
     if (cello::rank() >= 1) {
-      i = ixm + mx * (iy0 + my*iz0);
-      txm = array[i];
-      i = ixp + mx * (iy0 + my*iz0);
-      txp = array[i];
-      if ( ! ((t0==txm) && (t0==txp)) )
-        CkPrintf ("DEBUG_METHOD x-axis mismatch level %d: %g  %g %g\n",
-                  level,t0,txm,txp);
+      txm = array[ixm + mx * (iy0 + my*iz0)];
+      txp = array[ixp + mx * (iy0 + my*iz0)];
+      if ( (t0 != txm) || (t0 != txp) )
+        CkPrintf ("DEBUG_METHOD x-axis mismatch level %d: %8.6g |%8.6g |%8.6g\n",
+                  level,txm,t0,txp);
     }
     if (cello::rank() >= 2) {
-      i = ix0 + mx * (iym + my*iz0);
-      tym = array[i];
-      i = ix0 + mx * (iyp + my*iz0);
-      typ = array[i];
-      if ( ! ((t0==tym) && (t0==typ)) )
-        CkPrintf ("DEBUG_METHOD y-axis mismatch level %d: %g  %g %g\n",
-                  level,t0,tym,typ);
+      tym = array[ix0 + mx * (iym + my*iz0)];
+      typ = array[ix0 + mx * (iyp + my*iz0)];
+      if ( (t0 != tym) || (t0 != typ) )
+        CkPrintf ("DEBUG_METHOD y-axis mismatch level %d: %8.6g |%8.6g |%8.6g\n",
+                  level,tym,t0,typ);
     }
     if (cello::rank() >= 3) {
-      i = ix0 + mx * (iy0 + my*izm);
-      tzm = array[i];
-      i = ix0 + mx * (iy0 + my*izp);
-      tzp = array[i];
-      if ( ! ((t0==tzm) && (t0==tzp)) )
-        CkPrintf ("DEBUG_METHOD z-axis mismatch level %d: %g  %g %g\n",
-                  level,t0,tzm,tzp);
+      tzm = array[ix0 + mx * (iy0 + my*izm)];
+      tzp = array[ix0 + mx * (iy0 + my*izp)];
+      if ( (t0 != tzm) || (t0 != tzp) )
+        CkPrintf ("DEBUG_METHOD z-axis mismatch level %d: %8.6g |%8.6g |%8.6g\n",
+                  level,tzm,t0,tzp);
     }
 
-
-    const double value = block->state()->time(level) + block->state()->dt(level);
+    const double value = block->state()->time(level)
+      +                  block->state()->dt(level);
     for (int iz=0; iz<mz; iz++) {
       for (int iy=0; iy<my; iy++) {
         for (int ix=0; ix<mx; ix++){
