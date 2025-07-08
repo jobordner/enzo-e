@@ -33,6 +33,10 @@ void Block::compute_begin_ ()
 
   cello::simulation()->set_phase(phase_compute);
 
+  // Push back fields if saving old ones
+  if ( state_->is_active(level()) )
+    data()->field().save_history(state_->time(level()));
+
   index_method_ = 0;
   compute_next_();
 }
@@ -156,10 +160,6 @@ void Block::compute_end_ ()
   // Update block cycle and time
 
   state_->advance();
-
-  // Push back fields if saving old ones
-  if ( state_->is_active(level()) )
-      data()->field().save_history(state_->time(level()));
 
   // delete fluxes
   data()->flux_data()->deallocate();

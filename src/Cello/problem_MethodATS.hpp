@@ -40,9 +40,6 @@ public: // interface
     init_refresh_();
   }
 
-  /// Initialize refresh
-  void init_refresh_();
-
   /// Charm++ PUP::able declarations
   PUPable_decl(MethodATS);
 
@@ -69,6 +66,25 @@ public: // virtual methods
 
   /// Compute maximum timestep for this method
   virtual double timestep ( Block * block) throw();
+
+protected: // methods
+
+  /// Initialize refresh
+  void init_refresh_();
+
+  /// Test that ghost values are expected
+  void test_ghosts_(cello_float * array_curr,
+                    int mx, int my, int mz,
+                    int gx, int gy, int gz,
+                    int level);
+
+  /// Test that previous saved value is expected
+
+  void test_history_(cello_float * array_curr,
+                     cello_float * array_prev,
+                     int mx, int my, int mz,
+                     int gx, int gy, int gz,
+                     int level, double dt);
 
 protected: // attributes
 
