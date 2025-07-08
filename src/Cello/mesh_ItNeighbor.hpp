@@ -28,7 +28,7 @@ public: // interface
    int neighbor_type,
    int root_level,
    DirType dir_type = DirType::Both,
-   int level_lower = std::numeric_limits<int>::min(),
+   int level_lower = 0,
    int level_upper = std::numeric_limits<int>::max());
 
   ItNeighbor (ItNeighbor &&) = default;

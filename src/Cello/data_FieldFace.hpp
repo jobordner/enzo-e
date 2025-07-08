@@ -96,8 +96,8 @@ public: // interface
 
   Restrict * restrict ()
   { return refresh_->restrict(); }
-  
-  /// Set the Refresh object 
+
+  /// Set the Refresh object
   void set_refresh (Refresh * refresh, bool new_refresh)
   {
     refresh_ = refresh;
@@ -105,11 +105,8 @@ public: // interface
   }
 
   /// Return the Refresh object
-  Refresh * refresh () const
-  { return refresh_; }
-  
-  void set_field_list (std::vector<int> field_list);
-  
+  Refresh * refresh () const { return refresh_; }
+
   /// Create an array with the field's face data
   void face_to_array(Field field, int * n, char ** array) throw();
 
@@ -191,6 +188,12 @@ private: // functions
 
   /// Adjust box for accumulating values instead of assigning them
   void box_adjust_accumulate_ (Box * box, int accumulate, int g3[3]);
+
+  /// Add older fields to list if adaptive timestepping and
+  /// interpolating
+  void include_field_history_
+  (Field field_src, std::vector<int> & field_list_src,
+   Field field_dst, std::vector<int> & field_list_dst);
 
 private: // attributes
 

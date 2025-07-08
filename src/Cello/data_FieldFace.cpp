@@ -349,22 +349,8 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
   auto field_list_src = refresh_->field_list_src();
   auto field_list_dst = refresh_->field_list_dst();
 
-  if (refresh_->adaptive_timestep()) {
-
-    // Prolong: include history fields
-    const int n = refresh_->field_list_src().size();
-    for (int k=0; k<n; k++) {
-      int id_src_new = refresh_->field_list_src()[k];
-      int id_dst_new = refresh_->field_list_dst()[k];
-
-      int id_src_old = field_src.history_id(id_src_new,1);
-      int id_dst_old = field_dst.history_id(id_dst_new,1);
-      if (id_src_new != id_src_old && id_dst_new != id_dst_old) {
-        field_list_src.push_back(id_src_old);
-        field_list_dst.push_back(id_dst_old);
-      }
-    }
-  }
+  include_field_history_ (field_src, field_list_src,
+                          field_dst, field_list_dst);
 
 #ifdef CONFIG_SMP_MODE
   CmiLock(field_face_node_lock);
@@ -751,13 +737,6 @@ void FieldFace::print(const char * message)
 
 //----------------------------------------------------------------------
 
-void FieldFace::set_field_list(std::vector<int> field_list)
-{
-  refresh_->set_field_list(field_list);
-}
-
-//----------------------------------------------------------------------
-
 void FieldFace::mul_by_density_
 (Field field, int index_field,
  const int i3[3], const int n3[3], const int m3[3])
@@ -920,3 +899,28 @@ void FieldFace::box_adjust_accumulate_ (Box * box, int accumulate, int g3[3])
   box->compute_region();
 }
 
+//----------------------------------------------------------------------
+
+void FieldFace::include_field_history_
+(Field field_src, std::vector<int> & field_list_src,
+ Field field_dst, std::vector<int> & field_list_dst)
+{
+  if (refresh_->adaptive_timestep() && face_type_ > 0) {
+
+    // If adaptive timestepping and refining, add history = 1 fields
+    // so receiver can interpolate in time
+
+    const int n = refresh_->field_list_src().size();
+    for (int k=0; k<n; k++) {
+      int id_src_new = refresh_->field_list_src()[k];
+      int id_dst_new = refresh_->field_list_dst()[k];
+
+      int id_src_old = field_src.history_id(id_src_new,1);
+      int id_dst_old = field_dst.history_id(id_dst_new,1);
+      if (id_src_new != id_src_old && id_dst_new != id_dst_old) {
+        field_list_src.push_back(id_src_old);
+        field_list_dst.push_back(id_dst_old);
+      }
+    }
+  }
+}

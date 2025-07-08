@@ -148,6 +148,11 @@ void Block::compute_end_ ()
     CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_end_()\n", CkMyPe(),name().c_str());
 #endif
 
+  // Save active level range for updating simulation state before advance() changes it
+
+  const int level_lower = state_->level_lower();
+  const int level_upper = state_->level_upper();
+
   // Update block cycle and time
 
   state_->advance();
@@ -160,15 +165,20 @@ void Block::compute_end_ ()
   data()->flux_data()->deallocate();
 
   auto & state_global = cello::simulation()->state();
+
+  // update simulation global state
   state_global->set_cycle(state_->cycle());
-  state_global->set_time(state_->time());
-  if (state()->state_type() == State::Type::Level) {
-    for (int level=state()->level_lower();
-         level < state()->level_upper();
-         level ++) {
+  state_global->set_time (state_->time());
+
+  if ( (state_->state_type() == State::Type::Level) &&
+       (state_->is_active(level())) ) {
+
+    // update simulation level states
+    for (int level=level_lower; level < level_upper; level++) {
       state_global->set_cycle(state_->cycle(level),level);
-      state_global->set_time(state_->time(level),level);
+      state_global->set_time (state_->time (level),level);
     }
+
   }
 
   compute_exit_();

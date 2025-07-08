@@ -921,7 +921,7 @@ void Simulation::monitor_output()
     for (int level=0; level<=hierarchy_->max_level(); level++) {
       monitor()-> print("Simulation", "cycle-level %d %04d",
                         level,state_->cycle(level));
-      monitor()-> print("Simulation", "time-sim-level %d %15.12e",
+      monitor()-> print("Simulation", "time-level %d %15.12e",
                         level,state_->time(level));
       monitor()-> print("Simulation", "dt-level %d %15.12e",
                         level,state_->dt_level(level));

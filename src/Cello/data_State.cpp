@@ -13,12 +13,10 @@
 
 void State::advance()
 {
-  if (state_type_ == Type::Global) {
-    cycle_++;
-    time_prev_ = time_curr_;
-    time_curr_+= dt_;
+  ++cycle_;
+  time_ += dt_;
 
-  } else if (state_type_ == Type::Level) {
+  if (state_type_ == Type::Level) {
 
     for (int level=level_lower_; level<level_upper_; level++) {
       cycle_level_[level]++;
@@ -27,12 +25,9 @@ void State::advance()
       time_level_curr_[level] = (level > 0) ?
         std::min(time_level_curr_[level-1],time_next) : time_next;
     }
-  }
-
-  // Update level range if LTS
-  if (state_type_ == Type::Level) {
 
     if (state_next_ == Next::Sequential) {
+
       int level=time_level_curr_.size() - 1;
       while (level >= 0 && time_level_curr_[level] == time_level_curr_[level-1])
         level--;

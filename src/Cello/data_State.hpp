@@ -27,8 +27,7 @@ public: // interface
   State() throw()
     : PUP::able(),
       cycle_(0),
-      time_curr_(0.0),
-      time_prev_(0.0),
+      time_(0.0),
       dt_(0.0),
       cycle_level_(),
       time_level_curr_(),
@@ -45,8 +44,7 @@ public: // interface
   State(int cycle, double time, double dt, bool stopping) throw()
     : PUP::able(),
       cycle_(cycle),
-      time_curr_(time),
-      time_prev_(time),
+      time_(time),
       dt_(dt),
       cycle_level_(),
       time_level_curr_(),
@@ -74,8 +72,7 @@ public: // interface
     TRACEPUP;
     PUP::able::pup(p);
     p | cycle_;
-    p | time_curr_;
-    p | time_prev_;
+    p | time_;
     p | dt_;
     p | cycle_level_;
     p | time_level_curr_;
@@ -99,7 +96,7 @@ public: // interface
   { set_(cycle_level_,level,cycle); }
 
   virtual void set_time (double time)
-  { time_curr_ = time; }
+  { time_ = time; }
   virtual void set_time (double time, int level)
   { set_(time_level_curr_,level,time); }
 
@@ -161,8 +158,8 @@ public: // interface
       for (int i=0; i<=max_level; i++) {
         cycle_level_[i]  = cycle_;
         dt_level_[i]  = dt_;
-        time_level_curr_[i]  = time_curr_;
-        time_level_prev_[i]  = time_prev_;
+        time_level_curr_[i]  = time_;
+        time_level_prev_[i]  = time_;
       }
 
     } else {
@@ -197,48 +194,45 @@ public: // interface
   /// Accessors
   //----------------------------------------------------------------------
 
-  int cycle() const
-  {
-    int cycle = cycle_;
-    if ( state_type_ == Type::Level ) {
-      if ( state_next_ == Next::Sequential ) {
-        cycle = std::accumulate(cycle_level_.begin(), cycle_level_.end(), 0);
-      } else if ( state_next_ == Next::Concurrent ) {
-        cycle = cycle_level_.back();
-      }
-    }
-    return cycle;
-  }
+
+  /// Cycle accessors
+  int cycle() const { return cycle_; }
+
   int cycle(int level) const
   {
     alloc_(cycle_level_,level);
-    return cycle_level_[level]; }
+    return cycle_level_[level];
+  }
 
+  /// Time accessors
   double time() const
   {
-    double time = time_curr_;
+    double time = time_;
     if ( state_type_ == Type::Level ) {
       time = *std::min_element(time_level_curr_.begin(),
                                time_level_curr_.end());
     }
     return time;
   }
+
   double time(int level) const
   {
-    if (state_type_ == Type::Global) return time_curr_;
+    if (state_type_ == Type::Global) return time_;
     alloc_(time_level_curr_,level);
-    return time_level_curr_[level]; }
+    return time_level_curr_[level];
+  }
 
   /// Return the time for the previous cycle in the given level
   double time_prev(int level) const
   {
-    if (state_type_ == Type::Global) return time_prev_;
+    if (state_type_ == Type::Global) return time_;
     alloc_(time_level_prev_,level);
     return time_level_prev_[level];
   }
 
-  double dt() const
-  { return dt_; }
+  /// Timestep accessors
+
+  double dt() const { return dt_; }
 
   double dt(int level) const
   {
@@ -260,6 +254,9 @@ public: // interface
     alloc_(dt_level_,level);
     return dt_level_[level];
   }
+
+  /// Stopping criteria accessors
+
   bool stopping () const { return stopping_; }
 
   /// Get ith MethodState
@@ -271,9 +268,7 @@ public: // interface
     return method_state_[index_method];
   }
 
-  int num_methods() const {
-    return method_state_.size();
-  }
+  int num_methods() const { return method_state_.size(); }
 
   int level_lower() const { return level_lower_; }
   int level_upper() const { return level_upper_; }
@@ -299,8 +294,7 @@ public: // interface
   {
     int size = 0;
     SIZE_SCALAR_TYPE(size,int,cycle_);
-    SIZE_SCALAR_TYPE(size,double,time_curr_);
-    SIZE_SCALAR_TYPE(size,double,time_prev_);
+    SIZE_SCALAR_TYPE(size,double,time_);
     SIZE_SCALAR_TYPE(size,double,dt_);
     SIZE_VECTOR_TYPE(size,int,cycle_level_);
     SIZE_VECTOR_TYPE(size,double,time_level_curr_);
@@ -320,8 +314,7 @@ public: // interface
   {
     char * pc = buffer;
     SAVE_SCALAR_TYPE(pc,int,cycle_);
-    SAVE_SCALAR_TYPE(pc,double,time_curr_);
-    SAVE_SCALAR_TYPE(pc,double,time_prev_);
+    SAVE_SCALAR_TYPE(pc,double,time_);
     SAVE_SCALAR_TYPE(pc,double,dt_);
     SAVE_VECTOR_TYPE(pc,int,cycle_level_);
     SAVE_VECTOR_TYPE(pc,double,time_level_curr_);
@@ -341,8 +334,7 @@ public: // interface
   {
     char * pc = buffer;
     LOAD_SCALAR_TYPE(pc,int,cycle_);
-    LOAD_SCALAR_TYPE(pc,double,time_curr_);
-    LOAD_SCALAR_TYPE(pc,double,time_prev_);
+    LOAD_SCALAR_TYPE(pc,double,time_);
     LOAD_SCALAR_TYPE(pc,double,dt_);
     LOAD_VECTOR_TYPE(pc,int,cycle_level_);
     LOAD_VECTOR_TYPE(pc,double,time_level_curr_);
@@ -367,8 +359,7 @@ public: // interface
     if (state_type_ == Type::Global) {
 
       CkPrintf ("   cycle_ = %d",cycle_);
-      CkPrintf ("   time_curr_ = %g",time_curr_);
-      CkPrintf ("   time_prev_ = %g",time_prev_);
+      CkPrintf ("   time_ = %g",time_);
       CkPrintf ("   dt_    = %g",dt_);
 
     } else if (state_type_ == Type::Level) {
@@ -451,10 +442,7 @@ protected: // attributes
   int cycle_;
 
   /// Current global time 
-  double time_curr_;
-
-  /// Previous global time 
-  double time_prev_;
+  double time_;
 
   /// Current global timestep
   double dt_;

@@ -227,8 +227,10 @@ bool ItNeighbor::valid_()
 
   const bool l_send = (dir_type_ == DirType::Send || dir_type_ == DirType::Both);
   const bool l_recv = (dir_type_ == DirType::Recv || dir_type_ == DirType::Both);
-  const bool l_face_active = (level_lower_ <= face_level() && face_level() < level_upper_);
-  const bool l_this_active = (level_lower_ <= this_level() && this_level() < level_upper_);
+  const bool l_face_active =
+    (((level_lower_ - 1 ) <= face_level()) && face_level() < level_upper_);
+  const bool l_this_active =
+    (((level_lower_ - 1 ) <= this_level()) && this_level() < level_upper_);
 
   if ( (l_send && (! l_face_active)) ||
        (l_recv && (! l_this_active)) )
