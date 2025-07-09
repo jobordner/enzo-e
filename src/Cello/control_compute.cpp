@@ -33,11 +33,9 @@ void Block::compute_begin_ ()
 
   cello::simulation()->set_phase(phase_compute);
 
-  // Push back fields if saving old ones for level-adaptive time-stepping only
-  // (global in compute_end_() to avoid test_cosmo_dd_multispecies regression test
-  // failure)
-  if ( state_->state_type() == State::Type::Level &&
-       state_->is_active(level()) )
+  // Update old fields
+
+  if (state_->is_active(level()) )
     data()->field().save_history(state_->time(level()));
 
   index_method_ = 0;
@@ -163,9 +161,6 @@ void Block::compute_end_ ()
   // Update block cycle and time
 
   state_->advance();
-
-  if ( state_->state_type() == State::Type::Global )
-    data()->field().save_history(state_->time());
 
   // delete fluxes
   data()->flux_data()->deallocate();
