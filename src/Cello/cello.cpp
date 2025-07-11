@@ -464,6 +464,11 @@ namespace cello {
 
   //----------------------------------------------------------------------
 
+  int finest_level()
+  { return hierarchy() ? hierarchy()->finest_level() : 0; }
+
+  //----------------------------------------------------------------------
+
   double relative_cell_volume (int level)
   {
     return (1.0/pow(1.0*num_children(),1.0*level));

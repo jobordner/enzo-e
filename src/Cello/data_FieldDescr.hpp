@@ -116,7 +116,7 @@ public: // functions
 
   void reset_history(int history) throw()
   {
-    history_ = 0;
+    history_ = 0; // 0 forces recalculation in set_history()
     set_history(history);
   }
 
@@ -124,12 +124,32 @@ public: // functions
   int num_history () const throw()
   { return history_; }
 
-  /// Return the temporary field id for ih'th generation of permanent
-  /// field ip (0 is current, 1 first generation, etc.)
-  int history_id (int ip, int ih) const throw()
+  /// Return the temporary field id for given history "age" (0 is
+  /// current, 1 first generation, etc.) for field ip
+  int history_id (int ip, int age) const throw()
   {
-    const int np = num_permanent();
-    return (ih == 0) ? ip : history_id_[ip + np*(ih-1)];
+    return (age == 0 || is_temporary(ip)) ?
+      ip : history_id_[ip + num_permanent()*(age-1)];
+  }
+
+  /// Return the age of the given field id
+  int history_age (int ip) const throw()
+  {
+    // (age == 0)
+    if (ip < num_permanent()) {
+      return 0;
+    } else {
+      // (age > 0) or temporary
+      int i=0;
+      //    find inverse map i of history_id_[i] = ip
+      for (i=0; i<history_id_.size(); i++)
+        if (history_id_[i]==ip) break;
+      //     if found, return computed age
+      //     otherwise it's a non-saved temporary so must be age 0
+      return (i < history_id_.size()) ?
+        (1 + i/num_permanent()) : 0;
+    }
+
   }
 
   //----------------------------------------------------------------------

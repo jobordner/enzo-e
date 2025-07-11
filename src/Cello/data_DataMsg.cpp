@@ -305,7 +305,7 @@ char * DataMsg::load_data (char * buffer)
 
   // load field face
   if (n_ff > 0) {
-    field_face_ = new FieldFace(cello::rank());
+    field_face_ = new FieldFace;
     pc = field_face_->load_data (pc);
   } else {
     field_face_ = nullptr;

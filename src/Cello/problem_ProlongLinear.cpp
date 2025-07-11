@@ -286,7 +286,7 @@ void ProlongLinear::apply_
 
           int i_c = (ocx+icx) + mcx*( (ocy+icy) + mcy*(ocz+icz) );
           int i_f = (ofx+ifx) + mfx*( (ofy+ify) + myf*(ofz+ifz) );
-	  
+
           temp_f[i_f] = wx0*wy0*wz0*values_c[i_c]
             +             wx1*wy0*wz0*values_c[i_c + dcx ]
             +             wx0*wy1*wz0*values_c[i_c       + dcy ]

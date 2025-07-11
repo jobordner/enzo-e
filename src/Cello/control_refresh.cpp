@@ -54,6 +54,7 @@ void Block::refresh_start (int id_refresh, int callback)
 
   // Send field and/or particle data associated with the given refresh
   // object to corresponding neighbors
+
   if ( refresh->is_active() ) {
 
     ASSERT1 ("Block::refresh_start()",
@@ -247,9 +248,10 @@ void Block::refresh_exit (Refresh & refresh)
      refresh.min_face_rank(),
      refresh.neighbor_type(),
      refresh.root_level(),
-     DirType::Both,
      refresh.level_lower(),
-     refresh.level_upper());
+     refresh.level_upper(),
+     DirType::Both,
+     ScheduleType::Casual);
 }
 
 //----------------------------------------------------------------------
@@ -265,7 +267,8 @@ int Block::refresh_load_field_faces_ (Refresh & refresh)
 
     // Loop over neighbor leaf Blocks (not necessarily same level)
 
-    ItNeighbor it_neighbor = refresh.it_neighbor (this,DirType::Both);
+    ItNeighbor it_neighbor = refresh.it_neighbor
+      (this,DirType::Both, ScheduleType::Casual);
 
     int if3[3];
     while (it_neighbor.next(if3)) {
@@ -452,9 +455,10 @@ int Block::refresh_load_coarse_face_
         this->it_neighbor(index_,refresh.min_face_rank(),
                           refresh.neighbor_type(),
                           refresh.root_level(),
-                          DirType::Both,
                           refresh.level_lower(),
-                          refresh.level_upper());
+                          refresh.level_upper(),
+                          DirType::Both,
+                          ScheduleType::Casual);
 
       int ef3[3];
       while (it_extra.next(ef3)) {
@@ -538,7 +542,8 @@ int Block::refresh_load_coarse_face_
 
       // Create iterator over extra blocks
 
-      ItNeighbor it_extra = refresh.it_neighbor (this,DirType::Both);
+      ItNeighbor it_extra = refresh.it_neighbor
+        (this,DirType::Both, ScheduleType::Casual);
 
       int ef3[3];
       while (it_extra.next(ef3)) {
@@ -777,7 +782,8 @@ void Block::refresh_coarse_apply_ (Refresh * refresh)
     if (neighbor_type == neighbor_leaf ||
         neighbor_type == neighbor_tree) {
 
-      ItNeighbor it_neighbor = refresh->it_neighbor (this,DirType::Both);
+      ItNeighbor it_neighbor = refresh->it_neighbor
+        (this,DirType::Both, ScheduleType::Casual);
 
       const int level = this->level();
 
@@ -1087,7 +1093,8 @@ int Block::particle_create_array_neighbors_
 
   const int min_face_rank = refresh->min_face_rank();
 
-  ItNeighbor it_neighbor = refresh->it_neighbor (this,DirType::Both);
+  ItNeighbor it_neighbor = refresh->it_neighbor
+    (this,DirType::Both, ScheduleType::Casual);
 
   int il = 0;
 
@@ -1193,7 +1200,8 @@ void Block::particle_apply_periodic_update_
 
   // Compute position updates for particles crossing periodic boundaries
 
-  ItNeighbor it_neighbor = refresh->it_neighbor (this,DirType::Both);
+  ItNeighbor it_neighbor = refresh->it_neighbor
+    (this,DirType::Both, ScheduleType::Casual);
 
   int il=0;
 
@@ -1424,7 +1432,8 @@ int Block::refresh_load_flux_faces_ (Refresh & refresh)
 
   // Loop over neighbor leaf Blocks (not necessarily same level)
 
-  ItNeighbor it_neighbor = refresh.it_neighbor (this,DirType::Both);
+  ItNeighbor it_neighbor = refresh.it_neighbor
+    (this, DirType::Both, ScheduleType::Casual);
 
   int if3[3];
   while (it_neighbor.next(if3)) {

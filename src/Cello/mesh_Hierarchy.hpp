@@ -182,6 +182,14 @@ public: // interface
   size_t num_blocks(int level) const throw()
   {  return num_blocks_level_.at(level-min_level_);  }
 
+  int finest_level() const throw()
+  {
+    for (int level=max_level_; level>=min_level_; level--) {
+      if (num_blocks_level_.at(level-min_level_) > 0) return level;
+    }
+    return -1;
+  }
+
   /// Return the ith block in this pe
   Block * block (int index_block)
   { return block_vec_.at(index_block); }

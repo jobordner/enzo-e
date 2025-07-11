@@ -202,6 +202,10 @@ public: // interface
   int history_id (int ip, int ih) const throw()
   { return field_descr_->history_id(ip,ih);  }
 
+  /// Return the age of the field if permanent, or 0 if temporary
+  int history_age (int ip)
+  { return field_descr_->history_age(ip); }
+
   /// Copy "current" fields to history = 1 fields (saving time), and push
   /// back older generations up to num_history()
   void save_history (double time)

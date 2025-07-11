@@ -26,7 +26,7 @@ public: // interface
 
   /// Constructor of uninitialized FieldFace
 
-  FieldFace (int rank) throw();
+  FieldFace (int rank = 0) throw();
 
   /// Destructor
   ~FieldFace() throw();
@@ -43,7 +43,7 @@ public: // interface
   //----------------------------------------------------------------------
 
   /// Set whether or not to include ghost zones along each axis
-  inline void set_ghost (int gx, int gy, int gz)
+  void set_ghost (int gx, int gy, int gz)
   {
     ghost_[0] = gx;
     ghost_[1] = gy;
@@ -85,6 +85,10 @@ public: // interface
     child_[1] = icy;
     child_[2] = icz;
   }
+
+  /// Set level of associated Block
+  void set_level (int level)
+  { level_ = level; }
 
   /// Set face type: > 0 for finer level, < 0 for coarser level, 0 for
   /// same level
@@ -195,11 +199,26 @@ private: // functions
   (Field field_src, std::vector<int> & field_list_src,
    Field field_dst, std::vector<int> & field_list_dst);
 
+  /// Whether this FieldFace operation involves interpolating in
+  /// time for adaptive timestepping
+  bool send_history_() const;
+  bool recv_history_() const;
+
+  /// Perform interpolation in time on prolonged fields if needed in
+  /// adaptive timestepping
+  void time_interpolate_(Field field, const std::vector<int> & field_list);
+
 private: // attributes
 
   /// Rank of the problem
   int rank_;
-  
+
+  /// Level of the associated block
+  int level_;
+
+  /// Face type: finer (> 0) , coarser (< 0), or same (0)
+  int face_type_;
+
   /// Select face, including edges and corners (-1,-1,-1) to (1,1,1)
   int face_[3];
 
@@ -208,9 +227,6 @@ private: // attributes
 
   /// Child index (0,0,0) to (1,1,1) if restriction or prolongation are used
   int child_[3];
-
-  /// Face type: finer (> 0) , coarser (< 0), or same (0)
-  int face_type_;
 
   /// Refresh object for lists of particles and fields to copy,
   /// and whether to copy or add

@@ -7,8 +7,6 @@
 
 #include "mesh.hpp"
 
-#define TEST_LEVEL_RANGE
-
 //----------------------------------------------------------------------
 
 ItNeighbor::ItNeighbor
@@ -20,9 +18,10 @@ ItNeighbor::ItNeighbor
  Index index,
  int neighbor_type,
  int root_level,
- DirType dir_type,
  int level_lower,
- int level_upper)
+ int level_upper,
+ DirType dir_type,
+ ScheduleType schedule_type)
   : ItType (),
     block_(block),
     rank_(cello::rank()),
@@ -30,9 +29,10 @@ ItNeighbor::ItNeighbor
     index_(index),
     neighbor_type_(neighbor_type),
     root_level_(root_level),
-    dir_type_(dir_type),
     level_lower_(level_lower),
-    level_upper_(level_upper)
+    level_upper_(level_upper),
+    dir_type_(dir_type),
+    schedule_type_(schedule_type)
 {
   if (!block->is_leaf()) {
     WARNING1("ItNeighbor::ItNeighbor",
@@ -220,23 +220,26 @@ bool ItNeighbor::valid_()
 {
   if (is_reset()) return true;
 
-  // Check that the level is in range
-
   // Check level range for adaptive time-stepping
-#ifdef TEST_LEVEL_RANGE
 
   const bool l_send = (dir_type_ == DirType::Send || dir_type_ == DirType::Both);
   const bool l_recv = (dir_type_ == DirType::Recv || dir_type_ == DirType::Both);
-  const bool l_face_active =
-    (((level_lower_ - 1 ) <= face_level()) && face_level() < level_upper_);
-  const bool l_this_active =
-    (((level_lower_ - 1 ) <= this_level()) && this_level() < level_upper_);
 
-  if ( (l_send && (! l_face_active)) ||
-       (l_recv && (! l_this_active)) )
-    return false;
+  // casual update every finest level cycle
 
-#endif
+  if (schedule_type_ == ScheduleType::Casual) {
+    const bool l_face_active = (level_lower_ - 1 ) <= face_level();
+    const bool l_this_active = (level_lower_ - 1 ) <= this_level();
+    if ( (l_send && (! l_face_active)) || (l_recv && (! l_this_active)) )
+      return false;
+  } else if (schedule_type_ == ScheduleType::Eager) {
+    const bool l_face_active =
+      (((level_lower_ - 1 ) <= face_level()) && face_level() < level_upper_ + 1);
+    const bool l_this_active =
+      (((level_lower_ - 1 ) <= this_level()) && this_level() < level_upper_ + 1);
+    if ( (l_send && (! l_face_active)) || (l_recv && (! l_this_active)) )
+      return false;
+  }
 
   // Check that face rank is in range
 

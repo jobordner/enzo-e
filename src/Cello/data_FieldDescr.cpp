@@ -126,7 +126,9 @@ void FieldDescr::set_history (int history) throw()
       }
     }
   }
+
   history_ = history;
+
 }
 
 //----------------------------------------------------------------------

@@ -685,7 +685,7 @@ void IoEnzoReader::file_read_block_fields_
     // If any fields, add them to DataMsg
     Refresh * refresh = new Refresh;
     refresh->add_all_data();
-    FieldFace  * field_face = new FieldFace(cello::rank());
+    FieldFace  * field_face = new FieldFace;
 
     field_face -> set_face_type (0);
     field_face -> set_child (0,0,0);

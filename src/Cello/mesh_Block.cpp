@@ -375,9 +375,10 @@ ItNeighbor Block::it_neighbor (Index index,
                                int min_face_rank,
                                int neighbor_type,
                                int coarse_level,
-                               DirType dir_type,
                                int level_lower,
-                               int level_upper) throw()
+                               int level_upper,
+                               DirType dir_type,
+                               ScheduleType schedule_type) throw()
 {
   if (min_face_rank == -1) {
     min_face_rank = cello::config()->adapt_min_face_rank;
@@ -388,7 +389,8 @@ ItNeighbor Block::it_neighbor (Index index,
   cello::hierarchy()->get_periodicity(p3,p3+1,p3+2);
   return ItNeighbor
     (this,min_face_rank,p3,n3,index,
-     neighbor_type,coarse_level,dir_type,level_lower,level_upper);
+     neighbor_type,coarse_level,level_lower,level_upper,
+     dir_type,schedule_type);
 }
 
 //----------------------------------------------------------------------
@@ -985,8 +987,9 @@ FieldFace * Block::create_face
 (int if3[3], int ic3[3], int g3[3],
  int face_type, Refresh * refresh, bool new_refresh) const
 {
-  FieldFace  * field_face = new FieldFace(cello::rank());
+  FieldFace  * field_face = new FieldFace;
 
+  field_face -> set_level (level());
   field_face -> set_face_type (face_type);
   field_face -> set_child (ic3[0],ic3[1],ic3[2]);
   field_face -> set_face (if3[0],if3[1],if3[2]);

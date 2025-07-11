@@ -58,7 +58,8 @@ enum enum_op_type {
 //----------------------------------------------------------------------
 
 FieldFace::FieldFace (int rank) throw()
-  : rank_(rank),
+  : rank_( rank ? rank : cello::rank() ),
+    level_(0),
     face_type_(0),
     refresh_(NULL),
     new_refresh_(false)
@@ -87,10 +88,11 @@ FieldFace::~FieldFace() throw ()
 //----------------------------------------------------------------------
 
 FieldFace::FieldFace(const FieldFace & field_face) throw ()
-  :  face_type_(0),
-     refresh_(NULL),
-     new_refresh_(false)
-
+  : rank_(0),
+    level_(0),
+    face_type_(0),
+    refresh_(NULL),
+    new_refresh_(false)
 {
   ++counter[cello::index_static()];
 
@@ -117,7 +119,9 @@ void FieldFace::copy_(const FieldFace & field_face)
     ghost_[i] = field_face.ghost_[i];
     child_[i] = field_face.child_[i];
   }
-  face_type_ = field_face.face_type_;
+  rank_       = field_face.rank_;
+  level_      = field_face.level_;
+  face_type_  = field_face.face_type_;
   refresh_    = field_face.refresh_;
   // new_refresh_ must not be true in more than one FieldFace to avoid
   // multiple deletes
@@ -133,10 +137,11 @@ void FieldFace::pup (PUP::er &p)
 
   TRACEPUP;
 
-  p | rank_;
   PUParray(p,face_,3);
   PUParray(p,ghost_,3);
   PUParray(p,child_,3);
+  p | rank_;
+  p | level_;
   p | face_type_;
   p | refresh_;
   p | new_refresh_;
@@ -168,6 +173,9 @@ void FieldFace::face_to_array ( Field field,char * array) throw()
 
   auto field_list_src = refresh_->field_list_src();
   auto field_list_dst = refresh_->field_list_dst();
+
+  include_field_history_ (field, field_list_src,
+                          field, field_list_dst);
 
   for (size_t i_f=0; i_f < field_list_src.size(); i_f++) {
 
@@ -252,6 +260,9 @@ void FieldFace::array_to_face (char * array, Field field) throw()
   auto field_list_src = refresh_->field_list_src();
   auto field_list_dst = refresh_->field_list_dst();
 
+  include_field_history_ (field, field_list_src,
+                          field, field_list_dst);
+
   for (size_t i_f=0; i_f < field_list_dst.size(); i_f++) {
 
     size_t index_field = field_list_dst[i_f];
@@ -306,6 +317,7 @@ void FieldFace::array_to_face (char * array, Field field) throw()
       ic3[2] = 0;
 
       // adjust for full-block interpolation to child
+
       prolong()->apply
         (precision,
          field_ghost,m3, i3,  n3,
@@ -354,21 +366,23 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
 
 #ifdef CONFIG_SMP_MODE
   CmiLock(field_face_node_lock);
-#endif  
-    
+#endif
+
+  int n3[3];
+  field_src.size (n3,n3+1,n3+2);
+
   for (size_t i_f=0; i_f < field_list_src.size(); i_f++) {
 
     size_t index_src = field_list_src[i_f];
     size_t index_dst = field_list_dst[i_f];
     CHECK_COARSE(field_src,index_src);
 
-    int m3[3],n3[3],g3[3],c3[3];
+    int m3[3],g3[3],c3[3];
 
     field_src.dimensions (index_src,m3,m3+1,m3+2);
-    field_src.size                 (n3,n3+1,n3+2);
     field_src.ghost_depth(index_src,g3,g3+1,g3+2);
     field_src.centering  (index_src,c3,c3+1,c3+2);
-    
+
     const bool accumulate = refresh_->accumulate(i_f);
 
     Box box (rank_,n3,g3);
@@ -448,6 +462,10 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
     div_by_density_(field_dst,index_dst,id3,nd3,m3);
 
   }
+
+  // Interpolate fields in time if needed when adaptive time-stepping
+  time_interpolate_(field_dst,field_list_dst);
+
 #ifdef CONFIG_SMP_MODE
   CmiUnlock(field_face_node_lock);
 #endif  
@@ -508,11 +526,13 @@ int FieldFace::data_size () const
 {
   int count = 0;
 
-  count += 3*sizeof(int);  // face_[3]
-  count += 3*sizeof(int); // ghost_[3]
-  count += 3*sizeof(int);  // child_[3];
+  SIZE_ARRAY_TYPE(count,int,face_,3);
+  SIZE_ARRAY_TYPE(count,int,ghost_,3);
+  SIZE_ARRAY_TYPE(count,int,child_,3);
 
-  count += 1*sizeof(int);  // face_type_
+  SIZE_SCALAR_TYPE(count,int,rank_);
+  SIZE_SCALAR_TYPE(count,int,level_);
+  SIZE_SCALAR_TYPE(count,int,face_type_);
 
   count += refresh_->data_size(); // refresh_
 
@@ -525,21 +545,22 @@ int FieldFace::data_size () const
 char * FieldFace::save_data (char * buffer) const
 {
   char * p = buffer;
-  int n;
 
-  memcpy(p,face_, n=3*sizeof(int));  p+=n;
-  memcpy(p,ghost_,n=3*sizeof(int));  p+=n;
-  memcpy(p,child_,n=3*sizeof(int));  p+=n;
+  SAVE_ARRAY_TYPE(p,int,face_,3);
+  SAVE_ARRAY_TYPE(p,int,ghost_,3);
+  SAVE_ARRAY_TYPE(p,int,child_,3);
 
-  memcpy(p,&face_type_,n=sizeof(int));   p+=n;
+  SAVE_SCALAR_TYPE(p,int,rank_);
+  SAVE_SCALAR_TYPE(p,int,level_);
+  SAVE_SCALAR_TYPE(p,int,face_type_);
 
   p = refresh_->save_data(p);
 
   ASSERT2("FieldFace::save_data()",
-	  "Buffer has size %ld but expecting size %d",
-	  (p-buffer),data_size(),
-	  ((p-buffer) == data_size()));
-  
+          "Buffer has size %ld but expecting size %d",
+          (p-buffer),data_size(),
+          ((p-buffer) == data_size()));
+
   return p;
 }
 
@@ -549,23 +570,23 @@ char * FieldFace::load_data (char * buffer)
 {
 
   char * p = buffer;
-  int n;
 
-  memcpy(face_,p, n=3*sizeof(int)); p+=n;
-  memcpy(ghost_,p,n=3*sizeof(int)); p+=n;
-  memcpy(child_,p,n=3*sizeof(int)); p+=n;
+  LOAD_ARRAY_TYPE(p,int,face_,3);
+  LOAD_ARRAY_TYPE(p,int,ghost_,3);
+  LOAD_ARRAY_TYPE(p,int,child_,3);
 
-  memcpy(&face_type_,p,n=sizeof(int));   p+=n;
+  LOAD_SCALAR_TYPE(p,int,rank_);
+  LOAD_SCALAR_TYPE(p,int,level_);
+  LOAD_SCALAR_TYPE(p,int,face_type_);
 
-  Refresh * refresh = new Refresh;
-  set_refresh(refresh,true);
+  set_refresh(new Refresh,true);
 
   p = refresh_->load_data(p);
 
   ASSERT2("FieldFace::save_data()",
-	  "Buffer has size %ld but expecting size %d",
-	  (p-buffer),data_size(),
-	  ((p-buffer) == data_size()));
+          "Buffer has size %ld but expecting size %d",
+          (p-buffer),data_size(),
+          ((p-buffer) == data_size()));
 
   return p;
 }
@@ -905,22 +926,117 @@ void FieldFace::include_field_history_
 (Field field_src, std::vector<int> & field_list_src,
  Field field_dst, std::vector<int> & field_list_dst)
 {
-  if (refresh_->adaptive_timestep() && face_type_ > 0) {
+
+  // Include field history only if using adaptive timestepping,
+  // block is outside level range
+  // and face is inside level range (prolong)
+
+  if (send_history_()) {
 
     // If adaptive timestepping and refining, add history = 1 fields
     // so receiver can interpolate in time
 
     const int n = refresh_->field_list_src().size();
     for (int k=0; k<n; k++) {
+      // Add previous timestep for src field if available
       int id_src_new = refresh_->field_list_src()[k];
-      int id_dst_new = refresh_->field_list_dst()[k];
-
       int id_src_old = field_src.history_id(id_src_new,1);
-      int id_dst_old = field_dst.history_id(id_dst_new,1);
-      if (id_src_new != id_src_old && id_dst_new != id_dst_old) {
+      if (field_src.history_age(id_src_new) == 0 &&
+          field_src.history_age(id_src_old) == 1) {
         field_list_src.push_back(id_src_old);
+      }
+      // Add previous timestep for dst field if available
+      int id_dst_new = refresh_->field_list_dst()[k];
+      int id_dst_old = field_dst.history_id(id_dst_new,1);
+      if (field_dst.history_age(id_dst_new) == 0 &&
+          field_dst.history_age(id_dst_old) == 1) {
         field_list_dst.push_back(id_dst_old);
       }
     }
   }
 }
+
+//----------------------------------------------------------------------
+
+void FieldFace::time_interpolate_
+(Field field,  const std::vector<int> & field_list)
+{
+  if (! recv_history_()) return;
+  CkPrintf ("TRACE_ATS time_interpolate level %d face %d level range %d %d\n",
+            level_,face_type_,refresh_->level_lower(),refresh_->level_upper());
+  int n3[3];
+  field.size (n3,n3+1,n3+2);
+  for (size_t i_f=0; i_f < field_list.size(); i_f++) {
+    const int id_curr = field_list[i_f];
+    if (field.history_age(id_curr) == 0) {
+      const int id_prev = field.history_id(id_curr,1);
+      const double t_curr = field.history_time(0);
+      const double t_prev  = field.history_time(1);
+
+      int m3[3],g3[3],c3[3];
+
+      field.dimensions (id_curr,m3,m3+1,m3+2);
+      field.ghost_depth(id_curr,g3,g3+1,g3+2);
+      field.centering  (id_curr,c3,c3+1,c3+2);
+
+      const bool accumulate = refresh_->accumulate(i_f);
+
+      Box box (rank_,n3,g3);
+      set_box_(&box);
+      box.set_centering(c3);
+
+      box_adjust_accumulate_(&box,accumulate,g3);
+
+      bool lpad;
+      int i3[3], n3[3];
+
+      box.get_start_size
+        (i3,n3,BlockType::receive,BlockType::receive,lpad=false);
+
+      const double t_next = cello::simulation()->state()->time(level_);
+
+      // curr initially is coarse next
+      // prev is coarse prev
+      // curr = curr + prev
+      cello_float * field_next = (cello_float *) field.values(id_curr);
+      cello_float * field_curr = (cello_float *) field.values(id_curr);
+      cello_float * field_prev = (cello_float *) field.values(id_prev);
+
+      const double c_next = (t_curr - t_prev) / (t_next - t_prev);
+      const double c_prev = (1.0 - c_next);
+
+      CkPrintf ("TRACE_FACE time level %d: field %d %d time [ %g %g %g ] c_prev %g c_next %g\n",
+                level_,id_prev, id_curr,t_prev,t_curr,t_next,c_prev,c_next);
+      for (int iz=i3[2]; iz<i3[2]+n3[2]; iz++) {
+        for (int iy=i3[1]; iy<i3[1]+n3[1]; iy++) {
+          for (int ix=i3[0]; ix<i3[0]+n3[0]; ix++) {
+            int i=ix + m3[0]*(iy + m3[1]*iz);
+            field_curr[i] = c_prev*field_prev[i] + c_next*field_next[i];
+          }
+        }
+      }
+      // CkPrintf ("TRACE_FACE %d %d %d  %d %d %d\n",
+      //           i3[0],i3[1],i3[2],n3[0],n3[1],n3[2]);
+
+    }
+  }
+}
+
+//----------------------------------------------------------------------
+
+bool FieldFace::send_history_() const
+{
+  return (refresh_->adaptive_timestep())
+    &&   (level_ == (refresh_->level_lower() - 1))
+    &&   (face_type_ == +1);
+}
+
+//----------------------------------------------------------------------
+
+bool FieldFace::recv_history_() const
+{
+  return (refresh_->adaptive_timestep())
+    &&   (level_ == (refresh_->level_lower() - 1))
+    &&   (face_type_ == +1);
+}
+

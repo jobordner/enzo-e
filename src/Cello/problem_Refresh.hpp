@@ -15,6 +15,7 @@ class Prolong;
 class Restrict;
 class ItNeighbor;
 enum class DirType;
+enum class ScheduleType;
 
 class Refresh : public PUP::able {
 
@@ -398,7 +399,7 @@ public: // interface
   /// Return the sync object associated with this refresh object
   Sync * sync( Block * block );
 
-  ItNeighbor it_neighbor (Block * block, DirType dir_type);
+  ItNeighbor it_neighbor (Block * block, DirType dir_type, ScheduleType schedule_type);
 
   //----------------------------------------------------------------------
 

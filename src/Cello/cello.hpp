@@ -871,6 +871,8 @@ namespace cello {
   int             min_level();
   /// Return the maximum allowed refinement level
   int             max_level();
+  /// Return the maximum actual refinement level
+  int             finest_level();
   /// Return the cell volume at the given level relative to the root level
   double          relative_cell_volume (int level);
   //----------------------------------------------------------------------

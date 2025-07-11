@@ -1357,6 +1357,7 @@ void FieldData::set_history_(const FieldDescr * field_descr)
     history_time_[ih] = 0.0;
   }
 }
+
 //----------------------------------------------------------------------
 
 namespace{

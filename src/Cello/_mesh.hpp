@@ -94,6 +94,13 @@ enum adapt_type {
 
 enum class DirType { Unknown, Both, Send, Recv };
 
+/// @enum     ScheduleType
+/// @brief    Specify refresh scheduling type for adaptive timestepping:
+///           "casual" to refresh before every finest level cycle, or
+///           "eager" to refresh after every cycle.
+
+enum class ScheduleType { Unknown, Casual, Eager };
+
 //----------------------------------------------------------------------
 // System includes
 //----------------------------------------------------------------------

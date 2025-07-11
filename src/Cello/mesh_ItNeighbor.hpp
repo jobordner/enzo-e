@@ -27,9 +27,10 @@ public: // interface
    Index index,
    int neighbor_type,
    int root_level,
-   DirType dir_type = DirType::Both,
    int level_lower = 0,
-   int level_upper = std::numeric_limits<int>::max());
+   int level_upper = std::numeric_limits<int>::max(),
+   DirType dir_type = DirType::Both,
+   ScheduleType schedule_type = ScheduleType::Casual);
 
   ItNeighbor (ItNeighbor &&) = default;
   ItNeighbor & operator = (ItNeighbor &&) = default;
@@ -60,9 +61,10 @@ public: // interface
     // p | index_;
     // p | neighbor_type_;
     // p | root_level_;
-    // p | dir_type_;
     // p | level_lower_;
     // p | level_upper_;
+    // p | dir_type_;
+    // p | schedule_type_;
   }
 
 
@@ -164,12 +166,15 @@ private: // attributes
   /// Level of coarse grid when neighbor_type_ == neighbor_leaf
   int root_level_;
 
-  /// Direction for adaptive time-stepping
-  DirType dir_type_;
-
   /// Level range for adaptive time-stepping
   int level_lower_;
   int level_upper_;
+
+  /// Direction for adaptive time-stepping
+  DirType dir_type_;
+
+  /// Schedule type for adaptive time-stepping ("eager" or "casual")
+  ScheduleType schedule_type_;
 
 };
 
