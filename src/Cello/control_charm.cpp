@@ -154,7 +154,7 @@ void Block::compute_exit_ ()
 void Block::control_sync (int entry_point, int sync_type, int id_sync,
 			  int min_face_rank, int neighbor_type, int root_level,
                           int level_lower, int level_upper,
-                          DirType dir_type, ScheduleType schedule_type)
+                          DirType dir_type)
 {
   TRACE_CONTROL("control_sync()");
   TRACE_SYNC("control_sync()");
@@ -171,7 +171,7 @@ void Block::control_sync (int entry_point, int sync_type, int id_sync,
 
     control_sync_neighbor
       (entry_point,id_sync,min_face_rank, neighbor_type,root_level,
-       level_lower,level_upper, dir_type, schedule_type);
+       level_lower,level_upper, dir_type);
 
   } else if (sync_type == sync_face) {
  
@@ -213,8 +213,7 @@ void Block::control_sync_neighbor(int entry_point, int id_sync,
                                   int root_level,
                                   int level_lower,
                                   int level_upper,
-                                  DirType dir_type,
-                                  ScheduleType schedule_type)
+                                  DirType dir_type)
 {
   TRACE_CONTROL("control_sync_neighbor");
   TRACE_SYNC("control_sync_neighbhor()");
@@ -242,7 +241,7 @@ void Block::control_sync_neighbor(int entry_point, int id_sync,
 
   ItNeighbor it_neighbor = this->it_neighbor
     (index_,min_face_rank,neighbor_type,root_level,
-     level_lower, level_upper, dir_type, schedule_type);
+     level_lower, level_upper, dir_type);
 
   int of3[3];  // ignored
   while (it_neighbor.next(of3)) {

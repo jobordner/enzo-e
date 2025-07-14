@@ -18,6 +18,7 @@ class Parameters;
 class Performance;
 class Problem;
 class Schedule;
+enum class RefreshType;
 
 #include <errno.h>
 #include <iostream>
@@ -370,7 +371,7 @@ public: // virtual functions
       refresh_name_.resize(id+1);
     refresh_name_[id] = name;
   }
-  
+
   std::string refresh_name (int id) const
   {
     return (0 <= id && id < int(refresh_name_.size())) ?
@@ -384,6 +385,9 @@ public: // virtual functions
   /// Return the number of refresh objects registered
   int refresh_count() const
   { return refresh_list_.size(); }
+
+  RefreshType refresh_type() const
+  { return refresh_type_; }
 
   //--------------------------------------
   // Initialization
@@ -553,6 +557,10 @@ protected: // attributes
   std::vector < Refresh * > refresh_list_;
   std::vector < std::string > refresh_name_;
 
+  /// Refresh scheduling type when using adaptive time-stepping: either
+  /// Casual (when needed) or Eager (asap).
+  RefreshType refresh_type_;
+  
   /// Saved latest checkpoint directory for creating symlink
   char dir_checkpoint_[256];
 

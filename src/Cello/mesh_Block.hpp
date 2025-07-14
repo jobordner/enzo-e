@@ -229,8 +229,7 @@ public:
 			 int root_level = 0,
                          int level_lower = 0,
                          int level_upper = std::numeric_limits<int>::max(),
-                         DirType dir_type = DirType::Both,
-                         ScheduleType schedule_type = ScheduleType::Casual) throw();
+                         DirType dir_type = DirType::Both) throw();
 
   //--------------------------------------------------
   // Charm++ virtual
@@ -528,8 +527,7 @@ public:
 		     int neighbor_type,int root_level,
                      int level_lower = 0,
                      int level_upper = std::numeric_limits<int>::max(),
-                     DirType dir_type = DirType::Both,
-                     ScheduleType schedule_type = ScheduleType::Casual);
+                     DirType dir_type = DirType::Both);
 
   /// synchronize with count other chares; count only needs to be
   /// supplied once with others count arguments 0.
@@ -544,8 +542,7 @@ public:
 			      int neighbor_type,int min_face_rank,int root_level,
                               int level_lower = 0,
                               int level_upper = std::numeric_limits<int>::max(),
-                              DirType dir_type = DirType::Both,
-                              ScheduleType schedule_type = ScheduleType::Casual);
+                              DirType dir_type = DirType::Both);
   void control_sync_face     (int entry_point, int id, int min_face_rank);
   void control_sync_barrier  (int entry_point);
   void control_sync_quiescence (int entry_point);

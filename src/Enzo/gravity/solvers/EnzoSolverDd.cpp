@@ -122,7 +122,7 @@ void EnzoSolverDd::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
 
   std::fill_n ((enzo_float*) field.values(ix_),  m, 0.0);
   std::fill_n ((enzo_float*) field.values(ixc_), m, 0.0);
-	
+
   if (block->is_leaf()) {
 
     begin_solve(enzo::block(block));

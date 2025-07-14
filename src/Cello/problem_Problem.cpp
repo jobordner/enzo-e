@@ -473,16 +473,22 @@ void Problem::initialize_output
 void Problem::initialize_method
 ( Config * config, const Factory * factory ) throw()
 {
-  const size_t num_method = config->method_list.size();
-
-  Method::courant_global = config->method_courant_global;
-
-  const std::string root_path = "Method:null";
-  ASSERT("Problem::initialize_method()", "Something is wrong",
+  ASSERT("Problem::initialize_method()",
+         "Simulation object does not exist!",
          cello::simulation());
 
-  ParameterGroup p_group(*(cello::simulation()->parameters()), root_path);
-  method_list_.push_back(new MethodNull(p_group));
+  // Add initial "null" method to refresh fields (refresh should be added to
+  // initialize to avoid this altogether)
+   ParameterGroup p_group(*(cello::simulation()->parameters()), "Method:null");
+   MethodNull * method_null = new MethodNull(p_group);
+   method_list_.push_back(method_null);
+   std::vector<double> list_of_0;
+   list_of_0.push_back(0.0);
+   // only call at cycle 0 to refresh all fields
+   method_null->set_schedule
+     ( Schedule::create( "cycle","list",0,0,1,list_of_0));
+
+  const size_t num_method = config->method_list.size();
 
   for (size_t index_method=0; index_method < num_method ; index_method++) {
 
@@ -509,8 +515,10 @@ void Problem::initialize_method
       method->set_index(num_methods() - 1);
 
     } else {
+
       ERROR1("Problem::initialize_method",
              "Unknown Method %s",name.c_str());
+
     }
   }
 }

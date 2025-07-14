@@ -29,8 +29,7 @@ public: // interface
    int root_level,
    int level_lower = 0,
    int level_upper = std::numeric_limits<int>::max(),
-   DirType dir_type = DirType::Both,
-   ScheduleType schedule_type = ScheduleType::Casual);
+   DirType dir_type = DirType::Both);
 
   ItNeighbor (ItNeighbor &&) = default;
   ItNeighbor & operator = (ItNeighbor &&) = default;
@@ -64,7 +63,7 @@ public: // interface
     // p | level_lower_;
     // p | level_upper_;
     // p | dir_type_;
-    // p | schedule_type_;
+    // p | refresh_type_;
   }
 
 
@@ -173,8 +172,8 @@ private: // attributes
   /// Direction for adaptive time-stepping
   DirType dir_type_;
 
-  /// Schedule type for adaptive time-stepping ("eager" or "casual")
-  ScheduleType schedule_type_;
+  /// Refresh type for adaptive time-stepping ("eager" or "casual")
+  RefreshType refresh_type_;
 
 };
 

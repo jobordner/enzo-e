@@ -232,6 +232,7 @@ void Config::pup (PUP::er &p)
 
   p | timestep_type;
   p | timestep_level_type;
+  p | timestep_refresh_type;
 
 }
 
@@ -1559,8 +1560,12 @@ void Config::read_testing_ (Parameters * p) throw()
 
 void Config::read_timestep_ (Parameters * p) throw()
 {
-  timestep_type       = p->value_string("Timestep:type",      "global");
-  timestep_level_type = p->value_string("Timestep:level_type","sequential");
+  // "global" or "level"
+  timestep_type       = p->value_string("Timestep:type", "global");
+  // "sequential" or "concurrent"
+  timestep_level_type   = p->value_string("Timestep:level_type",  "sequential");
+  // "casual" or "eager"
+  timestep_refresh_type = p->value_string("Timestep:refresh_type","casual");
 }
 
 //======================================================================

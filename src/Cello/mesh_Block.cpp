@@ -377,8 +377,7 @@ ItNeighbor Block::it_neighbor (Index index,
                                int coarse_level,
                                int level_lower,
                                int level_upper,
-                               DirType dir_type,
-                               ScheduleType schedule_type) throw()
+                               DirType dir_type) throw()
 {
   if (min_face_rank == -1) {
     min_face_rank = cello::config()->adapt_min_face_rank;
@@ -390,7 +389,7 @@ ItNeighbor Block::it_neighbor (Index index,
   return ItNeighbor
     (this,min_face_rank,p3,n3,index,
      neighbor_type,coarse_level,level_lower,level_upper,
-     dir_type,schedule_type);
+     dir_type);
 }
 
 //----------------------------------------------------------------------

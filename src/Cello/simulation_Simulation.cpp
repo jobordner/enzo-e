@@ -63,6 +63,7 @@ Simulation::Simulation
   sync_restart_created_(),
   sync_restart_next_(),
   refresh_list_(),
+  refresh_type_(RefreshType::Unknown),
   index_output_(-1),
   num_solver_iter_(),
   max_solver_iter_(),
@@ -132,6 +133,7 @@ Simulation::Simulation()
   sync_restart_created_(),
   sync_restart_next_(),
   refresh_list_(),
+  refresh_type_(RefreshType::Unknown),
   index_output_(-1),
   num_solver_iter_(),
   max_solver_iter_(),
@@ -189,6 +191,7 @@ Simulation::Simulation (CkMigrateMessage *m)
     sync_restart_created_(),
     sync_restart_next_(),
     refresh_list_(),
+    refresh_type_(RefreshType::Unknown),
     index_output_(-1),
     num_solver_iter_(),
     max_solver_iter_(),
@@ -296,6 +299,7 @@ void Simulation::pup (PUP::er &p)
   p | schedule_balance_;
 
   p | refresh_list_;
+  p | refresh_type_;
   p | refresh_name_;
 
   PUParray(p,dir_checkpoint_,256);
@@ -379,6 +383,23 @@ void Simulation::initialize_simulation_() throw()
 
   cycle_watch_   = config_->initial_cycle - 1;
   cycle_initial_ = config_->initial_cycle;
+
+  if (config_->timestep_refresh_type == "casual") {
+
+    refresh_type_ = RefreshType::Casual;
+
+  } else if (config_->timestep_refresh_type == "eager") {
+
+    refresh_type_ = RefreshType::Eager;
+
+  } else {
+
+    ERROR1 ("Simulation::initialize_simulation_()", 
+            "Unrecognized timestep_refresh_type parameter value %s "
+            "(must be \"casual\" or \"eager\")",
+            config_->timestep_refresh_type.c_str());
+
+  }
 }
 
 //----------------------------------------------------------------------
