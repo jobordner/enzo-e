@@ -11,20 +11,11 @@
 void MethodATS::compute( Block * block) throw()
 {
 
-   Refresh * refresh = cello::refresh(ir_post_);
-
-   refresh -> set_adaptive_timestep (true);
-   refresh -> set_level_lower(block->state()->level_lower());
-   refresh -> set_level_upper(block->state()->level_upper());
-
-   if (block->index().is_root())
-     CkPrintf ("DEBUG_ATS refresh level range %d %d\n",
-               refresh->level_lower(),
-               refresh->level_upper());
+  CkPrintf ("TRACE_METHOD_ATS compute() level %d\n",block->level());
 
   const int level = block->level();
 
-  if (block->state()->is_active(level)) {
+  if (block->is_leaf()) {
 
     Field field = block->data()->field();
     int it = field.field_id("test_ats");
@@ -49,8 +40,9 @@ void MethodATS::compute( Block * block) throw()
     }
 
     // Set field = (time + dt)
-    const double value = block->state()->time(level)
-      +                  block->state()->dt(level);
+    const double time = block->state()->time(level);
+    const double dt   = block->state()->dt(level);
+    const double value = time + dt;
 
     for (int iz=gz; iz<mz-gz; iz++) {
       for (int iy=gy; iy<my-gy; iy++) {
@@ -61,10 +53,9 @@ void MethodATS::compute( Block * block) throw()
       }
     }
 
-    test_history_(array_curr,array_prev,mx,my,mz,gx,gy,gz,level,block->state()->dt(level));
+    test_history_(array_curr,array_prev,mx,my,mz,gx,gy,gz,level,dt);
 
   }
-
 
   block->compute_done();
 }

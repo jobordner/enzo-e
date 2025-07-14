@@ -84,6 +84,13 @@ void Method::set_schedule (Schedule * schedule) throw()
   schedule_ = schedule;
 }
 
+bool Method::is_scheduled(Block * block) const
+{
+  return 
+    (! schedule_) ||
+    (schedule_->write_this_cycle
+     (block->state()->cycle(), block->state()->time()));
+}
 //======================================================================
 
 bool Method::is_solve_cycle_(Block * block)
