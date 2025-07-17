@@ -33,17 +33,14 @@ void MethodATS::compute( Block * block) throw()
     const double dt   = block->state()->dt(level);
     const double value = time + dt;
 
-    test_ghosts_(block,array_curr,face_curr,mx,my,mz,gx,gy,gz,dt);
+    test_constant_(array_curr,mx,my,mz,gx,gy,gz);
 
-    for (int iz=gz; iz<mz-gz; iz++) {
-      for (int iy=gy; iy<my-gy; iy++) {
-        for (int ix=gx; ix<mx-gx; ix++){
-          const int i=ix + mx*(iy + my*iz);
-          array_curr[i] = value;
-          face_curr[i] = value;
-        }
-      }
-    }
+    test_ghosts_(block,array_curr,mx,my,mz,gx,gy,gz);
+
+    advance_field_(array_curr,mx,my,mz,gx,gy,gz,dt);
+    advance_field_(face_curr,mx,my,mz,gx,gy,gz,dt);
+
+    update_face_(face_curr,mx,my,mz,dt);
 
     cello_float * array_prev = (cello_float *) field.values(jt,1);
     test_history_(array_curr,array_prev,mx,my,mz,gx,gy,gz,level,dt);
@@ -78,12 +75,40 @@ void MethodATS::init_refresh_()
 
 //----------------------------------------------------------------------
 
+void MethodATS::advance_field_(cello_float * array,
+                               int mx, int my, int mz,
+                               int gx, int gy, int gz,
+                               double dt)
+{
+  for (int iz=gz; iz<mz-gz; iz++) {
+    for (int iy=gy; iy<my-gy; iy++) {
+      for (int ix=gx; ix<mx-gx; ix++){
+        const int i=ix + mx*(iy + my*iz);
+        array[i] += dt;
+      }
+    }
+  }
+}
+
+//----------------------------------------------------------------------
+
+void MethodATS::test_constant_(cello_float * array_curr,
+                             int mx, int my, int mz,
+                             int gx, int gy, int gz)
+{
+  for (int iz=gz; iz<mz-gz; iz++) {
+    for (int iy=gy; iy<my-gy; iy++) {
+      for (int ix=gx; ix<mx-gx; ix++){
+      }
+    }
+  }
+}
+  //----------------------------------------------------------------------
+
 void MethodATS::test_ghosts_(Block * block,
                              cello_float * array_curr,
-                             cello_float * face_curr,
                              int mx, int my, int mz,
-                             int gx, int gy, int gz,
-                             double dt)
+                             int gx, int gy, int gz)
 {
   const int level = block->level();
   const int ixm = gx - 1;
@@ -104,14 +129,6 @@ void MethodATS::test_ghosts_(Block * block,
   int i = 0;
   cello_float txm,tym,tzm;
   cello_float txp,typ,tzp;
-
-  const int dx=1;
-  const int dy=mx;
-  const int dz=mx*my;
-
-  const int KX = (cello::rank() >= 1) ? 1 : 0;
-  const int KY = (cello::rank() >= 2) ? 1 : 0;
-  const int KZ = (cello::rank() >= 3) ? 1 : 0;
 
   if (cello::rank() >= 1) {
     txm = array_curr[ixm + mx * (iy0 + my*iz0)];
@@ -144,11 +161,42 @@ void MethodATS::test_ghosts_(Block * block,
                 level,t0,block->face_level(2,+1),tzp);
   }
 
+}
+
+//----------------------------------------------------------------------
+
+void MethodATS::update_face_
+(cello_float * face_curr, int mx, int my, int mz, double dt)
+{
+  const int dx = (cello::rank() >= 1) ? 1 : 0;
+  const int dy = (cello::rank() >= 2) ? mx : 0;
+  const int dz = (cello::rank() >= 3) ? mx*my : 0;
+
+  const int KX = (cello::rank() >= 1) ? 1 : 0;
+  const int KY = (cello::rank() >= 2) ? 1 : 0;
+  const int KZ = (cello::rank() >= 3) ? 1 : 0;
+
+  const int ix0 = (cello::rank() >= 1) ? mx/2 : 0;
+  const int iy0 = (cello::rank() >= 2) ? my/2 : 0;
+  const int iz0 = (cello::rank() >= 3) ? mz/2 : 0;
+
+  const int i0 = ix0 + mx * (iy0 + my*iz0);
+
   for (int kz=-KZ; kz<=KZ; kz++) {
     for (int ky=-KY; ky<=KY; ky++) {
       for (int kx=-KX; kx<=KX; kx++) {
-        face_curr[i0 + dx*kx + dy*ky + dz*kz] =
-          face_curr[i0 + dx*(ix0-1) + dy*(iy0-1) * dz*(iz0-1)] + dt;
+        if (kx || ky || kz ) {
+          CkPrintf ("TRACE_ATS %d %d %d  %d %d %d\n",ix0+kx,iy0+ky,iz0+kz,
+                    ix0+kx*(ix0-1),
+                    iy0+ky*(iy0-1),
+                    iz0+kz*(iz0-1));
+          face_curr[i0 + dx*kx
+                    +    dy*ky
+                    +    dz*kz] =
+            face_curr[i0 + dx*kx*(ix0-1)
+                      +    dy*ky*(iy0-1)
+                      +    dz*kz*(iz0-1)] + dt;
+        }
       }
     }
   }

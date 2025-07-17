@@ -239,9 +239,9 @@ bool ItNeighbor::valid_()
   } else if (refresh_type_ == RefreshType::Eager) {
 
     l_face_active =
-      level_lower_ - 1 <= face_level() && face_level() < level_upper_;
+      level_lower_ - 1 <= face_level() && face_level() <= level_upper_;
     l_this_active =
-      level_lower_ - 1 <= this_level() && this_level() < level_upper_;
+      level_lower_ - 1 <= this_level() && this_level() <= level_upper_;
   }
 
   if ( (l_send && (! l_face_active)) || (l_recv && (! l_this_active)) )
