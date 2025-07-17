@@ -97,6 +97,9 @@ void EnzoSolverDd::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
 
   allocate_temporary_(block);
 
+  if (block->state()->cycle()==0)
+    std::fill_n ((enzo_float*) field.values("X_copy_dd"), mx_*my_*mz_, 0.0);
+
   // Check that component solvers are of the correct type
   ASSERT2("EnzoSolverDd::apply()",
 	  "Coarse solver %s type %s != solve_level",
@@ -349,8 +352,7 @@ void EnzoSolverDd::copy_xc_to_x_(EnzoBlock * enzo_block) throw()
   std::copy_n((enzo_float *) field.values(ixc_),m,
 	      (enzo_float *) field.values(ix_));
   std::copy_n((enzo_float *) field.values(ixc_),m,
-	      (enzo_float *) field.values("X_copy"));
-
+	      (enzo_float *) field.values("X_copy_dd"));
 }
 
 //----------------------------------------------------------------------

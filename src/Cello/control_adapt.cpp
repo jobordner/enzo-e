@@ -58,6 +58,7 @@ void Block::adapt_enter_()
 {
   TRACE_ADAPT("adapt_enter_",this);
   if ( do_adapt_()) {
+    cello::hierarchy()->set_num_blocks_changed(0);
     adapt_begin_();
 
   } else {
@@ -144,6 +145,9 @@ void Block::adapt_barrier_()
 /// adapt_end_().
 void Block::adapt_next_()
 {
+  int num_blocks_changed = cello::hierarchy()->num_blocks_changed();
+  cello::hierarchy()->set_num_blocks_changed
+    (std::max(adapt_changed_,num_blocks_changed));
   TRACE_ADAPT("adapt_next contribute called_",this);
   update_levels_();
 

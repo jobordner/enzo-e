@@ -10,6 +10,14 @@
 #include "data.hpp"
 
 //----------------------------------------------------------------------
+void State::set_time (double time, int level)
+{
+  double time_curr = time_level_curr_[level];
+  if (time > time_curr) {
+    set_(time_level_prev_,level,time_curr);
+    set_(time_level_curr_,level,time);
+  }
+}
 
 void State::advance()
 {

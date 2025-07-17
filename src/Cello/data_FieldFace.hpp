@@ -201,8 +201,7 @@ private: // functions
 
   /// Whether this FieldFace operation involves interpolating in
   /// time for adaptive timestepping
-  bool send_history_() const;
-  bool recv_history_() const;
+  bool include_history_() const;
 
   /// Perform interpolation in time on prolonged fields if needed in
   /// adaptive timestepping

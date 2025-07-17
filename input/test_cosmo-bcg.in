@@ -3,6 +3,8 @@ Adapt { min_level = 0; }
 
 Stopping { cycle = 160; }
 
+Field { list += ["X_copy_bcg" ];
+
 Method {
      gravity {
          solver = "bcg";

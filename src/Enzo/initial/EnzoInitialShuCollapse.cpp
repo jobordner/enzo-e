@@ -172,9 +172,7 @@ void EnzoInitialShuCollapse::enforce_block
   enzo_float * vy           = (enzo_float *) field.values ("velocity_y");
   enzo_float * vz           = (enzo_float *) field.values ("velocity_z");
   enzo_float * x            = (enzo_float *) field.values ("X");
-  enzo_float * x_copy       = (enzo_float *) field.values ("X_copy");
   enzo_float * b            = (enzo_float *) field.values ("B");
-  enzo_float * b_copy       = (enzo_float *) field.values ("B_copy");
   enzo_float * ds           = (enzo_float *) field.values ("density_source");
   enzo_float * dsa          = (enzo_float *) field.values ("density_source_accumulate");
   enzo_float * mdxs         = (enzo_float *) field.values ("mom_dens_x_source");
@@ -198,9 +196,7 @@ void EnzoInitialShuCollapse::enforce_block
   std::fill_n(ay,m,0.0);
   std::fill_n(az,m,0.0);
   std::fill_n(x,m,0.0);
-  std::fill_n(x_copy,m,0.0);
   std::fill_n(b,m,0.0);
-  std::fill_n(b_copy,m,0.0);
   std::fill_n(ds,m,0.0);
   std::fill_n(dsa,m,0.0);
   std::fill_n(mdxs,m,0.0);

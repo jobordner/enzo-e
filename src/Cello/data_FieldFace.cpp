@@ -931,7 +931,7 @@ void FieldFace::include_field_history_
   // block is outside level range
   // and face is inside level range (prolong)
 
-  if (send_history_()) {
+  if (include_history_()) {
 
     // If adaptive timestepping and refining, add history = 1 fields
     // so receiver can interpolate in time
@@ -961,17 +961,17 @@ void FieldFace::include_field_history_
 void FieldFace::time_interpolate_
 (Field field,  const std::vector<int> & field_list)
 {
-  if (! recv_history_()) return;
-  CkPrintf ("TRACE_ATS time_interpolate level %d face %d level range %d %d\n",
-            level_,face_type_,refresh_->level_lower(),refresh_->level_upper());
+  if (! include_history_()) return;
+
+  const double t_curr = cello::simulation()->state()->time_curr(level_ + 1);
+  const double t_prev = cello::simulation()->state()->time_prev(level_);
+  const double t_next = cello::simulation()->state()->time_curr(level_);
   int n3[3];
   field.size (n3,n3+1,n3+2);
   for (size_t i_f=0; i_f < field_list.size(); i_f++) {
     const int id_curr = field_list[i_f];
     if (field.history_age(id_curr) == 0) {
       const int id_prev = field.history_id(id_curr,1);
-      const double t_curr = field.history_time(0);
-      const double t_prev  = field.history_time(1);
 
       int m3[3],g3[3],c3[3];
 
@@ -1005,8 +1005,6 @@ void FieldFace::time_interpolate_
       const double c_next = (t_curr - t_prev) / (t_next - t_prev);
       const double c_prev = (1.0 - c_next);
 
-      CkPrintf ("TRACE_FACE time level %d: field %d %d time [ %g %g %g ] c_prev %g c_next %g\n",
-                level_,id_prev, id_curr,t_prev,t_curr,t_next,c_prev,c_next);
       for (int iz=i3[2]; iz<i3[2]+n3[2]; iz++) {
         for (int iy=i3[1]; iy<i3[1]+n3[1]; iy++) {
           for (int ix=i3[0]; ix<i3[0]+n3[0]; ix++) {
@@ -1015,28 +1013,17 @@ void FieldFace::time_interpolate_
           }
         }
       }
-      // CkPrintf ("TRACE_FACE %d %d %d  %d %d %d\n",
-      //           i3[0],i3[1],i3[2],n3[0],n3[1],n3[2]);
-
     }
   }
 }
 
 //----------------------------------------------------------------------
 
-bool FieldFace::send_history_() const
+bool FieldFace::include_history_() const
 {
-  return (refresh_->adaptive_timestep())
-    &&   (level_ == (refresh_->level_lower() - 1))
-    &&   (face_type_ == +1);
+  const bool l_adaptive = refresh_->adaptive_timestep();
+  const bool l_level = level_ == (refresh_->level_lower() - 1);
+  const bool l_face = (face_type_ == +1);
+
+  return (l_adaptive && l_level && l_face);
 }
-
-//----------------------------------------------------------------------
-
-bool FieldFace::recv_history_() const
-{
-  return (refresh_->adaptive_timestep())
-    &&   (level_ == (refresh_->level_lower() - 1))
-    &&   (face_type_ == +1);
-}
-

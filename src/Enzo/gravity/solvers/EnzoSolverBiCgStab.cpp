@@ -458,7 +458,7 @@ void EnzoSolverBiCgStab::compute_(EnzoBlock* block) throw() {
       }
 #endif      
 
-      enzo_float* X_copy  = (enzo_float*) field.values("X_copy");
+      enzo_float* X_copy  = (enzo_float*) field.values("X_copy_bcg");
 
       for (int i=0; i<m_; i++) X[i] = X_copy[i];
 
@@ -828,7 +828,7 @@ void EnzoSolverBiCgStab::loop_0(EnzoBlock* block) throw() {
       Field field = block->data()->field();
 
       enzo_float* X       = (enzo_float*) field.values(ix_);
-      enzo_float* X_copy  = (enzo_float*) field.values("X_copy");
+      enzo_float* X_copy  = (enzo_float*) field.values("X_copy_bcg");
 
       for (int i=0; i<m_; i++) X_copy[i] = X[i];
       

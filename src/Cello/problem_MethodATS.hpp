@@ -73,10 +73,12 @@ protected: // methods
   void init_refresh_();
 
   /// Test that ghost values are expected
-  void test_ghosts_(cello_float * array_curr,
+  void test_ghosts_(Block * block,
+                    cello_float * array_curr,
+                    cello_float * face_curr,
                     int mx, int my, int mz,
                     int gx, int gy, int gz,
-                    int level);
+                    double dt);
 
   /// Test that previous saved value is expected
 

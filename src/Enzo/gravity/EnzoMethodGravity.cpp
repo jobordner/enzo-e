@@ -211,8 +211,6 @@ void EnzoMethodGravity::compute(Block * block) throw()
     int gx,gy,gz;
     field.dimensions (0,&mx,&my,&mz);
     field.ghost_depth(0,&gx,&gy,&gz);
-
-
     const int m = mx*my*mz;
     enzo_float * B = (enzo_float*) field.values (ib);
     enzo_float * DT = (enzo_float*) field.values (idt);
@@ -241,7 +239,6 @@ void EnzoMethodGravity::compute(Block * block) throw()
           DT[i] = - (DT[i] - 1.0);
           B[i]  = DT[i];
         }
-
       } else { // ! cosmology
 
         const double scale = -4.0 * (cello::pi) * (enzo::grav_constant_codeU());

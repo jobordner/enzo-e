@@ -74,7 +74,7 @@
               "acceleration_x", "acceleration_y", "acceleration_z",
               "density_gas", "density_particle", "density_total",
               "density_particle_accumulate", "potential", "potential_temp",
-              "potential_copy", "X", "B", "X_copy", "B_copy", "particle_mass"];
+              "potential_copy", "X", "B", "particle_mass"];
      padding = 0;
    }
 

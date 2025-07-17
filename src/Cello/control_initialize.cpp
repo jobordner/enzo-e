@@ -122,7 +122,8 @@ void  Block::initial_new_next_()
     initial->enforce_block(this,nullptr);
   } else {
     bool is_first_cycle = (state_->cycle() == cello::config()->initial_cycle);
-    if (is_first_cycle && level() <= cello::config()->mesh_max_initial_level) {
+    bool level_is_valid = level() <= cello::config()->mesh_max_initial_level;
+    if (is_first_cycle && level_is_valid) {
       initial_exit_();
     }
   }

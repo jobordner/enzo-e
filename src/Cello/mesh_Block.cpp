@@ -63,7 +63,9 @@ Block::Block ( process_type ip_source, MsgType msg_type )
     index_method_(-1),
     index_solver_(),
     refresh_(),
-    index_(thisIndex)
+    index_(thisIndex),
+    level_lower_(-1),
+    level_upper_(-1)
 {
 
 #ifdef TRACE_BLOCK
@@ -351,6 +353,8 @@ void Block::pup(PUP::er &p)
 
   p | index_order_;
   p | count_order_;
+  p | level_lower_;
+  p | level_upper_;
 }
 
 //----------------------------------------------------------------------
@@ -1238,3 +1242,4 @@ bool Block::refine_during_initialization(Index index) const throw()
 
   return false;
 }
+

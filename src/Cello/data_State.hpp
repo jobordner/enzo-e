@@ -97,8 +97,7 @@ public: // interface
 
   virtual void set_time (double time)
   { time_ = time; }
-  virtual void set_time (double time, int level)
-  { set_(time_level_curr_,level,time); }
+  virtual void set_time (double time, int level);
 
   void set_dt (double dt)
   { dt_ = dt; }
@@ -221,6 +220,8 @@ public: // interface
     alloc_(time_level_curr_,level);
     return time_level_curr_[level];
   }
+
+  double time_curr(int level) const { return time(level); }
 
   /// Return the time for the previous cycle in the given level
   double time_prev(int level) const

@@ -36,7 +36,8 @@ public: // interface
     block_vec_(),
     num_particles_(0), 
     num_zones_total_(0), 
-    num_zones_real_(0), 
+    num_zones_real_(0),
+    num_blocks_changed_(0),
     block_array_()
   {
     for (int axis=0; axis<3; axis++) {
@@ -206,6 +207,11 @@ public: // interface
   int64_t num_zones_total() const throw()
   {  return num_zones_total_;  }
 
+  int num_blocks_changed() const
+  { return num_blocks_changed_; }
+  void set_num_blocks_changed(int num_blocks_changed)
+  { num_blocks_changed_ = num_blocks_changed; }
+
   CProxy_Block new_block_proxy (bool allocate_data) throw();
 
   void create_block_array () throw();
@@ -275,6 +281,9 @@ protected: // attributes
   /// Current number of real_zones on this process
   int64_t num_zones_real_; 
   
+  /// Count of number of blocks refined or deleted
+  int num_blocks_changed_;
+
   /// Array of Blocks 
   CProxy_Block block_array_;
 

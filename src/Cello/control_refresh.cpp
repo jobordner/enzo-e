@@ -48,7 +48,9 @@ void Block::refresh_start (int id_refresh, int callback)
   Sync * sync = sync_(id_refresh);
 
 #ifdef TRACE_REFRESH
-  CkPrintf ("TRACE_REFRESH ENTER %s %d  %d %d\n",name().c_str(),id_refresh,
+  CkPrintf ("TRACE_REFRESH ENTER %s %s  %d %d\n",
+            name().c_str(),
+            cello::simulation()->refresh_name(id_refresh).c_str(),
             refresh->level_lower(),refresh->level_upper());
 #endif
 
@@ -235,8 +237,8 @@ void Block::p_refresh_recv (MsgRefresh * msg_refresh)
 void Block::refresh_exit (Refresh & refresh)
 {
 #ifdef TRACE_REFRESH
-  CkPrintf ("TRACE_REFRESH EXIT  %s %d  %d %d\n",name().c_str(),
-            refresh.id(),
+  CkPrintf ("TRACE_REFRESH EXIT  %s %s  %d %d\n",name().c_str(),
+            cello::simulation()->refresh_name(refresh.id()).c_str(),
             refresh.level_lower(),refresh.level_upper());
 #endif
   CHECK_ID(refresh.id());

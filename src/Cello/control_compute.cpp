@@ -30,7 +30,6 @@ void Block::compute_enter_ ()
 
 void Block::compute_begin_ ()
 {
-
   cello::simulation()->set_phase(phase_compute);
 
   // Update old fields
@@ -48,12 +47,10 @@ void Block::compute_next_ ()
 {
   Method * method = this->method();
 
-  // refresh only scheduled methods [HANGS]
-  // const bool is_scheduled = method && method->is_scheduled(this);
-
-  const bool is_scheduled = true;
-
   if (method) {
+
+    //  const bool is_scheduled = method->is_scheduled(this); // HANGS
+    const bool is_scheduled = true;
 
     if (is_scheduled) {
 
@@ -65,9 +62,11 @@ void Block::compute_next_ ()
 
       Refresh * refresh = cello::refresh(ir_post);
 
-      refresh -> set_adaptive_timestep (true);
+      refresh -> set_adaptive_timestep
+        (state()->state_type() == State::Type::Level);
       refresh -> set_level_lower(state()->level_lower());
       refresh -> set_level_upper(state()->level_upper());
+
       refresh->set_active (is_leaf());
 
       refresh_start (ir_post,CkIndex_Block::p_compute_continue());
@@ -165,8 +164,10 @@ void Block::compute_end_ ()
 
   // Save active level range for updating simulation state before advance() changes it
 
-  const int level_lower = state()->level_lower();
-  const int level_upper = state()->level_upper();
+  // Save level range for global state update later
+  
+  level_lower_ = state()->level_lower();
+  level_upper_ = state()->level_upper();
 
   // Update block cycle and time
 
@@ -174,23 +175,6 @@ void Block::compute_end_ ()
 
   // delete fluxes
   data()->flux_data()->deallocate();
-
-  auto & state_global = cello::simulation()->state();
-
-  // update simulation global state
-  state_global->set_cycle(state()->cycle());
-  state_global->set_time (state()->time());
-
-  if ( (state()->state_type() == State::Type::Level) &&
-       (state()->is_active(level())) ) {
-
-    // update simulation level states
-    for (int level=level_lower; level < level_upper; level++) {
-      state_global->set_cycle(state()->cycle(level),level);
-      state_global->set_time (state()->time (level),level);
-    }
-
-  }
 
   compute_exit_();
 

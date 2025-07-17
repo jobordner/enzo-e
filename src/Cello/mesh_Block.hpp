@@ -260,9 +260,10 @@ public:
     initial_exit_();  delete msg;
   }
 
-  void initial_exit_();
+  /// Exiting initialization
   void p_initial_exit()
   { initial_exit_(); }
+  void initial_exit_();
 
   void r_initial_new_continue(CkReductionMsg * msg)
   { delete msg; initial_new_continue_(); }
@@ -294,11 +295,7 @@ public:
 
   void p_compute_exit()
   {      compute_exit_();  }
-  void r_compute_exit(CkReductionMsg * msg)
-  {
-    delete msg;
-    compute_exit_();
-  }
+  void r_compute_exit_continue (CkReductionMsg * msg);
 
   /// Return the currently active Method
   int index_method() const throw()
@@ -354,6 +351,8 @@ protected: // methods
 
   /// Update Method state variables after method completes a step
   void compute_update_method_state_(int index_method);
+
+  void update_global_state_();
 
 public: // methods
 
@@ -881,13 +880,6 @@ protected: // functions
   /// Update boundary conditions
   void update_boundary_ ();
 
-  /// Set the current refresh object
-  void set_refresh (Refresh * refresh)
-  {
-    // WARNING: known memory leak (see bug # 133)
-    refresh_.push_back(new Refresh (*refresh));
-  };
-
   /// Return the currently-active Refresh object
   Refresh * refresh () throw()
   {  return refresh_.back();  }
@@ -1000,6 +992,10 @@ protected: // attributes
   /// Index and total count used for ordering blocks, e.g. for dynamic load balancing
   long long index_order_;
   long long count_order_;
+
+  /// Saved level range for updating global state after block barrier
+  int level_lower_;
+  int level_upper_;
 };
 
 #endif /* COMM_BLOCK_HPP */

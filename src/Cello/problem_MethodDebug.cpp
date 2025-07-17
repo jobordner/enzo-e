@@ -79,7 +79,7 @@ void MethodDebug::compute ( Block * block) throw()
     int gx,gy,gz;
     field.dimensions (0,&mx,&my,&mz);
     field.ghost_depth (0,&gx,&gy,&gz);
-
+    gx=gy=gz=0;
     const double rel_vol = cello::relative_cell_volume (block->level());
     int k=1;
     for (int index_field=0; index_field<num_fields_; index_field++) {
@@ -217,7 +217,7 @@ void MethodDebug::compute_continue
     for (int i_f=0; i_f<num_fields_; i_f++) {
       std::string name = field.field_name(i_f).c_str();
       cello::monitor()->print
-        ("Method", "Field %s min %20.16Lg avg %20.16Lg max %20.16Lg",name.c_str(),
+        ("Method", "Field %s min %30.24Lg avg %30.24Lg max %30.24Lg",name.c_str(),
          field_min_[i_f],field_sum_[i_f]/field_count_[i_f],field_max_[i_f]);
     }
     for (int it=0; it<num_particles_; it++) {
@@ -225,7 +225,7 @@ void MethodDebug::compute_continue
         const char axis[3] = {'X','Y','Z'};
         const std::string name = particle.type_name(it).c_str();
         cello::monitor()->print
-          ("Method", "Particle %s %c min avg max %20.16Lg %20.16Lg %20.16Lg",
+          ("Method", "Particle %s %c min avg max %30.24Lg %30.24Lg %30.24Lg",
            name.c_str(),axis[i],
            particle_min_[i][it],
            particle_sum_[i][it]/particle_count_[i][it],

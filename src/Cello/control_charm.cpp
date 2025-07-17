@@ -24,7 +24,7 @@
 
 
 #ifdef TRACE_CONTROL
-# define TRACE_BLOCK (cycle()>=104)
+# define TRACE_BLOCK (state()->cycle()>=0)
 # undef TRACE_CONTROL
 # define TRACE_CONTROL(A)                               \
   if (TRACE_BLOCK) {                                    \
@@ -51,7 +51,7 @@
 void Block::initial_exit_()
 {
   performance_start_(perf_initial);
-  TRACE_CONTROL("initial_exit");
+  TRACE_CONTROL("initial_exit_");
 
 #ifdef TRACE_CONTRIBUTE  
   CkPrintf ("%s %s:%d DEBUG_CONTRIBUTE calling r_adapt_enter\n",
@@ -144,9 +144,41 @@ void Block::stopping_exit_()
 
 void Block::compute_exit_ ()
 {
-  TRACE_CONTROL("compute_exit");
+  control_sync_barrier(CkIndex_Block::r_compute_exit_continue(nullptr));
+}
 
-  control_sync_barrier(CkIndex_Block::r_adapt_enter(NULL));
+//----------------------------------------------------------------------
+
+void Block::r_compute_exit_continue (CkReductionMsg * msg)
+{
+  delete msg;
+  
+  update_global_state_();
+
+  TRACE_CONTROL("compute_exit_continue");
+
+  adapt_enter_();
+}
+
+//----------------------------------------------------------------------
+
+void Block::update_global_state_()
+{
+
+  auto & state_global = cello::simulation()->state();
+  // update simulation global state
+  state_global->set_cycle(state()->cycle());
+  state_global->set_time (state()->time());
+
+  if ( (state()->state_type() == State::Type::Level) &&
+       (state()->is_active(level())) ) {
+
+    // update simulation level states using saved level range
+    for (int level=level_lower_; level < level_upper_; level++) {
+      state_global->set_cycle(state()->cycle(level),level);
+      state_global->set_time (state()->time (level),level);
+    }
+  }
 }
 
 //----------------------------------------------------------------------
