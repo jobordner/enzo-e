@@ -236,7 +236,9 @@ void Block::adapt_end_()
 
   const int initial_cycle = cello::config()->initial_cycle;
   const bool is_first_cycle = (initial_cycle == state_->cycle());
-  const int level_maximum = cello::config()->mesh_max_level;
+  const int level_maximum = std::min
+    (cello::config()->mesh_max_initial_level,
+     cello::config()->mesh_max_level);
 
   bool adapt_again = (is_first_cycle && (adapt_step_ < level_maximum));
   adapt_step_++;

@@ -108,12 +108,18 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
   state_       -> set_stopping(min_reduce[0] == 1.0);
   state_global -> set_stopping(min_reduce[0] == 1.0);
 
-  // Compute timestep
+  // Compute global and level timesteps
+
+  //    global timestep
   double dt_global = stopping_compute_global_dt_(min_reduce);
+
+  //    level timestep
   std::vector<double> dt_level;
   dt_level.resize(cello::max_level()+1);
+
   stopping_compute_level_dt_(min_reduce,dt_level);
 
+  // Update method timesteps for supercycling
   stopping_update_method_state_(min_reduce,dt_global);
 
   delete msg;
@@ -123,6 +129,7 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
   state_      ->set_dt (dt_global);
   state_global->set_dt (dt_global);
 
+  // Initialize level dt in state() objects
   int level = 0;
   for (auto & dt : dt_level) {
     state_      ->set_dt (dt,level);
@@ -240,6 +247,20 @@ void Block::stopping_compute_level_dt_(double min_reduce[], std::vector <double>
   // Adjust dt for global courant condition
   for (auto & dt : dt_level) dt *= Method::courant_global;
 
+  // Apply max_level_dt_ratio to limit dt ratios between levels
+  double max_ratio = cello::config()->timestep_max_level_dt_ratio;
+
+  //   find level with minimum dt (may not be finest level if not fully refined)
+  int level_dt_min = std::distance
+    (dt_level.begin(),std::min_element (dt_level.begin(),dt_level.end()));
+  double dt_min = *std::min_element (dt_level.begin(),dt_level.end());
+  //   enforce ratio limit
+  int level = 0;
+  for (auto & dt : dt_level) {
+    dt = std::min(dt,dt_min*std::pow(max_ratio,level_dt_min-level));
+    level++;
+  }
+
   // adjust timesteps to align with any scheduled output times
   int index_output=0;
   while (Output * output = problem->output(index_output++)) {
@@ -247,15 +268,15 @@ void Block::stopping_compute_level_dt_(double min_reduce[], std::vector <double>
     int level = 0;
     for (auto & dt : dt_level) {
       double time_curr = state_->time(level++);
-      schedule->update_timestep(time_curr,dt);
+      dt = schedule->update_timestep(time_curr,dt);
     }
   }
 
-  // Reduce timestep to not overshoot final time from stopping criteria
+  // Reduce timesteps to not overshoot final time from stopping criteria
 
   double time_stop = problem->stopping()->stop_time();
 
-  int level = 0;
+  level = 0;
   for (auto & dt : dt_level) {
     double time_curr = state_->time(level++);
     dt = std::min (dt, (time_stop - time_curr));

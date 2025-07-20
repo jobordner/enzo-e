@@ -173,6 +173,7 @@ void Block::update_global_state_()
   if ( (state()->state_type() == State::Type::Level) &&
        (state()->is_active(level())) ) {
 
+    state_global->set_level_range(level_lower_,level_upper_);
     // update simulation level states using saved level range
     for (int level=level_lower_; level < level_upper_; level++) {
       state_global->set_cycle(state()->cycle(level),level);
