@@ -287,16 +287,63 @@ double EnzoMethodPpm::timestep ( Block * block ) throw()
 
   int pressure_free_int = pressure_free_;
 
+  int mx,my,mz;
+  int gx,gy,gz;
+  const int id = field.field_id("density");
+  field.dimensions(id,&mx,&my,&mz);
+  field.ghost_depth(id,&gx,&gy,&gz);
+
+  int ixm = gx;
+  int iym = gy;
+  int izm = gz;
+
+  int ixp = mx - gx - 1;
+  int iyp = my - gy - 1;
+  int izp = mz - gz - 1;
+
+  ASSERT2 ("EnzoMethodPpm::compute",
+          "Field dimension mismatch mx %d != GridDimension[0] %d",
+          mx,enzo_block->GridDimension[0],
+           (mx == enzo_block->GridDimension[0]));
+  ASSERT2 ("EnzoMethodPpm::compute",
+          "Field dimension mismatch my %d != GridDimension[1] %d",
+          my,enzo_block->GridDimension[1],
+           (my == enzo_block->GridDimension[1]));
+  ASSERT2 ("EnzoMethodPpm::compute",
+          "Field dimension mismatch mz %d != GridDimension[2] %d",
+          mz,enzo_block->GridDimension[2],
+           (mz == enzo_block->GridDimension[2]));
+
+  ASSERT2 ("EnzoMethodPpm::compute",
+          "Field staring index mismatch ixm %d != GridStartIndex[0] %d",
+          ixm,enzo_block->GridStartIndex[0],
+           (ixm == enzo_block->GridStartIndex[0]));
+  ASSERT2 ("EnzoMethodPpm::compute",
+          "Field staring index mismatch iym %d != GridStartIndex[1] %d",
+          iym,enzo_block->GridStartIndex[1],
+           (iym == enzo_block->GridStartIndex[1]));
+  ASSERT2 ("EnzoMethodPpm::compute",
+          "Field staring index mismatch izm %d != GridStartIndex[2] %d",
+          izm,enzo_block->GridStartIndex[2],
+           (izm == enzo_block->GridStartIndex[2]));
+
+
+  ASSERT2 ("EnzoMethodPpm::compute",
+          "Field ending index mismatch ixp %d != GridEndIndex[0] %d",
+          ixp,enzo_block->GridEndIndex[0],
+           (ixp == enzo_block->GridEndIndex[0]));
+  ASSERT2 ("EnzoMethodPpm::compute",
+          "Field ending index mismatch iyp %d != GridEndIndex[1] %d",
+          iyp,enzo_block->GridEndIndex[1],
+           (iyp == enzo_block->GridEndIndex[1]));
+  ASSERT2 ("EnzoMethodPpm::compute",
+          "Field ending index mismatch izp %d != GridEndIndex[2] %d",
+          izp,enzo_block->GridEndIndex[2],
+           (izp == enzo_block->GridEndIndex[2]));
+
   FORTRAN_NAME(calc_dt)(&rank,
-			enzo_block->GridDimension,
-			enzo_block->GridDimension+1,
-			enzo_block->GridDimension+2,
-			enzo_block->GridStartIndex,
-			enzo_block->GridEndIndex,
-			enzo_block->GridStartIndex+1,
-			enzo_block->GridEndIndex+1,
-			enzo_block->GridStartIndex+2,
-			enzo_block->GridEndIndex+2,
+                        &mx, &my, &mz,
+                        &ixm, &ixp, &iym, &iyp, &izm, &izp,
 			&enzo_block->CellWidth[0],
 			&enzo_block->CellWidth[1],
 			&enzo_block->CellWidth[2],

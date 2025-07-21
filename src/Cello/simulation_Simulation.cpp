@@ -939,6 +939,7 @@ void Simulation::monitor_output()
   monitor()-> print("Simulation", "time-sim %15.12e",state_->time());
   monitor()-> print("Simulation", "dt %15.12e",      state_->dt());
   if (state_->state_type() == State::Type::Level) {
+    std::string active_levels{""};
     for (int level=0; level<=hierarchy_->max_level(); level++) {
       monitor()-> print("Simulation", "cycle-level %d %04d",
                         level,state_->cycle(level));
@@ -946,7 +947,10 @@ void Simulation::monitor_output()
                         level,state_->time(level));
       monitor()-> print("Simulation", "dt-level %d %15.12e",
                         level,state_->dt_level(level));
+      static const char digit[] = "0123456789";
+      active_levels.push_back(state_->is_active(level) ? digit[level%10] : ' ');
     }
+    monitor()-> print("Simulation", "active levels [ %s ]", active_levels.c_str());
   }
   thisProxy.p_monitor_performance();
 }

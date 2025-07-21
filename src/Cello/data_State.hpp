@@ -273,6 +273,10 @@ public: // interface
 
   int level_lower() const { return level_lower_; }
   int level_upper() const { return level_upper_; }
+  void set_level_range (int lower, int upper)
+  { level_lower_ = lower;
+    level_upper_ = upper;
+  }
 
   //----------------------------------------------------------------------
   // Modifiers

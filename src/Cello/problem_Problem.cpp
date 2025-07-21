@@ -914,8 +914,10 @@ Method * Problem::create_method_
 {
   TRACE1("Problem::create_method %s",name.c_str());
 
-  // move creation of p_access up the call stack?
-  ASSERT("Problem::create_method_", "Something is wrong", cello::simulation());
+  ASSERT("Problem::create_method_",
+         "Simulation object does not exist!",
+         (cello::simulation() != nullptr));
+
   Parameters* parameters = cello::simulation()->parameters();
   const std::string root_path =
     ("Method:" + parameters->list_value_string(index_method, "Method:list"));
@@ -942,10 +944,6 @@ Method * Problem::create_method_
   } else if (name == "refresh") {
     method = new MethodRefresh(p_group);
   } else if (name == "debug") {
-
-    // TODO: refactor to use MethodDebug's constructor
-    //   - as an aside, the number of fields and particles specified in the
-    //     parameter file may be inaccurate. We probably don't want to do that
     method = new MethodDebug
       (config->num_fields,
        config->num_particles,
