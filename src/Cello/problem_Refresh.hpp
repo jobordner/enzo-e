@@ -145,8 +145,8 @@ public: // interface
     p | field_list_src_;
     p | field_list_dst_;
     p | all_particles_;
-    p | particle_list_;
     p | particles_are_copied_;
+    p | particle_list_;
     p | all_fluxes_;
     p | ghost_depth_;
     p | min_face_rank_;

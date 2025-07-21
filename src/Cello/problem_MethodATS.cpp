@@ -186,10 +186,6 @@ void MethodATS::update_face_
     for (int ky=-KY; ky<=KY; ky++) {
       for (int kx=-KX; kx<=KX; kx++) {
         if (kx || ky || kz ) {
-          CkPrintf ("TRACE_ATS %d %d %d  %d %d %d\n",ix0+kx,iy0+ky,iz0+kz,
-                    ix0+kx*(ix0-1),
-                    iy0+ky*(iy0-1),
-                    iz0+kz*(iz0-1));
           face_curr[i0 + dx*kx
                     +    dy*ky
                     +    dz*kz] =

@@ -178,7 +178,6 @@ void FieldFace::face_to_array ( Field field,char * array) throw()
                           field, field_list_dst);
 
   for (size_t i_f=0; i_f < field_list_src.size(); i_f++) {
-
     const size_t index_field = field_list_src[i_f];
     CHECK_COARSE(field,index_field);
 
@@ -352,6 +351,8 @@ void FieldFace::array_to_face (char * array, Field field) throw()
     div_by_density_(field,index_field,i3,n3,m3);
 
   }
+  // Interpolate fields in time if needed when adaptive time-stepping
+  time_interpolate_(field,field_list_dst);
 }
 
 //----------------------------------------------------------------------
@@ -360,6 +361,7 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
 {
   auto field_list_src = refresh_->field_list_src();
   auto field_list_dst = refresh_->field_list_dst();
+
 
   include_field_history_ (field_src, field_list_src,
                           field_dst, field_list_dst);

@@ -229,7 +229,6 @@ void Block::p_refresh_recv (MsgRefresh * msg_refresh)
     refresh_msg_list_[id_refresh].push_back(msg_refresh);
 
   }
-
 }
 
 //----------------------------------------------------------------------

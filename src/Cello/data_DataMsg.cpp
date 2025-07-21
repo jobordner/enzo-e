@@ -223,7 +223,7 @@ char * DataMsg::save_data (char * buffer) const
   if (n_ff > 0) {
     pc = ff->save_data (pc);
   }
-    // save field array
+  // save field array
   if (n_ff > 0 && n_fa > 0) {
     ff->face_to_array(field,pc);
     pc += n_fa;

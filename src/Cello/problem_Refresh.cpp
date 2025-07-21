@@ -147,6 +147,9 @@ int Refresh::data_size () const
   SIZE_SCALAR_TYPE(count,int,active_);
   SIZE_SCALAR_TYPE(count,int,callback_);
   SIZE_SCALAR_TYPE(count,int,root_level_);
+  SIZE_SCALAR_TYPE(count,bool,adaptive_timestep_);
+  SIZE_SCALAR_TYPE(count,int,level_lower_);
+  SIZE_SCALAR_TYPE(count,int,level_upper_);
   SIZE_SCALAR_TYPE(count,int,id_refresh_);
 
   SIZE_SCALAR_TYPE(count,int,id_prolong_);
@@ -180,6 +183,9 @@ char * Refresh::save_data (char * buffer) const
   SAVE_SCALAR_TYPE(p,int,active_);
   SAVE_SCALAR_TYPE(p,int,callback_);
   SAVE_SCALAR_TYPE(p,int,root_level_);
+  SAVE_SCALAR_TYPE(p,bool,adaptive_timestep_);
+  SAVE_SCALAR_TYPE(p,int,level_lower_);
+  SAVE_SCALAR_TYPE(p,int,level_upper_);
   SAVE_SCALAR_TYPE(p,int,id_refresh_);
 
   SAVE_SCALAR_TYPE(p,int,id_prolong_);
@@ -217,6 +223,9 @@ char * Refresh::load_data (char * buffer)
   LOAD_SCALAR_TYPE(p,int,active_);
   LOAD_SCALAR_TYPE(p,int,callback_);
   LOAD_SCALAR_TYPE(p,int,root_level_);
+  LOAD_SCALAR_TYPE(p,bool,adaptive_timestep_);
+  LOAD_SCALAR_TYPE(p,int,level_lower_);
+  LOAD_SCALAR_TYPE(p,int,level_upper_);
   LOAD_SCALAR_TYPE(p,int,id_refresh_);
 
   LOAD_SCALAR_TYPE(p,int,id_prolong_);

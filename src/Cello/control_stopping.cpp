@@ -251,6 +251,15 @@ void Block::stopping_compute_level_dt_(double min_reduce[], std::vector <double>
     }
   }
 
+  // Reduce timestep to not overshoot coarser timestep
+  for (int level = cello::max_level(); level > 0; level--) {
+    if (dt_level[level-1] != std::numeric_limits<double>::max()) 
+      dt_level[level] = std::min(dt_level[level],
+                                 state_->time(level-1)
+                                 - state_->time(level)
+                                 + dt_level[level-1]);
+  }
+
   // Reduce timestep to not overshoot final time from stopping criteria
 
   double time_stop = problem->stopping()->stop_time();

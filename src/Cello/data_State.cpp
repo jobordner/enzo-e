@@ -30,14 +30,13 @@ void State::advance()
       cycle_level_[level]++;
       const double time_next = time_level_curr_[level] + dt_level_[level];
       time_level_prev_[level] = time_level_curr_[level];
-      time_level_curr_[level] = (level > 0) ?
-        std::min(time_level_curr_[level-1],time_next) : time_next;
+      time_level_curr_[level] = time_next;
     }
 
     if (state_next_ == Next::Sequential) {
 
       int level=time_level_curr_.size() - 1;
-      while (level >= 0 && time_level_curr_[level] == time_level_curr_[level-1])
+      while (level > 0 && time_level_curr_[level] == time_level_curr_[level-1])
         level--;
       level_lower_ = level;
       level_upper_ = level + 1;
