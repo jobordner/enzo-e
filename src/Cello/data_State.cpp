@@ -44,7 +44,7 @@ void State::advance()
     } else if (state_next_ == Next::Concurrent) {
 
       int level=time_level_curr_.size() - 1;
-      while (level >= 0 && (time_level_curr_[level] == time_level_curr_[level-1]))
+      while (level > 0 && (time_level_curr_[level] == time_level_curr_[level-1]))
         level--;
       level_lower_ = level;
       level_upper_ = time_level_curr_.size();
