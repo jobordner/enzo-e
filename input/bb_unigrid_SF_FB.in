@@ -58,7 +58,7 @@
                 "temperature", "total_energy", "internal_energy", "pressure",
                  "density_gas", "density_particle", "density_total", "metal_density",
                  "density_particle_accumulate", "potential", "potential_temp", 
-                 "potential_copy", "X", "B", "X_copy_dd", "X_copy_bcg" ];
+                 "potential_copy", "X", "B", "X_copy" ];
      padding = 0;
  }
 
