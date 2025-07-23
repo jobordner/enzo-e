@@ -23,6 +23,8 @@ IoBlock::IoBlock() throw ()
   meta_name_.push_back("array");
   meta_name_.push_back("index_order");
   meta_name_.push_back("count_order");
+  meta_name_.push_back("level_lower");
+  meta_name_.push_back("level_upper");
 }
 
 //----------------------------------------------------------------------
@@ -41,6 +43,8 @@ void IoBlock::set_block (Block * block) throw()
   dt_    = block->state()->dt();
   for (i=0; i<3; i++) array_[i] = block->array_[i];
   block->get_order(&index_order_, &count_order_);
+  level_lower_ = block->state()->level_lower();
+  level_upper_ = block->state()->level_upper();
 }
 
 //----------------------------------------------------------------------
@@ -88,6 +92,12 @@ void IoBlock::meta_value
   } else if (index == count++) {
     *buffer = (void *) & count_order_;
     *type   = type_long_long;
+  } else if (index == count++) {
+    *buffer = (void *) & level_lower_;
+    *type   = type_int;
+  } else if (index == count++) {
+    *buffer = (void *) & level_upper_;
+    *type   = type_int;
   }
 }
 //======================================================================
@@ -106,6 +116,8 @@ int IoBlock::data_size () const
   SIZE_SCALAR_TYPE(size,double, time_);
   SIZE_SCALAR_TYPE(size,double, dt_);
   SIZE_ARRAY_TYPE(size,int,array_,3);
+  SIZE_SCALAR_TYPE(size,int,level_lower_);
+  SIZE_SCALAR_TYPE(size,int,level_upper_);
   SIZE_SCALAR_TYPE(size,long long, index_order_);
   SIZE_SCALAR_TYPE(size,long long, count_order_);
 
@@ -128,6 +140,8 @@ char * IoBlock::save_data (char * buffer) const
   SAVE_SCALAR_TYPE(pc,double, time_);
   SAVE_SCALAR_TYPE(pc,double, dt_);
   SAVE_ARRAY_TYPE(pc,int,array_,3);
+  SAVE_SCALAR_TYPE(pc,int,level_lower_);
+  SAVE_SCALAR_TYPE(pc,int,level_upper_);
   SAVE_SCALAR_TYPE(pc,long long, index_order_);
   SAVE_SCALAR_TYPE(pc,long long, count_order_);
 
@@ -156,6 +170,8 @@ char * IoBlock::load_data (char * buffer)
   LOAD_SCALAR_TYPE(pc,double, time_);
   LOAD_SCALAR_TYPE(pc,double, dt_);
   LOAD_ARRAY_TYPE(pc,int,array_,3);
+  LOAD_SCALAR_TYPE(pc,int,level_lower_);
+  LOAD_SCALAR_TYPE(pc,int,level_upper_);
   LOAD_SCALAR_TYPE(pc,long long, index_order_);
   LOAD_SCALAR_TYPE(pc,long long, count_order_);
 
@@ -178,6 +194,7 @@ void IoBlock::save_to (void * v)
   b->state()->set_cycle(cycle_);
   b->state()->set_time (time_);
   b->state()->set_dt   (dt_);
+  b->state()->set_level_range (level_lower_,level_upper_);
   b->set_order(index_order_, count_order_);
 }
 

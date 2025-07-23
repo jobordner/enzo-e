@@ -8,24 +8,44 @@
 #include "Enzo/cosmology/cosmology.hpp"
 #include "Enzo/enzo.hpp"
 
+//----------------------------------------------------------------------
+
+void EnzoState::advance ()
+{
+  State::advance();
+  auto * cosmology = enzo::cosmology();
+  if (cosmology) {
+    // update block redshift
+    redshift_ = cosmology->redshift_from_time(time_);
+    // update level redshifts
+    if (state_type_ == Type::Level) {
+      for (int level=level_lower_; level<level_upper_; level++) {
+        set_redshift
+          (level,cosmology->redshift_from_time(time_level_curr_[level]));
+      }
+    }
+  }
+}
+
+//----------------------------------------------------------------------
+
 void EnzoState::set_time (double time)
 {
   State::set_time(time);
-
   auto * cosmology = enzo::cosmology();
   if (cosmology) {
-    cosmology->set_current_time(time);
-    redshift_ = cosmology->current_redshift();
+    redshift_ = cosmology->redshift_from_time(time);
   }
 }
+
+//----------------------------------------------------------------------
 
 void EnzoState::set_time (double time, int level)
 {
-  State::set_time(time,level);
-
+  State::set_time(time, level);
   auto * cosmology = enzo::cosmology();
   if (cosmology) {
-    cosmology->set_current_time(time);
-    set_(redshift_level_,level,cosmology->current_redshift());
+    set_redshift(level,cosmology->redshift_from_time(time));
   }
 }
+

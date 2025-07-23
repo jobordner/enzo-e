@@ -40,6 +40,7 @@ Block::Block ( process_type ip_source, MsgType msg_type )
   : CBase_Block(),
     data_(NULL),
     child_data_(NULL),
+    index_(thisIndex),
     level_next_(0),
     state_(new State (0, 0.0, 0.0, false)),
     index_initial_(0),
@@ -63,7 +64,8 @@ Block::Block ( process_type ip_source, MsgType msg_type )
     index_method_(-1),
     index_solver_(),
     refresh_(),
-    index_(thisIndex),
+    index_order_(0),
+    count_order_(1),
     level_lower_(-1),
     level_upper_(-1)
 {
@@ -694,6 +696,7 @@ Block::Block ()
   : CBase_Block(),
     data_(NULL),
     child_data_(NULL),
+    index_(thisIndex),
     level_next_(0),
     state_(new State (0, 0.0, 0.0, false)),
     index_initial_(0),
@@ -716,7 +719,11 @@ Block::Block ()
     name_(""),
     index_method_(-1),
     index_solver_(),
-    refresh_()
+    refresh_(),
+    index_order_(0),
+    count_order_(1),
+    level_lower_(-1),
+    level_upper_(-1)
 {
   init_refresh_();
   init_adapt_(nullptr);

@@ -283,7 +283,7 @@ public: // interface
   //----------------------------------------------------------------------
 
   /// Update level range for next set of timesteps
-  void advance();
+  virtual void advance();
 
   /// Return whether blocks in the given level can advance
   bool is_active ( int level ) const;
@@ -357,7 +357,7 @@ public: // interface
   //----------------------------------------------------------------------
   // Debugging
   //----------------------------------------------------------------------
-  void print(std::string msg)
+  virtual void print(std::string msg)
   {
     CkPrintf ("State %s\n",msg.c_str());
 

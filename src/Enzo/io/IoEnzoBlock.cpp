@@ -99,8 +99,9 @@ void IoEnzoBlock::meta_value
       *buffer = (void *) enzo_CellWidth_;
       *type   = type_enzo_float;
       *nxd     = 3;
-      
+
     } else if (index == index_count++) {
+
       *buffer = (void *) & enzo_redshift_;
       *type   = type_enzo_float;
     }
