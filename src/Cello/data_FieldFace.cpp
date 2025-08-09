@@ -14,6 +14,8 @@
 
 // #define CONFIG_SMP_MODE
 
+//----------------------------------------------------------------------
+
 static CmiNodeLock field_face_node_lock;
 void mutex_init_field_face()
 {  field_face_node_lock = CmiCreateLock(); }
@@ -171,11 +173,8 @@ void FieldFace::face_to_array ( Field field,char * array) throw()
 {
   size_t index_array = 0;
 
-  auto field_list_src = refresh_->field_list_src();
-  auto field_list_dst = refresh_->field_list_dst();
-
-  include_field_history_ (field, field_list_src,
-                          field, field_list_dst);
+  auto field_list_src = refresh_->field_list_src(level_,face_type_);
+  auto field_list_dst = refresh_->field_list_dst(level_,face_type_);
 
   for (size_t i_f=0; i_f < field_list_src.size(); i_f++) {
     const size_t index_field = field_list_src[i_f];
@@ -256,14 +255,10 @@ void FieldFace::array_to_face (char * array, Field field) throw()
 {
   size_t index_array = 0;
 
-  auto field_list_src = refresh_->field_list_src();
-  auto field_list_dst = refresh_->field_list_dst();
-
-  include_field_history_ (field, field_list_src,
-                          field, field_list_dst);
+  auto field_list_src = refresh_->field_list_src(level_,face_type_);
+  auto field_list_dst = refresh_->field_list_dst(level_,face_type_);
 
   for (size_t i_f=0; i_f < field_list_dst.size(); i_f++) {
-
     size_t index_field = field_list_dst[i_f];
 
     CHECK_COARSE(field,index_field);
@@ -352,19 +347,16 @@ void FieldFace::array_to_face (char * array, Field field) throw()
 
   }
   // Interpolate fields in time if needed when adaptive time-stepping
-  time_interpolate_(field,field_list_dst);
+  // (note invert_face parameter is set since at receiving end)
+  time_interpolate_(field,field_list_dst,true);
 }
 
 //----------------------------------------------------------------------
 
 void FieldFace::face_to_face (Field field_src, Field field_dst)
 {
-  auto field_list_src = refresh_->field_list_src();
-  auto field_list_dst = refresh_->field_list_dst();
-
-
-  include_field_history_ (field_src, field_list_src,
-                          field_dst, field_list_dst);
+  auto field_list_src = refresh_->field_list_src(level_,face_type_);
+  auto field_list_dst = refresh_->field_list_dst(level_,face_type_);
 
 #ifdef CONFIG_SMP_MODE
   CmiLock(field_face_node_lock);
@@ -446,7 +438,7 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
       union { float * fd4; double * fd8; long double * fd16; };
       fs4 = (float *) values_src;
       fd4 = (float *) values_dst;
-      
+
       // Copy field to array
 
       if (precision == precision_single) {
@@ -479,8 +471,8 @@ int FieldFace::num_bytes_array(Field field) throw()
 {
   int array_size = 0;
 
-  auto field_list_src = refresh_->field_list_src();
-  auto field_list_dst = refresh_->field_list_dst();
+  auto field_list_src = refresh_->field_list_src(level_,face_type_);
+  auto field_list_dst = refresh_->field_list_dst(level_,face_type_);
 
   for (size_t i_f=0; i_f < field_list_src.size(); i_f++) {
 
@@ -570,7 +562,6 @@ char * FieldFace::save_data (char * buffer) const
 
 char * FieldFace::load_data (char * buffer)
 {
-
   char * p = buffer;
 
   LOAD_ARRAY_TYPE(p,int,face_,3);
@@ -924,94 +915,64 @@ void FieldFace::box_adjust_accumulate_ (Box * box, int accumulate, int g3[3])
 
 //----------------------------------------------------------------------
 
-void FieldFace::include_field_history_
-(Field field_src, std::vector<int> & field_list_src,
- Field field_dst, std::vector<int> & field_list_dst)
-{
-
-  // Include field history only if using adaptive timestepping,
-  // block is outside level range
-  // and face is inside level range (prolong)
-
-  if (include_history_()) {
-
-    // If adaptive timestepping and refining, add history = 1 fields
-    // so receiver can interpolate in time
-
-    const int n = refresh_->field_list_src().size();
-    for (int k=0; k<n; k++) {
-      // Add previous timestep for src field if available
-      int id_src_new = refresh_->field_list_src()[k];
-      int id_src_old = field_src.history_id(id_src_new,1);
-      if (field_src.history_age(id_src_new) == 0 &&
-          field_src.history_age(id_src_old) == 1) {
-        field_list_src.push_back(id_src_old);
-      }
-      // Add previous timestep for dst field if available
-      int id_dst_new = refresh_->field_list_dst()[k];
-      int id_dst_old = field_dst.history_id(id_dst_new,1);
-      if (field_dst.history_age(id_dst_new) == 0 &&
-          field_dst.history_age(id_dst_old) == 1) {
-        field_list_dst.push_back(id_dst_old);
-      }
-    }
-  }
-}
-
-//----------------------------------------------------------------------
-
 void FieldFace::time_interpolate_
-(Field field,  const std::vector<int> & field_list)
+(Field field,  const std::vector<int> & field_list,
+ bool invert)
 {
   if (! include_history_()) return;
 
   const double t_curr = cello::simulation()->state()->time_curr(level_ + 1);
   const double t_prev = cello::simulation()->state()->time_prev(level_);
   const double t_next = cello::simulation()->state()->time_curr(level_);
+
+  const double c_next = (t_curr - t_prev) / (t_next - t_prev);
+  const double c_prev = (1.0 - c_next);
+
   int n3[3];
   field.size (n3,n3+1,n3+2);
-  for (size_t i_f=0; i_f < field_list.size(); i_f++) {
-    const int id_curr = field_list[i_f];
-    if (field.history_age(id_curr) == 0) {
-      const int id_prev = field.history_id(id_curr,1);
+  if (t_next != t_prev) {
 
-      int m3[3],g3[3],c3[3];
+    for (size_t i_f=0; i_f < field_list.size(); i_f++) {
+      const int id_curr = field_list[i_f];
+      if (field.history_age(id_curr) == 0) {
+        const int id_prev = field.history_id(id_curr,1);
+        int m3[3],g3[3],c3[3];
 
-      field.dimensions (id_curr,m3,m3+1,m3+2);
-      field.ghost_depth(id_curr,g3,g3+1,g3+2);
-      field.centering  (id_curr,c3,c3+1,c3+2);
+        field.dimensions (id_curr,m3,m3+1,m3+2);
+        field.ghost_depth(id_curr,g3,g3+1,g3+2);
+        field.centering  (id_curr,c3,c3+1,c3+2);
 
-      const bool accumulate = refresh_->accumulate(i_f);
+        const bool accumulate = refresh_->accumulate(i_f);
 
-      Box box (rank_,n3,g3);
-      set_box_(&box);
-      box.set_centering(c3);
+        if (invert) invert_face();
+        Box box (rank_,n3,g3);
+        set_box_(&box);
+        box.set_centering(c3);
+        if (invert) invert_face();
 
-      box_adjust_accumulate_(&box,accumulate,g3);
+        box_adjust_accumulate_(&box,accumulate,g3);
 
-      bool lpad;
-      int i3[3], n3[3];
+        bool lpad;
+        int i3_f[3], n3_f[3];
 
-      box.get_start_size
-        (i3,n3,BlockType::receive,BlockType::receive,lpad=false);
+        box.get_start_size
+          (i3_f,n3_f,BlockType::receive,BlockType::receive,lpad=false);
 
-      const double t_next = cello::simulation()->state()->time(level_);
+        const double t_next = cello::simulation()->state()->time(level_);
 
-      // curr initially is coarse next
-      // prev is coarse prev
-      // curr = curr + prev
-      cello_float * field_next = (cello_float *) field.values(id_curr);
-      cello_float * field_curr = (cello_float *) field.values(id_curr);
-      cello_float * field_prev = (cello_float *) field.values(id_prev);
+        // curr initially is coarse next
+        // prev is coarse prev
+        // curr = curr + prev
+        cello_float * field_next = (cello_float *) field.values(id_curr);
+        cello_float * field_curr = (cello_float *) field.values(id_curr);
+        cello_float * field_prev = (cello_float *) field.values(id_prev);
 
-      const double c_next = (t_curr - t_prev) / (t_next - t_prev);
-      const double c_prev = (1.0 - c_next);
-
-      for (int iz=i3[2]; iz<i3[2]+n3[2]; iz++) {
-        for (int iy=i3[1]; iy<i3[1]+n3[1]; iy++) {
-          for (int ix=i3[0]; ix<i3[0]+n3[0]; ix++) {
-            int i=ix + m3[0]*(iy + m3[1]*iz);
-            field_curr[i] = c_prev*field_prev[i] + c_next*field_next[i];
+        for (int iz=i3_f[2]; iz<i3_f[2]+n3_f[2]; iz++) {
+          for (int iy=i3_f[1]; iy<i3_f[1]+n3_f[1]; iy++) {
+            for (int ix=i3_f[0]; ix<i3_f[0]+n3_f[0]; ix++) {
+              int i=ix + m3[0]*(iy + m3[1]*iz);
+              field_curr[i] = c_prev*field_prev[i] + c_next*field_next[i];
+            }
           }
         }
       }
@@ -1023,9 +984,8 @@ void FieldFace::time_interpolate_
 
 bool FieldFace::include_history_() const
 {
-  const bool l_adaptive = refresh_->adaptive_timestep();
-  const bool l_level = level_ == (refresh_->level_lower() - 1);
+  const bool l_adapt = refresh_->adaptive_timestep();
   const bool l_face = (face_type_ == +1);
 
-  return (l_adaptive && l_level && l_face);
+  return (l_adapt && l_face);
 }

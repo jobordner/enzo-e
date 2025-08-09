@@ -219,12 +219,12 @@ public: // interface
   bool any_fields() const
   { return (all_fields_ || (field_list_src_.size() > 0)); }
 
-  /// Return the list of source fields participating in the Refresh operation
-  std::vector<int> field_list_src() const;
-
+  std::vector<int> field_list_src(int level = 0,
+                                  int face_type = 0) const;
   /// Return the list of destination fields participating in the
   /// Refresh operation
-  std::vector<int> field_list_dst() const;
+  std::vector<int> field_list_dst(int level = 0,
+                                  int face_type = 0) const;
 
   //--------------------------------------------------
   // PARTICLE METHODS
@@ -511,6 +511,11 @@ public: // interface
   char * load_data (char * buffer);
 
   //--------------------------------------------------
+
+private: // methods
+
+  void include_history_fields_(std::vector<int> & field_list,
+                               int level, int face_type) const;
 
 private: // attributes
 

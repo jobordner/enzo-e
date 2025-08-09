@@ -13,12 +13,13 @@
 #include "charm_simulation.hpp"
 #include "charm_mesh.hpp"
 
-// #define DEBUG_REFRESH
-// #define TRACE_CONTROL
-// #define DEBUG_CONTROL
-// #define TRACE_CONTRIBUTE
 // #define DEBUG_ADAPT
+// #define DEBUG_ATS
+// #define DEBUG_CONTROL
+// #define DEBUG_REFRESH
 // #define TRACE_ATS
+// #define TRACE_CONTRIBUTE
+// #define TRACE_CONTROL
 
 // #define BLOCK  "B0:100_0:101"
 

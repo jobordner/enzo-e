@@ -69,7 +69,6 @@ Block::Block ( process_type ip_source, MsgType msg_type )
     level_lower_(-1),
     level_upper_(-1)
 {
-
 #ifdef TRACE_BLOCK
 
   CkPrintf ("%d TRACE_BLOCK %s Block::Block(ip)\n",  CkMyPe(),name(thisIndex).c_str());
@@ -121,7 +120,7 @@ void Block::set_msg_refine(MsgRefine * msg)
   fflush(stdout);
 #endif
 
-   delete msg;
+  delete msg;
 }
 
 //----------------------------------------------------------------------
@@ -240,11 +239,14 @@ void Block::init_refine_
     cello::field_descr()->ghost_depth(0,g3,g3+1,g3+2);
     Refresh * refresh = new Refresh;
     refresh->add_all_data();
+    refresh -> set_adaptive_timestep
+      (state_->state_type() == State::Type::Level);
 
     FieldFace * field_face = create_face
       (if3, ic3, g3, +1, refresh);
 
     // Copy refined field data
+
     field_face -> array_to_face (array, data()->field());
 
     delete field_face;
@@ -570,7 +572,9 @@ void Block::apply_initial_(MsgRefine * msg) throw ()
   fflush(stdout);
 #endif
   if (! cello::is_initial_cycle(state_->cycle(),InitCycleKind::fresh)) {
+
     msg->update(data());
+
   } else {
     TRACE("Block::apply_initial_()");
     Simulation * simulation = cello::simulation();
@@ -637,6 +641,8 @@ Block::~Block()
     int g3[3]={0,0,0};
     Refresh * refresh = new Refresh;
     refresh->add_all_data();
+    refresh -> set_adaptive_timestep
+      (state()->state_type() == State::Type::Level);
 
     FieldFace * field_face = create_face
       ( if3,ic3,g3,-1,refresh);
@@ -680,6 +686,8 @@ void Block::p_refresh_child
   int  g3[3] = {0,0,0};
   Refresh * refresh = new Refresh;
   refresh->add_all_data();
+  refresh -> set_adaptive_timestep
+    (state()->state_type() == State::Type::Level);
 
   FieldFace * field_face = create_face
     (if3, ic3, g3, -1,refresh);

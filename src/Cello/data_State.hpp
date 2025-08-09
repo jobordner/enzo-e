@@ -236,18 +236,7 @@ public: // interface
   double dt() const { return dt_; }
 
   double dt(int level) const
-  {
-    if (state_type_ == Type::Global) return dt_;
-    alloc_(dt_level_,level);
-    double dt = is_active(level) ? dt_level_[level] : 0.0;
-    double t =  time_level_curr_[level] ;
-    double tc = std::numeric_limits<double>::max();
-    if (level > 0) tc = time_level_curr_[level-1];
-    double dtc = 0.0;
-    if (level > 0) dtc = dt_level_[level-1];
-    if (is_active(level-1)) tc += dtc;
-    return (level == 0) ? dt : std::min(dt, tc-t);
-  }
+  { return dt_level(level); }
 
   double dt_level(int level) const
   {

@@ -75,11 +75,14 @@ protected: // methods
   /// Test that ghost values are expected
   void test_ghosts_(Block * block,
                     cello_float * array_curr,
+                    cello_float * error_curr,
                     int mx, int my, int mz,
                     int gx, int gy, int gz);
 
   /// Test that field is constant including all ghosts
-  void test_constant_(cello_float * array_curr,
+  void test_values_(Block * block,
+                    cello_float * array_curr,
+                    cello_float * error_curr,
                     int mx, int my, int mz,
                     int gx, int gy, int gz);
 
@@ -89,13 +92,11 @@ protected: // methods
                       int gx, int gy, int gz,
                       double dt);
 
-  /// Update face_ats field to visualize ghost zone update
-  void update_face_(cello_float * face_curr,int mx, int my, int mz, double dt);
-
   /// Test that previous saved value is expected
 
   void test_history_(cello_float * array_curr,
                      cello_float * array_prev,
+                     cello_float * error_curr,
                      int mx, int my, int mz,
                      int gx, int gy, int gz,
                      int level, double dt);

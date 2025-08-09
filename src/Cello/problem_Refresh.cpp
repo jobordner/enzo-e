@@ -42,34 +42,35 @@ void Refresh::add_all_fields(std::string field_group)
 
 //----------------------------------------------------------------------
 
-std::vector<int> Refresh::field_list_src() const
+std::vector<int> Refresh::field_list_src(int level, int face_type) const
 {
-  std::vector<int> field_list;
+  std::vector<int> field_list = field_list_src_;
   if (all_fields_) {
     int nf = cello::field_descr()->field_count();
+    field_list.resize(nf);
     for (int i=0; i<nf; i++) {
-      field_list.push_back(i);
+      field_list[i] = i;
     }
-    return field_list;
-  } else {
-    return field_list_src_;
   }
+  include_history_fields_(field_list, level,face_type);
+  return field_list;
 }
 
 //----------------------------------------------------------------------
 
-std::vector<int> Refresh::field_list_dst() const
+
+std::vector<int> Refresh::field_list_dst(int level, int face_type) const
 {
-  std::vector<int> field_list;
+  std::vector<int> field_list = field_list_dst_;
   if (all_fields_) {
     int nf = cello::field_descr()->field_count();
+    field_list.resize(nf);
     for (int i=0; i<nf; i++) {
-      field_list.push_back(i);
+      field_list[i] = i;
     }
-    return field_list;
-  } else {
-    return field_list_dst_;
   }
+  include_history_fields_(field_list,level,face_type);
+  return field_list;
 }
 
 //----------------------------------------------------------------------
@@ -258,3 +259,28 @@ ItNeighbor Refresh::it_neighbor
      dir_type);
 }
 
+//----------------------------------------------------------------------
+
+void Refresh::include_history_fields_ (std::vector<int> & field_list,
+                                       int level, int face_type) const
+{
+  // skip if not including field history
+
+  if ( ! ((adaptive_timestep()) &&
+          (face_type == 1) ) ) return;
+
+  // If adaptive timestepping and refining, add history = 1 fields
+  // so receiver can interpolate in time
+
+  FieldDescr * field_descr = cello::field_descr();
+  const int n = field_list.size();
+  for (int k=0; k<n; k++) {
+    // Add previous timestep for src field if available
+    int id_new = field_list[k];
+    int id_old = field_descr->history_id(id_new,1);
+    if (field_descr->history_age(id_new) == 0 &&
+        field_descr->history_age(id_old) == 1) {
+      field_list.push_back(id_old);
+    }
+  }
+}

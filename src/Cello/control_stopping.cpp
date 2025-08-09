@@ -21,11 +21,11 @@
 #include "charm_simulation.hpp"
 #include "charm_mesh.hpp"
 
-// #define DEBUG_STOPPING
 
-// #define TRACE_DT
-
+// #define DEBUG_ATS
 // #define DEBUG_STATE
+// #define DEBUG_STOPPING
+// #define TRACE_DT
 
 #ifdef DEBUG_STOPPING
 #   define TRACE_STOPPING(A)					\
@@ -34,7 +34,6 @@
 #else
 #   define TRACE_STOPPING(A) ;
 #endif
-
 
 //----------------------------------------------------------------------
 
@@ -247,21 +246,18 @@ void Block::stopping_compute_level_dt_(double min_reduce[], std::vector <double>
   // Adjust dt for global courant condition
   for (auto & dt : dt_level) dt *= Method::courant_global;
 
-  // Apply max_level_dt_ratio to limit dt ratios between levels
+  // Apply max_level_dt_ratio to limit timestep ratios between levels
   double max_ratio = cello::config()->timestep_max_level_dt_ratio;
-
-  //   find level with minimum dt (may not be finest level if not fully refined)
   int level_dt_min = std::distance
     (dt_level.begin(),std::min_element (dt_level.begin(),dt_level.end()));
   double dt_min = *std::min_element (dt_level.begin(),dt_level.end());
-  //   enforce ratio limit
   int level = 0;
   for (auto & dt : dt_level) {
     dt = std::min(dt,dt_min*std::pow(max_ratio,level_dt_min-level));
     level++;
   }
 
-  // adjust timesteps to align with any scheduled output times
+  // adjust level timesteps to align with any scheduled output times
   int index_output=0;
   while (Output * output = problem->output(index_output++)) {
     Schedule * schedule = output->schedule();
@@ -272,15 +268,14 @@ void Block::stopping_compute_level_dt_(double min_reduce[], std::vector <double>
     }
   }
 
-  // Reduce timestep to not overshoot coarser timestep
+  // Reduce level timesteps to not overshoot next-coarser timestep
   for (int level = 1; level <= cello::max_level(); level++) {
-    if (dt_level[level-1] != std::numeric_limits<double>::max()) 
-      dt_level[level] = std::min(dt_level[level],
-                                 state_->time(level-1)
-                                 - state_->time(level));
+    if (dt_level[level-1] != std::numeric_limits<double>::max())
+      dt_level[level] = std::min
+        (dt_level[level], state_->time(level-1) - state_->time(level));
   }
 
-  // Reduce timesteps to not overshoot final time from stopping criteria
+  // Reduce level timesteps to not overshoot time stopping criteria
   double time_stop = problem->stopping()->stop_time();
   level = 0;
   for (auto & dt : dt_level) {

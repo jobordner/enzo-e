@@ -943,10 +943,16 @@ void Simulation::monitor_output()
     for (int level=0; level<=hierarchy_->max_level(); level++) {
       monitor()-> print("Simulation", "cycle-level %d %04d",
                         level,state_->cycle(level));
+    }
+    for (int level=0; level<=hierarchy_->max_level(); level++) {
       monitor()-> print("Simulation", "time-level %d %15.12e",
                         level,state_->time(level));
+    }
+    for (int level=0; level<=hierarchy_->max_level(); level++) {
       monitor()-> print("Simulation", "dt-level %d %15.12e",
                         level,state_->dt_level(level));
+    }
+    for (int level=0; level<=hierarchy_->max_level(); level++) {
       static const char digit[] = "0123456789";
       active_levels.push_back(state_->is_active(level) ? digit[level%10] : ' ');
     }
@@ -1179,13 +1185,11 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
     //    100.0*(max_node_blocks / avg_node_blocks - 1.0 ));
 
     monitor()->print
-      ("Performance","simulation balance-eff-blocks-core %f (%.0f/%lld)",
-       avg_proc_blocks / max_proc_blocks,
-       avg_proc_blocks, max_proc_blocks);
+      ("Performance","simulation balance-eff-blocks-core %f",
+       avg_proc_blocks / max_proc_blocks);
     monitor()->print
-      ("Performance","simulation balance-eff-blocks-node %f (%.0f/%lld)",
-       avg_node_blocks / max_node_blocks,
-       avg_node_blocks, max_node_blocks);
+      ("Performance","simulation balance-eff-blocks-node %f",
+       avg_node_blocks / max_node_blocks);
 
     if (num_particles > 0) {
       const double avg_proc_particles = 1.0*num_particles/CkNumPes();

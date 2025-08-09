@@ -55,13 +55,6 @@ void State::advance()
 
 //----------------------------------------------------------------------
 
-void State::update_dt (std::vector<double> & dt_level)
-{
-  INCOMPLETE("State::update_dt()");
-}
-
-//----------------------------------------------------------------------
-
 bool State::is_active ( int level ) const
 {
   bool retval = true;

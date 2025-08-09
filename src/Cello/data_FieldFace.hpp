@@ -95,6 +95,8 @@ public: // interface
   void set_face_type (int face_type)
   {  face_type_ = face_type;  }
 
+  int face_type() const { return face_type_; }
+
   Prolong * prolong ()
   { return refresh_->prolong(); }
 
@@ -193,19 +195,14 @@ private: // functions
   /// Adjust box for accumulating values instead of assigning them
   void box_adjust_accumulate_ (Box * box, int accumulate, int g3[3]);
 
-  /// Add older fields to list if adaptive timestepping and
-  /// interpolating
-  void include_field_history_
-  (Field field_src, std::vector<int> & field_list_src,
-   Field field_dst, std::vector<int> & field_list_dst);
-
   /// Whether this FieldFace operation involves interpolating in
   /// time for adaptive timestepping
   bool include_history_() const;
 
   /// Perform interpolation in time on prolonged fields if needed in
   /// adaptive timestepping
-  void time_interpolate_(Field field, const std::vector<int> & field_list);
+  void time_interpolate_(Field field, const std::vector<int> & field_list,
+                         bool invert_face=false);
 
 private: // attributes
 

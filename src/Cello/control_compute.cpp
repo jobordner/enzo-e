@@ -62,11 +62,8 @@ void Block::compute_next_ ()
 
       Refresh * refresh = cello::refresh(ir_post);
 
-      refresh -> set_adaptive_timestep
-        (state()->state_type() == State::Type::Level);
       refresh -> set_level_lower(state()->level_lower());
       refresh -> set_level_upper(state()->level_upper());
-
       refresh->set_active (is_leaf());
 
       refresh_start (ir_post,CkIndex_Block::p_compute_continue());
@@ -162,10 +159,8 @@ void Block::compute_end_ ()
     CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_end_()\n", CkMyPe(),name().c_str());
 #endif
 
-  // Save active level range for updating simulation state before advance() changes it
-
   // Save level range for global state update later
-  
+
   level_lower_ = state()->level_lower();
   level_upper_ = state()->level_upper();
 

@@ -395,6 +395,8 @@ void Block::adapt_refine_()
       cello::field_descr()->ghost_depth(0,g3,g3+1,g3+2);
       Refresh * refresh = new Refresh;
       refresh->add_all_data();
+      refresh -> set_adaptive_timestep
+        (state()->state_type() == State::Type::Level);
       FieldFace * field_face = create_face
 	(if3,ic3,g3, +1, refresh);
 
@@ -953,6 +955,8 @@ void Block::adapt_coarsen_()
   int g3[3] = {0,0,0};
   Refresh * refresh = new Refresh;
   refresh->add_all_data();
+  refresh -> set_adaptive_timestep
+    (state()->state_type() == State::Type::Level);
 
   FieldFace * field_face = create_face
     (if3, ic3, g3, -1, refresh);
