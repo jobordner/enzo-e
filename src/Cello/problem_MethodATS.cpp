@@ -103,7 +103,7 @@ void MethodATS::test_values_(Block * block,
     for (int iy=gy; iy<my-gy; iy++) {
       for (int ix=gx; ix<mx-gx; ix++) {
         const int i=ix + mx*(iy + my*iz);
-        if (cello::err_rel(time,array_curr[i]) > TOL*mach ) {
+        if (cello::err_rel(time,double(array_curr[i])) > TOL*mach ) {
           ++error_curr[i];
           ++count_err;
           err = true;
@@ -162,7 +162,7 @@ void MethodATS::test_ghosts_(Block * block,
       for (int ix=0; ix<mx; ix++) {
         i3[0]=ix;
         const int i=ix + mx*(iy + my*iz);
-        if ( cello::err_rel(time,array_curr[i]) > TOL*mach ) {
+        if ( cello::err_rel(time,double(array_curr[i])) > TOL*mach ) {
           ++num_err_total;
           ++error_curr[i];
           for (int axis=0; axis<cello::rank(); axis++) {
@@ -222,7 +222,7 @@ void MethodATS::test_history_(cello_float * array_curr,
     for (int iy=gy; iy<my-gy; iy++) {
       for (int ix=gx; ix<mx-gx; ix++){
         const int i=ix + mx*(iy + my*iz);
-        double const diff_i = array_curr[i] - array_prev[i];
+        const double diff_i = array_curr[i] - array_prev[i];
         if ( cello::err_rel(diff,diff_i) > TOL*mach ) {
           error_curr[i] ++;
           is_const = false;
