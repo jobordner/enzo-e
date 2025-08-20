@@ -52,6 +52,8 @@ class Refresh : public PUP::able {
       adaptive_timestep_(false),
       level_lower_(0),
       level_upper_(std::numeric_limits<int>::max()),
+      global_(false),
+      advanced_time_(false),
       id_refresh_(-1),
       id_prolong_(0),
       id_restrict_(0)
@@ -98,6 +100,8 @@ public: // interface
       adaptive_timestep_(false),
       level_lower_(0),
       level_upper_(std::numeric_limits<int>::max()),
+      global_(false),
+      advanced_time_(false),
       id_refresh_(-1),
       id_prolong_(0),
       id_restrict_(0)
@@ -129,6 +133,8 @@ public: // interface
       adaptive_timestep_(false),
       level_lower_(0),
       level_upper_(std::numeric_limits<int>::max()),
+      global_(false),
+      advanced_time_(false),
       id_refresh_(-1),
       id_prolong_(-1),
       id_restrict_(-1)
@@ -160,6 +166,8 @@ public: // interface
     p | adaptive_timestep_;
     p | level_lower_;
     p | level_upper_;
+    p | global_;
+    p | advanced_time_;
     p | id_refresh_;
     p | id_prolong_;
     p | id_restrict_;
@@ -324,6 +332,14 @@ public: // interface
   int adaptive_timestep () const
   { return adaptive_timestep_; }
 
+  void set_global(bool global = true);
+  bool global() const { return global_; }
+
+  void set_advanced_time (bool advanced_time = true)
+  { advanced_time_ = advanced_time; }
+  bool advanced_time () const
+  { return advanced_time_; }
+
   /// Set the lower and puper limits (plus one) on levels being refreshed
   void set_level_lower(int level_lower)
   { level_lower_ = level_lower; }
@@ -333,6 +349,11 @@ public: // interface
   { return level_lower_; }
   int level_upper() const
   { return level_upper_; }
+
+  bool level_active (int level) const
+  {
+    return (level_lower_ <= level && level < level_upper_);
+  }
 
   /// Return the current minimum rank (dimension) of faces to refresh
   /// e.g. 0: everything, 1: omit corners, 2: omit corners and edges
@@ -435,6 +456,7 @@ public: // interface
     fprintf (fp,"     adaptive_timestep: %d\n",adaptive_timestep_?1:0);
     fprintf (fp,"     level_lower: %d\n",level_lower_);
     fprintf (fp,"     level_upper: %d\n",level_upper_);
+    fprintf (fp,"     global: %d\n",global_);
   }
 
   /// Return loop limits 0:3 for 4x4x4 particle data array indices
@@ -481,7 +503,7 @@ public: // interface
   /// Set the prolongation operator for refresh
   void set_prolong (int id_prolong)
   { id_prolong_ = id_prolong; }
-  
+
   /// Return the prolongation operator for refresh
   Prolong * prolong ();
   /// Return the prolongation id
@@ -491,10 +513,13 @@ public: // interface
   /// Set the restriction operator for refresh
   void set_restrict (int id_restrict)
   { id_restrict_ = id_restrict; }
-  
+
   /// Return the restriction operator for refresh
   Restrict * restrict ();
-  
+
+  /// Whether to include history fields for this face
+  bool include_history(int face_type) const;
+
   //--------------------------------------------------
 
   /// Return the number of bytes required to serialize the data object
@@ -514,8 +539,7 @@ public: // interface
 
 private: // methods
 
-  void include_history_fields_(std::vector<int> & field_list,
-                               int level, int face_type) const;
+  void include_history_fields_(std::vector<int> & field_list, int face_type) const;
 
 private: // attributes
 
@@ -579,6 +603,15 @@ private: // attributes
   /// Level range for adaptive time-stepping
   int level_lower_;
   int level_upper_;
+
+  /// Whether to ignore level range and refresh entire hierarchy
+  int global_;
+
+  /// Whether to use t or t+dt when time-interpolating for
+  /// adaptive time-stepping. Used for refresh at end of
+  /// method list when active levels have advanced but current
+  /// time hasn't been updated yet
+  bool advanced_time_;
 
   /// ID in refresh_list_[]
   int id_refresh_;

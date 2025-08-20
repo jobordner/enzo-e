@@ -48,11 +48,12 @@ void Block::refresh_start (int id_refresh, int callback)
   Sync * sync = sync_(id_refresh);
 
 #ifdef TRACE_REFRESH
-  CkPrintf ("%d TRACE_REFRESH ENTER %s %s adapt %d levels %d %d\n",
+  CkPrintf ("%d TRACE_REFRESH ENTER %s %s adapt %d levels %d %d global %d\n",
             CkMyPe(),name().c_str(),
             cello::simulation()->refresh_name(id_refresh).c_str(),
             refresh->adaptive_timestep(),
-            refresh->level_lower(),refresh->level_upper());
+            refresh->level_lower(),refresh->level_upper(),
+            refresh->global());
 #endif
 
   // Send field and/or particle data associated with the given refresh

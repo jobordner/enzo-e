@@ -251,6 +251,7 @@ void Block::stopping_compute_level_dt_(double min_reduce[], std::vector <double>
   int level_dt_min = std::distance
     (dt_level.begin(),std::min_element (dt_level.begin(),dt_level.end()));
   double dt_min = *std::min_element (dt_level.begin(),dt_level.end());
+
   int level = 0;
   for (auto & dt : dt_level) {
     dt = std::min(dt,dt_min*std::pow(max_ratio,level_dt_min-level));

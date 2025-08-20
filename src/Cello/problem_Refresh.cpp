@@ -52,7 +52,7 @@ std::vector<int> Refresh::field_list_src(int level, int face_type) const
       field_list[i] = i;
     }
   }
-  include_history_fields_(field_list, level,face_type);
+  include_history_fields_(field_list,face_type);
   return field_list;
 }
 
@@ -69,7 +69,7 @@ std::vector<int> Refresh::field_list_dst(int level, int face_type) const
       field_list[i] = i;
     }
   }
-  include_history_fields_(field_list,level,face_type);
+  include_history_fields_(field_list,face_type);
   return field_list;
 }
 
@@ -151,6 +151,9 @@ int Refresh::data_size () const
   SIZE_SCALAR_TYPE(count,bool,adaptive_timestep_);
   SIZE_SCALAR_TYPE(count,int,level_lower_);
   SIZE_SCALAR_TYPE(count,int,level_upper_);
+  SIZE_SCALAR_TYPE(count,int,global_);
+  SIZE_SCALAR_TYPE(count,bool,advanced_time_);
+  
   SIZE_SCALAR_TYPE(count,int,id_refresh_);
 
   SIZE_SCALAR_TYPE(count,int,id_prolong_);
@@ -187,6 +190,9 @@ char * Refresh::save_data (char * buffer) const
   SAVE_SCALAR_TYPE(p,bool,adaptive_timestep_);
   SAVE_SCALAR_TYPE(p,int,level_lower_);
   SAVE_SCALAR_TYPE(p,int,level_upper_);
+  SAVE_SCALAR_TYPE(p,int,global_);
+  SAVE_SCALAR_TYPE(p,bool,advanced_time_);
+
   SAVE_SCALAR_TYPE(p,int,id_refresh_);
 
   SAVE_SCALAR_TYPE(p,int,id_prolong_);
@@ -227,6 +233,9 @@ char * Refresh::load_data (char * buffer)
   LOAD_SCALAR_TYPE(p,bool,adaptive_timestep_);
   LOAD_SCALAR_TYPE(p,int,level_lower_);
   LOAD_SCALAR_TYPE(p,int,level_upper_);
+  LOAD_SCALAR_TYPE(p,int,global_);
+  LOAD_SCALAR_TYPE(p,bool,advanced_time_);
+
   LOAD_SCALAR_TYPE(p,int,id_refresh_);
 
   LOAD_SCALAR_TYPE(p,int,id_prolong_);
@@ -242,33 +251,57 @@ char * Refresh::load_data (char * buffer)
 
 //----------------------------------------------------------------------
 
+void Refresh::set_global(bool global)
+{
+  global_ = global;
+  if (global_) {
+    set_level_lower(0);
+    set_level_upper(2);
+  }
+}
+
 ItNeighbor Refresh::it_neighbor
 (Block * block, DirType dir_type)
 {
   int n3[3], p3[3];
   cello::hierarchy()->root_blocks    (n3,n3+1,n3+2);
   cello::hierarchy()->get_periodicity(p3,p3+1,p3+2);
+  int level_lower, level_upper;
+  if (global_) {
+    level_lower = cello::hierarchy()->min_level();
+    level_upper = cello::hierarchy()->max_level() + 1;
+  } else {
+    level_lower = this->level_lower();
+    level_upper = this->level_upper();
+  }
   return ItNeighbor
     (block,
      min_face_rank(),
      p3,n3,block->index(),
      neighbor_type(),
      root_level(),
-     level_lower(),
-     level_upper(),
+     level_lower,
+     level_upper,
      dir_type);
 }
 
 //----------------------------------------------------------------------
 
+bool Refresh::include_history(int face_type) const
+{
+  return adaptive_timestep() && (global_ ? (face_type != 0 ) : face_type == 1);
+}
+
+//----------------------------------------------------------------------
+
 void Refresh::include_history_fields_ (std::vector<int> & field_list,
-                                       int level, int face_type) const
+                                       int face_type) const
 {
   // skip if not including field history
 
-  if ( ! ((adaptive_timestep()) &&
-          (face_type == 1) ) ) return;
-
+  //  if ( ! adaptive_timestep() ) return;
+  if (! include_history(face_type) ) return;
+  
   // If adaptive timestepping and refining, add history = 1 fields
   // so receiver can interpolate in time
 

@@ -146,7 +146,7 @@ public: // interface
   char * load_data (char * buffer);
 
   void print (const char * message);
-  
+
   //--------------------------------------------------
 
 private: // functions

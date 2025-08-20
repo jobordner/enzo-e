@@ -21,13 +21,16 @@ public: // interface
   /// Create a new MethodNull object
   MethodNull ( ParameterGroup p )
     : Method(),
-      dt_(p.value_float("dt", std::numeric_limits<double>::max()))
+      dt_(p.value_float("dt", std::numeric_limits<double>::max())),
+      advanced_time_(p.value_logical("advanced_time", false))
   {
     init_refresh_();
   }
 
   MethodNull()
-    : Method(), dt_ (std::numeric_limits<double>::max())
+    : Method(),
+      dt_ (std::numeric_limits<double>::max()),
+      advanced_time_(false)
   {
     init_refresh_();
   }
@@ -40,12 +43,16 @@ public: // interface
   
   /// Charm++ PUP::able migration constructor
   MethodNull (CkMigrateMessage *m)
-    : Method (m), dt_(0.0)
+    : Method (m), dt_(0.0), advanced_time_(false)
   { }
 
   /// CHARM++ Pack / Unpack function
   void pup (PUP::er &p) 
-  { TRACEPUP; Method::pup(p); p | dt_; }
+  {
+    TRACEPUP; Method::pup(p);
+    p | dt_;
+    p | advanced_time_;
+  }
   
 public: // virtual methods
 
@@ -63,6 +70,10 @@ protected: // attributes
 
   /// Time step
   double dt_;
+
+  /// Whether to refresh using advanced time; used when final method
+  /// in list for adaptive timestepping global refresh
+  bool advanced_time_;
 };
 
 #endif /* PROBLEM_METHOD_NULL_HPP */
