@@ -479,18 +479,6 @@ void Problem::initialize_method
          "Simulation object does not exist!",
          cello::simulation());
 
-  // Add initial "null" method to refresh fields (refresh should be
-  // added to
-  ParameterGroup p_group(*(cello::simulation()->parameters()), "Method:null");
-  MethodNull * method_null = new MethodNull(p_group);
-  method_list_.push_back(method_null);
-  std::vector<double> list_of_0;
-  list_of_0.push_back(0.0);
-  // only call at cycle 0 to refresh all fields
-  method_null->set_schedule
-     ( Schedule::create( "cycle","list",0,0,1,list_of_0));
-
-  // Create methods
   const size_t num_method = config->method_list.size();
 
   for (size_t index_method=0; index_method < num_method ; index_method++) {
@@ -928,6 +916,8 @@ Method * Problem::create_method_
 
   if (name == "ats") {
     method = new MethodATS(p_group);
+  } else if (name == "check_ats") {
+    method = new MethodCheckATS(p_group);
   } else if (name == "trace") {
     method = new MethodTrace(p_group);
   } else if (name == "null") {

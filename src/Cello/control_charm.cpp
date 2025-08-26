@@ -158,7 +158,23 @@ void Block::r_compute_exit_continue (CkReductionMsg * msg)
 
   TRACE_CONTROL("compute_exit_continue");
 
-  adapt_enter_();
+  if (cello::simulation()->state()->state_type() == State::Type::Level) {
+    int ir_cycle_end = cello::simulation()->ir_cycle_end();
+    Refresh * refresh = cello::refresh(ir_cycle_end);
+
+    refresh->add_all_fields();
+    refresh->add_all_particles();
+    refresh->set_global();
+    refresh->set_active (is_leaf());
+    refresh -> set_adaptive_timestep
+      (cello::simulation()->state()->state_type() == State::Type::Level);
+    //    refresh -> set_advanced_time(true);
+    refresh->set_callback(CkIndex_Block::p_adapt_enter());
+
+    refresh_start (ir_cycle_end,CkIndex_Block::p_adapt_enter());
+  } else {
+    adapt_enter_();
+  }
 }
 
 //----------------------------------------------------------------------

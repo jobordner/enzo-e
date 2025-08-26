@@ -251,15 +251,6 @@ char * Refresh::load_data (char * buffer)
 
 //----------------------------------------------------------------------
 
-void Refresh::set_global(bool global)
-{
-  global_ = global;
-  if (global_) {
-    set_level_lower(0);
-    set_level_upper(2);
-  }
-}
-
 ItNeighbor Refresh::it_neighbor
 (Block * block, DirType dir_type)
 {
@@ -289,7 +280,7 @@ ItNeighbor Refresh::it_neighbor
 
 bool Refresh::include_history(int face_type) const
 {
-  return adaptive_timestep() && (global_ ? (face_type != 0 ) : face_type == 1);
+  return adaptive_timestep();
 }
 
 //----------------------------------------------------------------------

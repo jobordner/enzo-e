@@ -284,6 +284,8 @@ public:
 
   void p_compute_enter()
   {      compute_enter_();  }
+  void p_compute_begin()
+  {      compute_begin_();  }
 
   void p_compute_continue()
   {      compute_continue_();  }

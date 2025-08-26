@@ -61,6 +61,7 @@ extern void method_close_files_mutex_init();
 #include "problem_BoundaryValue.hpp"
 #include "problem_Method.hpp"
 #include "problem_MethodATS.hpp"
+#include "problem_MethodCheckATS.hpp"
 #include "problem_MethodCloseFiles.hpp"
 #include "problem_MethodDebug.hpp"
 #include "problem_MethodFluxCorrect.hpp"

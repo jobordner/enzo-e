@@ -1508,5 +1508,4 @@ void Block::refresh_load_flux_face_
   msg_refresh->set_refresh_id (id_refresh);
 
   thisProxy[index_neighbor].p_refresh_recv (msg_refresh);
-
 }

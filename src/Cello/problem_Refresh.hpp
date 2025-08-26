@@ -332,7 +332,8 @@ public: // interface
   int adaptive_timestep () const
   { return adaptive_timestep_; }
 
-  void set_global(bool global = true);
+  void set_global(bool global = true)
+  {  global_ = global; }
   bool global() const { return global_; }
 
   void set_advanced_time (bool advanced_time = true)
@@ -346,13 +347,16 @@ public: // interface
   void set_level_upper(int level_upper)
   { level_upper_ = level_upper; }
   int level_lower() const
+  //  { return global_ ? 0 : level_lower_; }
   { return level_lower_; }
   int level_upper() const
+  //  { return global_ ? 4 : level_upper_; }
   { return level_upper_; }
 
   bool level_active (int level) const
   {
-    return (level_lower_ <= level && level < level_upper_);
+    //    return (global_ || (level_lower_ <= level && level < level_upper_));
+    return (level_lower_ <= level) && (level < level_upper_);
   }
 
   /// Return the current minimum rank (dimension) of faces to refresh
@@ -426,37 +430,38 @@ public: // interface
   void print(FILE * fp = nullptr) const
   {
     if (!fp) fp = stdout;
-    fprintf (fp,"Refresh %p\n",(void*)this);
-    fprintf (fp,"     all_fields = %d\n",all_fields_);
-    fprintf (fp,"     src fields:");
+    CkPrintf ("Refresh %p\n",(void*)this);
+    CkPrintf ("     all_fields = %d\n",all_fields_);
+    CkPrintf ("     src fields:");
     for (size_t i=0; i<field_list_src_.size(); i++)
-      fprintf (fp," %d",field_list_src_[i]);
-    fprintf (fp,"\n");
-    fprintf (fp,"     dst fields:");
+      CkPrintf (" %d",field_list_src_[i]);
+    CkPrintf ("\n");
+    CkPrintf ("     dst fields:");
     for (size_t i=0; i<field_list_dst_.size(); i++)
-      fprintf (fp," %d",field_list_dst_[i]);
-    fprintf (fp,"\n");
-    fprintf (fp,"     all_particles = %d\n",all_particles_);
-    fprintf (fp,"     particles:");
+      CkPrintf (" %d",field_list_dst_[i]);
+    CkPrintf ("\n");
+    CkPrintf ("     all_particles = %d\n",all_particles_);
+    CkPrintf ("     particles:");
     for (size_t i=0; i<particle_list_.size(); i++)
-      fprintf (fp," %d",particle_list_[i]);
-    fprintf (fp,"\n");
-    fprintf (fp,"     all_fluxes = %d\n",all_fluxes_);
-    fprintf (fp,"\n");
-    fprintf (fp,"     ghost_depth = %d\n",ghost_depth_);
-    fprintf (fp,"     min_face_rank: %d\n",min_face_rank_);
-    fprintf (fp,"     neighbor_type: %d\n",neighbor_type_);
-    fprintf (fp,"     accumulate: %d\n",accumulate_);
-    fprintf (fp,"     sync_type: %d\n",sync_type_);
-    fprintf (fp,"     sync_id: %d\n",sync_id_);
-    fprintf (fp,"     id_refresh: %d\n",id_refresh_);
-    fprintf (fp,"     active: %d\n",active_);
-    fprintf (fp,"     callback: %d\n",callback_);
-    fprintf (fp,"     root_level: %d\n",root_level_);
-    fprintf (fp,"     adaptive_timestep: %d\n",adaptive_timestep_?1:0);
-    fprintf (fp,"     level_lower: %d\n",level_lower_);
-    fprintf (fp,"     level_upper: %d\n",level_upper_);
-    fprintf (fp,"     global: %d\n",global_);
+      CkPrintf (" %d",particle_list_[i]);
+    CkPrintf ("\n");
+    CkPrintf ("     all_fluxes = %d\n",all_fluxes_);
+    CkPrintf ("\n");
+    CkPrintf ("     ghost_depth = %d\n",ghost_depth_);
+    CkPrintf ("     min_face_rank: %d\n",min_face_rank_);
+    CkPrintf ("     neighbor_type: %d\n",neighbor_type_);
+    CkPrintf ("     accumulate: %d\n",accumulate_);
+    CkPrintf ("     sync_type: %d\n",sync_type_);
+    CkPrintf ("     sync_id: %d\n",sync_id_);
+    CkPrintf ("     id_refresh: %d\n",id_refresh_);
+    CkPrintf ("     active: %d\n",active_);
+    CkPrintf ("     callback: %d\n",callback_);
+    CkPrintf ("     root_level: %d\n",root_level_);
+    CkPrintf ("     adaptive_timestep: %d\n",adaptive_timestep_?1:0);
+    CkPrintf ("     level_lower: %d\n",level_lower_);
+    CkPrintf ("     level_upper: %d\n",level_upper_);
+    CkPrintf ("     global: %d\n",global_);
+    CkPrintf ("     advanced_time: %d\n",advanced_time_);
   }
 
   /// Return loop limits 0:3 for 4x4x4 particle data array indices

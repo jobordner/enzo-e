@@ -69,7 +69,9 @@ Simulation::Simulation
   max_solver_iter_(),
   restart_directory_(),
   restart_num_files_(),
-  restart_stream_file_list_()
+  restart_stream_file_list_(),
+  ir_cycle_begin_(-1),
+  ir_cycle_end_(-1)
 {
   for (int i=0; i<256; i++) dir_checkpoint_[i] = '\0';
 #ifdef DEBUG_SIMULATION
@@ -139,7 +141,9 @@ Simulation::Simulation()
   max_solver_iter_(),
   restart_directory_(),
   restart_num_files_(),
-  restart_stream_file_list_()
+  restart_stream_file_list_(),
+  ir_cycle_begin_(-1),
+  ir_cycle_end_(-1)
 {
   for (int i=0; i<256; i++) dir_checkpoint_[i] = '\0';
 #ifdef DEBUG_SIMULATION
@@ -197,7 +201,9 @@ Simulation::Simulation (CkMigrateMessage *m)
     max_solver_iter_(),
     restart_directory_(),
     restart_num_files_(),
-    restart_stream_file_list_()
+    restart_stream_file_list_(),
+    ir_cycle_begin_(-1),
+    ir_cycle_end_(-1)
 {
   for (int i=0; i<256; i++) dir_checkpoint_[i] = '\0';
 #ifdef DEBUG_SIMULATION
@@ -315,6 +321,8 @@ void Simulation::pup (PUP::er &p)
   p | max_solver_iter_;
   p | restart_directory_;
   p | restart_num_files_;
+  p | ir_cycle_begin_;
+  p | ir_cycle_end_;
 }
 
 //----------------------------------------------------------------------
@@ -784,6 +792,21 @@ void Simulation::initialize_balance_() throw()
       config_->schedule_step[index],
       config_->schedule_list[index]);
 
+}
+
+//----------------------------------------------------------------------
+
+void Simulation::initialize_refresh_() throw()
+{
+  const int ghost_depth = 4;
+  const int min_face_rank = 0;
+  const bool active = false;
+  ir_cycle_begin_ = cello::simulation()->new_register_refresh
+    (Refresh::create
+     (ghost_depth,min_face_rank, neighbor_leaf, sync_neighbor, 0));
+  ir_cycle_end_ = cello::simulation()->new_register_refresh
+    (Refresh::create
+     (ghost_depth,min_face_rank, neighbor_leaf, sync_neighbor, 0));
 }
 
 //----------------------------------------------------------------------

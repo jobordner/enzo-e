@@ -14,6 +14,8 @@
 
 // #define CONFIG_SMP_MODE
 
+// #define DEBUG_ATS
+
 //----------------------------------------------------------------------
 
 static CmiNodeLock field_face_node_lock;
@@ -922,71 +924,137 @@ void FieldFace::time_interpolate_
 {
   if (! include_history_()) return;
   std::shared_ptr<State> state { cello::simulation()->state() };
-  double t_curr = state->time_curr(level_ + face_type_);
-  double t_prev = state->time_prev(level_);
-  double t_next = state->time_curr(level_);
+  double time_this_curr = state->time_curr(level_);
+  double time_this_prev = state->time_prev(level_);
+  double time_face_curr = state->time_curr(level_ + face_type_);
+  double time_face_prev = state->time_prev(level_ + face_type_);
 
   if (refresh_->advanced_time()) {
     if (refresh_->level_active(level_)) {
-      t_prev=t_next;
-      t_next = t_next + state->dt_level(level_);
+      time_this_prev=time_this_curr;
+      time_this_curr = time_this_curr + state->dt_level(level_);
     }
     if (refresh_->level_active(level_+face_type_)) {
-      t_curr = t_curr + state->dt_level(level_+face_type_);
+      time_face_curr = time_face_curr + state->dt_level(level_+face_type_);
     }
   }
 
-  if (t_next == t_prev) return;
-  const double c_next = (t_curr - t_prev) / (t_next - t_prev);
-  const double c_prev = (1.0 - c_next);
+  if (time_this_curr == time_this_prev) return;
 
   int n3[3];
   field.size (n3,n3+1,n3+2);
 
+#ifdef DEBUG_ATS
+  CkPrintf ("DEBUG_ATS time_interpolate level %d - %d time this %3.2f %3.2f face %3.2f %3.2f\n",
+            level_,level_+face_type_,time_face_prev,time_face_curr,time_this_prev,time_this_curr);
+#endif
+
   for (size_t i_f=0; i_f < field_list.size(); i_f++) {
-    const int id_curr = field_list[i_f];
-    if (field.history_age(id_curr) == 0) {
-      const int id_prev = field.history_id(id_curr,1);
-      int m3[3],g3[3],c3[3];
+    const int id_this = field_list[i_f];
 
-      field.dimensions (id_curr,m3,m3+1,m3+2);
-      field.ghost_depth(id_curr,g3,g3+1,g3+2);
-      field.centering  (id_curr,c3,c3+1,c3+2);
+    int age_this = field.history_age(id_this);
+    int id_curr, id_prev;
+    if (age_this == 0) {
+      id_prev = field.history_id(id_this,1);
+      id_curr = id_this;
+    } else if (age_this == 1) {
+      id_prev = id_this;
+      id_curr = field.curr_id(id_this);
+    } else {
+      ERROR2("FieldFace::time_interpolate()",
+             " field %d age is %d != [01]",
+             id_this,age_this);
+    }
+    ASSERT2 ("FieldFace::time_interpolate()",
+            "id_prev %d age %d must be 1",
+             id_prev,field.history_age(id_prev),
+             (field.history_age(id_prev) == 1));
+    ASSERT2 ("FieldFace::time_interpolate()",
+            "id_curr %d age %d must be 0",
+             id_curr,field.history_age(id_curr),
+             (field.history_age(id_curr) == 0));
+    ASSERT2 ("FieldFace::time_interpolate()",
+            "id_prev %d is not older id_curr %d",
+             id_prev,id_curr,
+             id_prev == field.history_id(id_curr,1));
+    ASSERT2 ("FieldFace::time_interpolate()",
+            "id_curr %d is not newest id_prev %d",
+             id_curr,id_prev,
+             id_curr == field.curr_id(id_prev));
 
-      const bool accumulate = refresh_->accumulate(i_f);
+    int m3[3],g3[3],c3[3];
 
-      if (invert) invert_face();
-      Box box (rank_,n3,g3);
-      set_box_(&box);
-      box.set_centering(c3);
-      if (invert) invert_face();
+    field.dimensions (id_this,m3,m3+1,m3+2);
+    field.ghost_depth(id_this,g3,g3+1,g3+2);
+    field.centering  (id_this,c3,c3+1,c3+2);
 
-      box_adjust_accumulate_(&box,accumulate,g3);
+    const bool accumulate = refresh_->accumulate(i_f);
 
-      bool lpad;
-      int i3_f[3], n3_f[3];
+    if (invert) invert_face();
+    Box box (rank_,n3,g3);
+    set_box_(&box);
+    box.set_centering(c3);
+    if (invert) invert_face();
 
-      box.get_start_size
-        (i3_f,n3_f,BlockType::receive,BlockType::receive,lpad=false);
+    box_adjust_accumulate_(&box,accumulate,g3);
 
-      const double t_next = state->time(level_);
+    bool lpad;
+    int i3_f[3], n3_f[3];
 
-      // curr initially is coarse next
-      // prev is coarse prev
-      // curr = curr + prev
-      cello_float * field_next = (cello_float *) field.values(id_curr);
-      cello_float * field_curr = (cello_float *) field.values(id_curr);
-      cello_float * field_prev = (cello_float *) field.values(id_prev);
+    box.get_start_size
+      (i3_f,n3_f,BlockType::receive,BlockType::receive,lpad=false);
 
-      for (int iz=i3_f[2]; iz<i3_f[2]+n3_f[2]; iz++) {
-        for (int iy=i3_f[1]; iy<i3_f[1]+n3_f[1]; iy++) {
-          for (int ix=i3_f[0]; ix<i3_f[0]+n3_f[0]; ix++) {
-            int i=ix + m3[0]*(iy + m3[1]*iz);
-            field_curr[i] = c_prev*field_prev[i] + c_next*field_next[i];
-          }
+    const double time_this_curr = state->time(level_);
+
+    // this initially is coarse curr
+    // prev is coarse prev
+    // this = this + prev
+    cello_float * field_prev;
+    cello_float * field_this;
+    cello_float * field_curr;
+
+    if (age_this == 0) {
+      field_this = (cello_float *) field.values(id_curr);
+    } else {
+      field_this = (cello_float *) field.values(id_prev);
+    }
+    field_curr = (cello_float *) field.values(id_curr);
+    field_prev = (cello_float *) field.values(id_prev);
+
+    double c_prev, c_curr;
+    double dt_this = (time_this_curr - time_this_prev);
+    if (age_this == 0) {
+      c_curr = (time_face_curr - time_this_prev) / dt_this;
+    } else {
+      c_curr = (time_face_prev - time_this_prev) / dt_this;
+    }
+    c_prev = (1.0 - c_curr);
+#ifdef DEBUG_ATS
+    double avg_this=0.0, avg_prev=0.0, avg_curr=0.0;
+    int n=0;
+#endif
+    for (int iz=i3_f[2]; iz<i3_f[2]+n3_f[2]; iz++) {
+      for (int iy=i3_f[1]; iy<i3_f[1]+n3_f[1]; iy++) {
+        for (int ix=i3_f[0]; ix<i3_f[0]+n3_f[0]; ix++) {
+          int i=ix + m3[0]*(iy + m3[1]*iz);
+#ifdef DEBUG_ATS
+          avg_curr += field_curr[i];
+          avg_prev += field_prev[i];
+#endif
+          field_this[i] = c_prev*field_prev[i] + c_curr*field_curr[i];
+#ifdef DEBUG_ATS
+          avg_this += field_this[i];
+          n++;
+#endif
         }
       }
     }
+#ifdef DEBUG_ATS
+    if(id_this==0 || id_this==6) {
+      CkPrintf ("DEBUG_ATS time_interpolate : id %d age %d  %5.3f <- (%3.1f * %5.3f) + (%3.1f * %5.3f) \n",
+                id_this,age_this,avg_this/n,c_prev,avg_prev/n,c_curr,avg_curr/n);
+    }
+#endif
   }
 }
 

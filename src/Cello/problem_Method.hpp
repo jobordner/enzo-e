@@ -32,7 +32,12 @@ public: // interface
       ir_post_(-1),
       neighbor_type_(neighbor_leaf),
       max_supercycle_(1),
-      index_method_(-1)
+      index_method_(-1),
+      super_field_(),
+      super_field_curr_(),
+      super_field_prev_(),
+      is_time_curr_(false),
+      is_time_prev_(false)
   { }
 
   /// Destructor

@@ -202,6 +202,11 @@ public: // interface
   int history_id (int ip, int ih) const throw()
   { return field_descr_->history_id(ip,ih);  }
 
+  /// Return the current field (history = 0) corresponding to the given id
+  /// with history >= 0.
+  int curr_id (int id) const throw()
+  { return field_descr_->curr_id(id); }
+
   /// Return the age of the field if permanent, or 0 if temporary
   int history_age (int ip)
   { return field_descr_->history_age(ip); }

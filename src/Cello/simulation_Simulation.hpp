@@ -389,6 +389,9 @@ public: // virtual functions
   RefreshType refresh_type() const
   { return refresh_type_; }
 
+  int ir_cycle_begin() const { return ir_cycle_begin_; }
+  int ir_cycle_end() const { return ir_cycle_end_; }
+
   //--------------------------------------
   // Initialization
   //--------------------------------------
@@ -402,6 +405,9 @@ public: // virtual functions
   void p_initial_block_created() throw();
 
 protected: // functions
+
+  /// Initialize global refresh operations
+  void initialize_refresh_() throw();
 
   /// Initialize the Config object
   void initialize_config_ () throw();
@@ -578,6 +584,10 @@ protected: // attributes
   std::string restart_directory_;
   int         restart_num_files_;
   std::ifstream restart_stream_file_list_;
+
+  /// id for refresh operation at the beginning and end of a cycle
+  int ir_cycle_begin_;
+  int ir_cycle_end_;
 };
 
 #endif /* SIMULATION_SIMULATION_HPP */

@@ -60,16 +60,13 @@ void Method::pup (PUP::er &p)
 
 int Method::add_refresh_ (int neighbor_type)
 {
-  // set Method::ir_post_
+  const int ghost_depth = 4;
+  const int min_face_rank = 0;
 
-  const int ghost_depth = 4; // std::max(g3[0],std::max(g3[1],g3[2]));
-  const int min_face_rank = 0; // cello::config()->adapt_min_face_rank;
-
-  // Set default refresh object
-  Refresh * refresh_default = 
+  Refresh * refresh = 
     Refresh::create (ghost_depth,min_face_rank, neighbor_type, sync_neighbor, 0);
 
-  return cello::simulation()->new_register_refresh(refresh_default);
+  return cello::simulation()->new_register_refresh (refresh);
 }
 
 //----------------------------------------------------------------------

@@ -347,6 +347,22 @@ public: // interface
   //----------------------------------------------------------------------
   // Debugging
   //----------------------------------------------------------------------
+  void print_line(std::string msg)
+  {
+    CkPrintf ("State %s: %d %g %g : ",msg.c_str(),cycle_,time_,dt_);
+    int n=cycle_level_.size();
+    for (int i=0; i<n; i++) {
+      CkPrintf (" [%d: %d %g %g %g]",
+                i,
+                cycle_level_[i],
+                time_level_prev_[i],
+                time_level_curr_[i],
+                dt_level_[i]);
+    }
+    CkPrintf ("\n");
+  }
+
+
   virtual void print(std::string msg)
   {
     CkPrintf ("State %s\n",msg.c_str());
