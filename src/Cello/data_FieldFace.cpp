@@ -282,13 +282,12 @@ void FieldFace::array_to_face (char * array, Field field) throw()
     int i3[3], n3[3];
 
     // adjust face relative to sender
-    invert_face();
 
     field.size(n3,n3+1,n3+2);
     Box box (rank_,n3,g3);
-    set_box_(&box);
+    bool invert;
+    set_box_(&box,invert=true);
     box.set_centering(c3);
-    invert_face();
 
     box_adjust_accumulate_(&box,accumulate,g3);
 
@@ -350,6 +349,7 @@ void FieldFace::array_to_face (char * array, Field field) throw()
   }
   // Interpolate fields in time if needed when adaptive time-stepping
   // (note invert_face parameter is set since at receiving end)
+
   time_interpolate_(field,field_list_dst,true);
 }
 
@@ -877,9 +877,13 @@ void FieldFace::div_by_density_
 
 //----------------------------------------------------------------------
 
-void FieldFace::set_box_(Box * box)
+void FieldFace::set_box_(Box * box, bool invert)
 {
+  // Invert face direction if from destination perspective,
+  // and restore afterwards
+  if (invert) invert_face();
   box->set_block(BoxType_receive,face_type_,face_,child_);
+  if (invert) invert_face();
 
   Prolong * prolong = this->prolong();
   int pad = prolong ? refresh_->coarse_padding(prolong) : 0;
@@ -923,7 +927,9 @@ void FieldFace::time_interpolate_
  bool invert)
 {
   if (! include_history_()) return;
+
   std::shared_ptr<State> state { cello::simulation()->state() };
+
   double time_this_curr = state->time_curr(level_);
   double time_this_prev = state->time_prev(level_);
   double time_face_curr = state->time_curr(level_ + face_type_);
@@ -943,11 +949,6 @@ void FieldFace::time_interpolate_
 
   int n3[3];
   field.size (n3,n3+1,n3+2);
-
-#ifdef DEBUG_ATS
-  CkPrintf ("DEBUG_ATS time_interpolate level %d - %d time this %3.2f %3.2f face %3.2f %3.2f\n",
-            level_,level_+face_type_,time_face_prev,time_face_curr,time_this_prev,time_this_curr);
-#endif
 
   for (size_t i_f=0; i_f < field_list.size(); i_f++) {
     const int id_this = field_list[i_f];
@@ -990,11 +991,9 @@ void FieldFace::time_interpolate_
 
     const bool accumulate = refresh_->accumulate(i_f);
 
-    if (invert) invert_face();
     Box box (rank_,n3,g3);
-    set_box_(&box);
+    set_box_(&box,invert);
     box.set_centering(c3);
-    if (invert) invert_face();
 
     box_adjust_accumulate_(&box,accumulate,g3);
 
@@ -1004,11 +1003,6 @@ void FieldFace::time_interpolate_
     box.get_start_size
       (i3_f,n3_f,BlockType::receive,BlockType::receive,lpad=false);
 
-    const double time_this_curr = state->time(level_);
-
-    // this initially is coarse curr
-    // prev is coarse prev
-    // this = this + prev
     cello_float * field_prev;
     cello_float * field_this;
     cello_float * field_curr;
@@ -1029,32 +1023,14 @@ void FieldFace::time_interpolate_
       c_curr = (time_face_prev - time_this_prev) / dt_this;
     }
     c_prev = (1.0 - c_curr);
-#ifdef DEBUG_ATS
-    double avg_this=0.0, avg_prev=0.0, avg_curr=0.0;
-    int n=0;
-#endif
     for (int iz=i3_f[2]; iz<i3_f[2]+n3_f[2]; iz++) {
       for (int iy=i3_f[1]; iy<i3_f[1]+n3_f[1]; iy++) {
         for (int ix=i3_f[0]; ix<i3_f[0]+n3_f[0]; ix++) {
           int i=ix + m3[0]*(iy + m3[1]*iz);
-#ifdef DEBUG_ATS
-          avg_curr += field_curr[i];
-          avg_prev += field_prev[i];
-#endif
           field_this[i] = c_prev*field_prev[i] + c_curr*field_curr[i];
-#ifdef DEBUG_ATS
-          avg_this += field_this[i];
-          n++;
-#endif
         }
       }
     }
-#ifdef DEBUG_ATS
-    if(id_this==0 || id_this==6) {
-      CkPrintf ("DEBUG_ATS time_interpolate : id %d age %d  %5.3f <- (%3.1f * %5.3f) + (%3.1f * %5.3f) \n",
-                id_this,age_this,avg_this/n,c_prev,avg_prev/n,c_curr,avg_curr/n);
-    }
-#endif
   }
 }
 

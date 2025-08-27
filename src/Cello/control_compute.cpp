@@ -15,7 +15,9 @@
 
 // #define DEBUG_COMPUTE
 
-#define CYCLE 0
+#ifdef DEBUG_COMPUTE
+#  define CYCLE 0
+#endif
 
 //======================================================================
 

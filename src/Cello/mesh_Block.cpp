@@ -691,6 +691,8 @@ void Block::p_refresh_child
 
   FieldFace * field_face = create_face
     (if3, ic3, g3, -1,refresh);
+  // Adjust level for child block
+  field_face->set_level (level()+1);
 
   field_face -> array_to_face (buffer, data()->field());
   delete field_face;
