@@ -30,7 +30,7 @@ void Block::compute_enter_ ()
   Refresh * refresh = cello::refresh(ir_cycle_begin);
 
   refresh->add_all_fields();
-  //  refresh->add_all_particles();
+  refresh->add_all_particles();
   refresh->set_global();
   refresh->set_active (is_leaf());
   refresh -> set_adaptive_timestep

@@ -111,6 +111,18 @@ public:
   (double * dx, double * dy = 0, double * dz = 0)
   const throw();
 
+  double dt() const
+  {
+    return (state_->state_type() == State::Type::Global) ?
+      state_->dt() : state_->dt(index_.level());
+  }
+
+  double time() const
+  {
+    return (state_->state_type() == State::Type::Global) ?
+      state_->time() : state_->time(index_.level());
+  }
+
   /// Return whether this Block is a leaf in the octree array
   bool is_leaf() const
   { return is_leaf_; }
@@ -298,6 +310,13 @@ public:
   void p_compute_exit()
   {      compute_exit_();  }
   void r_compute_exit_continue (CkReductionMsg * msg);
+  void p_compute_exit_continue ();
+
+protected:
+
+  void compute_exit_continue_();
+
+public:
 
   /// Return the currently active Method
   int index_method() const throw()

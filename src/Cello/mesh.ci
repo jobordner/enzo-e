@@ -137,6 +137,7 @@ module mesh {
 
     entry void p_compute_exit();
     entry void r_compute_exit_continue(CkReductionMsg *);
+    entry void p_compute_exit_continue();
 
     entry void p_method_flux_correct_refresh();
     entry void r_method_flux_correct_sum_fields(CkReductionMsg * msg);

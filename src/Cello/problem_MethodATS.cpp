@@ -24,9 +24,12 @@ void MethodATS::compute( Block * block) throw()
     field.dimensions  (it,&mx,&my,&mz);
     field.ghost_depth (it,&gx,&gy,&gz);
 
-    const double dt   = block->state()->dt(level);
+    const double dt_level   = block->state()->dt(level);
+    const double time_level = block->state()->time(level);
+    const double dt   = block->state()->dt();
+    const double time = block->state()->time();
 
-    advance_field_(array_curr,mx,my,mz,gx,gy,gz,dt);
+    advance_field_(array_curr,mx,my,mz,gx,gy,gz,dt_level);
 
   }
 

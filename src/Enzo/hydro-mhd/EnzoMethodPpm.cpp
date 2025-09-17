@@ -205,9 +205,8 @@ void EnzoMethodPpm::compute ( Block * block) throw()
     // }
 
     TRACE_PPM ("BEGIN SolveHydroEquations");
-
-    const double time = block->state()->time();
-    const double dt   = block->state()->dt();
+    const double time = block->time();
+    const double dt   = block->dt();
     EnzoMethodPpm::SolveHydroEquations 
       ( *enzo_block, time, dt, comoving_coordinates_,
         single_flux_array, diffusion_, flattening_, pressure_free_,

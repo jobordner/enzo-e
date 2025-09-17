@@ -14,8 +14,6 @@
 
 // #define CONFIG_SMP_MODE
 
-// #define DEBUG_ATS
-
 //----------------------------------------------------------------------
 
 static CmiNodeLock field_face_node_lock;
@@ -923,8 +921,7 @@ void FieldFace::box_adjust_accumulate_ (Box * box, int accumulate, int g3[3])
 //----------------------------------------------------------------------
 
 void FieldFace::time_interpolate_
-(Field field,  const std::vector<int> & field_list,
- bool invert)
+(Field field,  const std::vector<int> & field_list, bool invert)
 {
   if (! include_history_()) return;
 
@@ -935,53 +932,22 @@ void FieldFace::time_interpolate_
   double time_face_curr = state->time_curr(level_ + face_type_);
   double time_face_prev = state->time_prev(level_ + face_type_);
 
-  if (refresh_->advanced_time()) {
-    if (refresh_->level_active(level_)) {
-      time_this_prev=time_this_curr;
-      time_this_curr = time_this_curr + state->dt_level(level_);
-    }
-    if (refresh_->level_active(level_+face_type_)) {
-      time_face_curr = time_face_curr + state->dt_level(level_+face_type_);
-    }
-  }
-
   if (time_this_curr == time_this_prev) return;
 
   int n3[3];
   field.size (n3,n3+1,n3+2);
 
   for (size_t i_f=0; i_f < field_list.size(); i_f++) {
-    const int id_this = field_list[i_f];
 
-    int age_this = field.history_age(id_this);
-    int id_curr, id_prev;
-    if (age_this == 0) {
-      id_prev = field.history_id(id_this,1);
-      id_curr = id_this;
-    } else if (age_this == 1) {
-      id_prev = id_this;
-      id_curr = field.curr_id(id_this);
-    } else {
-      ERROR2("FieldFace::time_interpolate()",
-             " field %d age is %d != [01]",
-             id_this,age_this);
-    }
-    ASSERT2 ("FieldFace::time_interpolate()",
-            "id_prev %d age %d must be 1",
-             id_prev,field.history_age(id_prev),
-             (field.history_age(id_prev) == 1));
-    ASSERT2 ("FieldFace::time_interpolate()",
-            "id_curr %d age %d must be 0",
-             id_curr,field.history_age(id_curr),
-             (field.history_age(id_curr) == 0));
-    ASSERT2 ("FieldFace::time_interpolate()",
-            "id_prev %d is not older id_curr %d",
-             id_prev,id_curr,
-             id_prev == field.history_id(id_curr,1));
-    ASSERT2 ("FieldFace::time_interpolate()",
-            "id_curr %d is not newest id_prev %d",
-             id_curr,id_prev,
-             id_curr == field.curr_id(id_prev));
+    const int id_this = field_list[i_f];
+    const int age_this = field.history_age(id_this);
+
+    if (age_this != 0) continue;
+
+    // Interpolate both current and previous fields
+
+    int id_curr = field.history_id(id_this,0);
+    int id_prev = field.history_id(id_this,1);
 
     int m3[3],g3[3],c3[3];
 
@@ -1003,31 +969,30 @@ void FieldFace::time_interpolate_
     box.get_start_size
       (i3_f,n3_f,BlockType::receive,BlockType::receive,lpad=false);
 
-    cello_float * field_prev;
-    cello_float * field_this;
-    cello_float * field_curr;
+    cello_float * field_prev = (cello_float *) field.values(id_prev);
+    cello_float * field_curr = (cello_float *) field.values(id_curr);
 
-    if (age_this == 0) {
-      field_this = (cello_float *) field.values(id_curr);
-    } else {
-      field_this = (cello_float *) field.values(id_prev);
-    }
-    field_curr = (cello_float *) field.values(id_curr);
-    field_prev = (cello_float *) field.values(id_prev);
 
-    double c_prev, c_curr;
     double dt_this = (time_this_curr - time_this_prev);
-    if (age_this == 0) {
-      c_curr = (time_face_curr - time_this_prev) / dt_this;
-    } else {
-      c_curr = (time_face_prev - time_this_prev) / dt_this;
-    }
-    c_prev = (1.0 - c_curr);
+
+    // coefficients for interpolating current field
+    const double cc_c = (time_face_curr - time_this_prev) / dt_this;
+    const double cc_p = (1.0 - cc_c);
+
+    // coefficients for interpolating previous field
+    const double cp_c = (time_face_prev - time_this_prev) / dt_this;
+    const double cp_p = (1.0 - cp_c);
+
+    // interpolate current and previous fields together since mutually
+    // dependent
     for (int iz=i3_f[2]; iz<i3_f[2]+n3_f[2]; iz++) {
       for (int iy=i3_f[1]; iy<i3_f[1]+n3_f[1]; iy++) {
         for (int ix=i3_f[0]; ix<i3_f[0]+n3_f[0]; ix++) {
           int i=ix + m3[0]*(iy + m3[1]*iz);
-          field_this[i] = c_prev*field_prev[i] + c_curr*field_curr[i];
+          cello_float value_c = (cc_p)*field_prev[i] + cc_c*field_curr[i];
+          cello_float value_p = (cp_p)*field_prev[i] + cp_c*field_curr[i];
+          field_curr[i] = value_c;
+          field_prev[i] = value_p;
         }
       }
     }

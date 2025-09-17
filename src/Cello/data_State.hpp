@@ -349,7 +349,7 @@ public: // interface
   //----------------------------------------------------------------------
   void print_line(std::string msg)
   {
-    CkPrintf ("State %s: %d %g %g : ",msg.c_str(),cycle_,time_,dt_);
+    CkPrintf ("State %d %s: %d %g %g : ",CkMyPe(),msg.c_str(),cycle_,time_,dt_);
     int n=cycle_level_.size();
     for (int i=0; i<n; i++) {
       CkPrintf (" [%d: %d %g %g %g]",

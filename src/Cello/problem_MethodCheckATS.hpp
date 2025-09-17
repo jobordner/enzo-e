@@ -69,23 +69,21 @@ protected: // methods
                     int mx, int my, int mz,
                     int gx, int gy, int gz);
 
-  /// Test that field is constant including all ghosts
-  void test_values_(Block * block,
-                    cello_float * array_curr,
-                    cello_float * error_curr,
-                    int mx, int my, int mz,
-                    int gx, int gy, int gz,
-                    double time);
+  /// Test that current time field values are correct
+  void test_curr_(Block * block,
+                  cello_float * array_curr,
+                  cello_float * error_curr,
+                  int mx, int my, int mz,
+                  int gx, int gy, int gz,
+                  double time);
 
-  /// Test that previous saved value is expected
-
-  void test_history_(Block * block,
-                     cello_float * array_curr,
-                     cello_float * array_prev,
-                     cello_float * error_curr,
-                     int mx, int my, int mz,
-                     int gx, int gy, int gz,
-                     int level, double dt);
+  /// Test that previous time field values are correct
+  void test_prev_(Block * block,
+                  cello_float * array_curr,
+                  cello_float * error_curr,
+                  int mx, int my, int mz,
+                  int gx, int gy, int gz,
+                  double time);
 
 protected: // attributes
 

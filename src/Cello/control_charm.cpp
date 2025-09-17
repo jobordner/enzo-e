@@ -145,17 +145,54 @@ void Block::stopping_exit_()
 
 void Block::compute_exit_ ()
 {
-  control_sync_barrier(CkIndex_Block::r_compute_exit_continue(nullptr));
+  cello::simulation()->compute_advance_state();
+}
+
+//----------------------------------------------------------------------
+
+void Simulation::compute_advance_state()
+{
+  // Transition from Block to Simulation parallelism
+  if (sync_advance_state_.next()) {
+    // Advance Simulation state
+    const int level_top = cello::hierarchy()->finest_level();
+    state_->advance(level_top);
+    // barrier before exiting compute
+    auto callback = CkCallback
+      (CkIndex_Simulation::r_advance_state_exit(nullptr),thisProxy);
+    contribute(callback);
+  }
+}
+
+//----------------------------------------------------------------------
+
+void Simulation::r_advance_state_exit(CkReductionMsg * msg)
+{
+  delete msg;
+  if (CkMyPe() == 0) cello::block_array().p_compute_exit_continue();
 }
 
 //----------------------------------------------------------------------
 
 void Block::r_compute_exit_continue (CkReductionMsg * msg)
+
 {
   delete msg;
+  compute_exit_continue_();
+}
 
-  update_global_state_();
+//----------------------------------------------------------------------
 
+void Block::p_compute_exit_continue ()
+
+{
+  compute_exit_continue_();
+}
+
+//----------------------------------------------------------------------
+
+void Block::compute_exit_continue_ ()
+{
   TRACE_CONTROL("compute_exit_continue");
 
   if (cello::simulation()->state()->state_type() == State::Type::Level) {
@@ -166,9 +203,7 @@ void Block::r_compute_exit_continue (CkReductionMsg * msg)
     refresh->add_all_particles();
     refresh->set_global();
     refresh->set_active (is_leaf());
-    refresh -> set_adaptive_timestep
-      (cello::simulation()->state()->state_type() == State::Type::Level);
-    //    refresh -> set_advanced_time(true);
+    refresh->set_adaptive_timestep (true);
     refresh->set_callback(CkIndex_Block::p_adapt_enter());
 
     refresh_start (ir_cycle_end,CkIndex_Block::p_adapt_enter());

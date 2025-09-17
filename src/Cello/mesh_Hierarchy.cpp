@@ -41,7 +41,9 @@ Hierarchy::Hierarchy
   refined_regions_lower_(),
   refined_regions_upper_(),
   num_blocks_(0),
+  num_blocks_global_(0),
   num_blocks_level_(),
+  num_blocks_level_global_(),
   num_particles_(0),
   num_zones_total_(0),
   num_zones_real_(0),
@@ -51,6 +53,7 @@ Hierarchy::Hierarchy
   // Initialize extents
 
   num_blocks_level_.resize(max_level - min_level + 1);
+  num_blocks_level_global_.resize(max_level - min_level + 1);
 
   for (int i=0; i<3; i++) {
     root_size_[i] = 1;
@@ -87,7 +90,9 @@ void Hierarchy::pup (PUP::er &p)
   p | refined_regions_upper_;
 
   p | num_blocks_;
+  p | num_blocks_global_;
   p | num_blocks_level_;
+  p | num_blocks_level_global_;
   p | num_particles_;
   p | num_zones_total_;
   p | num_zones_real_;
@@ -99,7 +104,7 @@ void Hierarchy::pup (PUP::er &p)
   if (up) {
     for (size_t i=0; i<num_blocks_level_.size(); i++)
       num_blocks_level_[i]=0;
-    num_blocks_      = 0;
+    num_blocks_ = 0;
     num_particles_   = 0;
     num_zones_total_ = 0;
     num_zones_real_  = 0;

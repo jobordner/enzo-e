@@ -32,7 +32,9 @@ public: // interface
     refined_regions_lower_(),
     refined_regions_upper_(),
     num_blocks_(0),
+    num_blocks_global_(0),
     num_blocks_level_(),
+    num_blocks_level_global_(),
     block_vec_(),
     num_particles_(0), 
     num_zones_total_(0), 
@@ -179,14 +181,25 @@ public: // interface
   size_t num_blocks() const throw()
   {  return num_blocks_;  }
 
+  /// Return the number of blocks on all processes
+  size_t num_blocks_global() const throw()
+  {  return num_blocks_global_;  }
+
   /// Return the number of blocks on this process for the given level
   size_t num_blocks(int level) const throw()
   {  return num_blocks_level_.at(level-min_level_);  }
 
+  /// Return the number of blocks on this process for the given level
+  size_t num_blocks_global(int level) const throw()
+  {  return num_blocks_level_global_.at(level-min_level_);  }
+
+  void set_blocks_global(int level, int num_blocks) throw()
+  { num_blocks_level_global_[level] = num_blocks; }
+
   int finest_level() const throw()
   {
     for (int level=max_level_; level>=min_level_; level--) {
-      if (num_blocks_level_.at(level-min_level_) > 0) return level;
+      if (num_blocks_level_global_.at(level-min_level_) > 0) return level;
     }
     return -1;
   }
@@ -265,10 +278,15 @@ protected: // attributes
 
   /// Current number of blocks on this process
   int num_blocks_;
+  /// Current number of blocks total
+  int num_blocks_global_;
 
   /// Current number of blocks on this process per refinement level
   std::vector<int> num_blocks_level_;
-  
+
+  /// Current number of total blocks per refinement level
+  std::vector<int> num_blocks_level_global_;
+
   /// Pointers to Blocks on this process
   std::vector<Block *> block_vec_;
 

@@ -268,9 +268,12 @@ public: // virtual functions
   // Compute
   //--------------------------------------------------
 
-  void compute ();
+  void compute_advance_state();
+  void r_advance_exit();
 
-  //--------------------------------------------------
+  void r_advance_state_exit(CkReductionMsg * msg);
+
+//--------------------------------------------------
   // Restart
   //--------------------------------------------------
 
@@ -550,7 +553,8 @@ protected: // attributes
   /// Initialization synchronization.
   Sync sync_init_block_count_;
 
-  /// Output synchronization (depreciated)
+  /// Block->Simulation synchronization
+  Sync sync_advance_state_;
   Sync sync_output_begin_;
   Sync sync_output_write_;
 
