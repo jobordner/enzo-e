@@ -38,7 +38,7 @@ public: // interface
     adapt_include_ghosts(),
     adapt_output(),
     adapt_schedule_index(),
-    balance_schedule_index(0),
+    balance_schedule_index(-1),
     balance_type(),
     num_boundary(0),
     boundary_list(),
@@ -86,6 +86,7 @@ public: // interface
     method_type(),
     monitor_debug(false),
     monitor_verbose(false),
+    monitor_schedule_index(-1),
     num_output(0),
     output_list(),
     output_type(),
@@ -238,6 +239,7 @@ public: // interface
       method_type(),
       monitor_debug(false),
       monitor_verbose(false),
+      monitor_schedule_index(-1),
       num_output(0),
       output_list(),
       output_type(),
@@ -444,6 +446,7 @@ public: // attributes
 
   bool                       monitor_debug;
   bool                       monitor_verbose;
+  int                        monitor_schedule_index;
 
   // Output
 

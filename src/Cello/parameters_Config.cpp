@@ -124,6 +124,7 @@ void Config::pup (PUP::er &p)
 
   p | monitor_debug;
   p | monitor_verbose;
+  p | monitor_schedule_index;
 
   // Output
 
@@ -369,8 +370,7 @@ void Config::read_balance_ (Parameters * p) throw()
   } else {
     balance_schedule_index = -1;
   }
-  
-}  
+}
 
 //----------------------------------------------------------------------
 
@@ -882,7 +882,17 @@ void Config::read_monitor_ (Parameters * p) throw()
 
   monitor_debug   = p->value_logical("Monitor:debug",  false);
   monitor_verbose = p->value_logical("Monitor:verbose",false);
+  const bool monitor_scheduled =
+    (p->type("Monitor:schedule:var") != parameter_unknown);
 
+  if (monitor_scheduled) {
+    p->group_set(0,"Monitor");
+    p->group_push("schedule");
+    monitor_schedule_index = read_schedule_(p, "Monitor");
+    p->group_pop();
+  } else {
+    monitor_schedule_index = -1;
+  }
 }
 
 //----------------------------------------------------------------------

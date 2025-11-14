@@ -20,7 +20,7 @@
    
 //----------------------------------------------------------------------
 class Timer; 
-
+class Schedule;
 class Monitor {
 
   /// @class    Monitor
@@ -107,7 +107,8 @@ public: // interface
   /// Print a message with possible format specifications to stdout
   void print (const char * component, const char * buffer, ...) const;
 
-
+  const Schedule * schedule() const
+  { return schedule_; }
 
   void set_verbose (int verbose) 
   { 
@@ -120,6 +121,13 @@ public: // interface
   void print_verbatim (const char * component, const char * buffer) const;
 
 private: // functions
+
+  void update_state_ (int cycle, double time)
+  { cycle_ = cycle;
+    time_ = time;}
+
+  void set_schedule_ (Schedule * schedule)
+  { schedule_ = schedule;; }
 
   void write_ (FILE * fp, const char * component, const char * buffer) const;
 
@@ -142,6 +150,11 @@ private: // attributes
   /// Override default of group_active_ for specific groups
   std::map<std::string,int> group_mode_;
 
+  /// Output monitoring schedule
+  Schedule * schedule_;
+  /// Current state for cycle
+  int cycle_;
+  double time_;
 
   //----------------------------------------------------------------------
 

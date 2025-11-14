@@ -491,6 +491,17 @@ void Simulation::initialize_monitor_() throw()
   int debug_mode = debug ? monitor_mode_all : monitor_mode_none;
   monitor_->set_mode("DEBUG",debug_mode);
   monitor_->set_verbose(config_->monitor_verbose);
+  int index = config_->monitor_schedule_index;
+
+  Schedule * schedule = (index == -1) ? nullptr : Schedule::create
+    ( config_->schedule_var[index],
+      config_->schedule_type[index],
+      config_->schedule_start[index],
+      config_->schedule_stop[index],
+      config_->schedule_step[index],
+      config_->schedule_list[index]);
+  monitor_->set_schedule_(schedule);
+
 }
 
 //----------------------------------------------------------------------
@@ -863,6 +874,7 @@ void Simulation::update_state(int cycle, double time, double dt, double stop)
   time_  = time;
   dt_    = dt;
   stop_  = stop != 0;
+  monitor_->update_state_(cycle,time);
 }
 
 //----------------------------------------------------------------------

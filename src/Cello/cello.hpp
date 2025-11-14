@@ -45,6 +45,12 @@
 #include "cello_defines.hpp"
 #include "cello_Sync.hpp"
 
+#include "error_Error.hpp"
+#include "performance_Timer.hpp"
+#include "io_Schedule.hpp"
+#include "io_ScheduleInterval.hpp"
+#include "io_ScheduleList.hpp"
+
 // #define DEBUG_CHECK
 
 class Block;

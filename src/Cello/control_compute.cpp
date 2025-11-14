@@ -148,8 +148,9 @@ void Block::compute_end_ ()
   set_time  (time_  + dt_);
 
   // Update Simulation cycle and time (redundant)
-  cello::simulation()->set_cycle(cycle_);
-  cello::simulation()->set_time(time_);
+  if (index().is_root()) {
+    cello::simulation()->update_state(cycle_,time_,dt_,stop_);
+  }
 
   compute_exit_();
 
