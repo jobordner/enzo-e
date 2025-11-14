@@ -170,9 +170,13 @@ void Block::compute_end_ ()
   data()->flux_data()->deallocate();
 
   // Update Simulation cycle and time (redundant)
-  auto & global_state = cello::simulation()->state();
-  global_state->set_cycle(state_->cycle());
-  global_state->set_time(state_->time());
+
+  if (index().is_root()) {
+    auto & global_state = cello::simulation()->state();
+    global_state->set_cycle(state_->cycle());
+    global_state->set_time(state_->time());
+    global_state->set_stopping(state_->stopping());
+  }
 
   compute_exit_();
 

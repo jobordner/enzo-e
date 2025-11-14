@@ -19,7 +19,8 @@ Monitor::Monitor()
   : timer_(new Timer),
     mode_(monitor_mode_root),
     verbose_(false),
-    group_default_(monitor_mode_all)
+    group_default_(monitor_mode_all),
+    schedule_(nullptr)
 {
   timer_->start();
 
@@ -120,6 +121,12 @@ int Monitor::is_active(const char * component) const throw ()
 {
   if (mode_ == monitor_mode_none)
     return false;
+
+  // Return false if not scheduled
+  bool is_scheduled = (schedule_ && 
+		     schedule_->write_this_cycle(cycle_,time_));
+
+  if (!is_scheduled) return false;
 
   if (mode_ == monitor_mode_root && CkMyPe() != 0)
     return false;
