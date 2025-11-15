@@ -122,9 +122,8 @@ void Config::pup (PUP::er &p)
 
   // Monitor
 
-  p | monitor_debug;
-  p | monitor_verbose;
   p | monitor_schedule_index;
+  p | monitor_level;
 
   // Output
 
@@ -880,8 +879,8 @@ void Config::read_monitor_ (Parameters * p) throw()
   // Monitor
   //--------------------------------------------------
 
-  monitor_debug   = p->value_logical("Monitor:debug",  false);
-  monitor_verbose = p->value_logical("Monitor:verbose",false);
+  monitor_level = p->value_string("Monitor:level","medium");
+
   const bool monitor_scheduled =
     (p->type("Monitor:schedule:var") != parameter_unknown);
 
@@ -892,6 +891,15 @@ void Config::read_monitor_ (Parameters * p) throw()
     p->group_pop();
   } else {
     monitor_schedule_index = -1;
+  }
+
+  int num_mute = p->list_length("Monitor:mute_list");
+  for (int i=0; i<num_mute; i++) {
+    monitor_mute_list.push_back(p->list_value_string(i,"Monitor:mute_list","none"));
+  }
+  int num_only = p->list_length("Monitor:only_list");
+  for (int i=0; i<num_only; i++) {
+    monitor_only_list.push_back(p->list_value_string(i,"Monitor:only_list","none"));
   }
 }
 

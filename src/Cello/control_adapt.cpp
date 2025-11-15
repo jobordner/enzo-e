@@ -314,14 +314,6 @@ void Block::adapt_refine_()
 {
   TRACE_ADAPT("adapt_refine",this);
   Monitor * monitor = cello::monitor();
-  if (monitor->is_verbose()) {
-    char buffer [80];
-    int v3[3];
-    index().values(v3);
-    snprintf (buffer,sizeof(buffer),"Block %s (%x %x %x) is refining",
-              name().c_str(),v3[0],v3[1],v3[2]);
-    monitor->print("Adapt",buffer);
-  }
 
   int nx,ny,nz;
   data()->field_data()->size(&nx,&ny,&nz);
@@ -901,15 +893,6 @@ void Block::adapt_coarsen_()
 	   is_leaf() && level > 0);
 
   Monitor * monitor = cello::monitor();
-
-  if (monitor->is_verbose()) {
-    char buffer [80];
-    int v3[3];
-    index().values(v3);
-    snprintf (buffer,sizeof(buffer),"Block %s (%x %x %x) is coarsening",
-              name().c_str(),v3[0],v3[1],v3[2]);
-    monitor->print("Adapt",buffer);
-  }
 
   // Create FieldFace for coarsening field data to parent
 

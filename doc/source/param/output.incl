@@ -19,7 +19,7 @@
    :Scope:     :c:`Cello`
    :Assumes:   :g:`<file_set>` is of :p:`type` :t:`"image"`
 
-   :e:`For the "image" output type, the axis along which to project the data for 3D problems.  Values are` `"x", "y", :e:`or` "z".  :e:`See the associated type parameter.` 
+   :e:`For the "image" output type, the axis along which to project the data for 3D problems.  Values are` `"x", "y"`, :e:`or` "z".  :e:`See the associated type parameter.` 
 
 ----
 

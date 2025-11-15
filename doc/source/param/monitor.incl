@@ -1,19 +1,30 @@
-.. par:parameter: Monitor:debug
+.. par:parameter:: Monitor:level
 
-   :Summary: :s:`Whether to display debugging output`
-   :Type:    :par:typefmt:`logical`
-   :Default: :d:`false`
+   :Summary: :s:`Level of information written to stdout`
+   :Type:    :par:typefmt:`string`
+   :Default: :d:`"medium"`
    :Scope:     :c:`Cello`
 
-   :e:`If true, then process DEBUG() statements, writing the output to both stderr and appending to files out.debug.<proc>, where <proc> is the (physical) process rank.  Note that out.debug.<proc> files are not erased at the start of a run. This parameter is not scalable and is inefficient since output files are continually opened and closed by each process.`
+   :e:`This parameter controls the verbosity of output during a running simulation. Possible values are "high", "medium", "low", and "none".`
 
 ----
 
-.. par:parameter: Monitor:verbose
+.. par:parameter:: Monitor:mute_list
 
-   :Summary: :s:`Whether to display "verbose" output`
-   :Type:    :par:typefmt:`logical`
-   :Default: :d:`false`
+   :Summary: :s:`Which monitor output components to mute`
+   :Type:    :par:typefmt:`list ( string )`
+   :Default: :d:`[]`
    :Scope:     :c:`Cello`
 
-   :e:`If true, then output requests with Monitor::verbose() will be called.  This will generally produce more detailed output, such as which specific Blocks are refining and coarsening, etc.`
+   :e:`List of monitor output components, such as "Performance", "Solver", "Simulation", to mute. Default is the empty list with no components muted.`
+
+----
+
+.. par:parameter:: Monitor:only_list
+
+   :Summary: :s:`Which monitor output components to write, muting others`
+   :Type:    :par:typefmt:`list ( string )`
+   :Default: :d:`[]`
+   :Scope:     :c:`Cello`
+
+   :e:`List of monitor output components, such as "Performance", "Solver", "Simulation", to include in monitoring output. Analogous to "solo" in audio mixing, it effectively mutes all components not listed. Default is the empty list, for which all components are active except those in the mute_list.)`

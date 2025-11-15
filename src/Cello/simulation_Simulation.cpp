@@ -487,12 +487,21 @@ void Simulation::initialize_config_() throw()
 
 void Simulation::initialize_monitor_() throw()
 {
-  bool debug = config_->monitor_debug;
-  int debug_mode = debug ? monitor_mode_all : monitor_mode_none;
-  monitor_->set_mode("DEBUG",debug_mode);
-  monitor_->set_verbose(config_->monitor_verbose);
+  std::string level = config_->monitor_level;
+
+  if (level == "none")   monitor_->set_level_(0);
+  if (level == "low")    monitor_->set_level_(1);
+  if (level == "medium") monitor_->set_level_(2);
+  if (level == "high")   monitor_->set_level_(3);
+
   int index = config_->monitor_schedule_index;
 
+  for (auto component : config_->monitor_mute_list) {
+    monitor_->mute_component_(component);
+  }
+  for (auto component : config_->monitor_only_list) {
+    monitor_->only_component_(component);
+  }
   Schedule * schedule = (index == -1) ? nullptr : Schedule::create
     ( config_->schedule_var[index],
       config_->schedule_type[index],
@@ -1085,7 +1094,7 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
     long long num_leaf_blocks = 0;
     for (int i=hierarchy_->min_level(); i<=hierarchy_->max_level(); i++) {
       const long long num_blocks_level = counters_reduce[m++]; // NL
-      monitor()->print("performance","simulation num-blocks-level %d %lld",
+      monitor()->print("Performance","simulation num-blocks-level %d %lld",
                        i,num_blocks_level);
 
       num_total_blocks += num_blocks_level;
