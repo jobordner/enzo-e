@@ -84,9 +84,10 @@ public: // interface
     method_schedule_index(),
     method_courant(),
     method_type(),
-    monitor_debug(false),
-    monitor_verbose(false),
     monitor_schedule_index(-1),
+    monitor_level(),
+    monitor_mute_list(),
+    monitor_only_list(),
     num_output(0),
     output_list(),
     output_type(),
@@ -237,9 +238,10 @@ public: // interface
       method_schedule_index(),
       method_courant(),
       method_type(),
-      monitor_debug(false),
-      monitor_verbose(false),
       monitor_schedule_index(-1),
+      monitor_level(),
+      monitor_mute_list(),
+      monitor_only_list(),
       num_output(0),
       output_list(),
       output_type(),
@@ -447,9 +449,10 @@ public: // attributes
 
   // Monitor
 
-  bool                       monitor_debug;
-  bool                       monitor_verbose;
   int                        monitor_schedule_index;
+  std::string                monitor_level;
+  std::vector<std::string>   monitor_mute_list;
+  std::vector<std::string>   monitor_only_list;
 
   // Output
 
