@@ -1,13 +1,11 @@
 // See LICENSE_CELLO file for license and copyright information
 
-/// @file     io_ScheduleInterval.cpp
+/// @file     cello_ScheduleInterval.cpp
 /// @author   James Bordner (jobordner@ucsd.edu)
 /// @date     Wed Mar 16 09:53:31 PDT 2011
 /// @brief    Implementation of the ScheduleInterval class
 
 #include "cello.hpp"
-
-#include "io.hpp"
 
 // #define DEBUG_SCHEDULE
 
@@ -72,10 +70,10 @@ void ScheduleInterval::set_seconds_interval
 
 //----------------------------------------------------------------------
 
-bool ScheduleInterval::write_this_cycle ( int cycle, double time) throw()
+bool ScheduleInterval::is_scheduled ( int cycle, double time) throw()
 {
 #ifdef DEBUG_SCHEDULE
-  CkPrintf ("ScheduleInterval::write_this_cycle cycle %d time %g",
+  CkPrintf ("ScheduleInterval::is_scheduled cycle %d time %g",
 	    cycle,time);
   this->print();
 #endif
@@ -127,7 +125,7 @@ bool ScheduleInterval::write_this_cycle ( int cycle, double time) throw()
   }
 
 #ifdef DEBUG_SCHEDULE
-  CkPrintf ("ScheduleInterval::write_this_cycle result = %d\n",result);
+  CkPrintf ("ScheduleInterval::is_scheduled result = %d\n",result);
 #endif
   return result;
 }

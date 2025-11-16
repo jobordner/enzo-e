@@ -1,13 +1,11 @@
 // See LICENSE_CELLO file for license and copyright information
 
-/// @file     io_ScheduleList.cpp
+/// @file     cello_ScheduleList.cpp
 /// @author   James Bordner (jobordner@ucsd.edu)
 /// @date     Wed Mar 16 09:53:31 PDT 2011
 /// @brief    Implementation of the ScheduleList class
 
 #include "cello.hpp"
-
-#include "io.hpp"
 
 //----------------------------------------------------------------------
 
@@ -78,7 +76,7 @@ void ScheduleList::set_seconds_list (std::vector<double> seconds_list) throw()
 
 //----------------------------------------------------------------------
 
-bool ScheduleList::write_this_cycle ( int cycle, double time ) throw()
+bool ScheduleList::is_scheduled ( int cycle, double time ) throw()
 {
   bool result = false;
 

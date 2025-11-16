@@ -83,9 +83,7 @@ void Block::compute_continue_ ()
 
   Method * method = this->method();
   Schedule * schedule = method->schedule();
-  bool is_scheduled = 
-    (schedule==NULL) ||
-    (schedule->write_this_cycle(cycle_,time_));
+  bool is_scheduled = (! schedule || schedule->is_scheduled(cycle_,time_));
 
   if (is_scheduled) {
     TRACE2 ("Block::compute_continue() method = %d %p\n",

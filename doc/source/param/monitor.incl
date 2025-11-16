@@ -16,15 +16,27 @@
    :Default: :d:`[]`
    :Scope:     :c:`Cello`
 
-   :e:`List of monitor output components, such as "Performance", "Solver", "Simulation", to mute. Default is the empty list with no components muted.`
+   :e:`List of monitor output components, such as "Performance", "Solver", "Simulation", to mute. Default is the empty list.`
 
 ----
 
 .. par:parameter:: Monitor:only_list
 
-   :Summary: :s:`Which monitor output components to write, muting others`
+   :Summary: :s:`Which monitor output components to write`
    :Type:    :par:typefmt:`list ( string )`
    :Default: :d:`[]`
    :Scope:     :c:`Cello`
 
-   :e:`List of monitor output components, such as "Performance", "Solver", "Simulation", to include in monitoring output. Analogous to "solo" in audio mixing, it effectively mutes all components not listed. Default is the empty list, for which all components are active except those in the mute_list.)`
+   :e:`List of monitor output components, such as "Performance", "Solver", "Simulation", to include in monitoring output. Analogous to "solo" in audio mixing, if non-empty all components not listed are muted. Default is the empty list: all components are active unless muted.`
+
+----
+
+.. par:parameter:: Monitor:schedule
+
+   :Summary: :s:`Schedule for when to write monitor output`
+   :Type:    :par:typefmt:`subgroup`
+   :Default: :d:`none`
+   :Scope:     :c:`Cello`
+
+   :e:`See the` `schedule`_ :e:`subgroup for parameters to define when to write monitoring output to stdout.` 
+

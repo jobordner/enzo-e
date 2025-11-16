@@ -1,17 +1,17 @@
 // See LICENSE_CELLO file for license and copyright information
 
-/// @file     io_ScheduleList.hpp 
+/// @file     cello_ScheduleList.hpp 
 /// @author   James Bordner (jobordner@ucsd.edu) 
 /// @date     Mon Mar 14 17:35:56 PDT 2011
-/// @brief    [\ref Io] Declaration for the ScheduleList component
+/// @brief    [\ref Cello] Declaration for the ScheduleList component
 
-#ifndef IO_SCHEDULELIST_HPP
-#define IO_SCHEDULELIST_HPP
+#ifndef CELLO_SCHEDULELIST_HPP
+#define CELLO_SCHEDULELIST_HPP
 class ScheduleList : public Schedule {
 
   /// @class    ScheduleList
-  /// @ingroup  Io
-  /// @brief    [\ref Io] define interface for various types of output
+  /// @ingroup  Cello
+  /// @brief    [\ref Cello] define interface for various types of output
 
 public: // functions
 
@@ -57,7 +57,7 @@ public: // virtual functions
   virtual double update_timestep(double time, double dt) const throw();
 
   /// Whether to perform IO this cycle
-  virtual bool write_this_cycle ( int cycle, double time ) throw();
+  virtual bool is_scheduled ( int cycle, double time ) throw();
 
   virtual double time_next() const throw()
   { return ((int(time_list_.size()) > last_+1) ? time_list_.at(last_+1) : -1.0); }
@@ -76,4 +76,4 @@ protected: // attributes
   std::vector<double> seconds_list_;
 };
 
-#endif /* IO_SCHEDULE_HPP */
+#endif /* CELLO_SCHEDULE_HPP */

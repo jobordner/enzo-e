@@ -145,8 +145,8 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
   bool was_on  = (simulation->projections_tracing() == true);
   Schedule * schedule_on = simulation->projections_schedule_on();
   Schedule * schedule_off = simulation->projections_schedule_off();
-  bool turn_on  = schedule_on  ? schedule_on->write_this_cycle(cycle_,time_) : false;
-  bool turn_off = schedule_off ? schedule_off->write_this_cycle(cycle_,time_) : false;
+  bool turn_on  = schedule_on  && schedule_on->is_active(cycle_,time_);
+  bool turn_off = schedule_off && schedule_off->is_active(cycle_,time_);
 
   static bool active = false;
   if (!active && turn_on) {
@@ -185,7 +185,7 @@ void Block::stopping_balance_()
   Schedule * schedule = cello::simulation()->schedule_balance();
 
   bool do_balance = (schedule && 
-		     schedule->write_this_cycle(cycle_,time_));
+		     schedule->is_scheduled(cycle_,time_));
 
   if (do_balance) {
 

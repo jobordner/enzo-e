@@ -288,7 +288,7 @@ int Block::adapt_compute_desired_level_(int level_maximum)
 
     Schedule * schedule = refine->schedule();
 
-    if ((schedule==NULL) || schedule->write_this_cycle(cycle(),time()) ) {
+    if (!schedule || schedule->is_scheduled(cycle(),time()) ) {
       adapt = std::max(adapt,refine->apply(this));
     }
 

@@ -8,7 +8,7 @@
 #include "main.hpp"
 #include "test.hpp"
 
-#include "io.hpp"
+#include "cello.hpp"
 
 #include <sys/wait.h>
 
@@ -53,34 +53,34 @@ PARALLEL_MAIN_BEGIN
     unit_assert(schedule->is_active());
 
 
-    unit_func("write_this_cycle");
+    unit_func("is_scheduled");
     schedule->set_time_interval(10.0,2.0,20.0);
 
-    unit_assert(schedule->write_this_cycle (0,  8.0) == false);
-    unit_assert(schedule->write_this_cycle (0, 10.0) == true);
-    unit_assert(schedule->write_this_cycle (0, 12.0) == false);
+    unit_assert(schedule->is_scheduled (0,  8.0) == false);
+    unit_assert(schedule->is_scheduled (0, 10.0) == true);
+    unit_assert(schedule->is_scheduled (0, 12.0) == false);
     schedule->next();
-    unit_assert(schedule->write_this_cycle (0, 10.0) == false);
-    unit_assert(schedule->write_this_cycle (0, 12.0) == true);
-    unit_assert(schedule->write_this_cycle (0, 14.0) == false);
+    unit_assert(schedule->is_scheduled (0, 10.0) == false);
+    unit_assert(schedule->is_scheduled (0, 12.0) == true);
+    unit_assert(schedule->is_scheduled (0, 14.0) == false);
     schedule->next();
-    unit_assert(schedule->write_this_cycle (0, 12.0) == false);
-    unit_assert(schedule->write_this_cycle (0, 14.0) == true);
-    unit_assert(schedule->write_this_cycle (0, 16.0) == false);
+    unit_assert(schedule->is_scheduled (0, 12.0) == false);
+    unit_assert(schedule->is_scheduled (0, 14.0) == true);
+    unit_assert(schedule->is_scheduled (0, 16.0) == false);
     schedule->next();
-    unit_assert(schedule->write_this_cycle (0, 14.0) == false);
-    unit_assert(schedule->write_this_cycle (0, 16.0) == true);
-    unit_assert(schedule->write_this_cycle (0, 18.0) == false);
+    unit_assert(schedule->is_scheduled (0, 14.0) == false);
+    unit_assert(schedule->is_scheduled (0, 16.0) == true);
+    unit_assert(schedule->is_scheduled (0, 18.0) == false);
     schedule->next();
-    unit_assert(schedule->write_this_cycle (0, 16.0) == false);
-    unit_assert(schedule->write_this_cycle (0, 18.0) == true);
-    unit_assert(schedule->write_this_cycle (0, 20.0) == false);
+    unit_assert(schedule->is_scheduled (0, 16.0) == false);
+    unit_assert(schedule->is_scheduled (0, 18.0) == true);
+    unit_assert(schedule->is_scheduled (0, 20.0) == false);
     schedule->next();
-    unit_assert(schedule->write_this_cycle (0, 18.0) == false);
-    unit_assert(schedule->write_this_cycle (0, 20.0) == true);
-    unit_assert(schedule->write_this_cycle (0, 22.0) == false);
+    unit_assert(schedule->is_scheduled (0, 18.0) == false);
+    unit_assert(schedule->is_scheduled (0, 20.0) == true);
+    unit_assert(schedule->is_scheduled (0, 22.0) == false);
     schedule->next();
-    unit_assert(schedule->write_this_cycle (0, 22.0) == false);
+    unit_assert(schedule->is_scheduled (0, 22.0) == false);
 
     unit_func("update_timestep");
 
@@ -137,28 +137,28 @@ PARALLEL_MAIN_BEGIN
     unit_assert(schedule->is_active());
 
 
-    unit_func("write_this_cycle");
+    unit_func("is_scheduled");
     schedule->set_seconds_interval(1.0,3.0,5.0);
 
-    unit_assert(schedule->write_this_cycle (0,  0.0) == false);
-    unit_assert(schedule->write_this_cycle (0,  0.0) == false);
-    unit_assert(schedule->write_this_cycle (0,  0.0) == false);
+    unit_assert(schedule->is_scheduled (0,  0.0) == false);
+    unit_assert(schedule->is_scheduled (0,  0.0) == false);
+    unit_assert(schedule->is_scheduled (0,  0.0) == false);
 
     sleep_for_2_sec();
 
-    unit_assert(schedule->write_this_cycle (0,  0.0) == true);
-    unit_assert(schedule->write_this_cycle (0,  0.0) == true);
+    unit_assert(schedule->is_scheduled (0,  0.0) == true);
+    unit_assert(schedule->is_scheduled (0,  0.0) == true);
     schedule->next();
-    unit_assert(schedule->write_this_cycle (0,  0.0) == false);
-    unit_assert(schedule->write_this_cycle (0,  0.0) == false);
+    unit_assert(schedule->is_scheduled (0,  0.0) == false);
+    unit_assert(schedule->is_scheduled (0,  0.0) == false);
 
     sleep_for_2_sec();
 
-    unit_assert(schedule->write_this_cycle (0,  0.0) == true);
-    unit_assert(schedule->write_this_cycle (0,  0.0) == true);
+    unit_assert(schedule->is_scheduled (0,  0.0) == true);
+    unit_assert(schedule->is_scheduled (0,  0.0) == true);
     schedule->next();
-    unit_assert(schedule->write_this_cycle (0,  0.0) == false);
-    unit_assert(schedule->write_this_cycle (0,  0.0) == false);
+    unit_assert(schedule->is_scheduled (0,  0.0) == false);
+    unit_assert(schedule->is_scheduled (0,  0.0) == false);
 
   }
   //--------------------------------------------------

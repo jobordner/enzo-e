@@ -130,8 +130,7 @@ int Monitor::is_active(const char * component) const throw ()
 
   // Return false if not scheduled
 
-  bool is_scheduled = (schedule_ && 
-		     schedule_->write_this_cycle(cycle_,time_));
+  bool is_scheduled = (schedule_ && schedule_->is_scheduled(cycle_,time_));
 
   if (schedule_ && !is_scheduled) return false;
 

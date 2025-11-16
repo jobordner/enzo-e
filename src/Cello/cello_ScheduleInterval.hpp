@@ -1,18 +1,18 @@
 // See LICENSE_CELLO file for license and copyright information
 
-/// @file     io_ScheduleInterval.hpp 
+/// @file     cello_ScheduleInterval.hpp 
 /// @author   James Bordner (jobordner@ucsd.edu) 
 /// @date     Mon Mar 14 17:35:56 PDT 2011
-/// @brief    [\ref Io] Declaration for the ScheduleInterval component
+/// @brief    [\ref Cello] Declaration for the ScheduleInterval component
 
-#ifndef IO_SCHEDULEINTERVAL_HPP
-#define IO_SCHEDULEINTERVAL_HPP
+#ifndef CELLO_SCHEDULEINTERVAL_HPP
+#define CELLO_SCHEDULEINTERVAL_HPP
 
 class ScheduleInterval : public Schedule {
 
   /// @class    ScheduleInterval
-  /// @ingroup  Io
-  /// @brief    [\ref Io] define interface for various types of output
+  /// @ingroup  Cello
+  /// @brief    [\ref Cello] define interface for various types of output
 
 public: // functions
 
@@ -67,8 +67,8 @@ public:  // virtual functions
   /// Reduce timestep if next write time is between time and time + dt
   virtual double update_timestep(double time, double dt)  const throw();
 
-  /// Whether to perform IO this cycle
-  virtual bool write_this_cycle ( int cycle, double time) throw();
+  /// Whether to perform CELLO this cycle
+  virtual bool is_scheduled ( int cycle, double time) throw();
 
   virtual double time_next() const throw()
   { return time_start_ + (last_ + 1)*time_step_; };
@@ -110,4 +110,4 @@ protected: // attributes
   double seconds_stop_;
 };
 
-#endif /* IO_SCHEDULE_HPP */
+#endif /* CELLO_SCHEDULE_HPP */
