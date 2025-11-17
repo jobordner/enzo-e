@@ -890,10 +890,10 @@ void Config::read_monitor_ (Parameters * p) throw()
     (p->type("Monitor:schedule:var") != parameter_unknown);
 
   if (monitor_scheduled) {
-    p->group_set(0,"Monitor");
-    p->group_push("schedule");
-    monitor_schedule_index = read_schedule_(p, "Monitor");
-    p->group_pop();
+    parameter_path_type path;
+    path.push_back("Monitor");
+    path.push_back("schedule");
+    monitor_schedule_index = read_schedule_(p, path,"Monitor");
   } else {
     monitor_schedule_index = -1;
   }
