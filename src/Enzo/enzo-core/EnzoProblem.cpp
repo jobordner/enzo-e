@@ -406,6 +406,20 @@ Solver * EnzoProblem::create_solver_
        enzo_config->solver_last_smooth[index_solver],
        enzo_config->solver_coarse_level[index_solver]);
 
+  } else if (solver_type == "enzo") {
+
+    solver = new EnzoSolverEnzo
+      (enzo_config->solver_list[index_solver],
+       enzo_config->solver_field_x[index_solver],
+       enzo_config->solver_field_b[index_solver],
+       enzo_config->solver_monitor_iter[index_solver],
+       enzo_config->solver_restart_cycle[index_solver],
+       solve_type,
+       index_prolong,
+       index_restrict,
+       enzo_config->solver_min_level[index_solver],
+       enzo_config->solver_max_level[index_solver]);
+
   } else if (solver_type == "bicgstab") {
 
     solver = new EnzoSolverBiCgStab

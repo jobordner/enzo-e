@@ -22,6 +22,7 @@ add_library(Enzo_gravity
   solvers/EnzoSolverBiCgStab.cpp solvers/EnzoSolverBiCgStab.hpp
   solvers/EnzoSolverCg.cpp solvers/EnzoSolverCg.hpp
   solvers/EnzoSolverDd.cpp solvers/EnzoSolverDd.hpp
+  solvers/EnzoSolverEnzo.cpp solvers/EnzoSolverEnzo.hpp
   solvers/EnzoSolverDiagonal.cpp solvers/EnzoSolverDiagonal.hpp
   solvers/EnzoSolverJacobi.cpp solvers/EnzoSolverJacobi.hpp
   solvers/EnzoSolverMg0.cpp solvers/EnzoSolverMg0.hpp

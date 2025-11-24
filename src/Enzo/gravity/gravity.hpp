@@ -47,6 +47,7 @@
 #include "gravity/solvers/EnzoSolverCg.hpp"
 #include "gravity/solvers/EnzoSolverDd.hpp"
 #include "gravity/solvers/EnzoSolverDiagonal.hpp"
+#include "gravity/solvers/EnzoSolverEnzo.hpp"
 #include "gravity/solvers/EnzoSolverJacobi.hpp"
 #include "gravity/solvers/EnzoSolverMg0.hpp"
 

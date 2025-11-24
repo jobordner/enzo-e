@@ -250,6 +250,9 @@ public: /// entry methods
   void r_solver_dd_barrier(CkReductionMsg* msg);
   void r_solver_dd_end(CkReductionMsg* msg);
 
+  /// EnzoSolverEnzo
+  void r_solver_enzo_barrier(CkReductionMsg* msg);
+
   // EnzoSolverJacobi
 
   void p_solver_jacobi_continue();
