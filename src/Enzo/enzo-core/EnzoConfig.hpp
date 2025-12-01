@@ -198,6 +198,8 @@ public: // interface
       solver_last_smooth(),
       solver_coarse_solve(),
       solver_domain_solve(),
+      solver_root_solve(),
+      solver_block_solve(),
       solver_weight(),
       solver_restart_cycle(),
       // EnzoSolver<Krylov>
@@ -473,6 +475,12 @@ public: // attributes
   /// Solver index for domain decomposition (dd) domain solver
 
   std::vector<int>           solver_domain_solve;
+
+  /// Solver index for root solver (enzo solver)
+  std::vector<int>           solver_root_solve;
+
+ /// Solver index for block solver (enzo solver)
+  std::vector<int>           solver_block_solve;
 
   /// Weighting factor for smoother
 

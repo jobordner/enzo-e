@@ -1615,5 +1615,18 @@ int Config::read_schedule_(Parameters * p, const std::string group)
 
   return index_schedule++;
 }
+
+//----------------------------------------------------------------------
+
+void Config::set_solver_index_(Parameters * p,
+                               int index_solver,
+                               const std::string & solver_name,
+                               std::vector<int> & solver_vec)
+{
+  std::string solver;
+  solver = p->value_string (solver_name,"unknown");
+  bool l_found = solver_index.find(solver) != solver_index.end();
+  solver_vec[index_solver] = (l_found) ? solver_index[solver] : -1;;
+}
 //======================================================================
 

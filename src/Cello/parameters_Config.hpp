@@ -580,6 +580,12 @@ protected: // functions
   int read_schedule_( Parameters * ,
 		      const std::string group   );
 
+
+  void set_solver_index_ (Parameters * p,
+                          int index_solver,
+                          const std::string & name,
+                          std::vector<int> & solver_vec);
+
 };
 
 extern Config g_config;

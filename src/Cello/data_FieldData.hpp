@@ -46,12 +46,12 @@ public: // interface
   /// Return dimensions of the given field in the block, without assuming that
   /// it is cell-centered. This always includes ghost zones (regardless of
   /// whether they've been allocated).
-  void dimensions(const FieldDescr *, int id_field,
-		  int * mx, int * my = 0, int * mz = 0) const throw();
+  int dimensions(const FieldDescr *, int id_field,
+                 int * mx = 0, int * my = 0, int * mz = 0) const throw();
 
   /// Return size of fields on the data, assuming centered (this only includes
   /// the active zone)
-  void size(int * nx, int * ny = 0, int * nz = 0) const throw();
+  int size(int * nx = 0, int * ny = 0, int * nz = 0) const throw();
 
   /// Return array for the corresponding field, which may or may not
   /// contain ghosts depending on if they're allocated

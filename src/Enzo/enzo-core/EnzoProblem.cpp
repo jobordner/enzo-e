@@ -418,7 +418,9 @@ Solver * EnzoProblem::create_solver_
        index_prolong,
        index_restrict,
        enzo_config->solver_min_level[index_solver],
-       enzo_config->solver_max_level[index_solver]);
+       enzo_config->solver_max_level[index_solver],
+       enzo_config->solver_root_solve[index_solver],
+       enzo_config->solver_block_solve[index_solver]);
 
   } else if (solver_type == "bicgstab") {
 

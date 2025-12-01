@@ -256,7 +256,9 @@ module enzo {
 
     // EnzoSolverEnzo
 
-    entry void r_solver_enzo_barrier(CkReductionMsg *msg);
+    entry void p_solver_enzo_root_done();
+    entry void p_solver_enzo_restrict_recv(FieldMsg * msg);
+    //    entry void p_solver_enzo_solve_block();
 
     // EnzoSolverJacobi
 

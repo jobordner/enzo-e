@@ -51,7 +51,8 @@ public: // interface
       solve_type_(solve_leaf),
       index_prolong_(0),
       index_restrict_(0),
-      ir_post_(-1)
+      ir_post_(-1),
+      include_ghosts_(false)
   { }
 
   /// Destructor
@@ -79,6 +80,7 @@ public: // interface
     p | index_prolong_;
     p | index_restrict_;
     p | ir_post_;
+    p | include_ghosts_;
   }
 
   Refresh * refresh(size_t index=0) ;
@@ -208,6 +210,12 @@ protected: // functions
 
   bool reuse_solution_ (int cycle) const throw();
 
+  void set_include_ghosts (bool value=true)
+  {
+    if (solve_type_ == solve_block) {
+      include_ghosts_ = value;
+    }
+  }
 protected: // attributes
 
   /// Name of the solver
@@ -215,10 +223,10 @@ protected: // attributes
 
   /// Field id for solution
   int ix_;
-  
+
   /// Field id for right-hand side
   int ib_;
-  
+
   /// How often to write output
   int monitor_iter_;
 
@@ -233,7 +241,7 @@ protected: // attributes
 
   /// Minimum mesh level
   int min_level_;
-  
+
   /// Maximum mesh level
   int max_level_;
 
@@ -248,9 +256,12 @@ protected: // attributes
 
   /// Restriction index
   int index_restrict_;
-  
+
   /// New Refresh id for after the solver
   int ir_post_;
+
+  /// Include ghosts in block-local domain solves
+  bool include_ghosts_;
 };
 
 #endif /* COMPUTE_SOLVER_HPP */

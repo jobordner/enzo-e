@@ -734,6 +734,10 @@ void EnzoSolverCg::local_cg_(EnzoBlock * enzo_block)
   enzo_float * Y = (enzo_float*) field.values(iy_);
   enzo_float * Z = (enzo_float*) field.values(iz_);
 
+  int ng = field.ghost_depth(ix_);
+
+  A_->residual(ir_,ib_,ix_,enzo_block,include_ghosts_?1:ng);
+
   if ( ! is_finest_(enzo_block)) {
 
     end(enzo_block,return_unknown);
@@ -1031,7 +1035,7 @@ void EnzoSolverCg::monitor_output_(EnzoBlock * enzo_block)
   const bool l_monitor    = (monitor_iter_ && (iter_ % monitor_iter_) == 0 );
   const bool l_converged  = (rr_ / rr0_ < res_tol_);
 
-  const bool l_output = l_first_iter || l_max_iter || l_monitor || l_converged;
+  const bool l_output = l_monitor && (l_first_iter || l_max_iter || l_converged);
 
   if (l_output) {
     Solver::monitor_output_ (enzo_block,iter_,rr0_,rr_min_,rr_,rr_max_);
