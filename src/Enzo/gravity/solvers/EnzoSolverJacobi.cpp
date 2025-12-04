@@ -110,6 +110,7 @@ EnzoSolverJacobi::EnzoSolverJacobi
   CkPrintf ("DEBUG_NEW_REFRESH %s:%d id_solver=%d\n",__FILE__,__LINE__,index());
 #endif
   refresh_smooth->set_callback(CkIndex_EnzoBlock::p_solver_jacobi_continue());
+  refresh_smooth->set_final_sync(true);
 
 }
 

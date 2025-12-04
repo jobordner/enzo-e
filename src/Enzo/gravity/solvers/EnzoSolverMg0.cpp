@@ -107,7 +107,7 @@
 
 // #define DEBUG_SOLVER_CONTROL
 
-#define CYCLE 129
+#define CYCLE 90
 #define AFTER_CYCLE(BLOCK,CYCLE) (BLOCK->cycle() >= CYCLE)
 
 #ifdef DEBUG_SOLVER_CONTROL

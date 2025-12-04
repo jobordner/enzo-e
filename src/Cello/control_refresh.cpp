@@ -230,12 +230,45 @@ void Block::refresh_exit (Refresh & refresh)
 {
   CHECK_ID(refresh.id());
   update_boundary_();
-  control_sync (refresh.callback(),
-  		refresh.sync_type(),
-  		refresh.sync_exit(),
-  		refresh.min_face_rank(),
-  		refresh.neighbor_type(),
-  		refresh.root_level());
+
+  if (refresh.final_sync()) {
+
+    control_sync (refresh.callback(),
+                  refresh.sync_type(),
+                  refresh.sync_exit(),
+                  refresh.min_face_rank(),
+                  refresh.neighbor_type(),
+                  refresh.root_level());
+
+  } else {
+
+    // Invoke callback depending on sync_type
+    if (refresh.sync_type() == sync_quiescence) {
+
+      if (index_.is_root())
+        CkStartQD(CkCallback (refresh.callback(),proxy_main));
+
+    } else if (refresh.sync_type() == sync_neighbor) {
+
+      CkCallback(refresh.callback(),
+                 CkArrayIndexIndex(index_),thisProxy).send(nullptr);
+
+    } else if (refresh.sync_type() == sync_face) {
+
+      CkCallback(refresh.callback(),
+                 CkArrayIndexIndex(index_),thisProxy).send(nullptr);
+
+    } else if (refresh.sync_type() == sync_barrier) {
+
+      contribute(CkCallback (refresh.callback(),thisProxy));
+
+    } else {
+      ERROR1 ("Block::refresh_exit()",
+              "Unknown sync type %d",
+              refresh.sync_type());
+    }
+
+  }
 }
 
 //----------------------------------------------------------------------
@@ -320,7 +353,6 @@ int Block::refresh_load_field_faces_ (Refresh & refresh)
 	++count;
 
       }
-
     }
   }
   return count;

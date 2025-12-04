@@ -73,22 +73,26 @@ public:  // virtual methods
 
 public: // methods
 
-  /// synchronize entering solver for each level
-  void begin_solve(EnzoBlock * enzo_block) throw();
-
   /// Restrict b to coarser Block
-  void do_restrict(EnzoBlock * enzo_block) throw();
   void restrict_send(EnzoBlock * enzo_block) throw();
   void restrict_recv(EnzoBlock * enzo_block,
 		     FieldMsg * field_message) throw();
 
-  /// Call coarse solver--must be called by all blocks
-  void call_coarse_solver(EnzoBlock * enzo_block) throw();
-
-  //----------------------------------------------------------------------
-  
   /// Root-level solver
-  void call_root_solver(EnzoBlock * enzo_block) throw();
+  void root_solve_begin(EnzoBlock * enzo_block) throw();
+  void root_solve_end(EnzoBlock * enzo_block) throw();
+
+  /// Prolong x to finer block
+  void prolong_send(EnzoBlock * enzo_block) throw();
+  void prolong_recv(EnzoBlock * enzo_block,
+		    FieldMsg * field_message) throw();
+
+  /// Refresh level
+  void refresh_begin(EnzoBlock * enzo_block) throw();
+  void refresh_end(EnzoBlock * enzo_block) throw();
+
+  /// Block solve
+  void block_solve(EnzoBlock * enzo_block) throw();
 
   /// End of solver
   void end(Block* block) throw();
@@ -151,8 +155,11 @@ protected: // attributes
   /// Sync ids
   int i_sync_restrict_;
   int i_sync_prolong_;
+  /// Message ids
   int i_msg_restrict_[8];
   int i_msg_prolong_;
+  /// Refresh ids
+  int ir_level_;
 
 };
 

@@ -1442,21 +1442,19 @@ void Config::read_solver_ (Parameters * p) throw()
     solver_index[name] = index_solver;
 
     solver_type[index_solver] = p->value_string (full_name + ":type","unknown");
-    
-    solver_type[index_solver] = p->value_string (full_name + ":type","unknown");
 
     solver_solve_type[index_solver] = p->value_string
       (full_name + ":solve_type","leaf");
 
     solver_iter_max[index_solver] = p->value_integer
       (full_name + ":iter_max",1000);
-    
+
     solver_res_tol[index_solver] = p->value_float
       (full_name + ":res_tol",1e-6);
 
     solver_diag_precon[index_solver] = p->value_logical
       (full_name + ":diag_precon",false);
-    
+
     solver_monitor_iter[index_solver] = p->value_integer
       (full_name + ":monitor_iter",0);
 
