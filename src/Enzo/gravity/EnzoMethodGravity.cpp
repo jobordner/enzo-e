@@ -182,8 +182,12 @@ void EnzoMethodGravity::compute(Block * block) throw()
   
   Solver * solver = enzo::problem()->solver(index_solver_);
 
-  // May exit before solve is done...
-  solver->set_callback (CkIndex_EnzoBlock::p_method_gravity_continue());
+  // skip refresh if solution already has up-to-date ghost zones
+
+  solver->set_callback
+    (solver->is_refreshed() ?
+     CkIndex_EnzoBlock::p_method_gravity_end() :
+     CkIndex_EnzoBlock::p_method_gravity_continue());
 
   const int ix = field.field_id ("potential");
   std::shared_ptr<Matrix> A (std::make_shared<EnzoMatrixLaplace>(order_));

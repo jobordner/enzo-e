@@ -462,8 +462,8 @@ public: // interface
   int final_sync() { return final_sync_; }
 
   /// Set whether to bypass final sync
-  void set_final_sync (int bypass = true)
-  { final_sync_ = bypass; }
+  void set_final_sync (int sync = true)
+  { final_sync_ = sync; }
   //--------------------------------------------------
 
   /// Return the number of bytes required to serialize the data object

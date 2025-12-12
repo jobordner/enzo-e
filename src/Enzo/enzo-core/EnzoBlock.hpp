@@ -254,9 +254,10 @@ public: /// entry methods
   void p_solver_enzo_restrict_recv(FieldMsg * msg);
   void p_solver_enzo_prolong_recv(FieldMsg * msg);
   void p_solver_enzo_root_solve_end();
-  void p_solver_enzo_refresh_end();
+  void p_solver_enzo_refresh_level_end();
   void r_solver_enzo_wait_at_end(CkReductionMsg *msg);
   void p_solver_enzo_block_solve_end();
+  void p_solver_enzo_last_smooth_end();
 
   // EnzoSolverJacobi
 

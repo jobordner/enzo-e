@@ -68,8 +68,8 @@ enum enzo_sync_id {
   enzo_sync_id_solver_jacobi_2,
   enzo_sync_id_solver_jacobi_3,
   enzo_sync_id_solver_enzo_root,
-  enzo_sync_id_solver_enzo_block
-
+  enzo_sync_id_solver_enzo_block,
+  enzo_sync_id_solver_enzo_smooth
 };
 
 //----------------------------------------------------------------------

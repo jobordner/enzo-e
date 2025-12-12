@@ -8,38 +8,6 @@
 #include "Enzo/enzo.hpp"
 #include "Enzo/gravity/gravity.hpp"
 
-// #define COPY_FIELD
-
-//----------------------------------------------------------------------
-
-#ifdef COPY_FIELD
-#  undef COPY_FIELD
-#   define COPY_FIELD(BLOCK,MSG,ID,COPY)                        \
-  {                                                             \
-  Field field = BLOCK->data()->field();                         \
-  enzo_float* X      = (enzo_float*) field.values(ID);          \
-  enzo_float* X_bcg  = (enzo_float*) field.values(COPY);        \
-  const int m = mx_*my_*mz_;                                    \
-  if (X_bcg) for (int i=0; i<m; i++)  X_bcg[i] = X[i];          \
-  long double sum=0.0,min=1e100,max=-1e100;                     \
-  int count = 0;                                                \
-  for (int iz=gz_; iz<mz_-gz_; iz++) {                          \
-    for (int iy=gy_; iy<my_-gy_; iy++) {                        \
-      for (int ix=gx_; ix<mx_-gx_; ix++) {                      \
-        int i=ix+mx_*(iy+my_*iz);                               \
-        sum += X[i];                                            \
-        min = std::min(min,(long double)X[i]);                  \
-        max = std::max(max,(long double)X[i]);                  \
-        count++;                                                \
-      }                                                         \
-    }                                                           \
-  }                                                             \
-  CkPrintf ("DEBUG_COPY_FIELD %s %s [%Lg %Lg %Lg]\n",           \
-    BLOCK->name().c_str(),COPY,min,sum/count,max);              \
-  }
-#else
-#   define COPY_FIELD(BLOCK,MSG,ID,COPY) /* ... */
-#endif
 //----------------------------------------------------------------------
 
 EnzoSolverCg::EnzoSolverCg
@@ -90,11 +58,11 @@ EnzoSolverCg::EnzoSolverCg
   iy_ = field_descr->insert_temporary();
   iz_ = field_descr->insert_temporary();
 
-  /// Initialize default Refresh
-
   field_descr->ghost_depth    (ib_,&gx_,&gy_,&gz_);
 
   if (! local_) {
+
+    /// Initialize default Refresh
 
     Refresh * refresh = cello::refresh(ir_post_);
     cello::simulation()->refresh_set_name(ir_post_,name);
@@ -211,7 +179,7 @@ void EnzoSolverCg::compute_ (EnzoBlock * enzo_block) throw()
 {
   // If local, call serial CG solver
   if (local_) {
-    local_cg_(enzo_block);
+    local_solve_(enzo_block);
     return;
   }
 
@@ -227,8 +195,6 @@ void EnzoSolverCg::compute_ (EnzoBlock * enzo_block) throw()
   enzo_float * R = (enzo_float*) field.values(ir_);
   enzo_float * D = (enzo_float*) field.values(id_);
   enzo_float * Z = (enzo_float*) field.values(iz_);
-
-  COPY_FIELD(enzo_block,"compute_",ib_,"B0_bcg");
 
   if (is_finest_(enzo_block)) {
 
@@ -723,7 +689,7 @@ void EnzoSolverCg::loop_6 (EnzoBlock * enzo_block) throw ()
 
 //----------------------------------------------------------------------
 
-void EnzoSolverCg::local_cg_(EnzoBlock * enzo_block)
+void EnzoSolverCg::local_solve_(EnzoBlock * enzo_block)
 {
   Field field = enzo_block->data()->field();
 
@@ -736,7 +702,9 @@ void EnzoSolverCg::local_cg_(EnzoBlock * enzo_block)
 
   int ng = field.ghost_depth(ix_);
 
-  A_->residual(ir_,ib_,ix_,enzo_block,include_ghosts_?1:ng);
+  const int gx = include_ghosts_ ? std::min(1,gx_) : gx_;
+  const int gy = include_ghosts_ ? std::min(1,gy_) : gy_;
+  const int gz = include_ghosts_ ? std::min(1,gz_) : gz_;
 
   if ( ! is_finest_(enzo_block)) {
 
@@ -745,52 +713,35 @@ void EnzoSolverCg::local_cg_(EnzoBlock * enzo_block)
     return;
   }
 
+  A_->residual(ir_,ib_,ix_,enzo_block,gx);
+
   iter_ = 0;
 
-  for (int i=0; i<mx_*my_*mz_; i++) {
-    X[i] = 0.0;
-    R[i] = B[i];
-    D[i] = R[i];
-    Z[i] = R[i];
+  for (int iz=gz; iz<mz_-gz; iz++) {
+    for (int iy=gy; iy<my_-gy; iy++) {
+      for (int ix=gx; ix<mx_-gx; ix++) {
+        const int i = ix + mx_*(iy + my_*iz);
+        //        X[i] = 0.0;
+        R[i] = B[i];
+        D[i] = R[i];
+        Z[i] = R[i];
+      }
+    }
   }
-  bs_ = 0.0;
-  bc_ = 0.0;
 
+  // Compute shift and update B if needed
   refresh_local_(ib_,enzo_block);
   refresh_local_(ix_,enzo_block);
   refresh_local_(ir_,enzo_block);
   refresh_local_(id_,enzo_block);
   refresh_local_(iz_,enzo_block);
 
-  // Compute shift and update B if needed
-  if (iter_ == 0 && A_->is_singular()) {
-    for (int iz=gz_; iz<mz_-gz_; iz++) {
-      for (int iy=gy_; iy<my_-gy_; iy++) {
-	for (int ix=gx_; ix<mx_-gx_; ix++) {
-	  int i = ix + mx_*(iy + my_*iz);
-	  bs_ += B[i];
-	}
-      }
-    }
-    bc_ = nx_*ny_*nz_;
-    long double shift = -bs_ / bc_;
-    for (int i=0; i<mx_*my_*mz_; i++) {
-      R[i] += shift;
-      B[i] += shift;
-      D[i] = R[i];
-      Z[i] = R[i];
-    }
-    cello::check(rr_,"CG::rr_",__FILE__,__LINE__);
-    cello::check(bs_,"CG::bs_",__FILE__,__LINE__);
-    cello::check(bc_,"CG::bc_",__FILE__,__LINE__);
+  int m = (mx_-2*gx)*(my_-2*gy)*(mz_-2*gz);
 
-  }
-
-  // compute residual
   rr_ = 0.0;
-  for (int iz=gz_; iz<mz_-gz_; iz++) {
-    for (int iy=gy_; iy<my_-gy_; iy++) {
-      for (int ix=gx_; ix<mx_-gx_; ix++) {
+  for (int iz=gz; iz<mz_-gz; iz++) {
+    for (int iy=gy; iy<my_-gy; iy++) {
+      for (int ix=gx; ix<mx_-gx; ix++) {
 	int i = ix + mx_*(iy + my_*iz);
 	rr_ += R[i]*R[i];
       }
@@ -809,14 +760,14 @@ void EnzoSolverCg::local_cg_(EnzoBlock * enzo_block)
 
     refresh_local_(id_,enzo_block);
 
-    A_->matvec(iy_,id_,enzo_block);
+    A_->matvec(iy_,id_,enzo_block,gx);
 
     rr_ = 0.0;
     rz_ = 0.0;
     dy_ = 0.0;
-    for (int iz=gz_; iz<mz_-gz_; iz++) {
-      for (int iy=gy_; iy<my_-gy_; iy++) {
-	for (int ix=gx_; ix<mx_-gx_; ix++) {
+    for (int iz=gz; iz<mz_-gz; iz++) {
+      for (int iy=gy; iy<my_-gy; iy++) {
+	for (int ix=gx; ix<mx_-gx; ix++) {
 	  int i = ix + mx_*(iy + my_*iz);
 	  rr_ += R[i]*R[i];
 	  rz_ += R[i]*Z[i];
@@ -833,18 +784,23 @@ void EnzoSolverCg::local_cg_(EnzoBlock * enzo_block)
 
     cello::check(a,"CG::a",__FILE__,__LINE__);
 
-    for (int i=0; i<mx_*my_*mz_; i++) {
-      X[i] += a * D[i];
-      R[i] -= a * Y[i];
-      Z[i] = R[i];
+    for (int iz=gz; iz<mz_-gz; iz++) {
+      for (int iy=gy; iy<my_-gy; iy++) {
+	for (int ix=gx; ix<mx_-gx; ix++) {
+	  int i = ix + mx_*(iy + my_*iz);
+          X[i] += a * D[i];
+          R[i] -= a * Y[i];
+          Z[i] = R[i];
+        }
+      }
     }
 
     rz2_ = 0.0;
     rs_ = 0.0;
     xs_ = 0.0;
-    for (int iz=gz_; iz<mz_-gz_; iz++) {
-      for (int iy=gy_; iy<my_-gy_; iy++) {
-	for (int ix=gx_; ix<mx_-gx_; ix++) {
+    for (int iz=gz; iz<mz_-gz; iz++) {
+      for (int iy=gy; iy<my_-gy; iy++) {
+	for (int ix=gx; ix<mx_-gx; ix++) {
 	  int i = ix + mx_*(iy + my_*iz);
 	  rz2_ += R[i]*Z[i];
 	  rs_  += R[i];
@@ -857,20 +813,29 @@ void EnzoSolverCg::local_cg_(EnzoBlock * enzo_block)
     cello::check(rs_,"CG::rs_",__FILE__,__LINE__);
     cello::check(xs_,"CG::xs_",__FILE__,__LINE__);
 
-    if (A_->is_singular()) {
-      for (int i=0; i<mx_*my_*mz_; i++) {
-	X[i] -= enzo_float(xs_/bc_);
-	R[i] -= enzo_float(rs_/bc_);
+    if (A_->is_singular() && ! include_ghosts_) {
+      for (int iz=gz; iz<mz_-gz; iz++) {
+        for (int iy=gy; iy<my_-gy; iy++) {
+          for (int ix=gx; ix<mx_-gx; ix++) {
+            int i = ix + mx_*(iy + my_*iz);
+            X[i] -= enzo_float(xs_/m);
+            R[i] -= enzo_float(rs_/m);
+          }
+        }
       }
     }
-
 
     enzo_float b = rz2_ / rz_;
 
     cello::check(b,"CG::b",__FILE__,__LINE__);
 
-    for (int i=0; i<mx_*my_*mz_; i++) {
-      D[i] = Z[i] + b * D[i];
+    for (int iz=gz; iz<mz_-gz; iz++) {
+      for (int iy=gy; iy<my_-gy; iy++) {
+        for (int ix=gx; ix<mx_-gx; ix++) {
+          int i = ix + mx_*(iy + my_*iz);
+          D[i] = Z[i] + b * D[i];
+        }
+      }
     }
 
     ++iter_;
@@ -890,7 +855,6 @@ void EnzoSolverCg::local_cg_(EnzoBlock * enzo_block)
     end(enzo_block,return_error);
 
   }
-
 }
 
 //----------------------------------------------------------------------
@@ -900,9 +864,11 @@ void EnzoSolverCg::refresh_local_(int ix,EnzoBlock * enzo_block)
 
   enzo_float * X = (enzo_float*) enzo_block->data()->field().values(ix);
 
-  // ASSUMES SINGULAR MATRIX IMPLIES PERIODIC DOMAIN.
+  // If singular matrix and full-domain solve (e.g. coarsest grid block in
+  // multigrid solver for periodic problem) then shift values to null
+  // space and set ghost zones
 
-  if (A_->is_singular()) {
+  if (A_->is_singular() && ! include_ghosts_) {
 
     // shift first
     shift_local_(ix, enzo_block);
@@ -972,13 +938,6 @@ void EnzoSolverCg::refresh_local_(int ix,EnzoBlock * enzo_block)
 	}
       }
     }
-
-
-  } else {
-
-    ERROR("EnzoSolverCg::refresh_local_()",
-	  "Only periodic boundary conditions available");
-
   }
 
 }
@@ -987,7 +946,7 @@ void EnzoSolverCg::refresh_local_(int ix,EnzoBlock * enzo_block)
 
 void EnzoSolverCg::shift_local_(int i_x,EnzoBlock * enzo_block)
 {
-  if (A_->is_singular()) {
+  if (A_->is_singular() && ! include_ghosts_) {
     enzo_float * X = (enzo_float*) enzo_block->data()->field().values(i_x);
     long double xs = 0.0;
     long double xc = 0.0;
@@ -1031,14 +990,15 @@ void EnzoSolverCg::monitor_output_(EnzoBlock * enzo_block)
 {
   //  const bool l_is_root = enzo_block->index().is_root();
   const bool l_first_iter = (iter_ == 0);
-  const bool l_max_iter   = (iter_ >= iter_max_);
+  const bool l_diverged   = (iter_ >= iter_max_);
   const bool l_monitor    = (monitor_iter_ && (iter_ % monitor_iter_) == 0 );
   const bool l_converged  = (rr_ / rr0_ < res_tol_);
 
-  const bool l_output = l_monitor && (l_first_iter || l_max_iter || l_converged);
+  const bool l_output = l_monitor && (l_first_iter || l_diverged || l_converged);
 
   if (l_output) {
-    Solver::monitor_output_ (enzo_block,iter_,rr0_,rr_min_,rr_,rr_max_);
+    const bool is_final = l_converged || l_diverged;
+    Solver::monitor_output_ (enzo_block,iter_,rr0_,rr_min_,rr_,rr_max_,is_final);
   }
 
 }

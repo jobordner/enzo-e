@@ -2,7 +2,7 @@
 
 /// @file     enzo_EnzoSolverEnzo.hpp
 /// @author   James Bordner (jobordner@ucsd.edu) 
-/// @date     2018-10-01
+/// @date     2025-11-24
 /// @brief    [\ref Enzo] Declaration of EnzoSolverEnzo
 ///
 /// Domain decomposition solver
@@ -35,7 +35,8 @@ public: // interface
    int min_level,
    int max_level,
    int index_solve_root,
-   int index_solve_block) ;
+   int index_solve_block,
+   int index_solve_smooth) ;
 
   EnzoSolverEnzo() {};
 
@@ -47,7 +48,8 @@ public: // interface
     :  Solver(m),
        A_(),
        index_solve_root_(-1),
-       index_solve_block_(-1)
+       index_solve_block_(-1),
+       index_solve_smooth_(-1)
   {  }
 
   /// CHARM++ Pack / Unpack function
@@ -61,6 +63,7 @@ public: // interface
     Solver::pup(p);
     p | index_solve_root_;
     p | index_solve_block_;
+    p | index_solve_smooth_;
   }
 
 public:  // virtual methods
@@ -70,6 +73,10 @@ public:  // virtual methods
 
   /// Type of this solver
   virtual std::string type() const { return "enzo"; }
+
+  /// Whether the solution has refreshed ghost zones
+  virtual bool is_refreshed () const
+  { return true; }
 
 public: // methods
 
@@ -88,11 +95,17 @@ public: // methods
 		    FieldMsg * field_message) throw();
 
   /// Refresh level
-  void refresh_begin(EnzoBlock * enzo_block) throw();
-  void refresh_end(EnzoBlock * enzo_block) throw();
+  void refresh_level_begin(EnzoBlock * enzo_block, int level) throw();
+  void refresh_level_end(EnzoBlock * enzo_block) throw();
 
   /// Block solve
   void block_solve(EnzoBlock * enzo_block) throw();
+
+  /// Final smoothing
+  void last_smooth(EnzoBlock * enzo_block) throw();
+
+  /// Call barrier before exiting
+  void wait_at_end(EnzoBlock * enzo_block) throw();
 
   /// End of solver
   void end(Block* block) throw();
@@ -137,6 +150,13 @@ protected: // methods
     return (FieldMsg **)scalar_data->value(scalar_descr,i_msg);
   }
 
+  /// Access the saved refresh level scalar
+  int * plevel_refresh_(Block * block)
+  {
+    ScalarData<int> * scalar_data = block->data()->scalar_data_int();
+    ScalarDescr *      scalar_descr = cello::scalar_descr_int();
+    return scalar_data->value(scalar_descr,i_level_refresh_);
+  }
   FieldMsg * pack_field_
   (EnzoBlock *, int index_field, int refresh_type, int ic3[3]);
 
@@ -151,6 +171,9 @@ protected: // attributes
   /// Indices for root solver and (extended) block solver
   int index_solve_root_;
   int index_solve_block_;
+  int index_solve_smooth_;
+
+  /// Scalar ID's
 
   /// Sync ids
   int i_sync_restrict_;
@@ -159,7 +182,9 @@ protected: // attributes
   int i_msg_restrict_[8];
   int i_msg_prolong_;
   /// Refresh ids
-  int ir_level_;
+  std::vector<int> ir_level_list_;
+  /// Active refresh level 
+  int i_level_refresh_;
 
 };
 
