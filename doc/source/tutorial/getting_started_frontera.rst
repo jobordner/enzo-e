@@ -5,26 +5,29 @@ Getting Started: Frontera
 
 ..  code-block:: bash
 
-  # Assuming the default Intel stack is loaded only boost and hdf5 modules are required
-  module load boost hdf5
+  # Assuming the default Intel stack is loaded, only the hdf5 module is required
+  module load hdf5
 
   # Build Grackle (optional)
-  # Following https://grackle.readthedocs.io/en/latest/Installation.html
-  mkdir -p ~/src
-  cd ~/src
-  git clone https://github.com/grackle-project/grackle
-  cd grackle
-  git submodule update --init
-  ./configure
-  # create build directory as install target later
-  mkdir build-icc
-  cd src/clib
-  # Adjust config to  set install path, and optimization options
-  # TACC Stampede config works just fine for TACC Frontera
-  sed -i 's#$(HOME)/local#$(PWD)/../../build-icc#;s/-xCORE-AVX2/-xCORE-AVX512/' Make.mach.tacc-stampede-intel
-  make machine-tacc-stampede-intel
-  make
-  make install
+  ## These instructions are now outdated
+  ## -> Enzo-E will now build Grackle for you. Or, it will want to install it
+  ##    separately, you must use Grackle's CMake build-system
+  ## Following https://grackle.readthedocs.io/en/latest/Installation.html
+  #mkdir -p ~/src
+  #cd ~/src
+  #git clone https://github.com/grackle-project/grackle
+  #cd grackle
+  #git submodule update --init
+  #./configure
+  ## create build directory as install target later
+  #mkdir build-icc
+  #cd src/clib
+  ## Adjust config to  set install path, and optimization options
+  ## TACC Stampede config works just fine for TACC Frontera
+  #sed -i 's#$(HOME)/local#$(PWD)/../../build-icc#;s/-xCORE-AVX2/-xCORE-AVX512/' Make.mach.tacc-stampede-intel
+  #make machine-tacc-stampede-intel
+  #make
+  #make install
 
   # Build Charm++
   cd ~/src
