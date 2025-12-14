@@ -55,7 +55,6 @@
 
 void Block::adapt_enter_()
 {
-  CkPrintf ("DEBUG_NAME8 %s = %s\n",name().c_str(),name8().c_str());
   TRACE_ADAPT("adapt_enter_",this);
   if ( do_adapt_()) {
 
