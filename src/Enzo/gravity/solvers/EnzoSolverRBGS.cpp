@@ -1,9 +1,9 @@
 // See LICENSE_CELLO file for license and copyright information
 
-/// @file     enzo_EnzoSolverJacobi.cpp
+/// @file     enzo_EnzoSolverRBGS.cpp
 /// @author   James Bordner (jobordner@ucsd.edu)
-/// @date     2014-10-27 22:37:41
-/// @brief    Implements the EnzoSolverJacobi class
+/// @date     2025-12-12
+/// @brief    Implements the EnzoSolverRBGS class
 
 #include "Cello/cello.hpp"
 #include "Enzo/enzo.hpp"
@@ -11,7 +11,7 @@
 
 //----------------------------------------------------------------------
 
-EnzoSolverJacobi::EnzoSolverJacobi
+EnzoSolverRBGS::EnzoSolverRBGS
 ( std::string name,
   std::string field_x,
   std::string field_b,
@@ -61,7 +61,7 @@ EnzoSolverJacobi::EnzoSolverJacobi
   
     refresh_smooth->add_field (ix_);
     refresh_smooth->set_min_face_rank(cello::rank() - 1);
-    refresh_smooth->set_callback(CkIndex_EnzoBlock::p_solver_jacobi_continue());
+    refresh_smooth->set_callback(CkIndex_EnzoBlock::p_solver_rbgs_continue());
     refresh_smooth->set_final_sync(true);
   }
 
@@ -69,7 +69,7 @@ EnzoSolverJacobi::EnzoSolverJacobi
 
 //----------------------------------------------------------------------
 
-void EnzoSolverJacobi::apply
+void EnzoSolverRBGS::apply
 ( std::shared_ptr<Matrix> A, Block * block) throw()
 {
   begin_(block);
@@ -99,14 +99,14 @@ void EnzoSolverJacobi::apply
 
 //----------------------------------------------------------------------
 
-void EnzoBlock::p_solver_jacobi_continue()
+void EnzoBlock::p_solver_rbgs_continue()
 {
  
   performance_start_(perf_compute,__FILE__,__LINE__);
 
-  EnzoSolverJacobi * solver = nullptr;  
+  EnzoSolverRBGS * solver = nullptr;  
 
-  solver = static_cast<EnzoSolverJacobi *> (this->solver());
+  solver = static_cast<EnzoSolverRBGS *> (this->solver());
 
   solver->compute(this);
 
@@ -115,7 +115,7 @@ void EnzoBlock::p_solver_jacobi_continue()
 
 //----------------------------------------------------------------------
 
-void EnzoSolverJacobi::compute(Block * block)
+void EnzoSolverRBGS::compute(Block * block)
 {
   if (*piter_(block) < n_) {
 
@@ -132,7 +132,7 @@ void EnzoSolverJacobi::compute(Block * block)
 
 //----------------------------------------------------------------------
 
-void EnzoSolverJacobi::apply_(Block * block)
+void EnzoSolverRBGS::apply_(Block * block)
 {
   Field field = block->data()->field();
 
@@ -188,7 +188,7 @@ void EnzoSolverJacobi::apply_(Block * block)
 
 //----------------------------------------------------------------------
 
-void EnzoSolverJacobi::do_refresh_(Block * block)
+void EnzoSolverRBGS::do_refresh_(Block * block)
 {
   Refresh * refresh = cello::refresh(ir_smooth_);
 
@@ -197,12 +197,12 @@ void EnzoSolverJacobi::do_refresh_(Block * block)
   refresh->set_min_face_rank(cello::rank() - 1);
 
   block->refresh_start
-    (ir_smooth_, CkIndex_EnzoBlock::p_solver_jacobi_continue());
+    (ir_smooth_, CkIndex_EnzoBlock::p_solver_rbgs_continue());
 }
 
 //----------------------------------------------------------------------
 
-void EnzoSolverJacobi::local_solve_(Block * block)
+void EnzoSolverRBGS::local_solve_(Block * block)
 {
   Field field = block->data()->field();
 
@@ -223,10 +223,28 @@ void EnzoSolverJacobi::local_solve_(Block * block)
   int mx,my,mz;
   field.dimensions(ix_,&mx,&my,&mz);
   if (w_ == 1.0) {
+    // red (even)
     for (int k=0; k<n_; k++) {
       for (int iz=gz; iz<mz-gz; iz++) {
+        const int kz = iz-gz;
         for (int iy=gy; iy<my-gy; iy++) {
-          for (int ix=gx; ix<mx-gx; ix++) {
+          const int ky = iy-gy;
+          const int e = (ky + kz)%2;
+          for (int ix=gx+e; ix<mx-gx; ix+=2) {
+            int i = ix + mx*(iy + my*iz);
+            X[i] += R[i] / D[i];
+          }
+        }
+      }
+    }
+    // black (odd)
+    for (int k=0; k<n_; k++) {
+      for (int iz=gz; iz<mz-gz; iz++) {
+        const int kz = iz-gz;
+        for (int iy=gy; iy<my-gy; iy++) {
+          const int ky = iy-gy;
+          const int o = 1 - (ky + kz)%2;
+          for (int ix=gx+o; ix<mx-gx; ix+=2) {
             int i = ix + mx*(iy + my*iz);
             X[i] += R[i] / D[i];
           }
@@ -234,10 +252,28 @@ void EnzoSolverJacobi::local_solve_(Block * block)
       }
     }
   } else {
+    // red (even)
     for (int k=0; k<n_; k++) {
       for (int iz=gz; iz<mz-gz; iz++) {
+        const int kz = iz-gz;
         for (int iy=gy; iy<my-gy; iy++) {
-          for (int ix=gx; ix<mx-gx; ix++) {
+          const int ky = iy-gy;
+          const int e = (ky + kz)%2;
+          for (int ix=gx+e; ix<mx-gx; ix+=2) {
+            int i = ix + mx*(iy + my*iz);
+            X[i] = w_*(R[i] / D[i]) + (1.0-w_)*X[i];
+          }
+        }
+      }
+    }
+    // black (odd)
+    for (int k=0; k<n_; k++) {
+      for (int iz=gz; iz<mz-gz; iz++) {
+        const int kz = iz-gz;
+        for (int iy=gy; iy<my-gy; iy++) {
+          const int ky = iy-gy;
+          const int o = 1 - (ky + ky)%2;
+          for (int ix=gx+o; ix<mx-gx; ix+=2) {
             int i = ix + mx*(iy + my*iz);
             X[i] = w_*(R[i] / D[i]) + (1.0-w_)*X[i];
           }
@@ -250,7 +286,7 @@ void EnzoSolverJacobi::local_solve_(Block * block)
 
 //----------------------------------------------------------------------
 
-void EnzoSolverJacobi::end_(Block * block)
+void EnzoSolverRBGS::end_(Block * block)
 {
   Field field = block->data()->field();
 

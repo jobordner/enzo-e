@@ -246,15 +246,15 @@ void EnzoMatrixLaplace::diagonal_ (enzo_float * X, int g0) const throw()
   const int rank = cello::rank();
 
   if (order_ == 2) {
-    
+
     g0 = std::max(1,g0);
 
     // Second-order 7-point discretization
-    
+
     double dx = (rank >= 1) ? 1.0/(hx_*hx_) : 0.0;
     double dy = (rank >= 2) ? 1.0/(hy_*hy_) : 0.0;
     double dz = (rank >= 3) ? 1.0/(hz_*hz_) : 0.0;
-    
+
     if (rank == 1) {
       for (int ix=g0; ix<mx_-g0; ix++) {
 	int i = ix;

@@ -50,5 +50,6 @@
 #include "gravity/solvers/EnzoSolverEnzo.hpp"
 #include "gravity/solvers/EnzoSolverJacobi.hpp"
 #include "gravity/solvers/EnzoSolverMg0.hpp"
+#include "gravity/solvers/EnzoSolverRBGS.hpp"
 
 #endif /* ENZO_GRAVITY_GRAVITY_HPP */

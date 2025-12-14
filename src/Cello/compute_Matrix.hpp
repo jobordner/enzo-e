@@ -53,8 +53,9 @@ public: // virtual functions
   /// Whether the matrix is singular or not
   virtual bool is_singular() const throw() = 0;
 
-  /// How many ghost zones required for matvec
-  virtual int ghost_depth() const throw() = 0;
+  /// What is the stencil width for the matrix; equivalently how many
+  /// ghost zones required for matvec
+  virtual int stencil_width() const throw() = 0;
 
 protected: // functions
 

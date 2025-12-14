@@ -26,6 +26,7 @@ add_library(Enzo_gravity
   solvers/EnzoSolverDiagonal.cpp solvers/EnzoSolverDiagonal.hpp
   solvers/EnzoSolverJacobi.cpp solvers/EnzoSolverJacobi.hpp
   solvers/EnzoSolverMg0.cpp solvers/EnzoSolverMg0.hpp
+  solvers/EnzoSolverRBGS.cpp solvers/EnzoSolverRBGS.hpp
 )
 add_library(Enzo::gravity ALIAS Enzo_gravity)
 

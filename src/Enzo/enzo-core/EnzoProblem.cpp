@@ -488,6 +488,20 @@ Solver * EnzoProblem::create_solver_
        enzo_config->solver_last_smooth[index_solver],
        enzo_config->solver_coarse_level[index_solver]);
 
+  } else if (solver_type == "rbgs") {
+
+    solver = new EnzoSolverRBGS
+      (enzo_config->solver_list[index_solver],
+       enzo_config->solver_field_x[index_solver],
+       enzo_config->solver_field_b[index_solver],
+       enzo_config->solver_monitor_iter[index_solver],
+       enzo_config->solver_restart_cycle[index_solver],
+       solve_type,
+       index_prolong,
+       index_restrict,
+       enzo_config->solver_weight[index_solver],
+       enzo_config->solver_iter_max[index_solver]);
+
   } else {
     // Not an Enzo Solver--try base class Cello Solver
     solver = Problem::create_solver_ (solver_type, index_solver,config);

@@ -20,6 +20,10 @@
 #include "Enzo/enzo.hpp"
 #include "Enzo/gravity/gravity.hpp"
 
+#define B0 "B0110:0_0000:0"
+#define BL "B0110:00_0000:00"
+#define BR "B0110:01_0000:00"
+
 //======================================================================
 
 EnzoSolverEnzo::EnzoSolverEnzo
@@ -115,12 +119,12 @@ void EnzoSolverEnzo::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
     m = field.dimensions (ib_);
     std::fill_n ((enzo_float*) field.values(ib_), m, 0.0);
   }
-  if ( enzo_block->is_leaf() ) {
-    enzo_float * B = (enzo_float *) field.values(ib_);
-    enzo_float * B_copy = (enzo_float *) field.values("B_copy");
-    m = field.dimensions (ib_);
-    for (int i=0; i<m; i++) B_copy[i] = B[i];
-  }
+  // if ( enzo_block->is_leaf() ) {
+  //   enzo_float * B = (enzo_float *) field.values(ib_);
+  //   enzo_float * B_copy = (enzo_float *) field.values("B_copy");
+  //   m = field.dimensions (ib_);
+  //   for (int i=0; i<m; i++) B_copy[i] = B[i];
+  // }
   std::fill_n ((enzo_float*) field.values(ix_),  m, 0.0);
 
   // Initialize synchronization counters
@@ -386,8 +390,8 @@ void EnzoSolverEnzo::block_solve(EnzoBlock * enzo_block) throw()
     field.ghost_depth(ix_,&gx,&gy,&gz);
     enzo_float * X = (enzo_float *) field.values(ix_);
   }
+
   solve_block->apply(A_,enzo_block);
-  
 }
 
 //----------------------------------------------------------------------

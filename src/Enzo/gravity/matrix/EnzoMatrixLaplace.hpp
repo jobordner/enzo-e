@@ -96,7 +96,7 @@ public: // virtual functions
   { return true; }
 
   /// How many ghost zones required for matvec
-  virtual int ghost_depth() const throw()
+  virtual int stencil_width() const throw()
   { return (order_ == 2) ? 1 : ( (order_ == 4) ? 2 : 3); }
 
 protected: // functions

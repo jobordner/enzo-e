@@ -78,7 +78,7 @@ protected: // functions
   { return false; }
 
   /// How many ghost zones required for matvec
-  virtual int ghost_depth() const throw()
+  virtual int stencil_width() const throw()
   { return 0; }
 
   double hx_, hy_, hz_;
