@@ -81,34 +81,35 @@ public:  // virtual methods
 public: // methods
 
   /// Restrict b to coarser Block
-  void restrict_send(EnzoBlock * enzo_block) throw();
+  void restrict_send(EnzoBlock * enzo_block);
   void restrict_recv(EnzoBlock * enzo_block,
-		     FieldMsg * field_message) throw();
+		     FieldMsg * field_message);
 
   /// Root-level solver
-  void root_solve_begin(EnzoBlock * enzo_block) throw();
-  void root_solve_end(EnzoBlock * enzo_block) throw();
+  void root_solve_begin(EnzoBlock * enzo_block);
+  void root_solve_end(EnzoBlock * enzo_block);
 
   /// Prolong x to finer block
-  void prolong_send(EnzoBlock * enzo_block) throw();
+  void prolong_send(EnzoBlock * enzo_block);
   void prolong_recv(EnzoBlock * enzo_block,
-		    FieldMsg * field_message) throw();
+		    FieldMsg * field_message);
 
   /// Refresh level
-  void refresh_level_begin(EnzoBlock * enzo_block, int level) throw();
-  void refresh_level_end(EnzoBlock * enzo_block) throw();
+  void refresh_level_begin(EnzoBlock * enzo_block, int level);
+  void refresh_level_end(EnzoBlock * enzo_block);
 
   /// Block solve
-  void block_solve(EnzoBlock * enzo_block) throw();
+  void block_solve_begin(EnzoBlock * enzo_block);
+  void block_solve_end(EnzoBlock * enzo_block);
 
   /// Final smoothing
-  void last_smooth(EnzoBlock * enzo_block) throw();
+  void last_smooth(EnzoBlock * enzo_block);
 
   /// Call barrier before exiting
-  void wait_at_end(EnzoBlock * enzo_block) throw();
+  void wait_at_end(EnzoBlock * enzo_block);
 
   /// End of solver
-  void end(Block* block) throw();
+  void end(Block* block);
 
 protected: // methods
 
