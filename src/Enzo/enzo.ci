@@ -63,7 +63,9 @@ module enzo {
   PUPable EnzoComputeCicInterp;
 
   // EnzoMatrix
-  PUPable EnzoMatrixLaplace;
+  PUPable EnzoMatrixLaplace2;
+  PUPable EnzoMatrixLaplace4;
+  PUPable EnzoMatrixLaplace6;
   PUPable EnzoMatrixDiagonal;
   PUPable EnzoMatrixIdentity;
 

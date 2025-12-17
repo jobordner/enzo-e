@@ -384,9 +384,9 @@ void EnzoBlock::p_solver_enzo_block_solve_end()
 void EnzoSolverEnzo::block_solve_end (EnzoBlock * enzo_block)
 {
   const int level = enzo_block->level();
-  if ( ! enzo_block->is_leaf() ) {
+  if (!enzo_block->is_leaf()) {
     prolong_send(enzo_block);
-  } else if ( level < max_level_ ) {
+  } else if (level < max_level_) {
     refresh_level_begin(enzo_block,level+1);
   }
   wait_at_end(enzo_block);

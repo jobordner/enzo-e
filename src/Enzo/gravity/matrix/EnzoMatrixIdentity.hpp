@@ -63,8 +63,10 @@ protected: // functions
   { return false; }
   
   /// How many ghost zones required for matvec
-  virtual int stencil_width() const throw()
+  virtual int stencil_width() const throw() override
   { return 0; }
+
+  virtual double stencil_value(int ix=0, int iy=0, int iz=0) const override;
 
 protected: // attributes
 

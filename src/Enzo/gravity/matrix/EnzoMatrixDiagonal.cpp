@@ -49,7 +49,13 @@ void EnzoMatrixDiagonal::diagonal (int id_x, Block * block, int g0) throw()
 
 //----------------------------------------------------------------------
 
-// template <class T>
+double EnzoMatrixDiagonal::stencil_value(int ix, int iy, int iz) const
+{
+  return (ix==0 && iy==0 && iz==0) ? hx_*hx_ : 0.0;
+}
+
+//======================================================================
+
 void EnzoMatrixDiagonal::matvec_ (enzo_float * Y, enzo_float * X, int g0) const throw()
 {
   const double d = hx_*hx_;
@@ -87,3 +93,4 @@ void EnzoMatrixDiagonal::diagonal_ (enzo_float * X, int g0) const throw()
     }
   }
 }
+

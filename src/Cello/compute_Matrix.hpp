@@ -57,6 +57,9 @@ public: // virtual functions
   /// ghost zones required for matvec
   virtual int stencil_width() const throw() = 0;
 
+  /// Return given stencil value
+  virtual double stencil_value(int ix=0, int iy=0, int iz=0) const = 0;
+
 protected: // functions
 
   template<class T>

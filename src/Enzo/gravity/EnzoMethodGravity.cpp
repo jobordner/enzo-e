@@ -190,7 +190,11 @@ void EnzoMethodGravity::compute(Block * block) throw()
      CkIndex_EnzoBlock::p_method_gravity_continue());
 
   const int ix = field.field_id ("potential");
-  std::shared_ptr<Matrix> A (std::make_shared<EnzoMatrixLaplace>(order_));
+  //  std::shared_ptr<Matrix> A = std::make_shared<EnzoMatrixLaplace2>();
+  std::shared_ptr<Matrix> A2 = std::make_shared<EnzoMatrixLaplace2>();
+  std::shared_ptr<Matrix> A4 = std::make_shared<EnzoMatrixLaplace4>();
+  std::shared_ptr<Matrix> A6 = std::make_shared<EnzoMatrixLaplace6>();
+  std::shared_ptr<Matrix> A = (order_ == 2) ? A2 : (order_ == 4) ? A4 : (order_ == 6) ? A6 : A2;
   solver->set_field_x(ix);
   solver->set_field_b(ib);
 #ifdef DEBUG_COPY_B

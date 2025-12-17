@@ -1,23 +1,23 @@
 // See LICENSE_CELLO file for license and copyright information
 
-/// @file     enzo_EnzoMatrixLaplace.hpp 
+/// @file     enzo_EnzoMatrixLaplace2.hpp 
 /// @author   James Bordner (jobordner@ucsd.edu) 
 /// @date     2015-04-02
-/// @brief    [\ref Compute] Declaration of the EnzoMatrixLaplace class
+/// @brief    [\ref Compute] Declaration of the 2nd Order Laplace2 Matrx class
 
-#ifndef COMPUTE_MATRIX_LAPLACE_HPP
-#define COMPUTE_MATRIX_LAPLACE_HPP
+#ifndef COMPUTE_MATRIX_LAPLACE2_HPP
+#define COMPUTE_MATRIX_LAPLACE2_HPP
 
-class EnzoMatrixLaplace : public Matrix 
+class EnzoMatrixLaplace2 : public Matrix 
 {
-  /// @class    EnzoMatrixLaplace
+  /// @class    EnzoMatrixLaplace2
   /// @ingroup  Compute
   /// @brief    [\ref Compute] Interface to an application compute / analysis / visualization function.
 
 public: // interface
 
-  /// Create a new EnzoMatrixLaplace
-  EnzoMatrixLaplace (int order = 4) throw()
+  /// Create a new EnzoMatrixLaplace2
+  EnzoMatrixLaplace2 () throw()
     : mx_(0),
       my_(0),
       mz_(0),
@@ -26,19 +26,18 @@ public: // interface
       nz_(0),
       hx_(0.0),
       hy_(0.0),
-      hz_(0.0),
-      order_(order)
+      hz_(0.0)
   {}
 
   /// Destructor
-  virtual ~EnzoMatrixLaplace() throw()
+  virtual ~EnzoMatrixLaplace2() throw()
   {}
 
   /// Charm++ PUP::able declarations
-  PUPable_decl(EnzoMatrixLaplace);
+  PUPable_decl(EnzoMatrixLaplace2);
 
   /// CHARM++ migration constructor
-  EnzoMatrixLaplace(CkMigrateMessage *m)
+  EnzoMatrixLaplace2(CkMigrateMessage *m)
     : Matrix(m),
       mx_(0),
       my_(0),
@@ -48,8 +47,7 @@ public: // interface
       nz_(0),
       hx_(0.0),
       hy_(0.0),
-      hz_(0.0),
-      order_(0)
+      hz_(0.0)
   { }
 
     /// CHARM++ Pack / Unpack function
@@ -65,7 +63,6 @@ public: // interface
     p | hx_;
     p | hy_;
     p | hz_;
-    p | order_;
   }
 
   /// Set cell widths.  Required for lower-level methods that don't have
@@ -97,7 +94,9 @@ public: // virtual functions
 
   /// How many ghost zones required for matvec
   virtual int stencil_width() const throw()
-  { return (order_ == 2) ? 1 : ( (order_ == 4) ? 2 : 3); }
+  { return 1; }
+
+  virtual double stencil_value(int ix=0, int iy=0, int iz=0) const override;
 
 protected: // functions
 
@@ -110,9 +109,6 @@ protected: // attributes
   int mx_, my_, mz_;
   int nx_, ny_, nz_;
   double hx_, hy_, hz_;
-  /// Order of the operator, 2 or 4
-  int order_;
-
 };
 
-#endif /* COMPUTE_MATRIX_LAPLACE_HPP */
+#endif /* COMPUTE_MATRIX_LAPLACE2_HPP */

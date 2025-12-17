@@ -48,6 +48,13 @@ void EnzoMatrixIdentity::diagonal (int id_x, Block * block, int g0) throw()
 
 //----------------------------------------------------------------------
 
+double EnzoMatrixIdentity::stencil_value(int ix, int iy, int iz) const
+{
+  return (ix==0 && iy==0 && iz==0) ? 1.0 : 0.0;
+}
+
+//----------------------------------------------------------------------
+
 void EnzoMatrixIdentity::matvec_ (enzo_float * Y, enzo_float * X, int g0) const throw()
 {
   const int ix0 = (mx_ > 1) ? g0 : 0;
