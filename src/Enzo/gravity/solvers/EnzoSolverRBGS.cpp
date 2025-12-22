@@ -30,17 +30,12 @@ EnzoSolverRBGS::EnzoSolverRBGS
            index_prolong,
            index_restrict),
     A_ (nullptr),
-    ir_ (-1),
-    id_ (-1),
     w_(weight),
     n_(iter_max),
     ir_smooth_(-1),
     local_(solve_type==solve_block)
 {
   // Reserve temporary fields
-
-  id_ = cello::field_descr()->insert_temporary();
-  ir_ = cello::field_descr()->insert_temporary();
 
   if (! local_) {
 
@@ -51,14 +46,13 @@ EnzoSolverRBGS::EnzoSolverRBGS
     refresh->set_min_face_rank(cello::rank() - 1);
 
     ScalarDescr * scalar_descr_int = cello::scalar_descr_int();
-    i_iter_ = scalar_descr_int->new_value(name_ + ":iter");  
-
+    i_iter_ = scalar_descr_int->new_value(name_ + ":iter");
 
     ir_smooth_ = add_refresh_();
 
     Refresh * refresh_smooth = cello::refresh(ir_smooth_);
     cello::simulation()->refresh_set_name(ir_smooth_,name+":smooth");
-  
+
     refresh_smooth->add_field (ix_);
     refresh_smooth->set_min_face_rank(cello::rank() - 1);
     refresh_smooth->set_callback(CkIndex_EnzoBlock::p_solver_rbgs_continue());
@@ -81,11 +75,10 @@ void EnzoSolverRBGS::apply
 
   Field field = block->data()->field();
 
-  allocate_temporary_(field,block);
-
   if (local_) {
 
-    local_solve_(block);
+    local_solve_(block, n_);
+    end_ (block);
 
   } else {
 
@@ -101,7 +94,7 @@ void EnzoSolverRBGS::apply
 
 void EnzoBlock::p_solver_rbgs_continue()
 {
- 
+
   performance_start_(perf_compute,__FILE__,__LINE__);
 
   EnzoSolverRBGS * solver = nullptr;  
@@ -134,52 +127,15 @@ void EnzoSolverRBGS::compute(Block * block)
 
 void EnzoSolverRBGS::apply_(Block * block)
 {
-  Field field = block->data()->field();
-
-  int mx,my,mz;
-  field.dimensions(ix_,&mx,&my,&mz);
-
-  int gx,gy,gz;
-  field.ghost_depth(ix_,&gx,&gy,&gz);
-
-  const int ng = A_->stencil_width();
-  gx = (mx > 1) ? ng : 0;
-  gy = (my > 1) ? ng : 0;
-  gz = (mz > 1) ? ng : 0;
-
   if (is_finest_(block)) {
 
-    A_->diagonal (id_, block,ng);
-    A_->residual (ir_, ib_, ix_, block,ng);
+    local_solve_(block, 1);
 
-    enzo_float * X = (enzo_float*) field.values(ix_);
-    enzo_float * R = (enzo_float*) field.values(ir_);
-    enzo_float * D = (enzo_float*) field.values(id_);
-
-    if (w_ == 1.0) {
-      for (int iz=gz; iz<mz-gz; iz++) {
-        for (int iy=gy; iy<my-gy; iy++) {
-          for (int ix=gx; ix<mx-gx; ix++) {
-            int i = ix + mx*(iy + my*iz);
-            X[i] += R[i] / D[i];
-          }
-        }
-      }
-    } else {
-      for (int iz=gz; iz<mz-gz; iz++) {
-        for (int iy=gy; iy<my-gy; iy++) {
-          for (int ix=gx; ix<mx-gx; ix++) {
-            int i = ix + mx*(iy + my*iz);
-            X[i] = w_*(R[i] / D[i]) + (1.0-w_)*X[i];
-          }
-        }
-      }
-    }
   }
   // Next iteration
 
   (*piter_(block))++;
-  
+
   // Refresh X
 
   do_refresh_(block);
@@ -202,13 +158,12 @@ void EnzoSolverRBGS::do_refresh_(Block * block)
 
 //----------------------------------------------------------------------
 
-void EnzoSolverRBGS::local_solve_(Block * block)
+void EnzoSolverRBGS::local_solve_(Block * block, int n)
 {
   Field field = block->data()->field();
 
-  enzo_float * D = (enzo_float*) field.values(id_);
-  enzo_float * R = (enzo_float*) field.values(ir_);
   enzo_float * X = (enzo_float*) field.values(ix_);
+  enzo_float * B = (enzo_float*) field.values(ib_);
 
   int gx,gy,gz;
   field.ghost_depth(ix_,&gx,&gy,&gz);
@@ -217,14 +172,31 @@ void EnzoSolverRBGS::local_solve_(Block * block)
   gy = include_ghosts_ ? std::min(1,gy) : gy;
   gz = include_ghosts_ ? std::min(1,gz) : gz;
 
-  A_->diagonal (id_, block,gx);
-  A_->residual (ir_, ib_, ix_, block,gx);
+  const int nd = A_->stencil_width();
+  std::vector<double> ax(nd+1);
+  std::vector<double> ay(nd+1);
+  std::vector<double> az(nd+1);
+
+  double hx,hy,hz;
+  block->cell_width(&hx,&hy,&hz);
+
+  const double ad = A_->stencil_value(0,0,0,hx,hy,hz);
+
+  const int rank = cello::rank();
+  for (int d=1; d<=nd; d++) {
+    ax[d] = (rank >= 1) ? A_->stencil_value(d,0,0,hx,hy,hz) : 0.0;
+    ay[d] = (rank >= 2) ? A_->stencil_value(0,d,0,hx,hy,hz) : 0.0;
+    az[d] = (rank >= 3) ? A_->stencil_value(0,0,d,hx,hy,hz) : 0.0;
+  }
 
   int mx,my,mz;
   field.dimensions(ix_,&mx,&my,&mz);
+  const int ixp = 1;
+  const int iyp = mx;
+  const int izp = mx*my;
   if (w_ == 1.0) {
     // red (even)
-    for (int k=0; k<n_; k++) {
+    for (int k=0; k<n; k++) {
       for (int iz=gz; iz<mz-gz; iz++) {
         const int kz = iz-gz;
         for (int iy=gy; iy<my-gy; iy++) {
@@ -232,13 +204,17 @@ void EnzoSolverRBGS::local_solve_(Block * block)
           const int e = (ky + kz)%2;
           for (int ix=gx+e; ix<mx-gx; ix+=2) {
             int i = ix + mx*(iy + my*iz);
-            X[i] += R[i] / D[i];
+            X[i] = B[i];
+            for (int d=1; d<=nd; d++) {
+              X[i] -= ax[d]*(X[i+d*ixp] + X[i-d*ixp]);
+              X[i] -= ay[d]*(X[i+d*iyp] + X[i-d*iyp]);
+              X[i] -= az[d]*(X[i+d*izp] + X[i-d*izp]);
+            }
+            X[i] /= ad;
           }
         }
       }
-    }
-    // black (odd)
-    for (int k=0; k<n_; k++) {
+      // black (odd)
       for (int iz=gz; iz<mz-gz; iz++) {
         const int kz = iz-gz;
         for (int iy=gy; iy<my-gy; iy++) {
@@ -246,14 +222,20 @@ void EnzoSolverRBGS::local_solve_(Block * block)
           const int o = 1 - (ky + kz)%2;
           for (int ix=gx+o; ix<mx-gx; ix+=2) {
             int i = ix + mx*(iy + my*iz);
-            X[i] += R[i] / D[i];
+            X[i] = B[i];
+            for (int d=1; d<=nd; d++) {
+              X[i] -= ax[d]*(X[i+d*ixp] + X[i-d*ixp]);
+              X[i] -= ay[d]*(X[i+d*iyp] + X[i-d*iyp]);
+              X[i] -= az[d]*(X[i+d*izp] + X[i-d*izp]);
+            }
+            X[i] /= ad;
           }
         }
       }
     }
   } else {
     // red (even)
-    for (int k=0; k<n_; k++) {
+    for (int k=0; k<n; k++) {
       for (int iz=gz; iz<mz-gz; iz++) {
         const int kz = iz-gz;
         for (int iy=gy; iy<my-gy; iy++) {
@@ -261,35 +243,45 @@ void EnzoSolverRBGS::local_solve_(Block * block)
           const int e = (ky + kz)%2;
           for (int ix=gx+e; ix<mx-gx; ix+=2) {
             int i = ix + mx*(iy + my*iz);
-            X[i] = w_*(R[i] / D[i]) + (1.0-w_)*X[i];
+            double update = B[i];
+            for (int d=1; d<=nd; d++) {
+              update -= ax[d]*(X[i+d*ixp] + X[i-d*ixp]);
+              update -= ay[d]*(X[i+d*iyp] + X[i-d*iyp]);
+              update -= az[d]*(X[i+d*izp] + X[i-d*izp]);
+            }
+            update /= ad;
+            X[i] = (1.0-w_)*X[i] + w_*update;
           }
         }
       }
-    }
-    // black (odd)
-    for (int k=0; k<n_; k++) {
+      // black (odd)
       for (int iz=gz; iz<mz-gz; iz++) {
         const int kz = iz-gz;
         for (int iy=gy; iy<my-gy; iy++) {
           const int ky = iy-gy;
-          const int o = 1 - (ky + ky)%2;
+          const int o = 1 - (ky + kz)%2;
           for (int ix=gx+o; ix<mx-gx; ix+=2) {
             int i = ix + mx*(iy + my*iz);
-            X[i] = w_*(R[i] / D[i]) + (1.0-w_)*X[i];
+            double update = B[i];
+            for (int d=1; d<=nd; d++) {
+              update -= ax[d]*(X[i+d*ixp] + X[i-d*ixp]);
+              update -= ay[d]*(X[i+d*iyp] + X[i-d*iyp]);
+              update -= az[d]*(X[i+d*izp] + X[i-d*izp]);
+            }
+            update /= ad;
+            X[i] = (1.0-w_)*X[i] + w_*update;
           }
         }
       }
     }
   }
-  end_ (block);
 }
 
 //----------------------------------------------------------------------
 
 void EnzoSolverRBGS::end_(Block * block)
 {
-  Field field = block->data()->field();
+ Field field = block->data()->field();
 
-  deallocate_temporary_ (field,block);
   Solver::end_(block);
 }

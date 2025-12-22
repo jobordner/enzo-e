@@ -33,7 +33,7 @@ EnzoSolverCg::EnzoSolverCg
            index_restrict,
 	   min_level,
 	   max_level),
-    A_(NULL),
+    A_(nullptr),
     index_precon_(index_precon),
     iter_max_(iter_max),
     ir_(0), id_(0), iy_(0), iz_(0),
@@ -465,7 +465,9 @@ void EnzoSolverCg::loop_2b (EnzoBlock * enzo_block) throw()
 
     if (is_finest_(enzo_block)) {
 
-      A_->matvec(iy_,id_,enzo_block);
+      double hx,hy,hz;
+      enzo_block->cell_width(&hx,&hy,&hz);
+      A_->matvec(iy_,id_,field,hx,hy,hz);
 
     }
 
@@ -713,7 +715,9 @@ void EnzoSolverCg::local_solve_(EnzoBlock * enzo_block)
     return;
   }
 
-  A_->residual(ir_,ib_,ix_,enzo_block,gx);
+  double hx,hy,hz;
+  enzo_block->cell_width(&hx,&hy,&hz);
+  A_->residual(ir_,ib_,ix_,field,hx,hy,hz,gx);
 
   iter_ = 0;
 
@@ -760,7 +764,9 @@ void EnzoSolverCg::local_solve_(EnzoBlock * enzo_block)
 
     refresh_local_(id_,enzo_block);
 
-    A_->matvec(iy_,id_,enzo_block,gx);
+    double hx,hy,hz;
+    enzo_block->cell_width(&hx,&hy,&hz);
+    A_->matvec(iy_,id_,field,hx,hy,hz,gx);
 
     rr_ = 0.0;
     rz_ = 0.0;

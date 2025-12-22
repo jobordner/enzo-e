@@ -18,13 +18,7 @@ public: // interface
 
   /// Create a new EnzoMatrixDiagonal
   EnzoMatrixDiagonal () throw()
-  : Matrix (),
-    hx_(0),
-    hy_(0),
-    hz_(0),
-    mx_(0),
-    my_(0),
-    mz_(0)
+  : Matrix ()
   {}
 
   /// Destructor
@@ -36,42 +30,40 @@ public: // interface
 
   /// CHARM++ migration constructor
   EnzoMatrixDiagonal(CkMigrateMessage *m)
-    : Matrix(m),
-      hx_(0),
-      hy_(0),
-      hz_(0),
-      mx_(0),
-      my_(0),
-      mz_(0)
+    : Matrix(m)
   {}
 
   /// CHARM++ Pack / Unpack function
   void pup (PUP::er &p)
   { TRACEPUP;
     PUP::able::pup(p);
-    p | hx_;
-    p | hy_;
-    p | hz_;
-    p | mx_;
-    p | my_;
-    p | mz_;
   }
 
 public: // virtual functions
 
   /// Apply the matrix to a vector Y <-- A*X
-  virtual void matvec (int id_y, int id_x, Block * block, int g0 = 1) throw();
+  virtual void matvec (int id_y, int id_x,
+                       Field field, double hx, double hy, double hz,
+                       int g0 = 1) throw();
   virtual void matvec (precision_type precision,
-		       void * y, void * x, int g0=1) throw();
+		       void * y, void * x,
+                       Field field, double hx, double hy, double hz,
+                       int g0=1) throw();
 
   /// Extract the diagonal into the given field
-  virtual void diagonal (int id_x, Block * block, int g0 = 1) throw();
+  virtual void diagonal (int id_x,
+                         Field field, double hx, double hy, double hz,
+                         int g0 = 1) throw();
 
 protected: // functions
 
-  void matvec_ (enzo_float * Y, enzo_float * X, int g0) const throw();
+  void matvec_ (enzo_float * Y, enzo_float * X,
+                Field field, double hx, double hy, double hz,
+                int g0) const throw();
 
-  void diagonal_ (enzo_float * X, int g0) const throw();
+  void diagonal_ (enzo_float * X,
+                  Field field, double hx, double hy, double hz,
+                  int g0) const throw();
 
   /// Whether the matrix is singular or not
   virtual bool is_singular() const throw()
@@ -81,10 +73,9 @@ protected: // functions
   virtual int stencil_width() const throw() override
   { return 0; }
 
-  virtual double stencil_value(int ix=0, int iy=0, int iz=0) const override;
+  virtual double stencil_value (int ix, int iy, int iz,
+                                double hx, double hy, double hz) const override;
 
-  double hx_, hy_, hz_;
-  int mx_,my_,mz_;
 };
 
 #endif /* COMPUTE_MATRIX_DIAGONAL_HPP */

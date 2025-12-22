@@ -127,7 +127,7 @@ protected: // methods
   }
 
   /// Serial Jacobi solver if local_ == true
-  void local_solve_ (Block * block);
+  void local_solve_ (Block * block, int num_iter);
 
   /// Clean up after solve and call Solver::end_()
   void end_ (Block * block );

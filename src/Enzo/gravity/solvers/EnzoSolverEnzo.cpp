@@ -105,14 +105,13 @@ void EnzoSolverEnzo::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
   Solver::begin_(block);
 
   EnzoBlock * enzo_block = enzo::block(block);
+  Field field ( enzo_block->data()->field());
 
   // Initialize linear system matrix and fields
   A_ = A;
-  int m;
-  Field field ( enzo_block->data()->field());
+  int m = field.dimensions (ib_);
   cello::refresh(ir_post_)->add_field(ix_);
   if ( ! enzo_block->is_leaf() ) {
-    m = field.dimensions (ib_);
     std::fill_n ((enzo_float*) field.values(ib_), m, 0.0);
   }
   // if ( enzo_block->is_leaf() ) {

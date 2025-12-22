@@ -18,15 +18,7 @@ public: // interface
 
   /// Create a new EnzoMatrixLaplace6
   EnzoMatrixLaplace6 () throw()
-    : mx_(0),
-      my_(0),
-      mz_(0),
-      nx_(0),
-      ny_(0),
-      nz_(0),
-      hx_(0.0),
-      hy_(0.0),
-      hz_(0.0)
+    : Matrix()
   {}
 
   /// Destructor
@@ -38,55 +30,33 @@ public: // interface
 
   /// CHARM++ migration constructor
   EnzoMatrixLaplace6(CkMigrateMessage *m)
-    : Matrix(m),
-      mx_(0),
-      my_(0),
-      mz_(0),
-      nx_(0),
-      ny_(0),
-      nz_(0),
-      hx_(0.0),
-      hy_(0.0),
-      hz_(0.0)
+    : Matrix(m)
   { }
 
     /// CHARM++ Pack / Unpack function
   void pup (PUP::er &p)
   { TRACEPUP;
     PUP::able::pup(p);
-    p | mx_;
-    p | my_;
-    p | mz_;
-    p | nx_;
-    p | ny_;
-    p | nz_;
-    p | hx_;
-    p | hy_;
-    p | hz_;
   }
 
-  /// Set cell widths.  Required for lower-level methods that don't have
-  /// access to the Block
-  void set_cell_width (double hx, double hy, double hz)
-  {
-    hx_ = hx;
-    hy_ = hy;
-    hz_ = hz;
-  }
-  
 public: // virtual functions
 
   /// Apply the matrix to a vector Y <-- A*X
-  virtual void matvec (int id_y, int id_x, Block * block, int g0=1) throw();
+  virtual void matvec (int id_y, int id_x,
+                       Field field, double hx, double hy, double hz,
+                       int g0=1) throw();
 
   /// Low-level matvec, useful for non-Block arrays (e.g. Block-local
   /// multigrid).  Must call set_cell_width and set_dimensions first
   /// manually!
-  virtual void matvec (precision_type precision,
-		       void * y, void * x, int g0=1) throw();
+  virtual void matvec (precision_type precision, void * y, void * x,
+                       Field field, double hx, double hy, double hz,
+                       int g0=1) throw();
 
   /// Extract the diagonal into the given field
-  virtual void diagonal (int id_x, Block * block, int g0=1) throw();
+  virtual void diagonal (int id_x,
+                         Field field, double hx, double hy, double hz,
+                         int g0=1) throw();
 
   /// Whether the matrix is singular or not
   virtual bool is_singular() const throw()
@@ -96,19 +66,20 @@ public: // virtual functions
   virtual int stencil_width() const throw()
   { return 3; }
 
-  virtual double stencil_value(int ix=0, int iy=0, int iz=0) const override;
+  virtual double stencil_value (int ix, int iy, int iz,
+                                double hx, double hy, double hz) const override;
 
 protected: // functions
 
-  void matvec_ (enzo_float * Y, enzo_float * X, int g0) const throw();
+  void matvec_ (enzo_float * Y, enzo_float * X,
+                Field field, double hx, double hy, double hz,
+                int g0) const throw();
 
-  void diagonal_ (enzo_float * X, int g0) const throw();
+  void diagonal_ (enzo_float * X,
+                  Field field, double hx, double hy, double hz,
+                  int g0) const throw();
 
 protected: // attributes
-
-  int mx_, my_, mz_;
-  int nx_, ny_, nz_;
-  double hx_, hy_, hz_;
 
 };
 

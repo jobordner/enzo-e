@@ -13,51 +13,49 @@
 
 //======================================================================
 
-void EnzoMatrixLaplace4::matvec (int i_y, int i_x, Block * block,
+void EnzoMatrixLaplace4::matvec (int i_y, int i_x,
+                                 Field field, double hx, double hy, double hz,
                                  int g0) throw()
 {
-  Field field = block->data()->field();
-
-  field.dimensions(0,&mx_,&my_,&mz_);
-  block->cell_width (&hx_,&hy_,&hz_);
-  
   enzo_float * X = (enzo_float * ) field.values(i_x);
   enzo_float * Y = (enzo_float * ) field.values(i_y);
   
-  matvec_(Y,X,g0);
+  matvec_(Y,X,field,hx,hy,hz,g0);
 }
 
 //----------------------------------------------------------------------
 
 void EnzoMatrixLaplace4::matvec
 (precision_type precision,
- void * y, void * x, int g0) throw()
+ void * y, void * x,
+ Field field, double hx, double hy, double hz,
+ int g0) throw()
 {
-  matvec_((enzo_float *)(y),(enzo_float *)(x),g0);
+  matvec_((enzo_float *)(y),(enzo_float *)(x),field,hx,hy,hz,g0);
 }
 
 //----------------------------------------------------------------------
 
-void EnzoMatrixLaplace4::diagonal (int i_x, Block * block, int g0) throw()
+void EnzoMatrixLaplace4::diagonal
+(int i_x,
+ Field field, double hx, double hy, double hz,
+ int g0) throw()
 {
-  Field field = block->data()->field();
-
-  field.dimensions (i_x,&mx_,&my_,&mz_);
-  block->cell_width    (&hx_,&hy_,&hz_);
-
   enzo_float * X = (enzo_float * ) field.values(i_x);
 
-  diagonal_(X,g0);
+  diagonal_(X,field,hx,hy,hz,g0);
 }
 
 //----------------------------------------------------------------------
 
-double EnzoMatrixLaplace4::stencil_value(int ix, int iy, int iz) const
+double EnzoMatrixLaplace4::stencil_value
+(int ix, int iy, int iz,
+ double hx, double hy, double hz) const
 {
   const int rank = cello::rank();
-  const double dx = (rank >= 1) ? 1.0 / (12.0*hx_*hx_) : 0.0;
-  const double dy = (rank >= 2) ? 1.0 / (12.0*hy_*hy_) : 0.0;
-  const double dz = (rank >= 3) ? 1.0 / (12.0*hz_*hz_) : 0.0;
+  const double dx = (rank >= 1) ? 1.0 / (12.0*hx*hx) : 0.0;
+  const double dy = (rank >= 2) ? 1.0 / (12.0*hy*hy) : 0.0;
+  const double dz = (rank >= 3) ? 1.0 / (12.0*hz*hz) : 0.0;
   const int px = std::abs(ix);
   const int py = std::abs(iy);
   const int pz = std::abs(iz);
@@ -83,13 +81,18 @@ double EnzoMatrixLaplace4::stencil_value(int ix, int iy, int iz) const
 //======================================================================
 
 void EnzoMatrixLaplace4::matvec_
-(enzo_float * Y, enzo_float * X, int g0) const throw()
+(enzo_float * Y, enzo_float * X,
+ Field field, double hx, double hy, double hz,
+ int g0) const throw()
 {
-  const int idx = 1;
-  const int idy = mx_;
-  const int idz = mx_*my_;
-
   const int rank = cello::rank();
+
+  int mx,my,mz;
+  field.dimensions(0,&mx,&my,&mz);
+
+  const int idx = 1;
+  const int idy = mx;
+  const int idz = mx*my;
 
   const int idx2 = 2*idx;
   const int idy2 = 2*idy;
@@ -100,9 +103,9 @@ void EnzoMatrixLaplace4::matvec_
   const enzo_float c0 = -30.0;
   const enzo_float c1 = 16.0;
   const enzo_float c2 = -1.0;
-  const enzo_float dx = (rank >= 1) ? 1.0/(12.0*hx_*hx_) : 0.0;
-  const enzo_float dy = (rank >= 2) ? 1.0/(12.0*hy_*hy_) : 0.0;
-  const enzo_float dz = (rank >= 3) ? 1.0/(12.0*hz_*hz_) : 0.0;
+  const enzo_float dx = (rank >= 1) ? 1.0/(12.0*hx*hx) : 0.0;
+  const enzo_float dy = (rank >= 2) ? 1.0/(12.0*hy*hy) : 0.0;
+  const enzo_float dz = (rank >= 3) ? 1.0/(12.0*hz*hz) : 0.0;
 
   const enzo_float c0x = c0*dx;
   const enzo_float c1x = c1*dx;
@@ -116,7 +119,7 @@ void EnzoMatrixLaplace4::matvec_
 
   if (rank == 1) {
 
-    for (int ix=g0; ix<mx_-g0; ix++) {
+    for (int ix=g0; ix<mx-g0; ix++) {
       const int i = ix;
       Y[i] = (c0*(X[i]) +
               c1*(X[i-idx] +X[i+idx]) +
@@ -125,9 +128,9 @@ void EnzoMatrixLaplace4::matvec_
 
   } else if (rank == 2) {
 
-    for   (int iy=g0; iy<my_-g0; iy++) {
-      for (int ix=g0; ix<mx_-g0; ix++) {
-        const int i = ix + mx_*iy;
+    for   (int iy=g0; iy<my-g0; iy++) {
+      for (int ix=g0; ix<mx-g0; ix++) {
+        const int i = ix + mx*iy;
         Y[i] = (c0*(X[i]) +
                 c1*(X[i-idx] +X[i+idx]) +
                 c2*(X[i-idx2]+X[i+idx2])) * dx
@@ -139,10 +142,10 @@ void EnzoMatrixLaplace4::matvec_
 
   } else if (rank == 3) {
 
-    for     (int iz=g0; iz<mz_-g0; iz++) {
-      for   (int iy=g0; iy<my_-g0; iy++) {
-        for (int ix=g0; ix<mx_-g0; ix++) {
-          const int i = ix + mx_*(iy + my_*iz);
+    for     (int iz=g0; iz<mz-g0; iz++) {
+      for   (int iy=g0; iy<my-g0; iy++) {
+        for (int ix=g0; ix<mx-g0; ix++) {
+          const int i = ix + mx*(iy + my*iz);
           enzo_float * xp = X + i;
           Y[i] = (c0x*(xp[0]) +
                   c1x*(xp[-idx] +xp[idx]) +
@@ -161,37 +164,43 @@ void EnzoMatrixLaplace4::matvec_
 
 //----------------------------------------------------------------------
 
-void EnzoMatrixLaplace4::diagonal_ (enzo_float * X, int g0) const throw()
+void EnzoMatrixLaplace4::diagonal_
+(enzo_float * X,
+ Field field, double hx, double hy, double hz,
+ int g0) const throw()
 {
   const int rank = cello::rank();
 
+  int mx,my,mz;
+  field.dimensions(0,&mx,&my,&mz);
+
   const enzo_float c0 = -30.0;
-  const enzo_float dx = (rank >= 1) ? 1.0/(12.0*hx_*hx_) : 0.0;
-  const enzo_float dy = (rank >= 2) ? 1.0/(12.0*hy_*hy_) : 0.0;
-  const enzo_float dz = (rank >= 3) ? 1.0/(12.0*hz_*hz_) : 0.0;
+  const enzo_float dx = (rank >= 1) ? 1.0/(12.0*hx*hx) : 0.0;
+  const enzo_float dy = (rank >= 2) ? 1.0/(12.0*hy*hy) : 0.0;
+  const enzo_float dz = (rank >= 3) ? 1.0/(12.0*hz*hz) : 0.0;
 
   g0 = std::max(2,g0);
 
   // Fourth-order 13-point discretization
 
   if (rank == 1) {
-    for (int ix=g0; ix<mx_-g0; ix++) {
+    for (int ix=g0; ix<mx-g0; ix++) {
       int i = ix;
       X[i] = c0 * dx;
     }
   } else if (rank == 2) {
-    for   (int iy=g0; iy<my_-g0; iy++) {
-      for (int ix=g0; ix<mx_-g0; ix++) {
-        int i = ix + mx_*iy;
+    for   (int iy=g0; iy<my-g0; iy++) {
+      for (int ix=g0; ix<mx-g0; ix++) {
+        int i = ix + mx*iy;
         X[i] = c0 * dx
           +    c0 * dy;
       }
     }
   } else if (rank == 3) {
-    for     (int iz=g0; iz<mz_-g0; iz++) {
-      for   (int iy=g0; iy<my_-g0; iy++) {
-        for (int ix=g0; ix<mx_-g0; ix++) {
-          int i = ix + mx_*(iy + my_*iz);
+    for     (int iz=g0; iz<mz-g0; iz++) {
+      for   (int iy=g0; iy<my-g0; iy++) {
+        for (int ix=g0; ix<mx-g0; ix++) {
+          int i = ix + mx*(iy + my*iz);
           X[i] = c0 * dx
             +    c0 * dy
             +    c0 * dz;

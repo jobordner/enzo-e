@@ -70,19 +70,21 @@ void EnzoSolverDiagonal::compute_
 {
   TRACE_SOLVER("compute_() ENTER");
 
-  Field field = block->data()->field();
-
-  int mx,my,mz;
-  field.dimensions (ib_,&mx,&my,&mz);
-
   if (is_finest_(block)) {
 
-    field.allocate_temporary(id_);
+    Field field = block->data()->field();
+
+    int mx,my,mz;
+    field.dimensions (ib_,&mx,&my,&mz);
 
     ///   - X = 0
     ///   - R = P = B ( residual with X = 0);
 
-    A->diagonal(id_,block);
+    field.allocate_temporary(id_);
+
+    double hx,hy,hz;
+    block->cell_width(&hx,&hy,&hz);
+    A->diagonal(id_,field,hx,hy,hz);
 
     enzo_float * X = (enzo_float*) field.values(ix_);
     enzo_float * B = (enzo_float*) field.values(ib_);

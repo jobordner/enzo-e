@@ -35,8 +35,6 @@ public: // interface
   EnzoSolverRBGS (CkMigrateMessage *m)
     : Solver(m),
       A_(NULL),
-      ir_(-1),
-      id_(-1),
       w_(0),
       i_iter_(-1),
       n_(0),
@@ -51,8 +49,6 @@ public: // interface
     Solver::pup(p);
 
     //    p | A_;
-    p | ir_;
-    p | id_;
     p | w_;
     p | i_iter_;
     p | n_;
@@ -105,20 +101,6 @@ protected: // methods
   /// Refresh after computing
   void do_refresh_(Block * block);
 
-  /// Allocate temporary Fields
-  void allocate_temporary_(Field field, Block * block = NULL)
-  {
-    field.allocate_temporary(id_);
-    field.allocate_temporary(ir_);
-  }
-
-  /// Dellocate temporary Fields
-  void deallocate_temporary_(Field field, Block * block = NULL)
-  {
-    field.deallocate_temporary(id_);
-    field.deallocate_temporary(ir_);
-  }
-
   /// Return a pointer to the iteration counter on the block
   int * piter_(Block * block) {
     ScalarData<int> * scalar_data  = block->data()->scalar_data_int();
@@ -127,7 +109,7 @@ protected: // methods
   }
 
   /// Serial RBGS solver if local_ == true
-  void local_solve_ (Block * block);
+  void local_solve_ (Block * block, int num_iter);
 
   /// Clean up after solve and call Solver::end_()
   void end_ (Block * block );
@@ -138,12 +120,6 @@ protected: // attributes
 
   /// Matrix A for smoothing A*X = B
   std::shared_ptr<Matrix> A_;
-
-  /// Field index for residual R
-  int ir_;
-
-  /// Field index for matrix diagonal D
-  int id_;
 
   /// Weighting
   double w_;

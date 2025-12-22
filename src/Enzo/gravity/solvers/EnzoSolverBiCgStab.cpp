@@ -462,7 +462,10 @@ void EnzoSolverBiCgStab::compute_(EnzoBlock* block) throw() {
 
       for (int i=0; i<m_; i++) X[i] = X_copy[i];
 
-      A_->residual (ir_, ib_, ix_, block);
+      double hx,hy,hz;
+      block->cell_width(&hx,&hy,&hz);
+      A_->residual (ir_, ib_, ix_, field, hx,hy,hz);
+
 #ifdef DEBUG_COPY_R
   const int ir_copy = field.field_id ("R_copy");
   enzo_float * R_copy = (enzo_float*) field.values (ir_copy);
@@ -605,7 +608,9 @@ void EnzoSolverBiCgStab::start_2(EnzoBlock* block,
     }
 
     // recompute residual given shifted B and X
-    A_->residual (ir_, ib_, ix_, block);
+    double hx,hy,hz;
+    block->cell_width(&hx,&hy,&hz);
+    A_->residual (ir_, ib_, ix_, field, hx,hy,hz);
 
     /// LINE 01:  R0 = B - A * X_0
     /// LINE 02:  P0 = R0
@@ -974,7 +979,9 @@ void EnzoSolverBiCgStab::loop_4(EnzoBlock* block) throw() {
 
     /// LINE 05: V = A * Y
     
-    A_->matvec(iv_, iy_, block);
+    double hx,hy,hz;
+    block->cell_width(&hx,&hy,&hz);
+    A_->matvec(iv_, iy_, field,hx,hy,hz);
 
   }
 
@@ -1273,7 +1280,9 @@ void EnzoSolverBiCgStab::loop_10(EnzoBlock* block) throw() {
 
     /// LINE 11:     U = A * Y
     
-    A_->matvec(iu_, iy_, block);     /// apply matrix to local block
+    double hx,hy,hz;
+    block->cell_width(&hx,&hy,&hz);
+    A_->matvec(iu_, iy_, field, hx,hy,hz);     /// apply matrix to local block
 
   }
 
