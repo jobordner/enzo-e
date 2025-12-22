@@ -725,10 +725,19 @@ void EnzoSolverCg::local_solve_(EnzoBlock * enzo_block)
     for (int iy=gy; iy<my_-gy; iy++) {
       for (int ix=gx; ix<mx_-gx; ix++) {
         const int i = ix + mx_*(iy + my_*iz);
-        //        X[i] = 0.0;
         R[i] = B[i];
         D[i] = R[i];
         Z[i] = R[i];
+      }
+    }
+  }
+  if (!include_ghosts_) {
+    for (int iz=gz; iz<mz_-gz; iz++) {
+      for (int iy=gy; iy<my_-gy; iy++) {
+        for (int ix=gx; ix<mx_-gx; ix++) {
+          const int i = ix + mx_*(iy + my_*iz);
+          X[i] = 0.0;
+        }
       }
     }
   }
