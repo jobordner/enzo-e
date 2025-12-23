@@ -125,11 +125,12 @@ accretion
 balance
 -------
 
-The "balance" method is used for controlling the Cello load-balancer. The only
-parameter is "schedule", and an "order" method must be called before "balance"
-is called. Note that "order" defines how Blocks will be balanced, whereas "balance"
-performs the actual load-balancing step. For more information on "order" and how
-it's used with "balance" see the :ref:`order method` :e:`section.`
+The ``"balance"`` method is used for controlling the Cello
+load-balancer. The only parameter is ``"schedule"``, and an ``"order"`` method
+must be called before ``"balance"`` is called. Note that ``"order"`` defines
+how Blocks will be balanced, whereas ``"balance"`` performs the actual
+load-balancing step. For more information on ``"order"`` and how it's used
+with ``"balance"`` see the :ref:`order method` :e:`section.`
 
 check
 -----

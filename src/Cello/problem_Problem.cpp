@@ -925,7 +925,6 @@ Method * Problem::create_method_
     // we probably don't have to directly pass factory...
     method = new MethodOutput(factory, p_group);
   } else if (name == "order") {
-
     method = new MethodOrder
       (config->method_order_ordering[index_method],
        config->mesh_min_level);
