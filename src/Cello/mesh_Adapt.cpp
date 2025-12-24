@@ -1,6 +1,6 @@
 // See LICENSE_CELLO file for license and copyright information
 
-/// @file     mesh_Array.cpp
+/// @file     mesh_Adapt.cpp
 /// @author   James Bordner (jobordner@ucsd.edu)
 /// @date     2021-10-27
 /// @brief    Implementation of the Adapt class for remeshing

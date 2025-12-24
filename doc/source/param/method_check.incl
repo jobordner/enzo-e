@@ -4,14 +4,12 @@ dumps, though currently all data (all fields and all particles on all
 blocks) are written to disk.  This method should typically be called
 with a schedule.  Currently an "order" method must be called
 beforehand with a matching schedule; for more details and an example,
-see the :ref:`order method` :e:`section.`
+see the :ref:`order` :e:`section.`
 
 Note that if a file or directory corresponding to a requested
 checkpoint dump already exists, no data will be written. This is to
 avoid over-writing checkpoint files, but may not necessarily be what
 is expected. This behavior may be revised in the future.
-
-
 
 ----
 

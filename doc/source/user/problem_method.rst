@@ -724,7 +724,7 @@ an associated ``"order"`` method, specified as such using the
 match their respective ``"balance"`` and ``"check"`` methods.
 
 .. code::
-+
+
    Method {
       list = [ "balance_order", "balance",
                "check_order",   "check",
