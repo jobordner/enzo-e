@@ -254,7 +254,7 @@ private: // attributes
       index_ = new (index) Index(in);
       nInts=sizeof(Index)/sizeof(int);
     }
-  };x
+  };
 #endif
 
 #endif /* INDEX_HPP */
