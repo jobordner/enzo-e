@@ -95,7 +95,7 @@ module mesh {
 
   array[Index] Block {
 
-    entry Block (process_type ip_source,  MsgType msg_type);
+    entry Block (MsgType msg_type);
     entry void p_set_msg_refine(MsgRefine * msg);
     entry Block();
 
