@@ -348,16 +348,22 @@ public: // interface
   Solver * solver () throw();
 
   /// Accessor functions for block ordering index and count 
-  void set_order (long long index, long long count)
+  void set_order (long long index, long long count, Index next)
   {
-    index_order_ = index;
-    count_order_ = count;
+    order_index_ = index;
+    order_count_ = count;
+    order_next_  = next;
   }
-  void get_order (long long * index, long long * count) const
-  { *index = index_order_;
-    *count = count_order_;
+
+  void get_order (long long * index,
+                  long long * count = 0,
+                  Index *     next = 0) const
+  {
+    *index = order_index_;
+    if (count) *count = order_count_;
+    if (next)  *next  = order_next_;
   }
-  
+
 protected: // methods
 
   Index neighbor_ (const int if3[3], Index * ind = 0) const;
@@ -609,10 +615,8 @@ public:
   void r_method_flux_correct_sum_fields(CkReductionMsg * msg);
   void r_method_debug_sum_fields(CkReductionMsg * msg);
 
-  void r_method_order_morton_continue(CkReductionMsg * msg);
-  void r_method_order_morton_complete(CkReductionMsg * msg);
-  void p_method_order_morton_weight(int ic3[3], int weight, Index index);
-  void p_method_order_morton_index(int index, int count);
+  void p_method_order_accum_count (MsgOrder * msg);
+  void p_method_order_accum_index (MsgOrder * msg);
 
   void r_method_order_hilbert_continue(CkReductionMsg * msg);
   void r_method_order_hilbert_complete(CkReductionMsg * msg);
@@ -1045,8 +1049,9 @@ protected: // attributes
   std::vector < std::vector <MsgRefresh * > > refresh_msg_list_;
 
   /// Index and total count used for ordering blocks, e.g. for dynamic load balancing
-  long long index_order_;
-  long long count_order_;
+  long long order_index_;
+  long long order_count_;
+  Index order_next_;
 };
 
 #endif /* COMM_BLOCK_HPP */

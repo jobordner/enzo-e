@@ -66,6 +66,9 @@ Block::Block ( process_type ip_source, MsgType msg_type )
     index_method_(-1),
     index_solver_(),
     refresh_(),
+    order_index_(0),
+    order_count_(0),
+    order_next_(),
     index_(thisIndex)
 {
 #ifdef TRACE_BLOCK
@@ -345,8 +348,9 @@ void Block::pup(PUP::er &p)
     for (int i=0; i<len; i++) refresh_msg_list_[i].clear();
   }
 
-  p | index_order_;
-  p | count_order_;
+  p | order_index_;
+  p | order_count_;
+  p | order_next_;
 }
 
 //----------------------------------------------------------------------

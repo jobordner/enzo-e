@@ -83,6 +83,7 @@ public: // interface
     method_list(),
     method_schedule_index(),
     method_courant(),
+    method_order_ordering(),
     method_type(),
     monitor_debug(false),
     monitor_verbose(false),
@@ -235,6 +236,7 @@ public: // interface
       method_list(),
       method_schedule_index(),
       method_courant(),
+      method_order_ordering(),
       method_type(),
       monitor_debug(false),
       monitor_verbose(false),
@@ -437,6 +439,7 @@ public: // attributes
   std::vector<std::string>   method_list;
   std::vector<int>           method_schedule_index;
   std::vector<double>        method_courant;
+  std::vector <std::string>  method_order_ordering;
   std::vector<std::string>   method_type;
 
 

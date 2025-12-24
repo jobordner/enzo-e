@@ -955,7 +955,7 @@ void Simulation::monitor_performance()
   
   const int num_solver = problem()->num_solvers();
 
-  int n = 14 + 2*num_solver + ( hierarchy_->max_level() - hierarchy_->min_level() + 1) + nr*nc;
+  int n = 15 + 2*num_solver + ( hierarchy_->max_level() - hierarchy_->min_level() + 1) + nr*nc;
 
   
   long long * counters_region = new long long [nc];
@@ -973,12 +973,13 @@ void Simulation::monitor_performance()
   counters_reduce[m++] = MsgCoarsen::counter[in];     // 2
   counters_reduce[m++] = MsgRefine::counter[in];      // 3
   counters_reduce[m++] = MsgRefresh::counter[in];     // 4
+  counters_reduce[m++] = MsgOrder::counter[in];       // @@@  
   counters_reduce[m++] = DataMsg::counter[in];        // 5
   counters_reduce[m++] = FieldFace::counter[in];      // 6
   counters_reduce[m++] = ParticleData::counter[in];   // 7
   counters_reduce[m++] = hierarchy_->num_particles(); // 8
   for (int i=0; i<num_solver; i++) {
-    counters_reduce[m++] = cello::simulation()->get_solver_num_iter(i); // 9
+    counters_reduce[m++] = cello::simulation()->get_solver_num_iter(i);
   }
 
   const int min_level = hierarchy_->min_level();
@@ -1045,6 +1046,7 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
     const long long msg_coarsen = counters_reduce[m++];   // 2
     const long long msg_refine  = counters_reduce[m++];   // 3
     const long long msg_refresh = counters_reduce[m++];   // 4
+    const long long msg_order = counters_reduce[m++];   // @@@
     const long long data_msg    = counters_reduce[m++];   // 5
     const long long field_face  = counters_reduce[m++];   // 6
     const long long particle_data = counters_reduce[m++]; // 7
@@ -1052,7 +1054,7 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
 
     const int num_solver = problem()->num_solvers();
     for (int i=0; i<num_solver; i++) {
-      const long long num_solver_iter = counters_reduce[m++]; // 15
+      const long long num_solver_iter = counters_reduce[m++];
       monitor()->print ("Performance","solver num-%s-iter %lld",
                         problem()->solver(i)->name().c_str(),
                         num_solver_iter);
@@ -1061,6 +1063,7 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
     monitor()->print("Performance","counter num-msg-coarsen %lld", msg_coarsen);
     monitor()->print("Performance","counter num-msg-refine %lld", msg_refine);
     monitor()->print("Performance","counter num-msg-refresh %lld", msg_refresh);
+    monitor()->print("Performance","counter num-msg-order %lld", msg_order);
     monitor()->print("Performance","counter num-data-msg %lld", data_msg);
     monitor()->print("Performance","counter num-field-face %lld", field_face);
     monitor()->print("Performance","counter num-particle-data %lld", particle_data);
