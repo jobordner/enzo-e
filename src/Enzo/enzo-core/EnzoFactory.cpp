@@ -67,8 +67,8 @@ void EnzoFactory::create_block_array
   CkPrintf ("TRACE_FACTORY %s:%d\n",__FILE__,__LINE__); fflush(stdout);
 #endif
 
-  int nax,nay,naz;
-  cello::hierarchy()->root_blocks(&nax,&nay,&naz);
+  int ax,ay,az;
+  cello::hierarchy()->root_blocks(&ax,&ay,&az);
 
   std::vector<int> face_level;
   face_level.clear();
@@ -77,12 +77,10 @@ void EnzoFactory::create_block_array
     for (int iy=0; iy<nby; iy++) {
       for (int iz=0; iz<nbz; iz++) {
 
-        const int ip = ((long long) CkNumPes()) *
-          (ix + nax*(iy + nay*iz)) / (nax*nay*naz);
+        Index index(ix,iy,iz);
+        const int ip = index.ip_home(ax,ay,az);
 
         if (ip == CkMyPe()) {
-
-          Index index(ix,iy,iz);
 
           int count_adapt;
           int face_type;

@@ -194,7 +194,7 @@ public: // interface
   {  return num_blocks_level_global_.at(level-min_level_);  }
 
   void set_blocks_global(int level, int num_blocks) throw()
-  { num_blocks_level_global_[level] = num_blocks; }
+  { num_blocks_level_global_[level-min_level_] = num_blocks; }
 
   int finest_level() const throw()
   {

@@ -71,7 +71,7 @@ Block::Block ( process_type ip_source, MsgType msg_type )
 {
 #ifdef TRACE_BLOCK
 
-  CkPrintf ("%d TRACE_BLOCK %s Block::Block(ip)\n",  CkMyPe(),name(thisIndex).c_str());
+  CkPrintf ("%d TRACE_BLOCK %s Block::Block(ip %d)\n",  CkMyPe(),name(thisIndex).c_str(),ip_source);
 
 #endif
 
@@ -735,6 +735,10 @@ Block::Block ()
     level_lower_(-1),
     level_upper_(-1)
 {
+#ifdef TRACE_BLOCK
+  CkPrintf ("%d TRACE_BLOCK %s Block::Block()\n",
+            CkMyPe(),name(thisIndex).c_str());
+#endif
   init_refresh_();
   init_adapt_(nullptr);
 
@@ -880,6 +884,15 @@ std::string Block::name(Index index) const throw()
 void Block::size_array (int * nx, int * ny, int * nz) const throw ()
 {
   cello::hierarchy()->root_blocks(nx,ny,nz);
+}
+
+//----------------------------------------------------------------------
+
+int Block::ip_home () const
+{
+  int ax,ay,az;
+  cello::hierarchy()->root_blocks(&ax,&ay,&az);
+  return thisIndex.ip_home(ax,ay,az);
 }
 
 //----------------------------------------------------------------------

@@ -44,6 +44,11 @@ public: // interface
   EnzoBlock()
     :  CBase_EnzoBlock()
   {
+#ifdef TRACE_BLOCK
+  CkPrintf ("%d TRACE_BLOCK %s EnzoBlock::EnzoBlock()\n",
+            CkMyPe(),name(thisIndex).c_str());
+  fflush(stdout);
+#endif
     performance_start_(perf_block);
 
     // replace Block's State with EnzoState

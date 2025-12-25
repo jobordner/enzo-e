@@ -63,7 +63,11 @@ public:
   Block();
 
   /// Initialize a migrated Block
-  Block (CkMigrateMessage *m) : CBase_Block(m) { }
+  Block (CkMigrateMessage *m) : CBase_Block(m)
+  {
+    //    CkPrintf ("%d TRACE_BLOCK %s Block::Block(CkMigrateMessage*)\n",
+    //              CkMyPe(),name(thisIndex).c_str());
+  }
 
   /// CHARM pupper
   virtual void pup(PUP::er &p);
@@ -95,6 +99,9 @@ public:
 
   int age() const throw()
   { return age_; };
+
+  /// Return the "home process" of the block
+  int ip_home() const;
 
   /// Return process to migrate to next if different from current
   int ip_next() const throw() { return ip_next_; }

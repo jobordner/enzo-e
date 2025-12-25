@@ -37,7 +37,8 @@ public: // interface
       super_field_curr_(),
       super_field_prev_(),
       is_time_curr_(false),
-      is_time_prev_(false)
+      is_time_prev_(false),
+      call_on_all_levels_(false)
   { }
 
   /// Destructor
@@ -79,8 +80,7 @@ public: // virtual functions
     /* This function intentionally empty */
   }
 
-  /// Add a new refresh object
-  int add_refresh_ (int neighbor_type = neighbor_leaf);
+public: // methods
 
   /// Return the index for the main post-refresh object
   int refresh_id_post() const;
@@ -102,7 +102,7 @@ public: // virtual functions
   void set_courant(double courant) throw ()
   { courant_ = courant; }
 
-  /// Set maximum cycles for super-cycling
+   /// Set maximum cycles for super-cycling
   void set_max_supercycle (int max_supercycle)
   { max_supercycle_ = max_supercycle; }
 
@@ -113,6 +113,37 @@ public: // virtual functions
   /// Whether super-cycling is enabled
   bool is_supercycle() const
   { return (max_supercycle_ > 1); }
+
+  void set_index(int index)
+  { index_method_ = index; }
+
+  int index() const
+  { return index_method_; }
+
+  int call_on_all_levels() const
+  { return call_on_all_levels_; }
+
+protected: // functions
+
+  /// Add a new refresh object
+  int add_refresh_ (int neighbor_type = neighbor_leaf);
+
+  /// Whether this is a "solve-cycle" when supercycling
+  bool is_solve_cycle_(Block * block);
+
+  /// Perform vector copy X <- Y
+  template <class T>
+  void copy_ (T * X, const T * Y,
+	      int mx, int my, int mz,
+	      bool active = true) const throw()
+  {
+    if (! active ) return;
+    const int m = mx*my*mz;
+    for (int i=0; i<m; i++) X[i] = Y[i];
+  }
+
+  void set_call_on_all_levels(bool value = true)
+  { call_on_all_levels_ = value; }
 
   /// Define a field and its two previously saved values for use
   /// in super-cycling, and return id_super identifying the values
@@ -132,28 +163,6 @@ public: // virtual functions
   void super_extrapolate_fields_(Block * block, double time );
 
   void super_update_time_(Block * block, double time);
-
-void set_index(int index)
-  { index_method_ = index; }
-
-  int index() const
-  { return index_method_; }
-
-protected: // functions
-
-  /// Whether this is a "solve-cycle" when supercycling
-  bool is_solve_cycle_(Block * block);
-
-  /// Perform vector copy X <- Y
-  template <class T>
-  void copy_ (T * X, const T * Y,
-	      int mx, int my, int mz,
-	      bool active = true) const throw()
-  {
-    if (! active ) return;
-    const int m = mx*my*mz;
-    for (int i=0; i<m; i++) X[i] = Y[i];
-  }
 
 public: // attributes (static)
 
@@ -186,6 +195,9 @@ protected: // attributes
   /// Scalars for times of saved fields
   int is_time_curr_;
   int is_time_prev_;
+
+  /// Whether must be called at all levels even when adaptive time-stepping
+  bool call_on_all_levels_;
 
 };
 

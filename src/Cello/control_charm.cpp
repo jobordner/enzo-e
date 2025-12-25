@@ -205,7 +205,6 @@ void Block::compute_exit_continue_ ()
     refresh->set_active (is_leaf());
     refresh->set_adaptive_timestep (true);
     refresh->set_callback(CkIndex_Block::p_adapt_enter());
-
     refresh_start (ir_cycle_end,CkIndex_Block::p_adapt_enter());
   } else {
     adapt_enter_();

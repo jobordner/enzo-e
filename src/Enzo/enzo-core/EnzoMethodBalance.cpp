@@ -9,11 +9,14 @@
 #include "enzo.hpp"
 
 // #define TRACE_BALANCE
+// #define TRACE_MIGRATE
 //----------------------------------------------------------------------
 
 EnzoMethodBalance::EnzoMethodBalance()
   : Method()
 {
+  // All blocks at all levels must call this Method
+  set_call_on_all_levels();
 
   cello::define_field("density");
   // Initialize default Refresh object
@@ -40,7 +43,7 @@ void EnzoMethodBalance::pup (PUP::er &p)
 void EnzoMethodBalance::compute ( Block * block) throw()
 {
 #ifdef TRACE_BALANCE
-  CkPrintf ("TRACE_SELF_BALANCE %s\n",block->name().c_str());
+  CkPrintf ("TRACE_BALANCE %s\n",block->name().c_str());
   CkPrintf ("TRACE_BALANCE 1 compute() %s process %d counter %lld\n",
             block->name().c_str(),CkMyPe(),MsgRefresh::counter[CkMyPe()]);
 #endif
@@ -61,13 +64,13 @@ void EnzoMethodBalance::compute ( Block * block) throw()
 
   block->set_ip_next(ip_next);
 #ifdef TRACE_BALANCE
-  CkPrintf ("self_balance %d %d %d %d\n", count, index,ip_next,CkMyPe());
+  CkPrintf ("TRACE_BALANCE self_balance %d %d %d %d\n", count, index,ip_next,CkMyPe());
 #endif
 
   int count_local = 0;
   if (ip_next != CkMyPe()) {
 #ifdef TRACE_BALANCE
-    CkPrintf ("TRACE_MIGRATE Method Counting %s from %d to %d\n",block->name().c_str(),CkMyPe(),ip_next);
+    CkPrintf ("TRACE_BALANCE Method Counting %s from %d to %d\n",block->name().c_str(),CkMyPe(),ip_next);
 #endif
     count_local = 1;
   }
@@ -109,8 +112,8 @@ void EnzoMethodBalance::do_migrate(EnzoBlock * enzo_block)
 #endif
   int ip_next = enzo_block->ip_next();
   if (ip_next != CkMyPe()) {
-#ifdef TRACE_BALANCE
-    CkPrintf ("TRACE_MIGRATE Method Migrating %s from %d to %d\n",
+#ifdef TRACE_MIGRATE
+    CkPrintf ("TRACE_MIGRATE migrating %s from %d to %d\n",
               enzo_block->name().c_str(),CkMyPe(),ip_next);
 #endif
     fflush(stdout);
@@ -122,13 +125,14 @@ void EnzoMethodBalance::do_migrate(EnzoBlock * enzo_block)
 void EnzoSimulation::p_method_balance_check()
 {
 #ifdef TRACE_BALANCE
-  CkPrintf ("TRACE_MIGRATE p_method_balance_check()\n");
+  CkPrintf ("TRACE_BALANCE p_method_balance_check()\n");
 #endif
 #ifdef TRACE_BALANCE
   CkPrintf ("TRACE_BALANCE 3 check() process %d counter %lld\n",
             CkMyPe(),MsgRefresh::counter[CkMyPe()]);
 #endif
   if (sync_method_balance_.next()) {
+    CkPrintf ("TRACE_ARRAY doneInserting EnzoSimulation::p_method_balance_check()\n");
     enzo::block_array().doneInserting();
     enzo::block_array().p_method_balance_done();
   }

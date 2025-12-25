@@ -170,7 +170,9 @@ public: // interface
     timestep_type(),
     timestep_level_type(),
     timestep_refresh_type(),
-    timestep_max_level_dt_ratio()
+    timestep_max_level_dt_ratio(),
+    timestep_adjust_tolerance(),
+    timestep_adjust_type()
   { }
 
   /// CHARM++ PUP::able declaration
@@ -328,7 +330,10 @@ public: // interface
       timestep_type(),
       timestep_level_type(),
       timestep_refresh_type(),
-      timestep_max_level_dt_ratio()
+      timestep_max_level_dt_ratio(),
+      timestep_adjust_tolerance(),
+      timestep_adjust_type()
+
   {
     for (int axis=0; axis<3; axis++) {
       domain_lower[axis] = 0.0;
@@ -575,6 +580,8 @@ public: // attributes
   std::string                timestep_level_type;
   std::string                timestep_refresh_type;
   double                     timestep_max_level_dt_ratio;
+  double                     timestep_adjust_tolerance;
+  std::string                timestep_adjust_type;
   
 protected: // functions
 

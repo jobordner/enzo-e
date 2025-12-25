@@ -22,9 +22,7 @@
 // #define TRACE_ADAPT
 // #define TRACE_REFINE
 // #define TRACE_COARSEN
-// #define TRACE_DONE_INSERTING
 // #define DEBUG_ADAPT
-
 // #define WRITE_NEIGHBORS
 
 #define DEBUG_CYCLE_START 0
@@ -156,13 +154,13 @@ void Block::adapt_next_()
   if (is_leaf()) {
     if (level() < level_next_) {
 #ifdef TRACE_REFINE
-      CkPrintf ("TRACE_REFINE %s\n",name().c_str());
+      CkPrintf ("%d TRACE_REFINE %s\n",CkMyPe(),name().c_str());
 #endif
       adapt_refine_();
     }
     if (level() > level_next_) {
 #ifdef TRACE_COARSEN
-      CkPrintf ("TRACE_COARSEN %s\n",name().c_str());
+      CkPrintf ("%d TRACE_COARSEN %s\n",CkMyPe(),name().c_str());
 #endif
       adapt_coarsen_();
     }
@@ -208,9 +206,6 @@ void Block::adapt_update_()
 {
   TRACE_ADAPT("adapt_update_",this);
   if (index_.is_root() && (adapt_changed_ != 0)) {
-#ifdef TRACE_DONE_INSERTING
-    CkPrintf ("TRACE_DONE_INSERTING\n");
-#endif
     thisProxy.doneInserting();
   }
   adapt_end_();
@@ -1040,7 +1035,13 @@ void Block::p_adapt_recv_child (MsgCoarsen * msg)
 
 void Block::p_adapt_delete()
 {
-  ckDestroy();
+  if (CkMyPe() != ip_home()) {
+    const int ip = ip_home();
+    coarsened_ = true;
+    migrateMe(ip_home());
+  } else {
+    ckDestroy();
+  }
 }
 
 //======================================================================

@@ -10,6 +10,8 @@
 
 #define FORTRAN_STORE
 
+// #define UNIFORM_FIELDS
+
 //----------------------------------------------------------------------
 
 // #define CONFIG_SMP_MODE
@@ -365,6 +367,97 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
   int n3[3];
   field_src.size (n3,n3+1,n3+2);
 
+#ifdef UNIFORM_FIELDS
+
+  size_t index_src = 0;
+  size_t index_dst = 0;
+  int m3[3],g3[3],c3[3];
+  field_src.dimensions (index_src,m3,m3+1,m3+2);
+  field_src.ghost_depth(index_src,g3,g3+1,g3+2);
+  field_src.centering  (index_src,c3,c3+1,c3+2);
+
+  Box box (rank_,n3,g3);
+  set_box_(&box);
+  box.set_centering(c3);
+
+  bool lpad;
+  int is3[3], ns3[3];
+  int id3[3], nd3[3];
+
+  box.get_start_size
+    (is3,ns3,BlockType::send,BlockType::send,lpad=true);
+  box.get_start_size
+    (id3,nd3,BlockType::receive,BlockType::receive,lpad=false);
+
+  // Adjust loop limits if accumulating to include ghost zones
+  // on neighbor axes
+
+  precision_type precision = field_src.precision(index_src);
+
+  for (size_t i_f=0; i_f < field_list_src.size(); i_f++) {
+
+    const bool accumulate = refresh_->accumulate(i_f);
+    ASSERT1("FieldFace::face_to_face()",
+           "UNIFORM_FIELDS set but accumulate i_f=%d != 0",
+           i_f,!accumulate);
+
+    index_src = field_list_src[i_f];
+    index_dst = field_list_dst[i_f];
+    CHECK_COARSE(field_src,index_src);
+
+    char * values_src = field_src.values(index_src);
+    char * values_dst = field_dst.values(index_dst);
+
+    // scale by density if needed to convert to conservative form
+    mul_by_density_(field_src,index_src,is3,ns3,m3);
+
+    if (face_type_ > 0) {
+
+      // Prolong field
+
+      // adjust for full-block interpolation to child
+      prolong()->apply (precision,
+                        values_dst,m3,id3, nd3,
+                        values_src,m3,is3, ns3,
+                        accumulate);
+
+    } else if (face_type_ < 0) {
+
+      // Restrict field
+
+      restrict()->apply (precision,
+                         values_dst,m3,id3, nd3,
+                         values_src,m3,is3, ns3,
+                         accumulate);
+
+    } else {
+
+      // Copy faces to ghosts
+
+      union { float * fs4; double * fs8; long double * fs16; };
+      union { float * fd4; double * fd8; long double * fd16; };
+      fs4 = (float *) values_src;
+      fd4 = (float *) values_dst;
+
+      // Copy field to array
+
+      if (precision == precision_single) {
+	copy_ ( fd4, m3,nd3,id3,fs4, m3, ns3,is3,accumulate);
+      } else if (precision == precision_double) {
+	copy_ ( fd8, m3,nd3,id3,fs8, m3, ns3,is3,accumulate);
+      } else if (precision == precision_quadruple) {
+	copy_ ( fd16,m3,nd3,id3,fs16,m3,ns3,is3,accumulate);
+      } else {
+	ERROR("FieldFace::face_to_face()", "Unsupported precision");
+      }
+    }
+    // unscale by density if needed to convert back from conservative form
+    div_by_density_(field_src,index_src,is3,ns3,m3);
+    div_by_density_(field_dst,index_dst,id3,nd3,m3);
+
+  }
+
+#else
   for (size_t i_f=0; i_f < field_list_src.size(); i_f++) {
 
     size_t index_src = field_list_src[i_f];
@@ -409,12 +502,6 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
 
       // Prolong field
 
-      bool need_padding = (g3[0]%2==1) || (g3[1]%2==1) || (g3[2]%2==1);
-
-      ASSERT("FieldFace::face_to_face()",
-             "Odd ghost zones not implemented yet: prolong needs padding",
-             (! need_padding) );
-
       // adjust for full-block interpolation to child
       prolong()->apply (precision,
                         values_dst,m3,id3, nd3,
@@ -456,7 +543,7 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
     div_by_density_(field_dst,index_dst,id3,nd3,m3);
 
   }
-
+#endif
   // Interpolate fields in time if needed when adaptive time-stepping
 
   time_interpolate_(field_dst,field_list_dst);

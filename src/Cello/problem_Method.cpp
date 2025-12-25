@@ -21,7 +21,8 @@ Method::Method (double courant) throw()
     super_field_curr_(),
     super_field_prev_(),
     is_time_curr_(-1),
-    is_time_prev_(-1)
+    is_time_prev_(-1),
+    call_on_all_levels_(false)
 {
   ir_post_ = add_refresh_();
   Refresh * refresh = cello::refresh(ir_post_);
@@ -54,6 +55,7 @@ void Method::pup (PUP::er &p)
   p | super_field_prev_;
   p | is_time_curr_;
   p | is_time_prev_;
+  p | call_on_all_levels_;
 }
 
 //----------------------------------------------------------------------

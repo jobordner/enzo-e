@@ -11,6 +11,7 @@
 
 void MethodATS::compute( Block * block) throw()
 {
+  //  block->state()->print_line("ATS");
   const int level = block->level();
 
   if (block->is_leaf()) {

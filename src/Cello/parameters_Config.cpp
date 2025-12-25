@@ -234,6 +234,8 @@ void Config::pup (PUP::er &p)
   p | timestep_level_type;
   p | timestep_refresh_type;
   p | timestep_max_level_dt_ratio;
+  p | timestep_adjust_tolerance;
+  p | timestep_adjust_type;
 }
 
 //----------------------------------------------------------------------
@@ -1554,8 +1556,10 @@ void Config::read_testing_ (Parameters * p) throw()
     testing_time_final[0]  = p->value_float  ("Testing:time_final", 0.0);
   }
   testing_time_tolerance = p->value_float  ("Testing:time_tolerance", 1e-6);
-  timestep_max_level_dt_ratio =
-    p->value_float("Timestep:max_level_dt_ratio",std::numeric_limits<double>::max());
+  timestep_max_level_dt_ratio = p->value_float
+    ("Timestep:max_level_dt_ratio", std::numeric_limits<double>::max());
+  timestep_adjust_tolerance = p->value_float("Timestep:adjust_tolerance",0.95);
+  timestep_adjust_type = p->value_string("Timestep:adjust_type","none");
 }
 
 //----------------------------------------------------------------------

@@ -175,8 +175,18 @@ public:
   /// dimensionality, array size, and whether the corresponding block is a leaf or
   /// not
   Index next (int rank, const int na3[3], bool is_leaf, int min_level) const;
-  
-  void print (std::string msg, int level) const;
+
+  /// Return the "home process" of the block
+  int ip_home(int nx, int ny, int nz) const
+  {
+    int ix,iy,iz;
+    array (&ix,&iy,&iz);
+    int ip = ((long long) CkNumPes()) *
+      (ix + nx*(iy + ny*iz)) / (nx*ny*nz);
+    return ip;
+  }
+
+void print (std::string msg, int level) const;
 
   void print (const char * msg,
 	      int max_level,

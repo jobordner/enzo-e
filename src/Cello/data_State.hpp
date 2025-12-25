@@ -171,6 +171,7 @@ public: // interface
   }
 
   Type state_type() const { return state_type_; }
+  Next state_next() const { return state_next_; }
 
   void set_level_type (const std::string & level_type, int max_level)
   {

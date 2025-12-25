@@ -150,9 +150,9 @@ bool ItFace::valid_() const
   bool l_periodic = true;
   // Return false if on boundary and not periodic
   for (int axis=0; axis<rank_; axis++) {
+    const bool is_on_boundary =
+      index_.is_on_boundary(axis,if3_[axis],n3_[axis]);
     for (int face=0; face < 2; face++) {
-      const bool is_on_boundary =
-	index_.is_on_boundary(axis,if3_[axis],n3_[axis]);
       const bool is_face =
 	(face==0 && if3_[axis] == -1) || (face==1 && if3_[axis] == 1);
       const bool is_periodic = periodicity_[axis];

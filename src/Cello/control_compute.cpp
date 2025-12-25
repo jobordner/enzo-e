@@ -27,17 +27,21 @@ void Block::compute_enter_ ()
 
   int ir_cycle_begin = cello::simulation()->ir_cycle_begin();
 
-  Refresh * refresh = cello::refresh(ir_cycle_begin);
+  if (cello::simulation()->hierarchy()->num_blocks_changed() > 0) {
+    Refresh * refresh = cello::refresh(ir_cycle_begin);
 
-  refresh->add_all_fields();
-  refresh->add_all_particles();
-  refresh->set_global();
-  refresh->set_active (is_leaf());
-  refresh -> set_adaptive_timestep
-    (cello::simulation()->state()->state_type() == State::Type::Level);
-  refresh->set_callback(CkIndex_Block::p_compute_begin());
+    refresh->add_all_fields();
+    refresh->add_all_particles();
+    refresh->set_global();
+    refresh->set_active (is_leaf());
+    refresh -> set_adaptive_timestep
+      (cello::simulation()->state()->state_type() == State::Type::Level);
+    refresh->set_callback(CkIndex_Block::p_compute_begin());
 
-  refresh_start (ir_cycle_begin,CkIndex_Block::p_compute_begin());
+    refresh_start (ir_cycle_begin,CkIndex_Block::p_compute_begin());
+  } else {
+    compute_begin_();
+  }
 
   performance_stop_(perf_compute,__FILE__,__LINE__);
 }
@@ -79,9 +83,12 @@ void Block::compute_next_ ()
 
       Refresh * refresh = cello::refresh(ir_post);
 
+      refresh->set_active (is_leaf());
+
       refresh -> set_level_lower(state()->level_lower());
       refresh -> set_level_upper(state()->level_upper());
-      refresh->set_active (is_leaf());
+      // refresh -> set_adaptive_timestep
+      //   (cello::simulation()->state()->state_type() == State::Type::Level);
 
       refresh_start (ir_post,CkIndex_Block::p_compute_continue());
 
@@ -116,9 +123,9 @@ void Block::compute_continue_ ()
   Method * method = this->method();
 
   const bool is_scheduled = method->is_scheduled(this);
-  const bool is_active_level = state()->is_active(level());
+  const bool is_active = state()->is_active(level()) || method->call_on_all_levels();
 
-  if (is_scheduled && is_active_level) {
+  if (is_scheduled && is_active) {
 
     TRACE2 ("Block::compute_continue() method = %d %p\n",
 	    index_method_,method); fflush(stdout);
@@ -148,7 +155,7 @@ void Block::compute_done ()
   if (state()->cycle() >= CYCLE)
     CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_done_()\n", CkMyPe(),name().c_str());
 #endif
-  compute_update_method_state_(index_method_);
+  //  compute_update_method_state_(index_method_);
   index_method_++;
   compute_next_();
 }
@@ -157,9 +164,9 @@ void Block::compute_done ()
 
 void Block::compute_update_method_state_(int index_method)
 {
-  auto & method_state = state()->method(index_method);
+  //  auto & method_state = state()->method(index_method);
 
-  method_state.advance();
+  //  method_state.advance();
 
   //  if (index_method_ < state()->num_methods()) {
 //    // Advance method state if any methods super-cycling

@@ -370,6 +370,7 @@ void EnzoSimulation::p_restart_next_level()
     if (++restart_level_ <= max_level) {
       proxy_io_enzo_reader.p_create_level(restart_level_);
     } else {
+      //      CkPrintf ("TRACE_ARRAY doneInserting EnzoSimulation::p_restart_next_level()\n");
       enzo::block_array().doneInserting();
       enzo::block_array().p_restart_done();
     }

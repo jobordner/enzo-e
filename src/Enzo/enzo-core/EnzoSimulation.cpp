@@ -9,6 +9,7 @@
 
 // #define TRACE_PARAMETERS
 // #define DEBUG_ENZO_SIMULATION
+// #define TRACE_BLOCK
 
 #include "cello.hpp"
 
@@ -128,6 +129,39 @@ void EnzoSimulation::refine_create_block(MsgRefine * msg)
   msg_refine_map_[index] = msg;
 
   int ip = CkMyPe();
+
+#ifdef TRACE_BLOCK
+  //==================================================
+
+  { int blocking[3] = {1,1,1};
+    cello::hierarchy()->root_blocks(blocking,blocking+1,blocking+2);
+
+    const int level = index.level();
+    for (int i=-1; i>=level; i--) {
+      blocking[0] /= 2;
+      blocking[1] /= 2;
+      blocking[2] /= 2;
+    }
+
+    int bits[3] = {0,0,0};
+
+    blocking[0]--;
+    blocking[1]--;
+    blocking[2]--;
+
+    if (blocking[0]) do { ++bits[0]; } while (blocking[0]/=2);
+    if (blocking[1]) do { ++bits[1]; } while (blocking[1]/=2);
+    if (blocking[2]) do { ++bits[2]; } while (blocking[2]/=2);
+
+    int ax,ay,az;
+    hierarchy()->root_blocks(&ax,&ay,&az);
+
+    CkPrintf ("%d TRACE_BLOCK p_refine_create_block %s home %d\n",ip,
+              std::string("B" + index.bit_string(level,cello::rank(),bits)).c_str(),index.ip_home(ax,ay,az));
+  }
+  //==================================================
+#endif
+  
   enzo::block_array()[index].insert(ip,MsgType::msg_refine,ip);
 }
 
