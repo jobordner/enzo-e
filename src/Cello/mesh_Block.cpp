@@ -66,7 +66,9 @@ Block::Block ( process_type ip_source, MsgType msg_type )
     index_method_(-1),
     index_solver_(),
     refresh_(),
-    index_(thisIndex)
+    index_(thisIndex),
+    index_order_(0),
+    count_order_(1)
 {
 #ifdef TRACE_BLOCK
 
@@ -678,7 +680,10 @@ Block::Block ()
     name_(""),
     index_method_(-1),
     index_solver_(),
-    refresh_()
+    refresh_(),
+    index_(thisIndex),
+    index_order_(0),
+    count_order_(1)
 {
   init_refresh_();
   init_adapt_(nullptr);

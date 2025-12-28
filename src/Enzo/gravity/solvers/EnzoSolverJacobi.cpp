@@ -42,9 +42,6 @@ EnzoSolverJacobi::EnzoSolverJacobi
   id_ = cello::field_descr()->insert_temporary();
   ir_ = cello::field_descr()->insert_temporary();
 
-  ix_ = cello::field_descr()->field_id(field_x);
-  ib_ = cello::field_descr()->field_id(field_b);
-
   if (! local_) {
 
     Refresh * refresh = cello::refresh(ir_post_);
@@ -87,8 +84,7 @@ void EnzoSolverJacobi::apply
 
   if (local_) {
 
-    local_solve_(block, n_);
-    end_ (block);
+    local_solve_(block);
 
   } else {
 
@@ -151,7 +147,36 @@ void EnzoSolverJacobi::apply_(Block * block)
   gz = (mz > 1) ? ng : 0;
 
   if (is_finest_(block)) {
-    local_solve_(block,1);
+
+     double hx,hy,hz;
+     block->cell_width(&hx,&hy,&hz);
+
+     A_->diagonal (id_, field,hx,hy,hz,ng);
+     A_->residual (ir_, ib_, ix_, field,hx,hy,hz,ng);
+
+    enzo_float * X = (enzo_float*) field.values(ix_);
+    enzo_float * R = (enzo_float*) field.values(ir_);
+    enzo_float * D = (enzo_float*) field.values(id_);
+
+    if (w_ == 1.0) {
+      for (int iz=gz; iz<mz-gz; iz++) {
+        for (int iy=gy; iy<my-gy; iy++) {
+          for (int ix=gx; ix<mx-gx; ix++) {
+            int i = ix + mx*(iy + my*iz);
+            X[i] += R[i] / D[i];
+          }
+        }
+      }
+    } else {
+      for (int iz=gz; iz<mz-gz; iz++) {
+        for (int iy=gy; iy<my-gy; iy++) {
+          for (int ix=gx; ix<mx-gx; ix++) {
+            int i = ix + mx*(iy + my*iz);
+            X[i] = w_*(R[i] / D[i]) + (1.0-w_)*X[i];
+          }
+        }
+      }
+    }
   }
   // Next iteration
 
@@ -179,7 +204,7 @@ void EnzoSolverJacobi::do_refresh_(Block * block)
 
 //----------------------------------------------------------------------
 
-void EnzoSolverJacobi::local_solve_(Block * block, int n)
+void EnzoSolverJacobi::local_solve_(Block * block)
 {
   Field field = block->data()->field();
 
@@ -196,13 +221,13 @@ void EnzoSolverJacobi::local_solve_(Block * block, int n)
 
   double hx,hy,hz;
   block->cell_width(&hx,&hy,&hz);
-  A_->diagonal (id_, field, hx,hy,hz, gx);
-  A_->residual (ir_, ib_, ix_, field, hx,hy,hz, gx);
+  A_->diagonal (id_, field,hx,hy,hz,gx);
+  A_->residual (ir_, ib_, ix_, field,hx,hy,hz,gx);
 
   int mx,my,mz;
   field.dimensions(ix_,&mx,&my,&mz);
   if (w_ == 1.0) {
-    for (int k=0; k<n; k++) {
+    for (int k=0; k<n_; k++) {
       for (int iz=gz; iz<mz-gz; iz++) {
         for (int iy=gy; iy<my-gy; iy++) {
           for (int ix=gx; ix<mx-gx; ix++) {
@@ -213,7 +238,7 @@ void EnzoSolverJacobi::local_solve_(Block * block, int n)
       }
     }
   } else {
-    for (int k=0; k<n; k++) {
+    for (int k=0; k<n_; k++) {
       for (int iz=gz; iz<mz-gz; iz++) {
         for (int iy=gy; iy<my-gy; iy++) {
           for (int ix=gx; ix<mx-gx; ix++) {
@@ -224,6 +249,7 @@ void EnzoSolverJacobi::local_solve_(Block * block, int n)
       }
     }
   }
+  end_ (block);
 }
 
 //----------------------------------------------------------------------
