@@ -33,7 +33,7 @@ if(EXISTS "${LOC_PATH}")
       "Please make a build subdirectory. Feel free to remove CMakeCache.txt and CMakeFiles.")
 endif()
 
-# Ensure the custom modules to find Charm++ and Grackle are included
+# Ensure the custom module to find Charm++ is included
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # confirm that std::filesystem is supported by the compiler and create an
@@ -41,6 +41,21 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # usage requirements (if there are any)
 include("CreateStdFilesystemTarget")
 create_StdFilesystem_target()
+
+#----------------------------------------------------------------------------------------
+# Define precision settings
+
+option(USE_DOUBLE_PREC "Use double precision. Turn off for single precision." ON)
+if (USE_DOUBLE_PREC)
+  add_compile_definitions(CONFIG_PRECISION_DOUBLE)
+  # PREC_STRING is used during test setup
+  set(PREC_STRING "double")
+else()
+  add_compile_definitions(CONFIG_PRECISION_SINGLE)
+  # PREC_STRING is used during test setup
+  set(PREC_STRING "single")
+endif()
+add_compile_definitions(SMALL_INTS)
 
 #----------------------------------------------------------------------------------------
 # External libs
@@ -62,18 +77,6 @@ set(Cello_TARGET_LINK_OPTIONS "")
 
 #----------------------------------------------------------------------------------------
 # Define preprocessor definitions/user configuration options
-
-option(USE_DOUBLE_PREC "Use double precision. Turn off for single precision." ON)
-if (USE_DOUBLE_PREC)
-  add_compile_definitions(CONFIG_PRECISION_DOUBLE)
-  # PREC_STRING is used during test setup
-  set(PREC_STRING "double")
-else()
-  add_compile_definitions(CONFIG_PRECISION_SINGLE)
-  # PREC_STRING is used during test setup
-  set(PREC_STRING "single")
-endif()
-add_compile_definitions(SMALL_INTS)
 
 add_compile_definitions(CELLO_VERSION="${CMAKE_PROJECT_VERSION}")
 
