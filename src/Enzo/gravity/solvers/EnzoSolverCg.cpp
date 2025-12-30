@@ -58,11 +58,11 @@ EnzoSolverCg::EnzoSolverCg
   iy_ = field_descr->insert_temporary();
   iz_ = field_descr->insert_temporary();
 
+  /// Initialize default Refresh
+
   field_descr->ghost_depth    (ib_,&gx_,&gy_,&gz_);
 
   if (! local_) {
-
-    /// Initialize default Refresh
 
     Refresh * refresh = cello::refresh(ir_post_);
     cello::simulation()->refresh_set_name(ir_post_,name);
@@ -742,19 +742,45 @@ void EnzoSolverCg::local_solve_(EnzoBlock * enzo_block)
     }
   }
 
-  // Compute shift and update B if needed
+  bs_ = 0.0;
+  bc_ = 0.0;
+
   refresh_local_(ib_,enzo_block);
   refresh_local_(ix_,enzo_block);
   refresh_local_(ir_,enzo_block);
   refresh_local_(id_,enzo_block);
   refresh_local_(iz_,enzo_block);
 
-  int m = (mx_-2*gx)*(my_-2*gy)*(mz_-2*gz);
+  //  int m = (mx_-2*gx)*(my_-2*gy)*(mz_-2*gz);
+  // Compute shift and update B if needed
+  if (iter_ == 0 && A_->is_singular() && ! include_ghosts_) {
+    for (int iz=gz_; iz<mz_-gz_; iz++) {
+      for (int iy=gy_; iy<my_-gy_; iy++) {
+	for (int ix=gx_; ix<mx_-gx_; ix++) {
+	  int i = ix + mx_*(iy + my_*iz);
+	  bs_ += B[i];
+	}
+      }
+    }
+    bc_ = nx_*ny_*nz_;
+    long double shift = -bs_ / bc_;
+    for (int i=0; i<mx_*my_*mz_; i++) {
+      R[i] += shift;
+      B[i] += shift;
+      D[i] = R[i];
+      Z[i] = R[i];
+    }
+    cello::check(rr_,"CG::rr_",__FILE__,__LINE__);
+    cello::check(bs_,"CG::bs_",__FILE__,__LINE__);
+    cello::check(bc_,"CG::bc_",__FILE__,__LINE__);
 
+  }
+
+  // compute residual
   rr_ = 0.0;
-  for (int iz=gz; iz<mz_-gz; iz++) {
-    for (int iy=gy; iy<my_-gy; iy++) {
-      for (int ix=gx; ix<mx_-gx; ix++) {
+  for (int iz=gz_; iz<mz_-gz_; iz++) {
+    for (int iy=gy_; iy<my_-gy_; iy++) {
+      for (int ix=gx_; ix<mx_-gx_; ix++) {
 	int i = ix + mx_*(iy + my_*iz);
 	rr_ += R[i]*R[i];
       }
@@ -780,9 +806,9 @@ void EnzoSolverCg::local_solve_(EnzoBlock * enzo_block)
     rr_ = 0.0;
     rz_ = 0.0;
     dy_ = 0.0;
-    for (int iz=gz; iz<mz_-gz; iz++) {
-      for (int iy=gy; iy<my_-gy; iy++) {
-	for (int ix=gx; ix<mx_-gx; ix++) {
+    for (int iz=gz_; iz<mz_-gz_; iz++) {
+      for (int iy=gy_; iy<my_-gy_; iy++) {
+	for (int ix=gx_; ix<mx_-gx_; ix++) {
 	  int i = ix + mx_*(iy + my_*iz);
 	  rr_ += R[i]*R[i];
 	  rz_ += R[i]*Z[i];
@@ -799,23 +825,18 @@ void EnzoSolverCg::local_solve_(EnzoBlock * enzo_block)
 
     cello::check(a,"CG::a",__FILE__,__LINE__);
 
-    for (int iz=gz; iz<mz_-gz; iz++) {
-      for (int iy=gy; iy<my_-gy; iy++) {
-	for (int ix=gx; ix<mx_-gx; ix++) {
-	  int i = ix + mx_*(iy + my_*iz);
-          X[i] += a * D[i];
-          R[i] -= a * Y[i];
-          Z[i] = R[i];
-        }
-      }
+    for (int i=0; i<mx_*my_*mz_; i++) {
+      X[i] += a * D[i];
+      R[i] -= a * Y[i];
+      Z[i] = R[i];
     }
 
     rz2_ = 0.0;
     rs_ = 0.0;
     xs_ = 0.0;
-    for (int iz=gz; iz<mz_-gz; iz++) {
-      for (int iy=gy; iy<my_-gy; iy++) {
-	for (int ix=gx; ix<mx_-gx; ix++) {
+    for (int iz=gz_; iz<mz_-gz_; iz++) {
+      for (int iy=gy_; iy<my_-gy_; iy++) {
+	for (int ix=gx_; ix<mx_-gx_; ix++) {
 	  int i = ix + mx_*(iy + my_*iz);
 	  rz2_ += R[i]*Z[i];
 	  rs_  += R[i];
@@ -828,29 +849,20 @@ void EnzoSolverCg::local_solve_(EnzoBlock * enzo_block)
     cello::check(rs_,"CG::rs_",__FILE__,__LINE__);
     cello::check(xs_,"CG::xs_",__FILE__,__LINE__);
 
-    if (A_->is_singular() && ! include_ghosts_) {
-      for (int iz=gz; iz<mz_-gz; iz++) {
-        for (int iy=gy; iy<my_-gy; iy++) {
-          for (int ix=gx; ix<mx_-gx; ix++) {
-            int i = ix + mx_*(iy + my_*iz);
-            X[i] -= enzo_float(xs_/m);
-            R[i] -= enzo_float(rs_/m);
-          }
-        }
+    if (A_->is_singular()) {
+      for (int i=0; i<mx_*my_*mz_; i++) {
+	X[i] -= enzo_float(xs_/bc_);
+	R[i] -= enzo_float(rs_/bc_);
       }
     }
+
 
     enzo_float b = rz2_ / rz_;
 
     cello::check(b,"CG::b",__FILE__,__LINE__);
 
-    for (int iz=gz; iz<mz_-gz; iz++) {
-      for (int iy=gy; iy<my_-gy; iy++) {
-        for (int ix=gx; ix<mx_-gx; ix++) {
-          int i = ix + mx_*(iy + my_*iz);
-          D[i] = Z[i] + b * D[i];
-        }
-      }
+    for (int i=0; i<mx_*my_*mz_; i++) {
+      D[i] = Z[i] + b * D[i];
     }
 
     ++iter_;
@@ -870,6 +882,7 @@ void EnzoSolverCg::local_solve_(EnzoBlock * enzo_block)
     end(enzo_block,return_error);
 
   }
+
 }
 
 //----------------------------------------------------------------------
@@ -879,11 +892,9 @@ void EnzoSolverCg::refresh_local_(int ix,EnzoBlock * enzo_block)
 
   enzo_float * X = (enzo_float*) enzo_block->data()->field().values(ix);
 
-  // If singular matrix and full-domain solve (e.g. coarsest grid block in
-  // multigrid solver for periodic problem) then shift values to null
-  // space and set ghost zones
+  // ASSUMES SINGULAR MATRIX IMPLIES PERIODIC DOMAIN.
 
-  if (A_->is_singular() && ! include_ghosts_) {
+  if (A_->is_singular()) {
 
     // shift first
     shift_local_(ix, enzo_block);
@@ -953,6 +964,13 @@ void EnzoSolverCg::refresh_local_(int ix,EnzoBlock * enzo_block)
 	}
       }
     }
+
+
+  } else {
+
+    ERROR("EnzoSolverCg::refresh_local_()",
+	  "Only periodic boundary conditions available");
+
   }
 
 }
@@ -961,7 +979,7 @@ void EnzoSolverCg::refresh_local_(int ix,EnzoBlock * enzo_block)
 
 void EnzoSolverCg::shift_local_(int i_x,EnzoBlock * enzo_block)
 {
-  if (A_->is_singular() && ! include_ghosts_) {
+  if (A_->is_singular()) {
     enzo_float * X = (enzo_float*) enzo_block->data()->field().values(i_x);
     long double xs = 0.0;
     long double xc = 0.0;
@@ -1005,15 +1023,14 @@ void EnzoSolverCg::monitor_output_(EnzoBlock * enzo_block)
 {
   //  const bool l_is_root = enzo_block->index().is_root();
   const bool l_first_iter = (iter_ == 0);
-  const bool l_diverged   = (iter_ >= iter_max_);
+  const bool l_max_iter   = (iter_ >= iter_max_);
   const bool l_monitor    = (monitor_iter_ && (iter_ % monitor_iter_) == 0 );
   const bool l_converged  = (rr_ / rr0_ < res_tol_);
 
-  const bool l_output = l_monitor && (l_first_iter || l_diverged || l_converged);
+  const bool l_output = l_monitor && (l_first_iter || l_max_iter || l_converged);
 
   if (l_output) {
-    const bool is_final = l_converged || l_diverged;
-    Solver::monitor_output_ (enzo_block,iter_,rr0_,rr_min_,rr_,rr_max_,is_final);
+    Solver::monitor_output_ (enzo_block,iter_,rr0_,rr_min_,rr_,rr_max_);
   }
 
 }
