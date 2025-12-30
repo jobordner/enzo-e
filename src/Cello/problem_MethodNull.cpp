@@ -20,4 +20,5 @@ void MethodNull::init_refresh_()
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_all_fields();
   refresh->add_all_particles();
+  refresh->set_final_sync();
 }
