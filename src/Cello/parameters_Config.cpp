@@ -13,6 +13,14 @@
 
 Config g_config;
 
+// Uncomment to remove Mesh:min_level parameter
+// Should be commented since some regression tests and code implicitly
+// assume min_level = 0. This is a problem for runs that require
+// minimum levels, e.g. multigrid solver, space-filling curve
+// load balancing, and checkpoint / restart
+
+// #define DEPRECIATE_MESH_MIN_LEVEL
+
 //----------------------------------------------------------------------
 
 void Config::pup (PUP::er &p)
@@ -705,18 +713,23 @@ void Config::read_mesh_ (Parameters * p) throw()
   mesh_max_initial_level = p->value_integer
     ("Adapt:max_initial_level",mesh_max_level);
 
-  // Set Adapt:min_level according to root blocking
-  // NOTE: depreciated as a parameter
+  // Note mesh_min_level may be < 0 for multigrid
 
-  int max_root_blocks = std::max( { mx, my, mz } );
-  int array_bits = 0;
-  while (max_root_blocks=(max_root_blocks>>1)) ++array_bits;
-  if (! (p->type("Adapt:min_level") == parameter_unknown)) {
-    WARNING ("Config::read_mesh_()",
-             "Parameters 'Adapt : min_level' is depreciated: ignoring");
-  }
+  // Removing mesh_min_level breaks some regression tests that
+  // implicitly assume no non-leaf blocks (e.g. vlct_dual_energy_shock_tube)
 
-  mesh_min_level = - array_bits;
+#ifdef DEPRECIATE_MESH_MIN_LEVEL
+    int max_root_blocks = std::max( { mx, my, mz } );
+    int array_bits = 0;
+    while (max_root_blocks=(max_root_blocks>>1)) ++array_bits;
+    if (! (p->type("Adapt:min_level") == parameter_unknown)) {
+      WARNING ("Config::read_mesh_()",
+               "Parameters 'Adapt : min_level' is depreciated: ignoring");
+    }
+    mesh_min_level = - array_bits;
+#else
+    mesh_min_level = p->value_integer("Adapt:min_level",0);
+#endif
 
   if ( mesh_min_level > 0 ) {
     ERROR1 ("Config::read", 
