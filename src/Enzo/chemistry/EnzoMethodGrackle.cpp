@@ -431,7 +431,7 @@ double EnzoMethodGrackle::timestep ( Block * block ) throw()
 {
   double dt = std::numeric_limits<double>::max();;
 
-  if (use_cooling_timestep_){
+  if (block->is_leaf() && use_cooling_timestep_){
     Field field = block->data()->field();
 
     enzo_float * cooling_time = field.is_field("cooling_time") ?
