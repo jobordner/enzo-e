@@ -25,7 +25,6 @@ enum class PerfCounterType {
 
 enum PerfCounterIndex {
   perf_cindex_time,
-  perf_cindex_unknown,
   perf_cindex_mem_bytes,
   perf_cindex_mem_bytes_high,
   perf_cindex_mem_bytes_highest,
