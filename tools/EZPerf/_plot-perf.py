@@ -79,7 +79,7 @@ def plot_write(name,html):
     print ("Writing '%s'" % (name))
     plt.savefig(('%s.pdf') % (name), format='pdf')
     plt.savefig(('%s.png') % (name), format='png')
-    html_image(html,name + ".png")
+    html_table_cell_image(html,name + ".png")
 
 #====================================================================== 
 
@@ -99,22 +99,43 @@ def html_stop(html):
     html.write('    </body>\n')
     html.write('</html>\n')
 
-def html_start_table(html):
+def html_table_start(html):
     html.write('      <table>\n')
 
-def html_stop_table(html):
+def html_table_stop(html):
     html.write('      </table>\n')
 
-def html_start_row(html):
+def html_table_row_start(html):
     html.write('         <tr>\n')
 
-def html_stop_row(html):
+def html_table_row_stop(html):
     html.write('         </tr>\n')
 
-def html_image(html,image):
+def html_section_h1(html,name):
+    html.write('<h1> '+name+' </h1>\n')
+def html_section_h2(html,name):
+    html.write('<h2> '+name+' </h2>\n')
+
+def html_table_cell_image(html,image):
     html.write('            <td>\n')
     html.write('              <a href="' +image+'"><img width=480 src="'+image+'"></img></a>\n')
     html.write('            </td>\n')
+
+def plot_time_total(plt,region_list,html):
+    plot_open(plt,'Enzo-E: cumulative times','cycle','time (s)');
+    plot_total(plt,'cycle.data','cycle',scale=1.0)
+    plot_list(plt,region_list)
+    plt.legend(loc='lower center',ncols=3)
+    plt.yscale('log')
+    plot_write('plot_time_total',html)
+
+# ----------------------------------------------------------------------
+def plot_time_cycle(plt,region_list,html):
+    plot_open(plt,'Enzo-E: per-cycle times','cycle','time (s)');
+    plot_total(plt,'cycle.data','cycle',scale=1.0,type='cycle')
+    plot_list(plt,region_list,type='cycle')
+    plt.legend(loc='lower center',ncols=3)
+    plot_write('plot_time_cycle',html)
 
 # ----------------------------------------------------------------------
 
@@ -129,41 +150,38 @@ figure(figsize=(8,6), dpi=100)
 
 html=html_start()
 
-html_start_table(html)
+html_section_h2(html,"Simulation Times")
+
+html_table_start(html)
 
 # ======================================================================
 # ROW 1: TIMES SUMMARY
 # ======================================================================
 
 
-html_start_row(html)
+html_table_row_start(html)
 
 # ----------------------------------------------------------------------
 region_list = ['method.data', 'solver.data', 'refresh.data', 'adapt.data', 'reduce.data']
 if os.path.exists('smp.data'):
     region_list.append('smp.data')
 
-plot_open(plt,'Enzo-E: cumulative times','cycle','time (s)');
-plot_total(plt,'cycle.data','cycle',scale=1.0)
-plot_list(plt,region_list)
-plt.legend(loc='lower center',ncols=3)
-plt.yscale('log')
-plot_write('plot_time_total',html)
-# ----------------------------------------------------------------------
-plot_open(plt,'Enzo-E: per-cycle times','cycle','time (s)');
-plot_total(plt,'cycle.data','cycle',scale=1.0,type='cycle')
-plot_list(plt,region_list,type='cycle')
-plt.legend(loc='lower center',ncols=3)
-plot_write('plot_time_cycle',html)
+plot_time_total(plt,region_list,html)
+plot_time_cycle(plt,region_list,html)
+
 # ----------------------------------------------------------------------
 
-html_stop_row(html)
+html_table_row_stop(html)
+html_table_stop(html)
 
 # ======================================================================
 # ROW 2: MEMORY, BLOCKS, BALANCE
 # ======================================================================
 
-html_start_row(html)
+html_section_h2(html,"Memory usage, mesh blocks, and load balance")
+
+html_table_start(html)
+html_table_row_start(html)
 
 # ----------------------------------------------------------------------
 plot_open(plt,'Enzo-E: memory usage','cycle','bytes');
@@ -187,13 +205,17 @@ plot_write('plot_balance_eff',html)
 # ----------------------------------------------------------------------
 
 
-html_stop_row(html)
+html_table_row_stop(html)
+html_table_stop(html)
 
 # ======================================================================
 # ROW 3: TOTAL TIMES
 # ======================================================================
 
-html_start_row(html)
+html_section_h2(html,"Region cumulative times")
+
+html_table_start(html)
+html_table_row_start(html)
 
 # ----------------------------------------------------------------------
 plot_open(plt,'Enzo-E: cumulative time in method','cycle','time (s)');
@@ -233,13 +255,17 @@ if os.path.exists('smp.data'):
     plot_write('plot_smp_total',html)
 # ----------------------------------------------------------------------
 
-html_stop_row(html)
+html_table_row_stop(html)
+html_table_stop(html)
 
 # ======================================================================
 # ROW 4: CYCLE TIMES
 # ======================================================================
 
-html_start_row(html)
+html_section_h2(html,"Region per-cycle times")
+
+html_table_start(html)
+html_table_row_start(html)
 
 # ----------------------------------------------------------------------
 plot_open(plt,'Enzo-E: per-cycle time in method','cycle','time (s)');
@@ -274,9 +300,9 @@ if os.path.exists('smp.data'):
     plot_write('plot_smp_cycle',html)
 # ----------------------------------------------------------------------
 
-html_stop_row(html)
+html_table_row_stop(html)
 
 # ======================================================================
 
-html_stop_table(html)
+html_table_stop(html)
 html_stop(html)
