@@ -1,32 +1,30 @@
 * Enzo-E/Cello Tools
-
-** TODO `awk/diff-org.awk` : *Convert "git diff" output to org-mode*
-** TODO `awk/error-org.awk` : *Convert compiler (gcc) errors to org-mode*
-** TODO `awk/gdb-org.awk` : *Convert gdb frame info to org-mode*
-** TODO `awk/grep-org.awk` : *Convert `"grep -n"` output to org-mode*
-** TODO `awk/ls-org.awk`
-** TODO `awk/perf-summary.awk`
-** TODO `awk/valgrind-org.awk`
-** TODO `awk/warning-org.awk` : *Convert compiler (gcc) warnings to org-made*
-** TODO `cello_parse.py`
-** TODO `check-ppm.sh`
-** TODO `ch-perf.py` : *Create performance plots (broken)*
-** TODO `ch-perf.sh`
-** TODO `ckpt_restart_test.py`
-** TODO `EZPerf`
-** TODO `EZPerf/data-deriv.sh`
-** TODO `EZPerf/data-integ.sh`
-** TODO `EZPerf/ez-perf.sh`
-** TODO `EZPerf/_plot-perf.py`
-** TODO `field_summary.py`
-** TODO `gen_grackle_testing_file.py`
-** TODO `grep-org.sh` : *Create grep.org org-mode file of grep output*
-** TODO `l1_error_norm.py`
-** TODO `plot_mesh8.py`
-** TODO `plot_mesh.py` : *Plots mesh associated with a list of Block names*
-** TODO `plot_mesh_short.py`
-** TODO `regenerate_parser.py`
-** TODO `run_cpp_test.py`
-** TODO `test_report.py`
+** TODO awk/diff-org.awk : *Convert "git diff" output to org-mode*
+** TODO awk/error-org.awk : *Convert compiler (gcc) errors to org-mode*
+** TODO awk/gdb-org.awk : *Convert gdb frame info to org-mode*
+** TODO awk/grep-org.awk : *Convert "grep -n" output to org-mode*
+** TODO awk/ls-org.awk
+** TODO awk/perf-summary.awk
+** TODO awk/valgrind-org.awk
+** TODO awk/warning-org.awk : *Convert compiler (gcc) warnings to org-made*
+** TODO cello_parse.py
+** TODO check-ppm.sh
+** TODO ch-perf.py : *Create performance plots (broken)*
+** TODO ch-perf.sh
+** TODO ckpt_restart_test.py
+** TODO EZPerf/data-deriv.sh
+** TODO EZPerf/data-integ.sh
+** TODO EZPerf/ez-perf.sh
+** TODO EZPerf/_plot-perf.py
+** TODO field_summary.py
+** TODO gen_grackle_testing_file.py
+** TODO grep-org.sh : *Create grep.org org-mode file of grep output*
+** TODO l1_error_norm.py
+** TODO plot_mesh8.py
+** TODO plot_mesh.py : *Plots mesh associated with a list of Block names*
+** TODO plot_mesh_short.py
+** TODO regenerate_parser.py
+** TODO run_cpp_test.py
+** TODO test_report.py
 
 

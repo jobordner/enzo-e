@@ -435,59 +435,59 @@ public:
 
   void p_adapt_enter()
   {
-    PERF_ADAPT_START(perf_adapt_enter);
+    PERF_ADAPT_START(perf_rindex_adapt_enter);
     adapt_enter_();
-    PERF_ADAPT_STOP(perf_adapt_enter);
-    PERF_ADAPT_POST(perf_adapt_enter_post);
+    PERF_ADAPT_STOP(perf_rindex_adapt_enter);
+    PERF_ADAPT_POST(perf_rindex_adapt_enter_post);
   }
   void r_adapt_enter(CkReductionMsg * msg)
   {
-    PERF_ADAPT_START(perf_adapt_enter);
+    PERF_ADAPT_START(perf_rindex_adapt_enter);
     delete msg;
     adapt_enter_();
-    PERF_ADAPT_STOP(perf_adapt_enter);
-    PERF_ADAPT_POST(perf_adapt_enter_post);
+    PERF_ADAPT_STOP(perf_rindex_adapt_enter);
+    PERF_ADAPT_POST(perf_rindex_adapt_enter_post);
   }
 
   void r_adapt_next(CkReductionMsg * msg)
   {
-    PERF_ADAPT_START(perf_adapt_next);
+    PERF_ADAPT_START(perf_rindex_adapt_next);
     adapt_changed_ = *((int * )msg->getData());
     delete msg;
     adapt_next_();
-    PERF_ADAPT_STOP(perf_adapt_next);
-    PERF_ADAPT_POST(perf_adapt_next_post);
+    PERF_ADAPT_STOP(perf_rindex_adapt_next);
+    PERF_ADAPT_POST(perf_rindex_adapt_next_post);
   }
 
   void p_adapt_called()
   {
-    PERF_ADAPT_START(perf_adapt_called);
+    PERF_ADAPT_START(perf_rindex_adapt_called);
     adapt_called_();
-    PERF_ADAPT_STOP(perf_adapt_called);
-    PERF_ADAPT_POST(perf_adapt_called_post);
+    PERF_ADAPT_STOP(perf_rindex_adapt_called);
+    PERF_ADAPT_POST(perf_rindex_adapt_called_post);
   }
 
   void p_adapt_end ()
   {
-    PERF_ADAPT_START(perf_adapt_end);
+    PERF_ADAPT_START(perf_rindex_adapt_end);
     adapt_end_();
-    PERF_ADAPT_STOP(perf_adapt_end);
-    PERF_ADAPT_POST(perf_adapt_end_post);
+    PERF_ADAPT_STOP(perf_rindex_adapt_end);
+    PERF_ADAPT_POST(perf_rindex_adapt_end_post);
   }
   void p_adapt_update()
   {
-    PERF_ADAPT_START(perf_adapt_update);
+    PERF_ADAPT_START(perf_rindex_adapt_update);
     adapt_update_();
-    PERF_ADAPT_STOP(perf_adapt_update);
-    PERF_ADAPT_POST(perf_adapt_update_post);
+    PERF_ADAPT_STOP(perf_rindex_adapt_update);
+    PERF_ADAPT_POST(perf_rindex_adapt_update_post);
   }
 
   void p_adapt_exit()
   {
-    PERF_ADAPT_START(perf_adapt_exit);
+    PERF_ADAPT_START(perf_rindex_adapt_exit);
     adapt_exit_();
-    PERF_ADAPT_STOP(perf_adapt_exit);
-    PERF_ADAPT_POST(perf_adapt_exit_post);
+    PERF_ADAPT_STOP(perf_rindex_adapt_exit);
+    PERF_ADAPT_POST(perf_rindex_adapt_exit_post);
   }
 
   /// Parent tells child to delete itself
@@ -721,16 +721,16 @@ public:
   /// Enter the stopping phase
   void p_stopping_enter ()
   {
-    PERF_START(perf_stopping);
+    PERF_START(perf_rindex_stopping);
     stopping_enter_();
-    PERF_STOP(perf_stopping);
+    PERF_STOP(perf_rindex_stopping);
   }
   void r_stopping_enter (CkReductionMsg * msg)
   {
-    PERF_START(perf_stopping);
+    PERF_START(perf_rindex_stopping);
     delete msg;
     stopping_enter_();
-    PERF_STOP(perf_stopping);
+    PERF_STOP(perf_rindex_stopping);
   }
 
   void r_stopping_load_balance(CkReductionMsg * msg);
@@ -758,16 +758,16 @@ public:
   /// Exit the stopping phase to exit
   void p_exit ()
   {
-    PERF_START(perf_exit);
+    PERF_START(perf_rindex_exit);
     exit_();
-    PERF_STOP(perf_exit);
+    PERF_STOP(perf_rindex_exit);
   }
   void r_exit (CkReductionMsg * msg)
   {
-    PERF_START(perf_exit);
+    PERF_START(perf_rindex_exit);
     delete msg;
     exit_();
-    PERF_STOP(perf_exit);
+    PERF_STOP(perf_rindex_exit);
   }
 protected:
 

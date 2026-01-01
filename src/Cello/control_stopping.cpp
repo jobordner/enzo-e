@@ -43,7 +43,7 @@ void Block::stopping_enter_()
 
 void Block::stopping_begin_()
 {
-  PERF_START(perf_stopping);
+  PERF_START(perf_rindex_stopping);
   TRACE_STOPPING("Block::stopping_begin_");
 
   Simulation * simulation = cello::simulation();
@@ -103,7 +103,7 @@ void Block::stopping_begin_()
     CkPrintf ("%s %s:%d DEBUG_CONTRIBUTE\n",
 	      name().c_str(),__FILE__,__LINE__); fflush(stdout);
 #endif    
-    /*    PERF_REDUCE_START(perf_reduce_stopping); */
+    /*    PERF_REDUCE_START(perf_rindex_reduce_stopping); */
     contribute(2*sizeof(double), min_reduce, CkReduction::min_double, callback);
 
   } else {
@@ -111,15 +111,15 @@ void Block::stopping_begin_()
     stopping_balance_();
 
   }
-  PERF_STOP(perf_stopping);
+  PERF_STOP(perf_rindex_stopping);
 }
 
 //----------------------------------------------------------------------
 
 void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 {
-  /* PERF_REDUCE_STOP(perf_reduce_stopping); */
-  PERF_START(perf_stopping);
+  /* PERF_REDUCE_STOP(perf_rindex_reduce_stopping); */
+  PERF_START(perf_rindex_stopping);
   
   TRACE_STOPPING("Block::r_stopping_compute_timestep");
   
@@ -174,7 +174,7 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 
   stopping_balance_();
 
-  PERF_STOP(perf_stopping);
+  PERF_STOP(perf_rindex_stopping);
 }
 
 //----------------------------------------------------------------------
@@ -207,7 +207,7 @@ void Block::stopping_balance_()
       (CkIndex_Block::r_stopping_load_balance(nullptr),
        proxy_array());
     adapt_ready_ = true;
-    PERF_REDUCE_START(perf_reduce_balance);
+    PERF_REDUCE_START(perf_rindex_reduce_balance);
     contribute(callback);
   } else {
 
@@ -221,8 +221,8 @@ void Block::stopping_balance_()
 void Block::r_stopping_load_balance(CkReductionMsg *msg)
 {
   delete msg;
-  PERF_REDUCE_STOP(perf_reduce_balance);
-  PERF_START(perf_stopping);
+  PERF_REDUCE_STOP(perf_rindex_reduce_balance);
+  PERF_START(perf_rindex_stopping);
   TRACE_STOPPING("load_balance begin");
   cello::simulation()->set_phase (phase_balance);
 
@@ -246,7 +246,7 @@ void Block::ResumeFromSync()
   // monitor->set_mode(mode_saved);
 
   TRACE_STOPPING("load_balance exit");
-  PERF_STOP(perf_balance);
+  PERF_STOP(perf_rindex_balance);
   stopping_exit_();
 
 }

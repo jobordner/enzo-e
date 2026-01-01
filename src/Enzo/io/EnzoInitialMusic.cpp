@@ -129,7 +129,7 @@ void EnzoInitialMusic::enforce_block
 
     if (throttle_intranode_) {
 #ifdef CONFIG_SMP_MODE
-      PERF_SMP_START(perf_smp_initial_music);
+      PERF_SMP_START(perf_rindex_smp_initial_music);
       CmiLock(throttle_node_lock);
 #endif
     }
@@ -272,7 +272,7 @@ void EnzoInitialMusic::enforce_block
     if (throttle_intranode_) {
 #ifdef CONFIG_SMP_MODE
       CmiUnlock(throttle_node_lock);
-      PERF_SMP_STOP(perf_smp_initial_music);
+      PERF_SMP_STOP(perf_rindex_smp_initial_music);
 #endif
     }
   }
@@ -283,7 +283,7 @@ void EnzoInitialMusic::enforce_block
 
     if (throttle_intranode_) {
 #ifdef CONFIG_SMP_MODE
-      PERF_SMP_START(perf_smp_initial_music);
+      PERF_SMP_START(perf_rindex_smp_initial_music);
       CmiLock(throttle_node_lock);
 #endif
     }
@@ -413,7 +413,7 @@ void EnzoInitialMusic::enforce_block
     if (throttle_intranode_) {
 #ifdef CONFIG_SMP_MODE
       CmiUnlock(throttle_node_lock);
-      PERF_SMP_STOP(perf_smp_initial_music);
+      PERF_SMP_STOP(perf_rindex_smp_initial_music);
 #endif
     }
     

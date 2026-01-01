@@ -14,106 +14,101 @@
 
 /// @enum     counter_type_enum
 /// @brief    Counter value type
-enum counter_type_enum {
-  counter_type_unknown,
-  counter_type_rel,
-  counter_type_abs,
-  counter_type_papi,
-  counter_type_user,
-  num_counter_type
+
+enum class PerfCounterType {
+  Unknown,
+  Relative,
+  Absolute,
+  Papi,
+  User
 };
 
-enum index_enum {
-  perf_index_time,
-  perf_index_bytes,
-  perf_index_bytes_high,
-  perf_index_bytes_highest,
-  perf_index_bytes_available,
-  perf_index_last,
-  num_perf_index = perf_index_last
+enum PerfCounterIndex {
+  perf_cindex_time,
+  perf_cindex_unknown,
+  perf_cindex_mem_bytes,
+  perf_cindex_mem_bytes_high,
+  perf_cindex_mem_bytes_highest,
+  perf_cindex_mem_bytes_available,
+  perf_cindex_mem_last
 };
 
 /// @enum    perf_region
 /// @brief   region ID's for the Simulation performance object
-enum perf_region {
-  perf_unknown,
-  perf_simulation,
-  perf_cycle,
-  perf_initial,
-  perf_adapt,
-  perf_adapt_post,
-  perf_adapt_enter,
-  perf_adapt_enter_post,
-  perf_adapt_end,
-  perf_adapt_end_post,
-  perf_adapt_update,
-  perf_adapt_update_post,
-  perf_adapt_next,
-  perf_adapt_next_post,
-  perf_adapt_called,
-  perf_adapt_called_post,
-  perf_adapt_exit,
-  perf_adapt_exit_post,
-  perf_adapt_delete,
-  perf_adapt_delete_post,
-  perf_adapt_recv_level,
-  perf_adapt_recv_level_post,
-  perf_adapt_recv_child,
-  perf_adapt_recv_child_post,
-  perf_reduce,
-  perf_reduce_stopping,
-  perf_reduce_adapt,
-  perf_reduce_charm,
-  perf_reduce_initialize,
-  perf_reduce_output,
-  perf_reduce_restart,
-  perf_reduce_balance,
-  perf_reduce_method_balance,
-  perf_reduce_method_check,
-  perf_reduce_method_inference,
-  perf_reduce_method_m1_closure,
-  perf_reduce_method_turbulence,
-  perf_reduce_simulation,
-  perf_reduce_solver_bicgstab,
-  perf_reduce_solver_cg,
-  perf_reduce_solver_dd,
-  perf_reduce_solver_mg0,
-  perf_reduce_method_debug,
-  perf_reduce_method_flux_correct,
-  perf_reduce_method_order_hilbert,
-  perf_reduce_method_order_morton,
-  perf_reduce_method_output,
-  perf_refresh,
-  perf_refresh_post,
-  perf_refresh_start,
-  perf_refresh_start_post,
-  perf_refresh_recv,
-  perf_refresh_recv_post,
-  perf_refresh_child,
-  perf_refresh_child_post,
-  perf_refresh_exit,
-  perf_refresh_exit_post,
-#ifdef CONFIG_SMP_MODE
-  perf_smp,
-  perf_smp_field_face,
-  perf_smp_hierarchy,
-  perf_smp_initial_music,
-  perf_smp_initial_value,
-  perf_smp_method_close_files,
-  perf_smp_solver_bcg,
-#endif
-  perf_balance,
-  perf_control,
-  perf_method,
-  perf_solver,
-  perf_output,
-  perf_stopping,
-  perf_block,
-  perf_exit,
-#ifdef CONFIG_USE_GRACKLE
-  perf_grackle,
-#endif
-  num_perf_region
+enum PerfRegionIndex {
+  perf_rindex_unknown,
+  perf_rindex_simulation,
+  perf_rindex_cycle,
+  perf_rindex_initial,
+  perf_rindex_adapt,
+  perf_rindex_adapt_post,
+  perf_rindex_adapt_enter,
+  perf_rindex_adapt_enter_post,
+  perf_rindex_adapt_end,
+  perf_rindex_adapt_end_post,
+  perf_rindex_adapt_update,
+  perf_rindex_adapt_update_post,
+  perf_rindex_adapt_next,
+  perf_rindex_adapt_next_post,
+  perf_rindex_adapt_called,
+  perf_rindex_adapt_called_post,
+  perf_rindex_adapt_exit,
+  perf_rindex_adapt_exit_post,
+  perf_rindex_adapt_delete,
+  perf_rindex_adapt_delete_post,
+  perf_rindex_adapt_recv_level,
+  perf_rindex_adapt_recv_level_post,
+  perf_rindex_adapt_recv_child,
+  perf_rindex_adapt_recv_child_post,
+  perf_rindex_reduce,
+  perf_rindex_reduce_stopping,
+  perf_rindex_reduce_adapt,
+  perf_rindex_reduce_charm,
+  perf_rindex_reduce_initialize,
+  perf_rindex_reduce_output,
+  perf_rindex_reduce_restart,
+  perf_rindex_reduce_balance,
+  perf_rindex_reduce_method_balance,
+  perf_rindex_reduce_method_check,
+  perf_rindex_reduce_method_inference,
+  perf_rindex_reduce_method_m1_closure,
+  perf_rindex_reduce_method_turbulence,
+  perf_rindex_reduce_simulation,
+  perf_rindex_reduce_solver_bicgstab,
+  perf_rindex_reduce_solver_cg,
+  perf_rindex_reduce_solver_dd,
+  perf_rindex_reduce_solver_mg0,
+  perf_rindex_reduce_method_debug,
+  perf_rindex_reduce_method_flux_correct,
+  perf_rindex_reduce_method_order_hilbert,
+  perf_rindex_reduce_method_order_morton,
+  perf_rindex_reduce_method_output,
+  perf_rindex_refresh,
+  perf_rindex_refresh_post,
+  perf_rindex_refresh_start,
+  perf_rindex_refresh_start_post,
+  perf_rindex_refresh_recv,
+  perf_rindex_refresh_recv_post,
+  perf_rindex_refresh_child,
+  perf_rindex_refresh_child_post,
+  perf_rindex_refresh_exit,
+  perf_rindex_refresh_exit_post,
+  perf_rindex_smp,
+  perf_rindex_smp_field_face,
+  perf_rindex_smp_hierarchy,
+  perf_rindex_smp_initial_music,
+  perf_rindex_smp_initial_value,
+  perf_rindex_smp_method_close_files,
+  perf_rindex_smp_solver_bcg,
+  perf_rindex_balance,
+  perf_rindex_control,
+  perf_rindex_method,
+  perf_rindex_solver,
+  perf_rindex_output,
+  perf_rindex_stopping,
+  perf_rindex_block,
+  perf_rindex_exit,
+  perf_rindex_grackle
 };
 
 class Config;
@@ -142,7 +137,7 @@ public: // interface
      region_multiplicity_(),
      region_in_charm_(),
      warnings_(false),
-     index_region_current_(perf_unknown)
+     index_region_current_(perf_rindex_unknown)
 #ifdef CONFIG_USE_PAPI
      ,
      papi_(),
@@ -204,7 +199,7 @@ public: // interface
   { return counter_name_.size(); }
 
   ///  	Create a new user counter.
-  int new_counter(int counter_type, std::string counter_name);
+  int new_counter(PerfCounterType type, std::string counter_name);
 
   ///  	Return the value of a counter.
   long long counter(int index_counter) throw();
@@ -220,7 +215,7 @@ public: // interface
   { return counter_name_[index_counter]; }
 
   /// Return the type of the given counter index
-  int counter_type (int index) const throw()
+  PerfCounterType counter_type (int index) const throw()
   { return counter_type_[index]; }
 
   /// Return number of regions
@@ -301,7 +296,7 @@ private: // attributes
   std::vector<std::string> counter_name_;
 
   /// Counter types
-  std::vector<int> counter_type_;
+  std::vector<PerfCounterType> counter_type_;
 
   /// Counter values
   std::vector<long long> counter_values_;

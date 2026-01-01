@@ -126,21 +126,21 @@ Block::Block ( process_type ip_source, MsgType msg_type )
   CkPrintf ("%d TRACE_BLOCK %s Block::Block(ip)\n",  CkMyPe(),name(thisIndex).c_str());
 #endif
 
-  PERF_START(perf_block);
+  PERF_START(perf_rindex_block);
 
   init_refresh_();
   usesAtSync = true;
 
   thisIndex.array(array_,array_+1,array_+2);
 
-  PERF_STOP(perf_block);
+  PERF_STOP(perf_rindex_block);
 }
 
 //----------------------------------------------------------------------
 
 void Block::p_set_msg_refine(MsgRefine * msg)
 {
-  PERF_START(perf_block);
+  PERF_START(perf_rindex_block);
 
   init_refine_ (msg->index_,
 	msg->nx_, msg->ny_, msg->nz_,
@@ -167,7 +167,7 @@ void Block::p_set_msg_refine(MsgRefine * msg)
   fflush(stdout);
 #endif
   delete msg;
-  PERF_STOP(perf_block);
+  PERF_STOP(perf_rindex_block);
 }
 
 //----------------------------------------------------------------------
@@ -700,7 +700,7 @@ void Block::p_refresh_child
  int    ic3[3]
  )
 {
-  PERF_START(perf_refresh_child);
+  PERF_START(perf_rindex_refresh_child);
   int if3[3] = {0,0,0};
   int  g3[3] = {0,0,0};
   Refresh * refresh = new Refresh;
@@ -712,8 +712,8 @@ void Block::p_refresh_child
   field_face -> array_to_face (buffer, data()->field());
   delete field_face;
 
-  PERF_STOP(perf_refresh_child);
-  PERF_START(perf_refresh_child_post);
+  PERF_STOP(perf_rindex_refresh_child);
+  PERF_START(perf_rindex_refresh_child_post);
 }
 
 //----------------------------------------------------------------------

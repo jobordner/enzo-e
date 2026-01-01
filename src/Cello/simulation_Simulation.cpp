@@ -18,8 +18,8 @@
 // #define DEBUG_SIMULATION
 // #define DEBUG_MSG_REFINE
 
-int Simulation::perf_method_base = 0;
-int Simulation::perf_solver_base = 0;
+int Simulation::perf_method_base_rindex = 0;
+int Simulation::perf_solver_base_rindex = 0;
 
 Simulation::Simulation
 (
@@ -313,7 +313,7 @@ void Simulation::finalize() throw()
 {
   TRACE0;
 
-  PERF_STOP(perf_simulation);
+  PERF_STOP(perf_rindex_simulation);
 
   performance_->end();
 
@@ -387,104 +387,104 @@ void Simulation::initialize_performance_() throw()
   performance_ = new Performance (config_);
 
   Performance * p = performance_;
-  p->new_region(perf_unknown,            "unknown");
-  p->new_region(perf_simulation,         "simulation");
-  p->new_region(perf_cycle,              "cycle");
-  p->new_region(perf_initial,            "initial");
+  p->new_region(perf_rindex_unknown,            "unknown");
+  p->new_region(perf_rindex_simulation,         "simulation");
+  p->new_region(perf_rindex_cycle,              "cycle");
+  p->new_region(perf_rindex_initial,            "initial");
 
   const bool in_charm = true;
-  p->new_region(perf_adapt,                 "adapt");
-  p->new_region(perf_adapt_post,            "adapt_post",in_charm);
-  p->new_region(perf_adapt_enter,           "adapt_enter");
-  p->new_region(perf_adapt_enter_post,      "adapt_enter_post",in_charm);
-  p->new_region(perf_adapt_end,             "adapt_end");
-  p->new_region(perf_adapt_end_post,        "adapt_end_post",in_charm);
-  p->new_region(perf_adapt_update,          "adapt_update");
-  p->new_region(perf_adapt_update_post,     "adapt_update_post",in_charm);
-  p->new_region(perf_adapt_next,            "adapt_next");
-  p->new_region(perf_adapt_next_post,       "adapt_next_post",in_charm);
-  p->new_region(perf_adapt_called,          "adapt_called");
-  p->new_region(perf_adapt_called_post,     "adapt_called_post",in_charm);
-  p->new_region(perf_adapt_exit,            "adapt_exit");
-  p->new_region(perf_adapt_exit_post,       "adapt_exit_post",in_charm);
-  p->new_region(perf_adapt_delete,          "adapt_delete");
-  p->new_region(perf_adapt_delete_post,     "adapt_delete_post",in_charm);
-  p->new_region(perf_adapt_recv_level,      "adapt_recv_level");
-  p->new_region(perf_adapt_recv_level_post, "adapt_recv_level_post",in_charm);
-  p->new_region(perf_adapt_recv_child,      "adapt_recv_child");
-  p->new_region(perf_adapt_recv_child_post, "adapt_recv_child_post",in_charm);
-  p->new_region(perf_refresh,               "refresh");
-  p->new_region(perf_refresh_post,          "refresh_post",in_charm);
-  p->new_region(perf_refresh_recv,          "refresh_recv");
-  p->new_region(perf_refresh_recv_post,     "refresh_recv_post",in_charm);
-  p->new_region(perf_refresh_exit,          "refresh_exit");
-  p->new_region(perf_refresh_exit_post,     "refresh_exit_post",in_charm);
-  p->new_region(perf_refresh_child,         "refresh_child");
-  p->new_region(perf_refresh_child_post,    "refresh_child_post",in_charm);
+  p->new_region(perf_rindex_adapt,                 "adapt");
+  p->new_region(perf_rindex_adapt_post,            "adapt_post",in_charm);
+  p->new_region(perf_rindex_adapt_enter,           "adapt_enter");
+  p->new_region(perf_rindex_adapt_enter_post,      "adapt_enter_post",in_charm);
+  p->new_region(perf_rindex_adapt_end,             "adapt_end");
+  p->new_region(perf_rindex_adapt_end_post,        "adapt_end_post",in_charm);
+  p->new_region(perf_rindex_adapt_update,          "adapt_update");
+  p->new_region(perf_rindex_adapt_update_post,     "adapt_update_post",in_charm);
+  p->new_region(perf_rindex_adapt_next,            "adapt_next");
+  p->new_region(perf_rindex_adapt_next_post,       "adapt_next_post",in_charm);
+  p->new_region(perf_rindex_adapt_called,          "adapt_called");
+  p->new_region(perf_rindex_adapt_called_post,     "adapt_called_post",in_charm);
+  p->new_region(perf_rindex_adapt_exit,            "adapt_exit");
+  p->new_region(perf_rindex_adapt_exit_post,       "adapt_exit_post",in_charm);
+  p->new_region(perf_rindex_adapt_delete,          "adapt_delete");
+  p->new_region(perf_rindex_adapt_delete_post,     "adapt_delete_post",in_charm);
+  p->new_region(perf_rindex_adapt_recv_level,      "adapt_recv_level");
+  p->new_region(perf_rindex_adapt_recv_level_post, "adapt_recv_level_post",in_charm);
+  p->new_region(perf_rindex_adapt_recv_child,      "adapt_recv_child");
+  p->new_region(perf_rindex_adapt_recv_child_post, "adapt_recv_child_post",in_charm);
+  p->new_region(perf_rindex_refresh,               "refresh");
+  p->new_region(perf_rindex_refresh_post,          "refresh_post",in_charm);
+  p->new_region(perf_rindex_refresh_recv,          "refresh_recv");
+  p->new_region(perf_rindex_refresh_recv_post,     "refresh_recv_post",in_charm);
+  p->new_region(perf_rindex_refresh_exit,          "refresh_exit");
+  p->new_region(perf_rindex_refresh_exit_post,     "refresh_exit_post",in_charm);
+  p->new_region(perf_rindex_refresh_child,         "refresh_child");
+  p->new_region(perf_rindex_refresh_child_post,    "refresh_child_post",in_charm);
 
-  p->new_region(perf_reduce,                "reduce");
-  p->new_region(perf_reduce_adapt,          "reduce_adapt");
-  p->new_region(perf_reduce_charm,          "reduce_charm");
-  p->new_region(perf_reduce_initialize,     "reduce_initialize");
-  p->new_region(perf_reduce_method_balance, "reduce_method_balance");
-  p->new_region(perf_reduce_method_check,   "reduce_method_check");
-  p->new_region(perf_reduce_method_debug,   "reduce_method_debug");
-  p->new_region(perf_reduce_method_flux_correct,"reduce_method_flux_correct");
-  p->new_region(perf_reduce_method_inference, "reduce_method_inference");
-  p->new_region(perf_reduce_method_m1_closure,"reduce_method_m1_closure");
-  p->new_region(perf_reduce_method_order_hilbert,"reduce_method_order_hilbert");
-  p->new_region(perf_reduce_method_order_morton,"reduce_method_order_morton");
-  p->new_region(perf_reduce_method_output,  "reduce_method_output");
-  p->new_region(perf_reduce_method_turbulence,"reduce_method_turbulence");
-  p->new_region(perf_reduce_output,         "reduce_output");
-  p->new_region(perf_reduce_restart,        "reduce_restart");
-  p->new_region(perf_reduce_simulation,     "reduce_simulation");
-  p->new_region(perf_reduce_solver_bicgstab,"reduce_solver_bicgstab");
-  p->new_region(perf_reduce_solver_cg,      "reduce_solver_cg");
-  p->new_region(perf_reduce_solver_dd,      "reduce_solver_dd");
-  p->new_region(perf_reduce_solver_mg0,     "reduce_solver_mg0");
-  p->new_region(perf_reduce_stopping,       "reduce_stopping");
+  p->new_region(perf_rindex_reduce,                "reduce");
+  p->new_region(perf_rindex_reduce_adapt,          "reduce_adapt");
+  p->new_region(perf_rindex_reduce_charm,          "reduce_charm");
+  p->new_region(perf_rindex_reduce_initialize,     "reduce_initialize");
+  p->new_region(perf_rindex_reduce_method_balance, "reduce_method_balance");
+  p->new_region(perf_rindex_reduce_method_check,   "reduce_method_check");
+  p->new_region(perf_rindex_reduce_method_debug,   "reduce_method_debug");
+  p->new_region(perf_rindex_reduce_method_flux_correct,"reduce_method_flux_correct");
+  p->new_region(perf_rindex_reduce_method_inference, "reduce_method_inference");
+  p->new_region(perf_rindex_reduce_method_m1_closure,"reduce_method_m1_closure");
+  p->new_region(perf_rindex_reduce_method_order_hilbert,"reduce_method_order_hilbert");
+  p->new_region(perf_rindex_reduce_method_order_morton,"reduce_method_order_morton");
+  p->new_region(perf_rindex_reduce_method_output,  "reduce_method_output");
+  p->new_region(perf_rindex_reduce_method_turbulence,"reduce_method_turbulence");
+  p->new_region(perf_rindex_reduce_output,         "reduce_output");
+  p->new_region(perf_rindex_reduce_restart,        "reduce_restart");
+  p->new_region(perf_rindex_reduce_simulation,     "reduce_simulation");
+  p->new_region(perf_rindex_reduce_solver_bicgstab,"reduce_solver_bicgstab");
+  p->new_region(perf_rindex_reduce_solver_cg,      "reduce_solver_cg");
+  p->new_region(perf_rindex_reduce_solver_dd,      "reduce_solver_dd");
+  p->new_region(perf_rindex_reduce_solver_mg0,     "reduce_solver_mg0");
+  p->new_region(perf_rindex_reduce_stopping,       "reduce_stopping");
 
 #ifdef CONFIG_SMP_MODE
-  p->new_region(perf_smp,                     "smp");
-  p->new_region(perf_smp_field_face,          "smp_field_face");
-  p->new_region(perf_smp_hierarchy,           "smp_hierarchy");
-  p->new_region(  perf_smp_initial_music,     "smp_initial_music");
-  p->new_region(  perf_smp_initial_value,     "smp_initial_value");
-  p->new_region(  perf_smp_method_close_files,"smp_method_close_files");
-  p->new_region(  perf_smp_solver_bcg,        "smp_solver_bcg");
+  p->new_region(perf_rindex_smp,                     "smp");
+  p->new_region(perf_rindex_smp_field_face,          "smp_field_face");
+  p->new_region(perf_rindex_smp_hierarchy,           "smp_hierarchy");
+  p->new_region(perf_rindex_smp_initial_music,     "smp_initial_music");
+  p->new_region(perf_rindex_smp_initial_value,     "smp_initial_value");
+  p->new_region(perf_rindex_smp_method_close_files,"smp_method_close_files");
+  p->new_region(perf_rindex_smp_solver_bcg,        "smp_solver_bcg");
 #endif
-  p->new_region(perf_method,                "method");
-  p->new_region(perf_solver,                "solver");
-  p->new_region(perf_control,               "control");
-  p->new_region(perf_output,                "output");
-  p->new_region(perf_balance,               "balance");
-  p->new_region(perf_stopping,              "stopping");
-  p->new_region(perf_block,                 "block");
-  p->new_region(perf_exit,                  "exit");
+  p->new_region(perf_rindex_method,                "method");
+  p->new_region(perf_rindex_solver,                "solver");
+  p->new_region(perf_rindex_control,               "control");
+  p->new_region(perf_rindex_output,                "output");
+  p->new_region(perf_rindex_balance,               "balance");
+  p->new_region(perf_rindex_stopping,              "stopping");
+  p->new_region(perf_rindex_block,                 "block");
+  p->new_region(perf_rindex_exit,                  "exit");
 
 #ifdef CONFIG_USE_GRACKLE
-  p->new_region(perf_grackle,            "grackle");
+  p->new_region(perf_rindex_grackle,            "grackle");
 #endif
 
   // Initialize Performance monitoring
 
   const Problem * problem = cello::problem();
   // add Method performance regions
-  perf_method_base = p->num_regions();
+  perf_method_base_rindex = p->num_regions();
   for (int i=0; i<problem->num_methods(); i++) {
     Method * method = problem->method(i);
     std::string region_name = std::string("method_") + method->name();
-    p->new_region(perf_method_base + i, region_name);
-    method->set_perf_index(perf_method_base + i);
+    p->new_region(perf_method_base_rindex + i, region_name);
+    method->set_perf_index(perf_method_base_rindex + i);
   }
   // add Solver performance regions
-  perf_solver_base = p->num_regions();
+  perf_solver_base_rindex = p->num_regions();
   for (int i=0; i<problem->num_solvers(); i++) {
     Solver * solver = problem->solver(i);
     std::string region_name = std::string("solver_") + solver->name();
-    p->new_region(perf_solver_base + i, region_name);
-    solver->set_perf_index(perf_solver_base + i);
+    p->new_region(perf_solver_base_rindex + i, region_name);
+    solver->set_perf_index(perf_solver_base_rindex + i);
   }
 
   timer_.start();
@@ -498,7 +498,7 @@ void Simulation::initialize_performance_() throw()
 
   p->begin();
 
-  PERF_START(perf_simulation);
+  PERF_START(perf_rindex_simulation);
 
 }
 
@@ -1054,7 +1054,7 @@ void Simulation::monitor_performance()
   CkPrintf ("%s:%d DEBUG_CONTRIBUTE\n",__FILE__,__LINE__); fflush(stdout);
 #endif
 
-  PERF_REDUCE_START(perf_reduce_simulation);
+  PERF_REDUCE_START(perf_rindex_reduce_simulation);
   contribute
     (n*sizeof(long long),
      counters_reduce,
@@ -1072,7 +1072,7 @@ void Simulation::monitor_performance()
 
 void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
 {
-  PERF_REDUCE_STOP(perf_reduce_simulation);
+  PERF_REDUCE_STOP(perf_rindex_reduce_simulation);
   if (CkMyPe() == 0) {
     long long * counters_reduce = (long long *)msg->getData();
 
@@ -1147,8 +1147,8 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
     for (int ir = 0; ir < num_regions; ir++) {
       for (int ic = 0; ic < num_counters; ic++, m++) {
         bool do_print =
-          (ir != perf_unknown) &&
-          ((performance_->counter_type(ic) != counter_type_abs) ||
+          (ir != perf_rindex_unknown) &&
+          ((performance_->counter_type(ic) != PerfCounterType::Absolute) ||
            (ir == index_region_cycle)) &&
           (counters_reduce[m] != 0);
         if (do_print) {

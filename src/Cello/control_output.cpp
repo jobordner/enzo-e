@@ -26,9 +26,9 @@
 void Block::output_enter_ ()
 {
   TRACE_OUTPUT("Block::output_enter_()");
-  PERF_START(perf_output);
+  PERF_START(perf_rindex_output);
   output_begin_();
-  PERF_STOP(perf_output);
+  PERF_STOP(perf_rindex_output);
 }
 
 //----------------------------------------------------------------------
@@ -110,7 +110,7 @@ void Simulation::output_start(int index_output)
   output->init();
   output->open();
   index_output_ = index_output;
-  PERF_REDUCE_START(perf_reduce_output);
+  PERF_REDUCE_START(perf_rindex_reduce_output);
   contribute(CkCallback (CkIndex_Simulation::r_output_barrier(NULL),thisProxy));
 }
 
@@ -118,8 +118,8 @@ void Simulation::output_start(int index_output)
 
 void Simulation::r_output_barrier(CkReductionMsg * msg)
 {
-  PERF_REDUCE_STOP(perf_reduce_output);
-  PERF_START(perf_output);
+  PERF_REDUCE_STOP(perf_rindex_reduce_output);
+  PERF_START(perf_rindex_output);
   delete msg;
   Output * output = problem()->output(index_output_);
   output->write_simulation(this);
@@ -132,7 +132,7 @@ void Simulation::r_output_barrier(CkReductionMsg * msg)
   //  if (CkMyPe() == 0) {
   //    hierarchy_->block_array().p_output_write(index_output,0);
   //  }
-  PERF_STOP(perf_output);
+  PERF_STOP(perf_rindex_output);
 
 }
 
@@ -140,7 +140,7 @@ void Simulation::r_output_barrier(CkReductionMsg * msg)
 
 void Block::p_output_write (int index_output, int step)
 {
-  PERF_START (perf_output);
+  PERF_START (perf_rindex_output);
   TRACE_OUTPUT("Simulation::p_output_write()");
 
   Simulation    * simulation     = cello::simulation();
@@ -153,7 +153,7 @@ void Block::p_output_write (int index_output, int step)
   output->write_block(this);
 
   simulation->write_();
-  PERF_STOP (perf_output);
+  PERF_STOP (perf_rindex_output);
 }
 
 //----------------------------------------------------------------------
@@ -173,11 +173,11 @@ void Simulation::write_()
 
 void Simulation::r_write_checkpoint_output()
 {
-  performance_->start_region(perf_output);
+  PERF_START(perf_rindex_output);
   TRACE_OUTPUT("Simulation::r_write_checkpoint_output()");
   create_checkpoint_link();
   problem()->output_wait(this);
-  performance_->stop_region(perf_output);
+  PERF_STOP(perf_rindex_output);
 }
 
 //----------------------------------------------------------------------
@@ -225,10 +225,10 @@ void Problem::output_wait(Simulation * simulation) throw()
 
 void Simulation::p_output_write (int n, char * buffer)
 {
-  PERF_START(perf_output);
+  PERF_START(perf_rindex_output);
   TRACE_OUTPUT("Simulation::p_output_write()");
   problem()->output_write(this,n,buffer); 
-  PERF_STOP (perf_output);
+  PERF_STOP (perf_rindex_output);
 }
 
 //----------------------------------------------------------------------
@@ -284,10 +284,10 @@ void Simulation::output_exit()
 
 void Block::p_output_end()
 {
-  PERF_START(perf_output);
+  PERF_START(perf_rindex_output);
   TRACE_OUTPUT("Block::p_output_end()");
   output_exit_();
-  PERF_STOP(perf_output);
+  PERF_STOP(perf_rindex_output);
 }
 
 //======================================================================

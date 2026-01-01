@@ -68,7 +68,7 @@ void MethodOrderHilbert::compute (Block * block) throw()
   CkCallback callback (CkIndex_Block::r_method_order_hilbert_continue(nullptr),
                        block->proxy_array());
 
-  PERF_REDUCE_START(perf_reduce_method_order_hilbert);
+  PERF_REDUCE_START(perf_rindex_reduce_method_order_hilbert);
   block->contribute (callback);
 
 }
@@ -77,7 +77,7 @@ void MethodOrderHilbert::compute (Block * block) throw()
 
 void Block::r_method_order_hilbert_continue(CkReductionMsg * msg)
 {
-  PERF_REDUCE_STOP(perf_reduce_method_order_hilbert);
+  PERF_REDUCE_STOP(perf_rindex_reduce_method_order_hilbert);
   delete msg;
   static_cast<MethodOrderHilbert*>
     (this->method())->compute_continue(this);
@@ -126,7 +126,7 @@ void MethodOrderHilbert::send_weight(Block * block, int weight_child, bool self)
       CkCallback callback
         (CkIndex_Block::r_method_order_hilbert_complete (nullptr),
          block->proxy_array());
-      PERF_REDUCE_START(perf_reduce_method_order_hilbert);
+      PERF_REDUCE_START(perf_rindex_reduce_method_order_hilbert);
       block->contribute (callback);
     }
   }
@@ -224,7 +224,7 @@ void MethodOrderHilbert::recv_index
 
 void Block::r_method_order_hilbert_complete(CkReductionMsg * msg)
 {
-  PERF_REDUCE_STOP(perf_reduce_method_order_hilbert);
+  PERF_REDUCE_STOP(perf_rindex_reduce_method_order_hilbert);
   delete msg;
   static_cast<MethodOrderHilbert*>
     (this->method())->compute_complete(this);

@@ -253,9 +253,9 @@ public: // virtual functions
   /// Reduce output, using p_output_write to send data to writing processes
   void s_write()
   {
-    performance_->start_region(perf_output,__FILE__,__LINE__);
+    PERF_START(perf_rindex_output);
     write_();
-    performance_->stop_region(perf_output,__FILE__,__LINE__);
+    PERF_STOP(perf_rindex_output);
   };
   void write_();
 
@@ -460,8 +460,8 @@ protected: // functions
 
 public: // static attributes
 
-  static int perf_method_base;
-  static int perf_solver_base;
+  static int perf_method_base_rindex;
+  static int perf_solver_base_rindex;
 
 protected: // attributes
 

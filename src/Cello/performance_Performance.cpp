@@ -32,13 +32,13 @@ Performance::Performance (Config * config)
 #ifdef CONFIG_USE_PAPI
   papi_counters_(0),
 #endif
-  #ifdef CONFIG_USE_PROJECTIONS
+#ifdef CONFIG_USE_PROJECTIONS
   projections_tracing_(true),
   projections_schedule_on_(NULL),
   projections_schedule_off_(NULL),
 #endif
   warnings_(config ? config->performance_warnings : false),
-  index_region_current_(perf_unknown)
+  index_region_current_(perf_rindex_unknown)
 {
 
   const int in = cello::index_static();
@@ -46,12 +46,12 @@ Performance::Performance (Config * config)
   time_start[in] = time_real_();
 
   // ORDER MUST MATCH index_enum
-  new_counter(counter_type_rel,"time-usec");
+  new_counter(PerfCounterType::Relative,"time-usec");
   // MEMORY
-  new_counter(counter_type_abs,"memory_bytes-curr");
-  new_counter(counter_type_abs,"memory_bytes-high");
-  new_counter(counter_type_abs,"memory_bytes-highest");
-  new_counter(counter_type_abs,"memory_bytes-available");
+  new_counter(PerfCounterType::Absolute,"memory_bytes-curr");
+  new_counter(PerfCounterType::Absolute,"memory_bytes-high");
+  new_counter(PerfCounterType::Absolute,"memory_bytes-highest");
+  new_counter(PerfCounterType::Absolute,"memory_bytes-available");
 
 #ifdef CONFIG_USE_PAPI
   papi_.init();
@@ -127,7 +127,7 @@ Performance::end() throw()
 //----------------------------------------------------------------------
 
 int
-Performance::new_counter ( int type, std::string  counter_name )
+Performance::new_counter ( PerfCounterType type, std::string  counter_name )
 {
   counter_name_.push_back(counter_name);
   counter_type_.push_back(type);
@@ -135,7 +135,7 @@ Performance::new_counter ( int type, std::string  counter_name )
   counter_values_reduced_.push_back(0);
 
 #ifdef CONFIG_USE_PAPI
-  if (type == counter_type_papi) {
+  if (type == PerfCounterType::Papi) {
     papi_.add_event(counter_name);
   }
 #endif
@@ -153,7 +153,7 @@ Performance::refresh_counters_() throw()
 
   int ip=0;
   for (int ic=0; ic<num_counters(); ic++) {
-    if (counter_type_[ic] == counter_type_papi) {
+    if (counter_type_[ic] == PerfCounterType::Papi) {
       counter_values_[ic] = papi_counters_[ip++];
     }
   }
@@ -163,12 +163,12 @@ Performance::refresh_counters_() throw()
 
   const int in = cello::index_static();
 
-  counter_values_[perf_index_time]          = time_real_()-time_start[in];
+  counter_values_[perf_cindex_time]          = time_real_()-time_start[in];
   // MEMORY
-  counter_values_[perf_index_bytes]         = memory->bytes();
-  counter_values_[perf_index_bytes_high]    = memory->bytes_high();
-  counter_values_[perf_index_bytes_highest] = memory->bytes_highest();
-  counter_values_[perf_index_bytes_available] = memory->bytes_available();
+  counter_values_[perf_cindex_mem_bytes]         = memory->bytes();
+  counter_values_[perf_cindex_mem_bytes_high]    = memory->bytes_high();
+  counter_values_[perf_cindex_mem_bytes_highest] = memory->bytes_highest();
+  counter_values_[perf_cindex_mem_bytes_available] = memory->bytes_available();
 
 }
 
@@ -177,7 +177,7 @@ Performance::refresh_counters_() throw()
 void
 Performance::assign_counter(int index, long long value)
 {
-  if ( counter_type (index) == counter_type_user ) {
+  if ( counter_type (index) == PerfCounterType::User ) {
 
     counter_values_[index] = value;
 
@@ -194,7 +194,7 @@ Performance::assign_counter(int index, long long value)
 void
 Performance::increment_counter(int index, long long value)
 {
-  if ( counter_type (index) == counter_type_user ) {
+  if ( counter_type (index) == PerfCounterType::User ) {
 
     counter_values_[index] += value;
 
@@ -273,7 +273,7 @@ Performance::start_region(int id_region, std::string file, int line) throw()
     refresh_counters_();
 
     for (int i=0; i<num_counters(); i++) {
-      if ( counter_type(i) == counter_type_abs ) {
+      if ( counter_type(i) == PerfCounterType::Absolute ) {
         region_counters_[index_region][i] = counter_values_[i];
       } else {
         region_counters_[index_region][i] -= counter_values_[i];
@@ -309,7 +309,7 @@ Performance::stop_region(int id_region, std::string file, int line) throw()
     refresh_counters_();
 
     for (int i=0; i<num_counters(); i++) {
-      if ( counter_type(i) == counter_type_abs ) {
+      if ( counter_type(i) == PerfCounterType::Absolute ) {
         region_counters_[index_region][i] = counter_values_[i];
       } else {
         region_counters_[index_region][i] += counter_values_[i];
@@ -338,7 +338,7 @@ Performance::region_counters(int index_region, long long * counters) throw()
   } else {
     refresh_counters_();
     for (int i=0; i<num_counters(); i++) {
-      if ( counter_type (i) == counter_type_abs ) {
+      if ( counter_type (i) == PerfCounterType::Absolute ) {
 	counters[i] = counter_values_[i];
       } else {
 	if (is_region_active(index_region)) {

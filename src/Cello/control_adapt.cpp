@@ -130,7 +130,7 @@ void Block::adapt_barrier_()
       (CkIndex_Block::r_adapt_next(nullptr), 
        proxy_array());
     adapt_ready_ = true;
-    PERF_REDUCE_START(perf_reduce_adapt);
+    PERF_REDUCE_START(perf_rindex_reduce_adapt);
     contribute(sizeof(int),&changed,CkReduction::sum_int, callback);
   }
 }
@@ -145,7 +145,7 @@ void Block::adapt_barrier_()
 /// adapt_end_().
 void Block::adapt_next_()
 {
-  PERF_REDUCE_STOP(perf_reduce_adapt);
+  PERF_REDUCE_STOP(perf_rindex_reduce_adapt);
   TRACE_ADAPT("adapt_next contribute called_",this);
   update_levels_();
 
@@ -605,7 +605,7 @@ void Block::adapt_send_level()
 
 void Block::p_adapt_recv_level (MsgAdapt * msg)
 {
-  PERF_ADAPT_START(perf_adapt_recv_level);
+  PERF_ADAPT_START(perf_rindex_adapt_recv_level);
   if (!adapt_ready_) {
     // save message for later
     adapt_msg_list_.push_back(msg);
@@ -623,8 +623,8 @@ void Block::p_adapt_recv_level (MsgAdapt * msg)
        msg->can_coarsen_);
     delete msg;
   }
-  PERF_ADAPT_STOP (perf_adapt_recv_level);
-  PERF_ADAPT_POST (perf_adapt_recv_level_post);
+  PERF_ADAPT_STOP (perf_rindex_adapt_recv_level);
+  PERF_ADAPT_POST (perf_rindex_adapt_recv_level_post);
 }
 
 void Block::adapt_recv_level()
@@ -954,7 +954,7 @@ void Block::p_adapt_recv_child (MsgCoarsen * msg)
 {
   TRACE_ADAPT("p_adapt_recv_child",this);
 
-  PERF_ADAPT_START(perf_adapt_recv_child);
+  PERF_ADAPT_START(perf_rindex_adapt_recv_child);
   msg->update(data());
   int * ic3 = msg->ic3();
   int * child_face_level_curr = msg->face_level();
@@ -992,8 +992,8 @@ void Block::p_adapt_recv_child (MsgCoarsen * msg)
 
   delete msg;
 
-  PERF_ADAPT_STOP (perf_adapt_recv_child);
-  PERF_ADAPT_POST (perf_adapt_recv_child_post);
+  PERF_ADAPT_STOP (perf_rindex_adapt_recv_child);
+  PERF_ADAPT_POST (perf_rindex_adapt_recv_child_post);
 }
 
 

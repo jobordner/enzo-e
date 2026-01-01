@@ -151,4 +151,4 @@ done
 # ==============================
 
 
-$bindir/_plot-perf.py
+$bindir/EZPerf/_plot-perf.py
