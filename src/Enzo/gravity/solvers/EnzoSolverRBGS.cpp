@@ -94,16 +94,11 @@ void EnzoSolverRBGS::apply
 
 void EnzoBlock::p_solver_rbgs_continue()
 {
-
-  performance_start_(perf_compute,__FILE__,__LINE__);
-
   EnzoSolverRBGS * solver = nullptr;  
 
   solver = static_cast<EnzoSolverRBGS *> (this->solver());
 
   solver->compute(this);
-
-  performance_stop_(perf_compute,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------

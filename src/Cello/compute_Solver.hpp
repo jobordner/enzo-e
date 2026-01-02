@@ -45,6 +45,7 @@ public: // interface
       restart_cycle_(1),
       callback_(0),
       index_(0),
+      index_perf_(-1),
       min_level_(- std::numeric_limits<int>::max()),
       max_level_(  std::numeric_limits<int>::max()),
       id_sync_(0),
@@ -73,6 +74,7 @@ public: // interface
     p | restart_cycle_;
     p | callback_;
     p | index_;
+    p | index_perf_;
     p | min_level_;
     p | max_level_;
     p | id_sync_;
@@ -87,6 +89,12 @@ public: // interface
 
   void set_callback (int callback)
   { callback_ = callback; }
+
+  void set_perf_index (int index)
+  { index_perf_ = index; }
+
+  inline int index_perf() const throw()
+  { return index_perf_; }
 
   void set_index (int index)
   { index_ = index; }
@@ -243,6 +251,9 @@ protected: // attributes
 
   /// Index of this solver
   int index_;
+
+  /// Performance index
+  int index_perf_;
 
   /// Minimum mesh level
   int min_level_;

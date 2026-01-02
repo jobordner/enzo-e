@@ -95,7 +95,7 @@ module mesh {
 
   array[Index] Block {
 
-    entry Block (process_type ip_source,  MsgType msg_type);
+    entry Block (MsgType msg_type);
     entry void p_set_msg_refine(MsgRefine * msg);
     entry Block();
 
@@ -162,7 +162,6 @@ module mesh {
     entry void p_stopping_enter();
     entry void r_stopping_enter(CkReductionMsg *);
  
-    entry void p_stopping_load_balance();
     entry void r_stopping_load_balance(CkReductionMsg *);
 
     entry void p_stopping_exit();

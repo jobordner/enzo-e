@@ -26,8 +26,8 @@ EnzoBlock::EnzoBlock (CkMigrateMessage *m)
   proxy_enzo_simulation[0].p_method_balance_check();
 }
 
-EnzoBlock::EnzoBlock( process_type ip_source,  MsgType msg_type)
-  : CBase_EnzoBlock (ip_source, msg_type),
+EnzoBlock::EnzoBlock( MsgType msg_type)
+  : CBase_EnzoBlock ( msg_type),
     redshift(0.0)
 
 {
@@ -49,12 +49,11 @@ EnzoBlock::EnzoBlock( process_type ip_source,  MsgType msg_type)
 
 void EnzoBlock::set_msg_check(EnzoMsgCheck * msg)
 {
-  performance_start_(perf_block);
-
+  PERF_START(perf_rindex_block);
   restart_set_data_(msg);
   initialize();
   Block::initialize();
-  performance_stop_(perf_block);
+  PERF_STOP(perf_rindex_block);
 }
 
 //----------------------------------------------------------------------

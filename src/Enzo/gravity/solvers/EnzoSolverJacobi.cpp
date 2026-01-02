@@ -71,7 +71,7 @@ EnzoSolverJacobi::EnzoSolverJacobi
 void EnzoSolverJacobi::apply
 ( std::shared_ptr<Matrix> A, Block * block) throw()
 {
-  begin_(block);
+  Solver::begin_(block);
 
   if (solve_type_ == solve_level && ! is_finest_(block))
     end_(block);
@@ -100,16 +100,11 @@ void EnzoSolverJacobi::apply
 
 void EnzoBlock::p_solver_jacobi_continue()
 {
- 
-  performance_start_(perf_compute,__FILE__,__LINE__);
-
   EnzoSolverJacobi * solver = nullptr;  
 
   solver = static_cast<EnzoSolverJacobi *> (this->solver());
 
   solver->compute(this);
-
-  performance_stop_(perf_compute,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------
