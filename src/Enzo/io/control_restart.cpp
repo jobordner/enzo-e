@@ -114,6 +114,7 @@ void EnzoSimulation::p_set_io_reader(CProxy_IoEnzoReader io_enzo_reader)
   proxy_io_enzo_reader = io_enzo_reader;
   CkCallback callback(CkIndex_Simulation::r_restart_start(NULL),0,
                       proxy_simulation);
+  /*  PERF_REDUCE_START(perf_rindex_reduce_restart); */
   contribute(callback);
 }
 
@@ -121,6 +122,8 @@ void EnzoSimulation::p_set_io_reader(CProxy_IoEnzoReader io_enzo_reader)
 
 void Simulation::r_restart_start (CkReductionMsg * msg)
 {
+  /* PERF_REDUCE_STOP(perf_rindex_reduce_restart); */
+
   delete msg;
   // [ Called on root process only ]
 

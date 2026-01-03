@@ -87,6 +87,8 @@ public: // interface
     method_type(),
     monitor_debug(false),
     monitor_verbose(false),
+    monitor_proc(false),
+    monitor_time(false),
     num_output(0),
     output_list(),
     output_type(),
@@ -240,6 +242,8 @@ public: // interface
       method_type(),
       monitor_debug(false),
       monitor_verbose(false),
+      monitor_proc(false),
+      monitor_time(false),
       num_output(0),
       output_list(),
       output_type(),
@@ -447,6 +451,8 @@ public: // attributes
 
   bool                       monitor_debug;
   bool                       monitor_verbose;
+  bool                       monitor_proc;
+  bool                       monitor_time;
 
   // Output
 
