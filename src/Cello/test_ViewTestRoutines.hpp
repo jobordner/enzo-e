@@ -1,6 +1,6 @@
 // See LICENSE_CELLO file for license and copyright information
 
-/// @file     test_ViewTestRoutines.cpp
+/// @file     test_ViewTestRoutines.hpp
 /// @author   Matthew Abruzzo (matthewabruzzo@gmail.com)
 /// @date     2023-07-03
 /// @brief    Common routines used for testing CelloView and related machinery

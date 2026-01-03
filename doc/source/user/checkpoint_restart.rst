@@ -36,7 +36,7 @@ cycle.
 See the ``input/Checkpoint/test_cosmo-checkpoint.in`` parameter
 file for a working example of writing checkpoint directories.
 
-Also see the :ref:`order method` section on more information about the
+Also see the :ref:`order` section on more information about the
 required ``"order"`` method, and how to use multiple ordering methods
 in the same simulation.
 

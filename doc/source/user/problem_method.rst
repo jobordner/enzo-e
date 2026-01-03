@@ -106,7 +106,7 @@ parameters are likely to be useful, since one generally doesn't want
 or need to run the load balancer at every cycle.
 
 For more information on the ``"order"`` method, including using
-multiple orderings in the same simulation, see the :ref:`order method`
+multiple orderings in the same simulation, see the :ref:`order`
 section below. Also please review the :ref:`restrictions` section below.
 
 .. _restrictions:
@@ -724,7 +724,7 @@ an associated ``"order"`` method, specified as such using the
 match their respective ``"balance"`` and ``"check"`` methods.
 
 .. code::
-+
+
    Method {
       list = [ "balance_order", "balance",
                "check_order",   "check",

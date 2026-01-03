@@ -450,6 +450,8 @@ null
 
    :e:`Sets the time step for the` :p:`null` :e:`Method.  This is typically used for testing the AMR meshing infrastructure without having to use any specific method.  It can also be used to add an additional maximal time step value for other methods.`
 
+.. _order:
+
 order
 -----
 
@@ -465,7 +467,7 @@ order
    required for "balance" and "check" methods. Currently the only
    available ordering is "morton", though "hilbert" will soon be an
    option. Note the "order" method may be used multiple times in a
-   simulation, as described in the` :ref:`order method` :e:`section.`
+   simulation, as described in the` :ref:`order` :e:`section.`
 
 pm_deposit
 ----------
