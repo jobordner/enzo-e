@@ -53,24 +53,24 @@ public: // interface
   virtual void set_time (double time);
   virtual void set_time (double time, int level);
 
-  void set_redshift (double redshift)
+  void set_redshift (enzo_float redshift)
   { redshift_ = redshift; }
 
-  void set_redshift (double redshift, int level)
+  void set_redshift (enzo_float redshift, int level)
   { redshift_level_[level] = redshift; }
 
-  double redshift () const
+  enzo_float redshift () const
   { return redshift_; }
 
-  double redshift (int level) const
+  enzo_float redshift (int level) const
   { return redshift_level_[level]; }
 
   int data_size () const
   {
     int size = 0;
     size += ((State*)this)->data_size();
-    SIZE_SCALAR_TYPE(size,double,redshift_);
-    SIZE_VECTOR_TYPE(size,double,redshift_level_);
+    SIZE_SCALAR_TYPE(size,enzo_float,redshift_);
+    SIZE_VECTOR_TYPE(size,enzo_float,redshift_level_);
     return size;
   }
 
@@ -78,8 +78,8 @@ public: // interface
   {
     char * pc = buffer;
     pc = ((State *)this) -> save_data(pc);
-    SAVE_SCALAR_TYPE(pc,double,redshift_);
-    SAVE_VECTOR_TYPE(pc,double,redshift_level_);
+    SAVE_SCALAR_TYPE(pc,enzo_float,redshift_);
+    SAVE_VECTOR_TYPE(pc,enzo_float,redshift_level_);
     return pc;
   }
 
@@ -87,8 +87,8 @@ public: // interface
   {
     char * pc = buffer;
     pc = ((State *)this) -> load_data(pc);
-    LOAD_SCALAR_TYPE(pc,double,redshift_);
-    LOAD_VECTOR_TYPE(pc,double,redshift_level_);
+    LOAD_SCALAR_TYPE(pc,enzo_float,redshift_);
+    LOAD_VECTOR_TYPE(pc,enzo_float,redshift_level_);
     return pc;
   }
 
@@ -97,8 +97,8 @@ protected: // attributes
   // NOTE: change pup() function whenever attributes change
 
   /// Current redshift
-  double redshift_;
-  std::vector<double> redshift_level_;
+  enzo_float redshift_;
+  std::vector<enzo_float> redshift_level_;
 };
 
 #endif /* ENZO_STATE_HPP */

@@ -47,7 +47,7 @@ void Block::stopping_enter_()
 
 void Block::stopping_begin_()
 {
-
+  PERF_START(perf_rindex_stopping);
   TRACE_STOPPING("Block::stopping_begin_");
 
   Simulation * simulation = cello::simulation();
@@ -92,13 +92,16 @@ void Block::stopping_begin_()
   contribute
     (n*sizeof(double), min_reduce.data(), CkReduction::min_double, callback);
 
+  PERF_STOP(perf_rindex_stopping);
 }
 
 //----------------------------------------------------------------------
 
 void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 {
-  performance_start_(perf_stopping);
+  /* PERF_REDUCE_STOP(perf_rindex_reduce_stopping); */
+  PERF_START(perf_rindex_stopping);
+  
   TRACE_STOPPING("Block::r_stopping_compute_timestep");
   ++age_;
 
@@ -141,7 +144,7 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 
   stopping_balance_();
 
-  performance_stop_(perf_stopping);
+  PERF_STOP(perf_rindex_stopping);
 }
 
 //----------------------------------------------------------------------
@@ -165,7 +168,7 @@ void Block::performance_projections_update_logging_()
     simulation->monitor()->print
       ("Performance","turning projections logging ON\n");
 
-    simulation->set_projections_tracing(true);
+    performance->set_projections_tracing(true);
 
     traceBegin();
 
@@ -175,13 +178,14 @@ void Block::performance_projections_update_logging_()
     simulation->monitor()->print
       ("Performance","turning projections logging OFF\n");
 
-    simulation->set_projections_tracing(false);
+    performance->set_projections_tracing(false);
 
     traceEnd();
 
   }
 #endif
 
+  PERF_STOP(perf_rindex_stopping);
 }
 
 //----------------------------------------------------------------------
@@ -333,7 +337,7 @@ void Block::stopping_balance_()
       (CkIndex_Block::r_stopping_load_balance(nullptr), proxy_array());
 
     adapt_ready_ = true;
-
+    PERF_REDUCE_START(perf_rindex_reduce_balance);
     contribute(callback);
 
   } else {
@@ -345,14 +349,15 @@ void Block::stopping_balance_()
 
 //----------------------------------------------------------------------
 
-void Block::stopping_load_balance_()
+void Block::r_stopping_load_balance(CkReductionMsg *msg)
 {
-  performance_start_(perf_stopping);
+  delete msg;
+  PERF_REDUCE_STOP(perf_rindex_reduce_balance);
+  PERF_START(perf_rindex_stopping);
   TRACE_STOPPING("load_balance begin");
   cello::simulation()->set_phase (phase_balance);
 
   AtSync();
-  performance_stop_(perf_stopping);
 }
 
 //----------------------------------------------------------------------
@@ -360,7 +365,7 @@ void Block::stopping_load_balance_()
 void Block::ResumeFromSync()
 {
   TRACE_STOPPING("load_balance exit");
-
+  PERF_STOP(perf_rindex_balance);
   stopping_exit_();
 }
 
@@ -403,6 +408,9 @@ void Block::exit_()
 		CkMyPe(),MsgRefresh::counter[in]);
     }
   }
+
+  cello::performance()->end();
+
   if (index_.is_root()) {
     proxy_main.p_exit(1);
   }
