@@ -91,7 +91,6 @@ void Block::stopping_begin_()
   contribute
     (n*sizeof(double), min_reduce.data(), CkReduction::min_double, callback);
 
-  PERF_STOP(perf_rindex_stopping);
 }
 
 //----------------------------------------------------------------------
