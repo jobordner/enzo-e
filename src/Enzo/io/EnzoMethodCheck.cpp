@@ -111,7 +111,6 @@ void EnzoMethodCheck::compute ( Block * block) throw()
 void EnzoSimulation::r_method_check_enter(CkReductionMsg *msg)
 // [ Called on ip=0 only ]
 {
-  PERF_REDUCE_STOP(perf_rindex_reduce_method_check);
   TRACE_CHECK("[3] EnzoSimulation::r_method_check_enter()");
   
   delete msg;
@@ -315,6 +314,7 @@ void EnzoSimulation::p_check_done()
 
 void EnzoBlock::p_check_done()
 {
+  PERF_REDUCE_STOP(perf_rindex_reduce_method_check);
   TRACE_CHECK_BLOCK("[C] EnzoBlock::p_check_done()",this);
   compute_done();
 }
