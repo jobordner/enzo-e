@@ -216,6 +216,7 @@ void MethodOrderHilbert::recv_index
     send_index(block,index, count, false);
     CkCallback callback (CkIndex_Block::r_method_order_hilbert_complete(nullptr),
                        block->proxy_array());
+    PERF_REDUCE_START(perf_rindex_reduce_method_order_hilbert);
     block->contribute (callback);
   }
 }
