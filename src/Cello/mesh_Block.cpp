@@ -69,10 +69,12 @@ Block::Block ()
     index_order_(0),
     count_order_(1)
 {
+  PERF_START(perf_rindex_block);
   init_refresh_();
   init_adapt_(nullptr);
 
   for (int i=0; i<3; i++) array_[i]=0;
+  PERF_STOP(perf_rindex_block);
 }
 
 //----------------------------------------------------------------------
