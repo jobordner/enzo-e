@@ -21,9 +21,7 @@
 
 void Block::compute_enter_ ()
 {
-  performance_start_(perf_compute,__FILE__,__LINE__);
   compute_begin_();
-  performance_stop_(perf_compute,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------
@@ -85,7 +83,6 @@ void Block::compute_next_ ()
 
 void Block::compute_continue_ ()
 {
-  performance_start_(perf_compute,__FILE__,__LINE__);
 #ifdef DEBUG_COMPUTE
   if (state()->cycle() >= CYCLE)
     CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_continue_()\n", CkMyPe(),name().c_str());
@@ -97,6 +94,7 @@ void Block::compute_continue_ ()
 
   Method * method = this->method();
 
+  PERF_METHOD_START(method);
   const bool is_scheduled = method->is_scheduled(this);
   const bool is_active_level = state()->is_active(level());
 
@@ -119,7 +117,6 @@ void Block::compute_continue_ ()
     compute_done();
 
   }
-  performance_stop_(perf_compute,__FILE__,__LINE__);
 }
 
 //----------------------------------------------------------------------
@@ -130,6 +127,8 @@ void Block::compute_done ()
   if (state()->cycle() >= CYCLE)
     CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_done_()\n", CkMyPe(),name().c_str());
 #endif
+
+  PERF_METHOD_STOP(method());
   compute_update_method_state_(index_method_);
   index_method_++;
   compute_next_();

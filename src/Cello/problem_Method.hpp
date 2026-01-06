@@ -128,11 +128,17 @@ public: // virtual functions
 
   void super_update_time_(Block * block, double time);
 
-void set_index(int index)
+  void set_index(int index)
   { index_method_ = index; }
 
   int index() const
   { return index_method_; }
+
+  /// Access performance index
+  inline void set_perf_index(int index) throw ()
+  { index_perf_ = index; }
+  inline int index_perf() const throw()
+  { return index_perf_; }
 
 protected: // functions
 
@@ -182,6 +188,8 @@ protected: // attributes
   int is_time_curr_;
   int is_time_prev_;
 
+  /// Performance index
+  int index_perf_;
 };
 
 #endif /* PROBLEM_METHOD_HPP */

@@ -43,6 +43,7 @@
 
 void Block::refresh_start (int id_refresh, int callback)
 {
+  PERF_START(perf_rindex_refresh);
   CHECK_ID(id_refresh);
   Refresh * refresh = cello::refresh(id_refresh);
   Sync * sync = sync_(id_refresh);
@@ -236,14 +237,10 @@ void Block::p_refresh_recv (MsgRefresh * msg_refresh)
 
 void Block::refresh_exit (Refresh & refresh)
 {
-#ifdef TRACE_REFRESH
-  CkPrintf ("%d TRACE_REFRESH EXIT  %s %s  %d %d\n",CkMyPe(),
-            name().c_str(),
-            cello::simulation()->refresh_name(refresh.id()).c_str(),
-            refresh.level_lower(),refresh.level_upper());
-#endif
+  PERF_REFRESH_START(perf_rindex_refresh_exit);
   CHECK_ID(refresh.id());
   update_boundary_();
+
   control_sync
     (refresh.callback(),
      refresh.sync_type(),
@@ -254,6 +251,8 @@ void Block::refresh_exit (Refresh & refresh)
      refresh.level_lower(),
      refresh.level_upper(),
      DirType::Both);
+  PERF_REFRESH_STOP(perf_rindex_refresh_exit);
+  PERF_STOP(perf_rindex_refresh);
 }
 
 //----------------------------------------------------------------------
