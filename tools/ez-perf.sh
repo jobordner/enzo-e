@@ -150,5 +150,6 @@ done
 # Generate plots from data files
 # ==============================
 
-
 $bindir/EZPerf/_plot-perf.py
+
+echo "file://$PWD/index.html"
