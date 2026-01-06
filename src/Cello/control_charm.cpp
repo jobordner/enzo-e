@@ -14,15 +14,12 @@
 #include "charm_mesh.hpp"
 
 // #define DEBUG_ADAPT
-// #define DEBUG_ATS
 // #define DEBUG_CONTROL
 // #define DEBUG_REFRESH
-// #define TRACE_ATS
 // #define TRACE_CONTRIBUTE
 // #define TRACE_CONTROL
 
 // #define BLOCK  "B0:100_0:101"
-
 
 #ifdef TRACE_CONTROL
 # define TRACE_BLOCK (state()->cycle()>=0)
@@ -51,8 +48,8 @@
 
 void Block::initial_exit_()
 {
-  performance_start_(perf_initial);
-  TRACE_CONTROL("initial_exit_");
+  PERF_START(perf_rindex_initial);
+  TRACE_CONTROL("initial_exit");
 
 #ifdef TRACE_CONTRIBUTE  
   CkPrintf ("%s %s:%d DEBUG_CONTRIBUTE calling r_adapt_enter\n",
@@ -67,7 +64,7 @@ void Block::initial_exit_()
   } else {
     control_sync_barrier (CkIndex_Block::r_adapt_enter(NULL));
   }
-  performance_stop_(perf_initial);
+  PERF_STOP(perf_rindex_initial);
 }
 
 //----------------------------------------------------------------------
@@ -89,15 +86,13 @@ void Block::adapt_exit_()
 
 void Block::output_exit_()
 {
-  performance_start_(perf_output);
+  PERF_START(perf_rindex_output);
 
   TRACE_CONTROL("output_exit");
 
   if (index_.is_root()) {
     cello::simulation()->monitor_output();
   }
-
-  performance_stop_(perf_output);
 
 #ifdef TRACE_CONTRIBUTE  
   CkPrintf ("%s %s:%d DEBUG_CONTRIBUTE calling r_stopping_enter()\n",
@@ -106,6 +101,7 @@ void Block::output_exit_()
 #endif  
   control_sync_barrier (CkIndex_Block::r_stopping_enter(NULL));
 
+  PERF_STOP(perf_rindex_output);
 }
 
 //----------------------------------------------------------------------
@@ -113,17 +109,6 @@ void Block::output_exit_()
 void Block::stopping_exit_()
 {
   TRACE_CONTROL("stopping_exit");
-
-  if (cello::simulation()->cycle_changed()) {
-    // if performance counters haven't started yet for this cycle
-    int cycle_initial = cello::config()->initial_cycle;
-    if (state_->cycle() > cycle_initial) {
-      // stop if any previous cycle
-      performance_stop_(perf_cycle,__FILE__,__LINE__);
-    }
-    // start 
-    performance_start_ (perf_cycle,__FILE__,__LINE__);
-  }
 
   if (state_->stopping()) {
 
@@ -136,6 +121,14 @@ void Block::stopping_exit_()
 
   } else {
 
+    if (cello::simulation()->cycle_changed()) {
+      if (state_->cycle() > cello::simulation()->initial_cycle()) {
+        // stop if any previous cycle
+        PERF_STOP(perf_rindex_cycle);
+      }
+      // start 
+      PERF_START(perf_rindex_cycle);
+    }
     compute_enter_();
 
   }

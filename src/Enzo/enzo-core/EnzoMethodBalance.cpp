@@ -17,7 +17,6 @@ EnzoMethodBalance::EnzoMethodBalance()
 {
   // All blocks at all levels must call this Method
   set_call_on_all_levels();
-
   cello::define_field("density");
   // Initialize default Refresh object
 
@@ -78,7 +77,7 @@ void EnzoMethodBalance::compute ( Block * block) throw()
   CkCallback callback
     (CkIndex_EnzoSimulation::r_method_balance_count(nullptr), 0,
      proxy_enzo_simulation);
-
+  /*   PERF_REDUCE_START(perf_rindex_reduce_method_balance); */
   block->contribute(sizeof(int), &count_local,
                     CkReduction::sum_int, callback);
 
@@ -86,6 +85,7 @@ void EnzoMethodBalance::compute ( Block * block) throw()
 
 void EnzoSimulation::r_method_balance_count(CkReductionMsg * msg)
 {
+  /*  PERF_REDUCE_STOP(perf_rindex_reduce_method_balance); */
   int * count_total = (int * )msg->getData();
 #ifdef TRACE_BALANCE
   CkPrintf ("DEBUG_BALANCE block_count = %d\n",*count_total);

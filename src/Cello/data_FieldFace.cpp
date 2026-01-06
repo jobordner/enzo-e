@@ -16,8 +16,6 @@
 
 // #define CONFIG_SMP_MODE
 
-//----------------------------------------------------------------------
-
 static CmiNodeLock field_face_node_lock;
 void mutex_init_field_face()
 {  field_face_node_lock = CmiCreateLock(); }
@@ -361,6 +359,7 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
   auto field_list_dst = refresh_->field_list_dst(level_,face_type_);
 
 #ifdef CONFIG_SMP_MODE
+  PERF_SMP_START(perf_rindex_smp_field_face);
   CmiLock(field_face_node_lock);
 #endif
 
@@ -550,7 +549,8 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
 
 #ifdef CONFIG_SMP_MODE
   CmiUnlock(field_face_node_lock);
-#endif
+  PERF_SMP_STOP(perf_rindex_smp_field_face);
+#endif  
 }
 
 //----------------------------------------------------------------------

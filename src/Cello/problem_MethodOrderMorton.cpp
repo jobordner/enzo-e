@@ -72,6 +72,7 @@ void MethodOrderMorton::compute (Block * block) throw()
   CkCallback callback (CkIndex_Block::r_method_order_morton_continue(nullptr),
                        block->proxy_array());
 
+  PERF_REDUCE_START(perf_rindex_reduce_method_order_morton);
   block->contribute (callback);
 
 }
@@ -80,6 +81,7 @@ void MethodOrderMorton::compute (Block * block) throw()
 
 void Block::r_method_order_morton_continue(CkReductionMsg * msg)
 {
+  PERF_REDUCE_STOP(perf_rindex_reduce_method_order_morton);
   delete msg;
   static_cast<MethodOrderMorton*>
     (this->method())->compute_continue(this);
@@ -128,6 +130,7 @@ void MethodOrderMorton::send_weight(Block * block, int weight_child, bool self)
       CkCallback callback
         (CkIndex_Block::r_method_order_morton_complete (nullptr),
          block->proxy_array());
+      PERF_REDUCE_START(perf_rindex_reduce_method_order_morton);
       block->contribute (callback);
     }
   }
@@ -211,6 +214,7 @@ void MethodOrderMorton::recv_index
     send_index(block,index, count, false);
     CkCallback callback (CkIndex_Block::r_method_order_morton_complete(nullptr),
                        block->proxy_array());
+    PERF_REDUCE_START(perf_rindex_reduce_method_order_morton);
     block->contribute (callback);
   }
 }
@@ -219,6 +223,7 @@ void MethodOrderMorton::recv_index
 
 void Block::r_method_order_morton_complete(CkReductionMsg * msg)
 {
+  PERF_REDUCE_STOP(perf_rindex_reduce_method_order_morton);
   delete msg;
   static_cast<MethodOrderMorton*>
     (this->method())->compute_complete(this);

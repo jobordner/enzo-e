@@ -44,13 +44,6 @@ public: // interface
   EnzoBlock()
     :  CBase_EnzoBlock()
   {
-#ifdef TRACE_BLOCK
-  CkPrintf ("%d TRACE_BLOCK %s EnzoBlock::EnzoBlock()\n",
-            CkMyPe(),name(thisIndex).c_str());
-  fflush(stdout);
-#endif
-    performance_start_(perf_block);
-
     // replace Block's State with EnzoState
     state_ = std::make_shared<EnzoState> (0, 0.0, 0.0, false );
 
@@ -61,7 +54,6 @@ public: // interface
       GridEndIndex[i] = 0;
       CellWidth[i] = 0.0;
     }
-    performance_stop_(perf_block);
   }
 
   /// Charm++ Migration constructor

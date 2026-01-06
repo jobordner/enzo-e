@@ -107,7 +107,6 @@ protected: // attributes
   /// Current redshift
   enzo_float redshift_;
   std::vector<enzo_float> redshift_level_;
-
 };
 
 #endif /* ENZO_STATE_HPP */

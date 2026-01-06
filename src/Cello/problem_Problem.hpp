@@ -130,16 +130,16 @@ public: // interface
 
   int num_solvers () const throw()
   { return solver_list_.size(); }
-  
+
   /// Return the ith method object
   Method * method(size_t i) const throw() 
   { return (i < method_list_.size()) ? method_list_[i] : nullptr; }
 
+  int num_methods () const throw()
+  { return method_list_.size(); }
+
   /// Return the named method object if present
   Method * method (std::string name) const throw();
-
-  /// Return number of methods
-  int num_methods() const { return method_list_.size(); }
 
   // Return whether a method object with given name exists for this problem
   bool method_exists(const std::string &name) const throw();
