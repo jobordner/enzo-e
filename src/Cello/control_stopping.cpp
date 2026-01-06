@@ -185,7 +185,6 @@ void Block::performance_projections_update_logging_()
   }
 #endif
 
-  PERF_STOP(perf_rindex_stopping);
 }
 
 //----------------------------------------------------------------------
@@ -353,7 +352,6 @@ void Block::r_stopping_load_balance(CkReductionMsg *msg)
 {
   delete msg;
   PERF_REDUCE_STOP(perf_rindex_reduce_balance);
-  PERF_START(perf_rindex_stopping);
   TRACE_STOPPING("load_balance begin");
   cello::simulation()->set_phase (phase_balance);
 
