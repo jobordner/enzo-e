@@ -338,7 +338,7 @@ void Simulation::refine_create_block(MsgRefine * msg)
 
   msg_refine_map_[index] = msg;
 
-  cello::block_array()[index].insert(process_type(CkMyPe()),MsgType::msg_refine);
+  cello::block_array()[index].insert(MsgType::msg_refine);
 }
 
 //======================================================================
@@ -862,6 +862,12 @@ void Simulation::p_initial_block_created() throw() {
 void Simulation::p_set_block_array(CProxy_Block block_array)
 {
   if (CkMyPe() != 0) hierarchy_->set_block_array(block_array);
+  CkCallback callback
+    (CkIndex_Simulation::r_initialize_block_array(NULL), thisProxy);
+
+  // --------------------------------------------------
+  contribute(0,0,CkReduction::concat,callback);
+  // --------------------------------------------------
 }
 
 //----------------------------------------------------------------------
