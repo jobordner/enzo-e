@@ -1,6 +1,6 @@
 // See LICENSE_CELLO file for license and copyright information
 
-/// @file     Mesh_Box.hpp
+/// @file     mesh_Box.hpp
 /// @author   James Bordner (jobordner@ucsd.edu)
 /// @date     2020-09-16
 /// @brief    [\ref Mesh] Declaration of the Box class

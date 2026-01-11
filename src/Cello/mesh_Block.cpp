@@ -66,17 +66,16 @@ Block::Block ()
     index_method_(-1),
     index_solver_(),
     refresh_(),
-    index_(thisIndex),
-    index_order_(0),
-    count_order_(1)
+    order_index_(0),
+    order_count_(0),
+    order_next_(),
+    index_(thisIndex)
 {
   PERF_START(perf_rindex_block);
   init_refresh_();
   init_adapt_(nullptr);
-
-  for (int i=0; i<3; i++) array_[i]=0;
-  PERF_STOP(perf_rindex_block);
 }
+
 
 //----------------------------------------------------------------------
 
@@ -119,8 +118,8 @@ Block::Block ( MsgType msg_type )
     index_solver_(),
     refresh_(),
     index_(thisIndex),
-    index_order_(0),
-    count_order_(1)
+    order_index_(0),
+    order_count_(1)
 {
 #ifdef TRACE_BLOCK
   CkPrintf ("%d TRACE_BLOCK %s Block::Block(ip)\n",  CkMyPe(),name(thisIndex).c_str());
@@ -409,8 +408,9 @@ void Block::pup(PUP::er &p)
     for (int i=0; i<len; i++) refresh_msg_list_[i].clear();
   }
 
-  p | index_order_;
-  p | count_order_;
+  p | order_index_;
+  p | order_count_;
+  p | order_next_;
 }
 
 //----------------------------------------------------------------------
