@@ -16,10 +16,8 @@
 
 //----------------------------------------------------------------------
 
-EnzoBlock::EnzoBlock (CkMigrateMessage *m)
+EnzoBlock::EnzoBlock( CkMigrateMessage *m)
   : CBase_EnzoBlock (m)
-    // dt(0.0),
-    // redshift(0.0)
 {
   TRACE("CkMigrateMessage");
   // EnzoSimulation[0] counts migrated Blocks
@@ -279,6 +277,11 @@ void EnzoBlock::create_initial_child_blocks()
 
 void EnzoBlock::instantiate_children() throw()
 {
+#ifdef TRACE_BLOCK
+  CkPrintf ("%d %p :%d TRACE_BLOCK %s EnzoBlock instantiate_children()\n",
+            CkMyPe(),(void *)this,__LINE__,name(thisIndex).c_str());
+  fflush(stdout);
+#endif
   child_face_level_curr_.resize(cello::num_children()*27);
   int num_field_blocks = 1;
 
