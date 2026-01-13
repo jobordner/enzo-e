@@ -127,6 +127,7 @@ void Config::pup (PUP::er &p)
   p | method_max_supercycle;
   p | method_schedule_index;
   p | method_courant;
+  p | method_order_ordering;
   p | method_type;
 
   // Monitor

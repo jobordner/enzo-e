@@ -1,6 +1,6 @@
 // See LICENSE_CELLO file for license and copyright information
 
-/// @file     data_Classname.cpp
+/// @file     data_FaceFluxes.cpp
 /// @author   James Bordner (jobordner@ucsd.edu)
 /// @date     2019-10-15
 /// @brief    [\ref Data] Implementation of the FaceFluxes class
