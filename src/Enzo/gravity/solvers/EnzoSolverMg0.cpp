@@ -544,7 +544,9 @@ void EnzoSolverMg0::compute_residual_(EnzoBlock * enzo_block) throw()
 {
   Field field = enzo_block->data()->field();
 
-  A_->residual(ir_, ib_, ix_, enzo_block);
+  double hx,hy,hz;
+  enzo_block->cell_width(&hx,&hy,&hz);
+  A_->residual(ir_, ib_, ix_, field,hx,hy,hz);
 
   if ( is_finest_(enzo_block) ) {
     enzo_float * R = (enzo_float*) field.values(ir_);

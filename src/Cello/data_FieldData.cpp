@@ -113,15 +113,15 @@ int FieldData::dimensions
   field_descr->ghost_depth (id_field,&gx,&gy,&gz);
   field_descr->centering (id_field,&cx,&cy,&cz);
 
-  const int mx = (nx + 2*gx + cx);
-  const int my = (ny + 2*gy + cy);
-  const int mz = (nz + 2*gz + cz);
+  const int mx = (nx > 1) ? (nx + 2*gx + cx) : 1;
+  const int my = (ny > 1) ? (ny + 2*gy + cy) : 1;
+  const int mz = (nz > 1) ? (nz + 2*gz + cz) : 1;
 
   // Return axis sizes
 
-  if (pmx) (*pmx) = (nx > 1) ? mx : 1;
-  if (pmy) (*pmy) = (ny > 1) ? my : 1;
-  if (pmz) (*pmz) = (nz > 1) ? mz : 1;
+  if (pmx) (*pmx) = mx;
+  if (pmy) (*pmy) = my;
+  if (pmz) (*pmz) = mz;
 
   // Return total size
 
@@ -130,11 +130,12 @@ int FieldData::dimensions
 
 //----------------------------------------------------------------------
 
-void FieldData::size( int * nx, int * ny, int * nz ) const throw()
+int FieldData::size( int * nx, int * ny, int * nz ) const throw()
 {
   if (nx) (*nx) = size_[0];
   if (ny) (*ny) = size_[1];
   if (nz) (*nz) = size_[2];
+  return size_[0]*size_[1]*size_[2];
 }
 
 //----------------------------------------------------------------------

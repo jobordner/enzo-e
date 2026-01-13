@@ -4,16 +4,18 @@
 #include <cmath> // fabs
 
 // #define DEBUG_PNG
+#include "cello.hpp"
+#include "io.hpp"
 
-// #define PLOT
+#define PLOT
 void png_array (const char * filename,
 		float * array,
 		int gx,int gy,int gz,
 		int mx,int my,int mz,
 		const char * file, int line,
-		int axis = 2,
-		int px=0, int py=0,
-		double scale = 1.0
+		int axis,
+		int px, int py,
+		double scale
 		)
 {
   //  double colormap[4][3] = {{0.0, 0.0, 0.0},
@@ -28,7 +30,7 @@ void png_array (const char * filename,
   px = (mx-2*gx)*px;
   py = (my-2*gy)*py;
 #endif
-  
+
   double min=std::numeric_limits<double>::max();
   double max=-std::numeric_limits<double>::max();
 
@@ -51,10 +53,8 @@ void png_array (const char * filename,
 	if (lx&&ly&&lz) sum2_real+=array[i]*array[i];
 	sum_ghost+=array[i];
 	sum2_ghost+=array[i]*array[i];
-      }
-      if (lx&&ly) {
-	min = std::min(sum,min);
-	max = std::max(sum,max);
+	min = std::min(min,scale*array[i]);
+	max = std::max(max,scale*array[i]);
       }
     }
   }

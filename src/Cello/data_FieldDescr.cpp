@@ -111,28 +111,30 @@ void FieldDescr::centering
 
 //----------------------------------------------------------------------
 
-void FieldDescr::ghost_depth
+int FieldDescr::ghost_depth
 (
  int id_field,
- int * gx, 
+ int * gx,
  int * gy, 
  int * gz
  ) const throw()
 {
   if (id_field>=0) {
-    int g3[3] = {
-      std::get<0>(ghost_depth_[id_field]),
-      std::get<1>(ghost_depth_[id_field]),
-      std::get<2>(ghost_depth_[id_field])
-    };
+
     int gd[3] = {
-      ghost_depth_default_[0],
-      ghost_depth_default_[1],
-      ghost_depth_default_[2]
+      std::max(std::get<0>(ghost_depth_.at(id_field)),
+               ghost_depth_default_[0]),
+      std::max(std::get<0>(ghost_depth_.at(id_field)),
+               ghost_depth_default_[1]),
+      std::max(std::get<0>(ghost_depth_.at(id_field)),
+               ghost_depth_default_[2])
     };
-    if (gx) (*gx) = g3[0] < 0 ? gd[0] : g3[0];
-    if (gy) (*gy) = g3[1] < 0 ? gd[1] : g3[1];
-    if (gz) (*gz) = g3[2] < 0 ? gd[2] : g3[2];
+    if (gx) (*gx) = gd[0];
+    if (gy) (*gy) = gd[1];
+    if (gz) (*gz) = gd[2];
+    return ( std::max({gd[0],gd[1],gd[2]}));
+  } else {
+    return 0;
   }
 }
 

@@ -127,6 +127,7 @@ void Config::pup (PUP::er &p)
   p | method_max_supercycle;
   p | method_schedule_index;
   p | method_courant;
+  p | method_order_ordering;
   p | method_type;
 
   // Monitor
@@ -1475,21 +1476,19 @@ void Config::read_solver_ (Parameters * p) throw()
     solver_index[name] = index_solver;
 
     solver_type[index_solver] = p->value_string (full_name + ":type","unknown");
-    
-    solver_type[index_solver] = p->value_string (full_name + ":type","unknown");
 
     solver_solve_type[index_solver] = p->value_string
       (full_name + ":solve_type","leaf");
 
     solver_iter_max[index_solver] = p->value_integer
       (full_name + ":iter_max",1000);
-    
+
     solver_res_tol[index_solver] = p->value_float
       (full_name + ":res_tol",1e-6);
 
     solver_diag_precon[index_solver] = p->value_logical
       (full_name + ":diag_precon",false);
-    
+
     solver_monitor_iter[index_solver] = p->value_integer
       (full_name + ":monitor_iter",0);
 
@@ -1647,6 +1646,19 @@ int Config::read_schedule_(Parameters * p, const std::string group)
   }
 
   return index_schedule++;
+}
+
+//----------------------------------------------------------------------
+
+void Config::set_solver_index_(Parameters * p,
+                               int index_solver,
+                               const std::string & solver_name,
+                               std::vector<int> & solver_vec)
+{
+  std::string solver;
+  solver = p->value_string (solver_name,"unknown");
+  bool l_found = solver_index.find(solver) != solver_index.end();
+  solver_vec[index_solver] = (l_found) ? solver_index[solver] : -1;;
 }
 //======================================================================
 

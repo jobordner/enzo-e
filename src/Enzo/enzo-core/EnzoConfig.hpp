@@ -174,7 +174,6 @@ public: // interface
 
       // EnzoMethodCheck
       method_check_num_files(1),
-      method_check_ordering("order_morton"),
       method_check_dir(),
       method_check_monitor_iter(0),
       // EnzoMethodCheckGravity
@@ -200,6 +199,8 @@ public: // interface
       solver_last_smooth(),
       solver_coarse_solve(),
       solver_domain_solve(),
+      solver_root_solve(),
+      solver_block_solve(),
       solver_weight(),
       solver_restart_cycle(),
       // EnzoSolver<Krylov>
@@ -430,7 +431,6 @@ public: // attributes
 
   /// EnzoMethodCheck
   int                        method_check_num_files;
-  std::string                method_check_ordering;
   std::vector<std::string>   method_check_dir;
   int                        method_check_monitor_iter;
   bool                       method_check_include_ghosts;
@@ -479,6 +479,12 @@ public: // attributes
   /// Solver index for domain decomposition (dd) domain solver
 
   std::vector<int>           solver_domain_solve;
+
+  /// Solver index for root solver (enzo solver)
+  std::vector<int>           solver_root_solve;
+
+ /// Solver index for block solver (enzo solver)
+  std::vector<int>           solver_block_solve;
 
   /// Weighting factor for smoother
 

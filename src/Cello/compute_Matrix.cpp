@@ -12,12 +12,12 @@
 
 //----------------------------------------------------------------------
 
-void Matrix::residual (int ir, int ib, int ix, Block * block, int g0) throw()
+void Matrix::residual (int ir, int ib, int ix,
+                       Field field, double hx, double hy, double hz,
+                       int g0) throw()
 {
 
-  matvec(ir,ix,block);
-
-  Field field = block->data()->field();
+  matvec(ir,ix,field,hx,hy,hz,g0);
 
   void * B = field.values(ib);
   void * R = field.values(ir);
