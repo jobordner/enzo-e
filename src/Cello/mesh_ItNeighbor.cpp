@@ -69,6 +69,12 @@ Index ItNeighbor::index() const
   } else if (face_level == level_ - 1) {
     return index_neighbor.index_parent();
   } else {
+    ERROR4("ItNeighbor::index()",
+          "Block %s in level %d has neighbor %s in level %d",
+           block_->name().c_str(),
+           level_,
+           block_->name(index_neighbor).c_str(),
+           face_level);
     return index_neighbor;
   }
 }

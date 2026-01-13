@@ -39,7 +39,9 @@
 
 #include "gravity/matrix/EnzoMatrixDiagonal.hpp"
 #include "gravity/matrix/EnzoMatrixIdentity.hpp"
-#include "gravity/matrix/EnzoMatrixLaplace.hpp"
+#include "gravity/matrix/EnzoMatrixLaplace2.hpp"
+#include "gravity/matrix/EnzoMatrixLaplace4.hpp"
+#include "gravity/matrix/EnzoMatrixLaplace6.hpp"
 
 #include "gravity/EnzoComputeAcceleration.hpp"
 
@@ -47,7 +49,9 @@
 #include "gravity/solvers/EnzoSolverCg.hpp"
 #include "gravity/solvers/EnzoSolverDd.hpp"
 #include "gravity/solvers/EnzoSolverDiagonal.hpp"
+#include "gravity/solvers/EnzoSolverEnzo.hpp"
 #include "gravity/solvers/EnzoSolverJacobi.hpp"
 #include "gravity/solvers/EnzoSolverMg0.hpp"
+#include "gravity/solvers/EnzoSolverRBGS.hpp"
 
 #endif /* ENZO_GRAVITY_GRAVITY_HPP */

@@ -288,7 +288,7 @@ c     &               delf1new,delf2new,delf3new,s
                    write(6,*) 'int2',delf0,sprime,chi1,chi2,chi3,
      &               delf1,delf2,delf3,fbar,delf1new+delf2new+delf3new,
      &               delf1new,delf2new,delf3new,s,work(i,j,k),
-     &               work(i+1,j+1,k+1)
+     &                  work(i+1,j+1,k+1)
                    ierror = 1
                    return
                 endif

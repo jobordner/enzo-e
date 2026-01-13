@@ -169,7 +169,7 @@ protected: // methods
   }
 
   /// Serial CG solver if local_ == true
-  void local_cg_ (EnzoBlock * enzo_block);
+  void local_solve_ (EnzoBlock * enzo_block);
 
   /// Apply boundary conditions for the Field on the local block
   void refresh_local_(int ix, EnzoBlock * enzo_block);

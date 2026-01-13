@@ -21,8 +21,9 @@ IoBlock::IoBlock() throw ()
   meta_name_.push_back("time");
   meta_name_.push_back("dt");
   meta_name_.push_back("array");
-  meta_name_.push_back("index_order");
-  meta_name_.push_back("count_order");
+  meta_name_.push_back("order_index");
+  meta_name_.push_back("order_count");
+  meta_name_.push_back("order_next");
 }
 
 //----------------------------------------------------------------------
@@ -40,7 +41,9 @@ void IoBlock::set_block (Block * block) throw()
   time_  = block->state()->time();
   dt_    = block->state()->dt();
   for (i=0; i<3; i++) array_[i] = block->array_[i];
-  block->get_order(&index_order_, &count_order_);
+  Index order_next;
+  block->get_order(&order_index_, &order_count_, &order_next);
+  order_next.values(order_next_);
 }
 
 //----------------------------------------------------------------------
@@ -83,11 +86,15 @@ void IoBlock::meta_value
     *type   = type_int;
     *nxd    = 3;
   } else if (index == count++) {
-    *buffer = (void *) & index_order_;
+    *buffer = (void *) & order_index_;
     *type   = type_long_long;
   } else if (index == count++) {
-    *buffer = (void *) & count_order_;
+    *buffer = (void *) & order_count_;
     *type   = type_long_long;
+  } else if (index == count++) {
+    *buffer = (void *) & order_next_;
+    *type   = type_int;
+    *nxd    = 3;
   }
 }
 //======================================================================
@@ -106,8 +113,9 @@ int IoBlock::data_size () const
   SIZE_SCALAR_TYPE(size,double, time_);
   SIZE_SCALAR_TYPE(size,double, dt_);
   SIZE_ARRAY_TYPE(size,int,array_,3);
-  SIZE_SCALAR_TYPE(size,long long, index_order_);
-  SIZE_SCALAR_TYPE(size,long long, count_order_);
+  SIZE_SCALAR_TYPE(size,long long, order_index_);
+  SIZE_SCALAR_TYPE(size,long long, order_count_);
+  SIZE_ARRAY_TYPE(size,int, order_next_,3);
 
   return size;
 }
@@ -128,8 +136,9 @@ char * IoBlock::save_data (char * buffer) const
   SAVE_SCALAR_TYPE(pc,double, time_);
   SAVE_SCALAR_TYPE(pc,double, dt_);
   SAVE_ARRAY_TYPE(pc,int,array_,3);
-  SAVE_SCALAR_TYPE(pc,long long, index_order_);
-  SAVE_SCALAR_TYPE(pc,long long, count_order_);
+  SAVE_SCALAR_TYPE(pc,long long, order_index_);
+  SAVE_SCALAR_TYPE(pc,long long, order_count_);
+  SAVE_ARRAY_TYPE(pc,int, order_next_,3);
 
   ASSERT2 ("IoBlock::save_data()",
   	   "Expecting buffer size %d actual size %d",
@@ -156,8 +165,9 @@ char * IoBlock::load_data (char * buffer)
   LOAD_SCALAR_TYPE(pc,double, time_);
   LOAD_SCALAR_TYPE(pc,double, dt_);
   LOAD_ARRAY_TYPE(pc,int,array_,3);
-  LOAD_SCALAR_TYPE(pc,long long, index_order_);
-  LOAD_SCALAR_TYPE(pc,long long, count_order_);
+  LOAD_SCALAR_TYPE(pc,long long, order_index_);
+  LOAD_SCALAR_TYPE(pc,long long, order_count_);
+  LOAD_ARRAY_TYPE(pc,int, order_next_,3);
 
   return pc;
 }
@@ -178,6 +188,8 @@ void IoBlock::save_to (void * v)
   b->state()->set_cycle(cycle_);
   b->state()->set_time (time_);
   b->state()->set_dt   (dt_);
-  b->set_order(index_order_, count_order_);
+  Index order_next;
+  order_next.set_values(order_next_);
+  b->set_order(order_index_, order_count_,order_next);
 }
 

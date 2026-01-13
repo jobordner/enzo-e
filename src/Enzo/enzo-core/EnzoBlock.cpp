@@ -16,7 +16,7 @@
 
 //----------------------------------------------------------------------
 
-EnzoBlock::EnzoBlock (CkMigrateMessage *m)
+EnzoBlock::EnzoBlock( CkMigrateMessage *m)
   : CBase_EnzoBlock (m)
 {
   // replace Block's State with EnzoState
@@ -27,10 +27,8 @@ EnzoBlock::EnzoBlock (CkMigrateMessage *m)
   proxy_enzo_simulation[0].p_method_balance_check();
 }
 
-//----------------------------------------------------------------------
-
-EnzoBlock::EnzoBlock( process_type ip_source,  MsgType msg_type)
-  : CBase_EnzoBlock (ip_source, msg_type)
+EnzoBlock::EnzoBlock( MsgType msg_type)
+  : CBase_EnzoBlock (msg_type)
 {
   // replace Block's State with EnzoState
   state_ = std::make_shared<EnzoState>(0, 0.0, 0.0, false);
@@ -251,6 +249,11 @@ void EnzoBlock::create_initial_child_blocks()
 
 void EnzoBlock::instantiate_children() throw()
 {
+#ifdef TRACE_BLOCK
+  CkPrintf ("%d %p :%d TRACE_BLOCK %s EnzoBlock instantiate_children()\n",
+            CkMyPe(),(void *)this,__LINE__,name(thisIndex).c_str());
+  fflush(stdout);
+#endif
   child_face_level_curr_.resize(cello::num_children()*27);
   int num_field_blocks = 1;
 
