@@ -5,6 +5,11 @@ if(NOT __processedUserDefaults)
 
   message(STATUS "Loading machine configuration for generic Linux machine with GCC stack.\n")
 
+  # Remove cmake -DNDEBUG -O3
+  set(CMAKE_C_FLAGS_INIT "")
+  set(CMAKE_CXX_FLAGS_INIT "")
+  set(CMAKE_Fortran_FLAGS_INIT "")
+
   # Setting compilers
   set(CMAKE_CXX_COMPILER g++ CACHE STRING "")
   set(CMAKE_C_COMPILER gcc CACHE STRING "")
@@ -15,6 +20,12 @@ if(NOT __processedUserDefaults)
 
   set(__ARCH_C_OPT_FLAGS "-O3 -g")
   #  -fsanitize=address -fsanitize=leak -Wall -Wshadow -Wconversion -Wpedantic
+  set(CMAKE_C_FLAGS_RELEASE "${__ARCH_C_OPT_FLAGS}")
+  set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g ${__ARCH_C_OPT_FLAGS}")
+  set(CMAKE_CXX_FLAGS_RELEASE "${__ARCH_C_OPT_FLAGS}")
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g ${__ARCH_C_OPT_FLAGS}")
+
+  set(__ARCH_C_OPT_FLAGS "-O3 -g -funroll-loops")
   set(CMAKE_C_FLAGS_RELEASE "${__ARCH_C_OPT_FLAGS}")
   set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g ${__ARCH_C_OPT_FLAGS}")
   set(CMAKE_CXX_FLAGS_RELEASE "${__ARCH_C_OPT_FLAGS}")

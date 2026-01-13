@@ -129,7 +129,7 @@ public: // interface
 
   int num_solvers () const throw()
   { return solver_list_.size(); }
-  
+
   /// Return the ith method object
   Method * method(size_t i) const throw() 
   { return (i < method_list_.size()) ? method_list_[i] : nullptr; }

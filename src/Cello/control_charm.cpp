@@ -63,14 +63,14 @@ void Block::output_exit_()
 
 void Block::stopping_exit_()
 {
-  if (stop_) {
+  if (state_->stopping()) {
 
     control_sync_barrier (CkIndex_Block::r_exit(NULL));
 
   } else {
 
     if (cello::simulation()->cycle_changed()) {
-      if (cycle_ > cello::simulation()->initial_cycle()) {
+      if (state_->cycle() > cello::simulation()->initial_cycle()) {
         // stop if any previous cycle
         PERF_STOP(perf_rindex_cycle);
       }

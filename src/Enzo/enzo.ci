@@ -120,6 +120,8 @@ module enzo {
   PUPable EnzoSolverMg0;
   PUPable EnzoSolverRBGS;
 
+  PUPable EnzoState;
+
   PUPable EnzoStopping;
 
   PUPable EnzoUnits;

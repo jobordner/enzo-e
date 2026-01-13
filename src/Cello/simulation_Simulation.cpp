@@ -35,12 +35,9 @@ Simulation::Simulation
   parameters_(&g_parameters),
   parameter_file_(parameter_file),
   rank_(0),
-  cycle_(0),
   cycle_watch_(-1),
   cycle_initial_(-1),
-  time_(0.0),
-  dt_(0),
-  stop_(false),
+  state_(new State (0, 0.0, 0.0, false)),
   phase_(phase_unknown),
   config_(&g_config),
   problem_(NULL),
@@ -102,12 +99,9 @@ Simulation::Simulation()
   parameters_(&g_parameters),
   parameter_file_(""),
   rank_(0),
-  cycle_(0),
   cycle_watch_(-1),
   cycle_initial_(-1),
-  time_(0.0),
-  dt_(0),
-  stop_(false),
+  state_(new State (0, 0.0, 0.0, false)),
   phase_(phase_unknown),
   config_(&g_config),
   problem_(NULL),
@@ -157,12 +151,9 @@ Simulation::Simulation (CkMigrateMessage *m)
     parameters_(&g_parameters),
     parameter_file_(""),
     rank_(0),
-    cycle_(0),
     cycle_watch_(-1),
     cycle_initial_(-1),
-    time_(0.0),
-    dt_(0),
-    stop_(false),
+    state_(new State (0, 0.0, 0.0, false)),
     phase_(phase_unknown),
     config_(&g_config),
     problem_(NULL),
@@ -232,13 +223,10 @@ void Simulation::pup (PUP::er &p)
 
   p | parameter_file_;
 
-  p | rank_;
-  p | cycle_;
+  p | rank_; 
   p | cycle_watch_;
   p | cycle_initial_;
-  p | time_;
-  p | dt_;
-  p | stop_;
+  p | *state_;
   p | phase_;
 
   p | problem_; // PUPable
@@ -361,11 +349,12 @@ void Simulation::initialize_simulation_() throw()
 	  "Parameter 'Mesh:root_rank' must be 1, 2, or 3",
 	  (1 <= rank_) && (rank_ <= 3));
 
-  cycle_ = config_->initial_cycle;
-  cycle_watch_ = cycle_ - 1;
+  state_->init(config_->initial_cycle,
+              config_->initial_time,
+              0.0, false);
+
+  cycle_watch_   = config_->initial_cycle - 1;
   cycle_initial_ = config_->initial_cycle;
-  time_  = config_->initial_time;
-  dt_ = 0;
 }
 
 //----------------------------------------------------------------------
@@ -894,10 +883,7 @@ const Factory * Simulation::factory() const throw()
 
 void Simulation::update_state(int cycle, double time, double dt, double stop)
 {
-  cycle_ = cycle;
-  time_  = time;
-  dt_    = dt;
-  stop_  = stop != 0;
+  state_->init(cycle,time,dt,(stop != 0));
 }
 
 //----------------------------------------------------------------------
@@ -905,7 +891,7 @@ void Simulation::update_state(int cycle, double time, double dt, double stop)
 void Simulation::p_initialize_state(MsgState * msg)
 {
   msg->update(this);
-  cycle_initial_ = cycle_;
+  cycle_initial_ = state_->cycle();
   delete msg;
 }
 
@@ -956,15 +942,16 @@ void Simulation::data_delete_particles(int64_t count)
 
 void Simulation::monitor_output()
 {
+
   Monitor * monitor = cello::monitor();
   monitor-> print("", "-------------------------------------");
   const bool in_p = monitor->include_proc();
   const bool in_t = monitor->include_time();
   monitor->set_include_proc(true);
   monitor->set_include_time(true);
-  monitor-> print("Simulation", "cycle %04d", cycle_);
-  monitor-> print("Simulation", "time-sim %15.12e",time_);
-  monitor-> print("Simulation", "dt %15.12e", dt_);
+  monitor-> print("Simulation", "cycle %04d", state_->cycle());
+  monitor-> print("Simulation", "time-sim %15.12e",state_->time());
+  monitor-> print("Simulation", "dt %15.12e", state_->dt());
   monitor->set_include_proc(in_p);
   monitor->set_include_time(in_t);
 
