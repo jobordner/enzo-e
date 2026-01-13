@@ -244,10 +244,10 @@ void EnzoMethodGravity::compute(Block * block) throw()
 
       } else { // ! cosmology
 
-        const double scale = -4.0 * (cello::pi) * (enzo::grav_constant_codeU());
-        for (int i=0; i<m; i++) {
-          B[i] = scale * DT[i];
-        }
+        const long double scale =
+          -4.0 * (cello::pi) * (enzo::grav_constant_codeU());
+
+        field.scale(ib, scale, idt);
 
       }
 
