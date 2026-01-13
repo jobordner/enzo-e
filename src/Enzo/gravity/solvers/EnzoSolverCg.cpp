@@ -8,38 +8,6 @@
 #include "Enzo/enzo.hpp"
 #include "Enzo/gravity/gravity.hpp"
 
-// #define COPY_FIELD
-
-//----------------------------------------------------------------------
-
-#ifdef COPY_FIELD
-#  undef COPY_FIELD
-#   define COPY_FIELD(BLOCK,MSG,ID,COPY)                        \
-  {                                                             \
-  Field field = BLOCK->data()->field();                         \
-  enzo_float* X      = (enzo_float*) field.values(ID);          \
-  enzo_float* X_bcg  = (enzo_float*) field.values(COPY);        \
-  const int m = mx_*my_*mz_;                                    \
-  if (X_bcg) for (int i=0; i<m; i++)  X_bcg[i] = X[i];          \
-  long double sum=0.0,min=1e100,max=-1e100;                     \
-  int count = 0;                                                \
-  for (int iz=gz_; iz<mz_-gz_; iz++) {                          \
-    for (int iy=gy_; iy<my_-gy_; iy++) {                        \
-      for (int ix=gx_; ix<mx_-gx_; ix++) {                      \
-        int i=ix+mx_*(iy+my_*iz);                               \
-        sum += X[i];                                            \
-        min = std::min(min,(long double)X[i]);                  \
-        max = std::max(max,(long double)X[i]);                  \
-        count++;                                                \
-      }                                                         \
-    }                                                           \
-  }                                                             \
-  CkPrintf ("DEBUG_COPY_FIELD %s %s [%Lg %Lg %Lg]\n",           \
-    BLOCK->name().c_str(),COPY,min,sum/count,max);              \
-  }
-#else
-#   define COPY_FIELD(BLOCK,MSG,ID,COPY) /* ... */
-#endif
 //----------------------------------------------------------------------
 
 EnzoSolverCg::EnzoSolverCg
@@ -65,7 +33,7 @@ EnzoSolverCg::EnzoSolverCg
            index_restrict,
 	   min_level,
 	   max_level),
-    A_(NULL),
+    A_(nullptr),
     index_precon_(index_precon),
     iter_max_(iter_max),
     ir_(0), id_(0), iy_(0), iz_(0),
@@ -211,7 +179,7 @@ void EnzoSolverCg::compute_ (EnzoBlock * enzo_block) throw()
 {
   // If local, call serial CG solver
   if (local_) {
-    local_cg_(enzo_block);
+    local_solve_(enzo_block);
     return;
   }
 
@@ -227,8 +195,6 @@ void EnzoSolverCg::compute_ (EnzoBlock * enzo_block) throw()
   enzo_float * R = (enzo_float*) field.values(ir_);
   enzo_float * D = (enzo_float*) field.values(id_);
   enzo_float * Z = (enzo_float*) field.values(iz_);
-
-  COPY_FIELD(enzo_block,"compute_",ib_,"B0_bcg");
 
   if (is_finest_(enzo_block)) {
 
@@ -485,7 +451,9 @@ void EnzoSolverCg::loop_2b (EnzoBlock * enzo_block) throw()
 
     if (is_finest_(enzo_block)) {
 
-      A_->matvec(iy_,id_,enzo_block);
+      double hx,hy,hz;
+      enzo_block->cell_width(&hx,&hy,&hz);
+      A_->matvec(iy_,id_,field,hx,hy,hz);
 
     }
 
@@ -705,7 +673,7 @@ void EnzoSolverCg::loop_6 (EnzoBlock * enzo_block) throw ()
 
 //----------------------------------------------------------------------
 
-void EnzoSolverCg::local_cg_(EnzoBlock * enzo_block)
+void EnzoSolverCg::local_solve_(EnzoBlock * enzo_block)
 {
   Field field = enzo_block->data()->field();
 
@@ -716,6 +684,12 @@ void EnzoSolverCg::local_cg_(EnzoBlock * enzo_block)
   enzo_float * Y = (enzo_float*) field.values(iy_);
   enzo_float * Z = (enzo_float*) field.values(iz_);
 
+  int ng = field.ghost_depth(ix_);
+
+  const int gx = include_ghosts_ ? std::min(1,gx_) : gx_;
+  const int gy = include_ghosts_ ? std::min(1,gy_) : gy_;
+  const int gz = include_ghosts_ ? std::min(1,gz_) : gz_;
+
   if ( ! is_finest_(enzo_block)) {
 
     end(enzo_block,return_unknown);
@@ -723,14 +697,33 @@ void EnzoSolverCg::local_cg_(EnzoBlock * enzo_block)
     return;
   }
 
+  double hx,hy,hz;
+  enzo_block->cell_width(&hx,&hy,&hz);
+  A_->residual(ir_,ib_,ix_,field,hx,hy,hz,gx);
+
   iter_ = 0;
 
-  for (int i=0; i<mx_*my_*mz_; i++) {
-    X[i] = 0.0;
-    R[i] = B[i];
-    D[i] = R[i];
-    Z[i] = R[i];
+  for (int iz=gz; iz<mz_-gz; iz++) {
+    for (int iy=gy; iy<my_-gy; iy++) {
+      for (int ix=gx; ix<mx_-gx; ix++) {
+        const int i = ix + mx_*(iy + my_*iz);
+        R[i] = B[i];
+        D[i] = R[i];
+        Z[i] = R[i];
+      }
+    }
   }
+  if (!include_ghosts_) {
+    for (int iz=gz; iz<mz_-gz; iz++) {
+      for (int iy=gy; iy<my_-gy; iy++) {
+        for (int ix=gx; ix<mx_-gx; ix++) {
+          const int i = ix + mx_*(iy + my_*iz);
+          X[i] = 0.0;
+        }
+      }
+    }
+  }
+
   bs_ = 0.0;
   bc_ = 0.0;
 
@@ -740,8 +733,9 @@ void EnzoSolverCg::local_cg_(EnzoBlock * enzo_block)
   refresh_local_(id_,enzo_block);
   refresh_local_(iz_,enzo_block);
 
+  //  int m = (mx_-2*gx)*(my_-2*gy)*(mz_-2*gz);
   // Compute shift and update B if needed
-  if (iter_ == 0 && A_->is_singular()) {
+  if (iter_ == 0 && A_->is_singular() && ! include_ghosts_) {
     for (int iz=gz_; iz<mz_-gz_; iz++) {
       for (int iy=gy_; iy<my_-gy_; iy++) {
 	for (int ix=gx_; ix<mx_-gx_; ix++) {
@@ -787,7 +781,9 @@ void EnzoSolverCg::local_cg_(EnzoBlock * enzo_block)
 
     refresh_local_(id_,enzo_block);
 
-    A_->matvec(iy_,id_,enzo_block);
+    double hx,hy,hz;
+    enzo_block->cell_width(&hx,&hy,&hz);
+    A_->matvec(iy_,id_,field,hx,hy,hz,gx);
 
     rr_ = 0.0;
     rz_ = 0.0;
@@ -1013,7 +1009,7 @@ void EnzoSolverCg::monitor_output_(EnzoBlock * enzo_block)
   const bool l_monitor    = (monitor_iter_ && (iter_ % monitor_iter_) == 0 );
   const bool l_converged  = (rr_ / rr0_ < res_tol_);
 
-  const bool l_output = l_first_iter || l_max_iter || l_monitor || l_converged;
+  const bool l_output = l_monitor && (l_first_iter || l_max_iter || l_converged);
 
   if (l_output) {
     Solver::monitor_output_ (enzo_block,iter_,rr0_,rr_min_,rr_,rr_max_);

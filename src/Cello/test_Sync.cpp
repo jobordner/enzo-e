@@ -1,6 +1,6 @@
 // See LICENSE_CELLO file for license and copyright information
 
-/// @file     test_Node.cpp
+/// @file     test_Sync.cpp
 /// @author   James Bordner (jobordner@ucsd.edu)
 /// @date     2012-01-09
 /// @brief    Test program for the Node class

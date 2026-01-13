@@ -405,6 +405,23 @@ Solver * EnzoProblem::create_solver_
        enzo_config->solver_last_smooth[index_solver],
        enzo_config->solver_coarse_level[index_solver]);
 
+  } else if (solver_type == "enzo") {
+
+    solver = new EnzoSolverEnzo
+      (enzo_config->solver_list[index_solver],
+       enzo_config->solver_field_x[index_solver],
+       enzo_config->solver_field_b[index_solver],
+       enzo_config->solver_monitor_iter[index_solver],
+       enzo_config->solver_restart_cycle[index_solver],
+       solve_type,
+       index_prolong,
+       index_restrict,
+       enzo_config->solver_min_level[index_solver],
+       enzo_config->solver_max_level[index_solver],
+       enzo_config->solver_root_solve[index_solver],
+       enzo_config->solver_block_solve[index_solver],
+       enzo_config->solver_last_smooth[index_solver]);
+
   } else if (solver_type == "bicgstab") {
 
     solver = new EnzoSolverBiCgStab
@@ -469,6 +486,20 @@ Solver * EnzoProblem::create_solver_
        enzo_config->solver_post_smooth[index_solver],
        enzo_config->solver_last_smooth[index_solver],
        enzo_config->solver_coarse_level[index_solver]);
+
+  } else if (solver_type == "rbgs") {
+
+    solver = new EnzoSolverRBGS
+      (enzo_config->solver_list[index_solver],
+       enzo_config->solver_field_x[index_solver],
+       enzo_config->solver_field_b[index_solver],
+       enzo_config->solver_monitor_iter[index_solver],
+       enzo_config->solver_restart_cycle[index_solver],
+       solve_type,
+       index_prolong,
+       index_restrict,
+       enzo_config->solver_weight[index_solver],
+       enzo_config->solver_iter_max[index_solver]);
 
   } else {
     // Not an Enzo Solver--try base class Cello Solver
@@ -705,7 +736,6 @@ Method * EnzoProblem::create_method_
     // Method for checkpointing the simulation
     method = new EnzoMethodCheck
       (enzo_config->method_check_num_files,
-       enzo_config->method_check_ordering,
        enzo_config->method_check_dir,
        enzo_config->method_check_monitor_iter,
        enzo_config->method_check_include_ghosts);

@@ -83,6 +83,7 @@ public: // interface
     method_list(),
     method_schedule_index(),
     method_courant(),
+    method_order_ordering(),
     method_type(),
     monitor_debug(false),
     monitor_verbose(false),
@@ -238,6 +239,7 @@ public: // interface
       method_list(),
       method_schedule_index(),
       method_courant(),
+      method_order_ordering(),
       method_type(),
       monitor_debug(false),
       monitor_verbose(false),
@@ -446,6 +448,7 @@ public: // attributes
 
   std::vector<int>           method_schedule_index;
   std::vector<double>        method_courant;
+  std::vector <std::string>  method_order_ordering;
   std::vector<std::string>   method_type;
 
 
@@ -595,6 +598,12 @@ protected: // functions
 
   int read_schedule_( Parameters * ,
 		      const std::string group   );
+
+
+  void set_solver_index_ (Parameters * p,
+                          int index_solver,
+                          const std::string & name,
+                          std::vector<int> & solver_vec);
 
 };
 

@@ -12,52 +12,58 @@
 //======================================================================
 
 void EnzoMatrixIdentity::matvec 
-(int id_y, int id_x, Block * block, int g0) throw()
+(int id_y, int id_x, Field field, double hx, double hy, double hz, int g0) throw()
 {
-  Field field = block->data()->field();
-
-  field.dimensions(0,&mx_,&my_,&mz_);
-
   enzo_float * X = (enzo_float * ) field.values(id_x);
   enzo_float * Y = (enzo_float * ) field.values(id_y);
 
-  matvec_(Y,X,g0);
+  matvec_(Y,X,field,hx,hy,hz,g0);
 }
 
 //----------------------------------------------------------------------
 
 void EnzoMatrixIdentity::matvec
-(precision_type precision,
- void * y, void * x, int g0) throw()
+(precision_type precision, void * y, void * x,
+ Field field, double hx, double hy, double hz, int g0) throw()
 {
-  matvec_((enzo_float *)(y),(enzo_float *)(x),g0);
+  matvec_((enzo_float *)(y),(enzo_float *)(x),field,hx,hy,hz,g0);
 }
 
 //----------------------------------------------------------------------
 
-void EnzoMatrixIdentity::diagonal (int id_x, Block * block, int g0) throw()
+void EnzoMatrixIdentity::diagonal
+(int id_x, Field field, double hx, double hy, double hz, int g0) throw()
 {
-  Field field = block->data()->field();
-
-  field.dimensions(0,&mx_,&my_,&mz_);
-
   enzo_float * X = (enzo_float * ) field.values(id_x);
 
-  diagonal_ (X,g0);
+  diagonal_ (X,field,hx,hy,hz,g0);
 }
 
 //----------------------------------------------------------------------
 
-void EnzoMatrixIdentity::matvec_ (enzo_float * Y, enzo_float * X, int g0) const throw()
+double EnzoMatrixIdentity::stencil_value
+(int ix, int iy, int iz,
+ double hx, double hy, double hz) const
 {
-  const int ix0 = (mx_ > 1) ? g0 : 0;
-  const int iy0 = (my_ > 1) ? g0 : 0;
-  const int iz0 = (mz_ > 1) ? g0 : 0;
+  return (ix==0 && iy==0 && iz==0) ? 1.0 : 0.0;
+}
 
-  for (int iz=iz0; iz<mz_-iz0; iz++) {
-    for (int iy=iy0; iy<my_-iy0; iy++) {
-      for (int ix=ix0; ix<mx_-ix0; ix++) {
-	int i = ix + mx_*(iy + my_*iz);
+//----------------------------------------------------------------------
+
+void EnzoMatrixIdentity::matvec_
+(enzo_float * Y, enzo_float * X,
+ Field field, double hx, double hy, double hz,int g0) const throw()
+{
+  int mx,my,mz;
+  field.dimensions(0,&mx,&my,&mz);
+  const int ix0 = (mx > 1) ? g0 : 0;
+  const int iy0 = (my > 1) ? g0 : 0;
+  const int iz0 = (mz > 1) ? g0 : 0;
+
+  for (int iz=iz0; iz<mz-iz0; iz++) {
+    for (int iy=iy0; iy<my-iy0; iy++) {
+      for (int ix=ix0; ix<mx-ix0; ix++) {
+	int i = ix + mx*(iy + my*iz);
 	Y[i] = X[i];
       }
     }
@@ -66,16 +72,21 @@ void EnzoMatrixIdentity::matvec_ (enzo_float * Y, enzo_float * X, int g0) const 
 
 //----------------------------------------------------------------------
 
-void EnzoMatrixIdentity::diagonal_ (enzo_float * X, int g0) const throw()
+void EnzoMatrixIdentity::diagonal_
+(enzo_float * X,
+ Field field, double hx, double hy, double hz,int g0) const throw()
 {
-  const int ix0 = (mx_ > 1) ? g0 : 0;
-  const int iy0 = (my_ > 1) ? g0 : 0;
-  const int iz0 = (mz_ > 1) ? g0 : 0;
+  int mx,my,mz;
+  field.dimensions(0,&mx,&my,&mz);
 
-  for (int iz=iz0; iz<mz_-iz0; iz++) {
-    for (int iy=iy0; iy<my_-iy0; iy++) {
-      for (int ix=ix0; ix<mx_-ix0; ix++) {
-	int i = ix + mx_*(iy + my_*iz);
+  const int ix0 = (mx > 1) ? g0 : 0;
+  const int iy0 = (my > 1) ? g0 : 0;
+  const int iz0 = (mz > 1) ? g0 : 0;
+
+  for (int iz=iz0; iz<mz-iz0; iz++) {
+    for (int iy=iy0; iy<my-iy0; iy++) {
+      for (int ix=ix0; ix<mx-ix0; ix++) {
+	int i = ix + mx*(iy + my*iz);
 	X[i] = 1.0;
       }
     }

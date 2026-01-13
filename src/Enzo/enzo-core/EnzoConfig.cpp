@@ -123,7 +123,6 @@ EnzoConfig::EnzoConfig() throw ()
   initial_IG_use_gas_particles(false),      // Set up gas by depositing baryonic particles to grid
   // EnzoMethodCheck
   method_check_num_files(1),
-  method_check_ordering("order_morton"),
   method_check_dir(),
   method_check_monitor_iter(0),
   method_check_include_ghosts(false),
@@ -162,6 +161,8 @@ EnzoConfig::EnzoConfig() throw ()
   solver_last_smooth(),
   solver_coarse_solve(),
   solver_domain_solve(),
+  solver_root_solve(),
+  solver_block_solve(),
   solver_weight(),
   solver_restart_cycle(),
   /// EnzoSolver<Krylov>
@@ -311,7 +312,6 @@ void EnzoConfig::pup (PUP::er &p)
   p | initial_merge_sinks_test_particle_data_filename;
 
   p | method_check_num_files;
-  p | method_check_ordering;
   p | method_check_dir;
   p | method_check_monitor_iter;
   p | method_check_include_ghosts;
@@ -351,6 +351,8 @@ void EnzoConfig::pup (PUP::er &p)
   p | solver_last_smooth;
   p | solver_coarse_solve;
   p | solver_domain_solve;
+  p | solver_root_solve;
+  p | solver_block_solve;
   p | solver_weight;
   p | solver_restart_cycle;
   p | solver_precondition;
@@ -859,8 +861,6 @@ void EnzoConfig::read_method_check_(Parameters * p)
 
   method_check_num_files = p->value_integer
     ("num_files",1);
-  method_check_ordering = p->value_string
-    ("ordering","order_morton");
 
   if (p->type("dir") == parameter_string) {
     method_check_dir.resize(1);
@@ -1344,8 +1344,6 @@ void EnzoConfig::read_prolong_enzo_(Parameters * p)
   prolong_enzo_use_linear = p->value_logical ("Prolong:enzo:use_linear",false);
 }
 
-//----------------------------------------------------------------------
-
 void EnzoConfig::read_solvers_(Parameters * p)
 {
   num_solvers = p->list_length("Solver:list");
@@ -1353,6 +1351,8 @@ void EnzoConfig::read_solvers_(Parameters * p)
   solver_pre_smooth.  resize(num_solvers);
   solver_coarse_solve.resize(num_solvers);
   solver_domain_solve.resize(num_solvers);
+  solver_root_solve.resize(num_solvers);
+  solver_block_solve.resize(num_solvers);
   solver_post_smooth. resize(num_solvers);
   solver_last_smooth. resize(num_solvers);
   solver_weight.      resize(num_solvers);
@@ -1361,66 +1361,31 @@ void EnzoConfig::read_solvers_(Parameters * p)
   solver_coarse_level.resize(num_solvers);
   solver_is_unigrid.resize(num_solvers);
 
-  for (int index_solver=0; index_solver<num_solvers; index_solver++) {
+  for (int is=0; is<num_solvers; is++) {
 
     std::string solver_name =
-      std::string("Solver:") + p->list_value_string(index_solver,"Solver:list");
+      std::string("Solver:") + p->list_value_string(is,"Solver:list");
 
-    std::string solver;
+    set_solver_index_(p,is,solver_name+":precondition",solver_precondition);
+    set_solver_index_(p,is,solver_name+":coarse_solve",solver_coarse_solve);
+    set_solver_index_(p,is,solver_name+":domain_solve",solver_domain_solve);
+    set_solver_index_(p,is,solver_name+":root_solve",  solver_root_solve);
+    set_solver_index_(p,is,solver_name+":block_solve", solver_block_solve);
+    set_solver_index_(p,is,solver_name+":pre_smooth",  solver_pre_smooth);
+    set_solver_index_(p,is,solver_name+":post_smooth", solver_post_smooth);
+    set_solver_index_(p,is,solver_name+":last_smooth", solver_last_smooth);
 
-    solver = p->value_string (solver_name + ":precondition","unknown");
-    if (solver_index.find(solver) != solver_index.end()) {
-      solver_precondition[index_solver] = solver_index[solver];
-    } else {
-      solver_precondition[index_solver] = -1;
-    }
-
-    solver = p->value_string (solver_name + ":pre_smooth","unknown");
-    if (solver_index.find(solver) != solver_index.end()) {
-      solver_pre_smooth[index_solver] = solver_index[solver];
-    } else {
-      solver_pre_smooth[index_solver] = -1;
-    }
-
-    solver = p->value_string (solver_name + ":coarse_solve","unknown");
-    if (solver_index.find(solver) != solver_index.end()) {
-      solver_coarse_solve[index_solver] = solver_index[solver];
-    } else {
-      solver_coarse_solve[index_solver] = -1;
-    }
-
-    solver = p->value_string (solver_name + ":domain_solve","unknown");
-    if (solver_index.find(solver) != solver_index.end()) {
-      solver_domain_solve[index_solver] = solver_index[solver];
-    } else {
-      solver_domain_solve[index_solver] = -1;
-    }
-
-    solver = p->value_string (solver_name + ":post_smooth","unknown");
-    if (solver_index.find(solver) != solver_index.end()) {
-      solver_post_smooth[index_solver] = solver_index[solver];
-    } else {
-      solver_post_smooth[index_solver] = -1;
-    }
-
-    solver = p->value_string (solver_name + ":last_smooth","unknown");
-    if (solver_index.find(solver) != solver_index.end()) {
-      solver_last_smooth[index_solver] = solver_index[solver];
-    } else {
-      solver_last_smooth[index_solver] = -1;
-    }
-
-    solver_weight[index_solver] =
+    solver_weight[is] =
       p->value_float(solver_name + ":weight",1.0);
 
-    solver_restart_cycle[index_solver] =
+    solver_restart_cycle[is] =
       p->value_integer(solver_name + ":restart_cycle",1);
 
-    solver_coarse_level[index_solver] =
+    solver_coarse_level[is] =
       p->value_integer (solver_name + ":coarse_level",
-                        solver_min_level[index_solver]);
+                        solver_min_level[is]);
 
-    solver_is_unigrid[index_solver] =
+    solver_is_unigrid[is] =
       p->value_logical (solver_name + ":is_unigrid",false);
 
   }

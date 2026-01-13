@@ -1,7 +1,7 @@
 // See LICENSE_CELLO file for license and copyright information
 
-/// @file     compute_Solver.hpp 
-/// @author   James Bordner (jobordner@ucsd.edu) 
+/// @file     compute_Solver.hpp
+/// @author   James Bordner (jobordner@ucsd.edu)
 /// @date     2014-10-27 22:37:41
 /// @brief    [\ref Compute] Declaration for the Solver class
 
@@ -11,7 +11,7 @@
 #include <cstring>
 
 class Refresh;
-class Solver : public PUP::able 
+class Solver : public PUP::able
 {
   /// @class    Solver
   /// @ingroup  Compute
@@ -52,18 +52,19 @@ public: // interface
       solve_type_(solve_leaf),
       index_prolong_(0),
       index_restrict_(0),
-      ir_post_(-1)
+      ir_post_(-1),
+      include_ghosts_(false)
   { }
 
   /// Destructor
   virtual ~Solver() throw()
   { }
-  
+
   /// CHARM++ Pack / Unpack function
   void pup (PUP::er &p)
   {
     TRACEPUP;
-    
+
     PUP::able::pup(p);
 
     p | name_;
@@ -81,6 +82,7 @@ public: // interface
     p | index_prolong_;
     p | index_restrict_;
     p | ir_post_;
+    p | include_ghosts_;
   }
 
   Refresh * refresh(size_t index=0) ;
@@ -102,7 +104,7 @@ public: // interface
 
   void set_field_x (int ix)
   { ix_ = ix;  }
-  
+
   void set_field_b (int ib)
   { ib_ = ib;  }
 
@@ -111,7 +113,7 @@ public: // interface
 
   int min_level()
   { return min_level_; }
-  
+
   int max_level()
   { return max_level_; }
 
@@ -120,7 +122,7 @@ public: // interface
 
   void set_sync_id (int sync_id)
   { id_sync_ = sync_id; }
-  
+
   /// Type of neighbor: level if min_level == max_level, else leaf
   int neighbor_type_() const throw() {
     int retval;
@@ -171,6 +173,13 @@ public: // interface
   std::string name () const
   { return name_; }
 
+  void set_include_ghosts (bool value = true)
+  {
+    if (solve_type_ == solve_block) {
+      include_ghosts_ = value;
+    }
+  }
+
 public: // virtual functions
 
   /// Solve the linear system Ax = b
@@ -179,24 +188,28 @@ public: // virtual functions
   /// Return the type of this solver
   virtual std::string type () const = 0;
 
+  /// Whether the solution has refreshed ghost zones
+  virtual bool is_refreshed () const
+  { return false; }
+
   /// Whether Block is active
   virtual bool is_active_(Block * block) const;
 
   /// Whether solution is defined on this Block
   virtual bool is_finest_(Block * block) const;
-  
+
 protected: // functions
 
   /// Initialize a solve
   void begin_(Block * block);
-  
+
   /// Clean up after a solver is done and returning to its callback_
   void end_(Block * block);
 
   void monitor_output_(Block * block, int iter,
 		       double rr0=0.0,
 		       double rr_min=0.0, double rr=0.0, double rr_max=0.0,
-		       bool final = false) throw();
+		       bool is_final = false) throw();
   /// Add a new refresh object
   int add_refresh_ ();
 
@@ -223,10 +236,10 @@ protected: // attributes
 
   /// Field id for solution
   int ix_;
-  
+
   /// Field id for right-hand side
   int ib_;
-  
+
   /// How often to write output
   int monitor_iter_;
 
@@ -244,7 +257,7 @@ protected: // attributes
 
   /// Minimum mesh level
   int min_level_;
-  
+
   /// Maximum mesh level
   int max_level_;
 
@@ -259,9 +272,12 @@ protected: // attributes
 
   /// Restriction index
   int index_restrict_;
-  
+
   /// New Refresh id for after the solver
   int ir_post_;
+
+  /// Include ghosts in block-local domain solves
+  bool include_ghosts_;
 };
 
 #endif /* COMPUTE_SOLVER_HPP */
