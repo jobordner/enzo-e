@@ -17,16 +17,16 @@ class EnzoState : public State {
 public: // interface
 
   /// Constructor
-  EnzoState() throw()
-  : State(),
-    redshift_(0.0)
+  EnzoState(int max_level = 1) throw()
+    : State(max_level)
   {
+    redshift_.resize(max_level,0.0);
   }
 
   EnzoState(int cycle, double time, double dt, bool stopping) throw() :
-    State(cycle,time,dt,stopping),
-    redshift_(0.0)
+  State(cycle,time,dt,stopping)
   {
+    redshift_.resize(1,0.0);
   }
 
   /// CHARM++ PUP::able declaration
@@ -34,9 +34,8 @@ public: // interface
 
   /// CHARM++ migration constructor
   EnzoState(CkMigrateMessage *m)
-    : State (m),
-      redshift_(0.0)
-  {}
+    : State (m)
+  { }
 
   /// CHARM++ Pack / Unpack function
   void pup (PUP::er &p)
@@ -50,20 +49,44 @@ public: // interface
 
 
   /// Update the current time including redshift
-  virtual void set_time (double time);
+  virtual void set_time (double time, int level = 0);
 
-  void set_redshift (double redshift)
-  { redshift_ = redshift; }
+  void set_redshift (double redshift, int level = 0)
+  { redshift_[level] = redshift; }
 
-  double redshift () const
-  { return redshift_; }
+  double redshift (int level = 0) const
+  { return redshift_[level]; }
+
+  int data_size () const
+  {
+    int size = 0;
+    size += ((State*)this)->data_size();
+    SIZE_VECTOR_TYPE(size,double,redshift_);
+    return size;
+  }
+
+  char * save_data (char * buffer) const
+  {
+    char * pc = buffer;
+    pc = ((State *)this) -> save_data(pc);
+    SAVE_VECTOR_TYPE(pc,double,redshift_);
+    return pc;
+  }
+
+  char * load_data (char * buffer)
+  {
+    char * pc = buffer;
+    pc = ((State *)this) -> load_data(pc);
+    LOAD_VECTOR_TYPE(pc,double,redshift_);
+    return pc;
+  }
 
 protected: // attributes
 
   // NOTE: change pup() function whenever attributes change
 
   /// Current redshift
- double redshift_;
+  std::vector<double> redshift_;
 };
 
 #endif /* ENZO_STATE_HPP */
