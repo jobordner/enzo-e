@@ -638,6 +638,28 @@ enum class InitCycleKind {
       (SET).insert(first);                              \
     }                                                   \
   }
+
+//--------------------------------------------------
+
+#define SIZE_ENUM_CLASS_TYPE(COUNT,TYPE,VALUE)          \
+  {                                                     \
+    (COUNT) += sizeof(std::underlying_type<TYPE>);    \
+  }
+
+#define SAVE_ENUM_CLASS_TYPE(POINTER,TYPE,VALUE)                        \
+  {                                                                     \
+    int n;                                                              \
+    memcpy(POINTER,&(VALUE),n=sizeof(std::underlying_type<TYPE>));	\
+    (POINTER) += n;                                                     \
+  }
+
+#define LOAD_ENUM_CLASS_TYPE(POINTER,TYPE,VALUE)                        \
+  {                                                                     \
+    int n;                                                              \
+    memcpy(&VALUE,POINTER,n=sizeof(std::underlying_type<TYPE>));     \
+    (POINTER) += n;                                                     \
+  }
+
 //--------------------------------------------------
 
 /// Type for CkMyPe(); used for Block() constructor to differentiate
@@ -852,6 +874,10 @@ namespace cello {
   int             num_children(Block * block);
   /// Return the number of Blocks on this process
   size_t          num_blocks_process();
+  /// Return the minimum allowed refinement level
+  int             min_level();
+  /// Return the maximum allowed refinement level
+  int             max_level();
   /// Return the cell volume at the given level relative to the root level
   double          relative_cell_volume (int level);
   //----------------------------------------------------------------------

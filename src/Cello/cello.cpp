@@ -523,6 +523,16 @@ namespace cello {
 
   //----------------------------------------------------------------------
 
+  int min_level()
+  { return config()->mesh_min_level; }
+
+  //----------------------------------------------------------------------
+
+  int max_level()
+  { return config()->mesh_max_level; }
+
+  //----------------------------------------------------------------------
+
   double relative_cell_volume (int level)
   {
     return (1.0/pow(1.0*num_children(),1.0*level));

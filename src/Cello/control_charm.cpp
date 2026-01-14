@@ -48,12 +48,6 @@ void Block::output_exit_()
     cello::simulation()->monitor_output();
   }
 
-#ifdef TRACE_CONTRIBUTE  
-  CkPrintf ("%s %s:%d DEBUG_CONTRIBUTE calling r_stopping_enter()\n",
-	    name().c_str(),__FILE__,__LINE__);
-  fflush(stdout);
-#endif  
-
   control_sync_barrier (CkIndex_Block::r_stopping_enter(NULL));
 
   PERF_STOP(perf_rindex_output);
@@ -86,7 +80,10 @@ void Block::stopping_exit_()
 
 void Block::compute_exit_ ()
 {
-  control_sync_barrier(CkIndex_Block::r_adapt_enter(NULL));
+  // Update Simulation state
+  *cello::simulation()->state() = *state();
+
+  adapt_enter_();
 }
 
 //----------------------------------------------------------------------
@@ -156,7 +153,7 @@ void Block::control_sync_neighbor(int entry_point, int id_sync,
 
   int num_neighbors = 0;
 
-  const int min_level = cello::config()->mesh_min_level;
+  const int min_level = cello::min_level();
 
   ItNeighbor it_neighbor = this->it_neighbor
     (index_,min_face_rank,neighbor_type,min_level,root_level);

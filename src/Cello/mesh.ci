@@ -52,6 +52,7 @@ module mesh {
   PUPable ItIndexRange;
   PUPable MaskExpr;
   PUPable MaskPng;
+  PUPable MethodATS;
   PUPable MethodCloseFiles;
   PUPable MethodDebug;
   PUPable MethodFluxCorrect;

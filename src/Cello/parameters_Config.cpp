@@ -3,9 +3,9 @@
 /// @file     parameters_Config.cpp
 /// @author   James Bordner (jobordner@ucsd.edu)
 /// @date     2012-10-03
-/// @brief    Implementation of the Config class 
+/// @brief    Implementation of the Config class
 ///
-/// Last review of parameters was 2015-09-10 with revision -r 3836 
+/// Last review of parameters was 2015-09-10 with revision -r 3836
 
 #include "cello.hpp"
 #include "parameters.hpp"
@@ -49,7 +49,7 @@ void Config::pup (PUP::er &p)
   p | adapt_include_ghosts;
   p | adapt_output;
   p | adapt_schedule_index;
-  
+
   // Balance
 
   p | balance_schedule_index;
@@ -203,12 +203,12 @@ void Config::pup (PUP::er &p)
   p | performance_off_schedule_index;
 
   // Physics
-  
+
   p | num_physics;
   p | physics_list;
 
   // Solvers
-  
+
   p | num_solvers;
   p | solver_list;
   p | solver_index;
@@ -224,7 +224,7 @@ void Config::pup (PUP::er &p)
   p | solver_max_level;
   p | solver_field_x;
   p | solver_field_b;
-  
+
   // Stopping
 
   p | stopping_cycle;
@@ -237,6 +237,10 @@ void Config::pup (PUP::er &p)
   p | testing_cycle_final;
   p | testing_time_final;
   p | testing_time_tolerance;
+
+  // Timestep
+
+  p | timestep_type;
 
 }
 
@@ -262,6 +266,7 @@ void Config::read(Parameters * p) throw()
   read_physics_(p);
   read_stopping_(p);
   read_testing_(p);
+  read_timestep_(p);
   read_units_(p);
 
   TRACE("END   Config::read()");
@@ -337,7 +342,7 @@ void Config::read_adapt_ (Parameters * p) throw()
 
     adapt_include_ghosts[ia] = p->value_logical (prefix + "include_ghosts",
 						 false);
-    const bool adapt_scheduled = 
+    const bool adapt_scheduled =
       (p->type(prefix+"schedule:var") != parameter_unknown);
 
     if (adapt_scheduled) {
@@ -370,7 +375,7 @@ void Config::read_balance_ (Parameters * p) throw()
            ((balance_type == "charm") ||
             (balance_type == "cello")));
 
-  const bool balance_scheduled = 
+  const bool balance_scheduled =
     (p->type("Balance:schedule:var") != parameter_unknown);
 
   if (balance_scheduled) {
@@ -381,8 +386,8 @@ void Config::read_balance_ (Parameters * p) throw()
   } else {
     balance_schedule_index = -1;
   }
-  
-}  
+
+}
 
 //----------------------------------------------------------------------
 
@@ -395,9 +400,9 @@ void Config::read_boundary_ (Parameters * p) throw()
 
   const bool multi_boundary =
     (p->type("Boundary:list") == parameter_list);
-  
 
-  num_boundary = multi_boundary ? 
+
+  num_boundary = multi_boundary ?
     p->list_length("Boundary:list") : 1;
 
   boundary_list.resize(num_boundary);
@@ -444,7 +449,7 @@ void Config::read_boundary_ (Parameters * p) throw()
 	      (prefix+"face").c_str(),face_str.c_str());
     }
 
-    boundary_mask[ib] = (p->type(prefix+"mask") 
+    boundary_mask[ib] = (p->type(prefix+"mask")
 			 == parameter_logical_expr);
 
     boundary_field_list[ib] = p->value_full_strlist(prefix+"field_list", true);
@@ -474,7 +479,7 @@ void Config::read_field_ (Parameters * p) throw()
   // Field
   //--------------------------------------------------
 
-  num_fields = p->list_length("Field:list"); 
+  num_fields = p->list_length("Field:list");
 
   field_list.resize(num_fields);
 
@@ -624,7 +629,7 @@ void Config::read_initial_ (Parameters * p) throw()
   initial_list.resize(num_initial);
   for (int i=0; i<num_initial; i++) {
 
-    std::string name = 
+    std::string name =
       p->list_value_string(i,"Initial:list");
 
     initial_list[i] = name;
@@ -686,7 +691,7 @@ void Config::read_mesh_ (Parameters * p) throw()
   // Adjust ghost zones for unused ranks
   if (mesh_root_rank < 2) field_ghost_depth[1] = 0;
   if (mesh_root_rank < 3) field_ghost_depth[2] = 0;
-  
+
   //--------------------------------------------------
 
   int mx = mesh_root_blocks[0] = p->list_value_integer(0,"Mesh:root_blocks",1);
@@ -710,8 +715,9 @@ void Config::read_mesh_ (Parameters * p) throw()
 
   //--------------------------------------------------
 
-  mesh_max_level = p->value_integer
-    ("Adapt:max_level",0);
+  mesh_min_level = p->value_integer ("Adapt:min_level",0);
+  mesh_max_level = p->value_integer ("Adapt:max_level",0);
+
   mesh_max_initial_level = p->value_integer
     ("Adapt:max_initial_level",mesh_max_level);
 
@@ -721,22 +727,22 @@ void Config::read_mesh_ (Parameters * p) throw()
   // implicitly assume no non-leaf blocks (e.g. vlct_dual_energy_shock_tube)
 
 #ifdef DEPRECIATE_MESH_MIN_LEVEL
-    int max_root_blocks = std::max( { mx, my, mz } );
-    int array_bits = 0;
-    while (max_root_blocks=(max_root_blocks>>1)) ++array_bits;
-    if (! (p->type("Adapt:min_level") == parameter_unknown)) {
-      WARNING ("Config::read_mesh_()",
-               "Parameters 'Adapt : min_level' is depreciated: ignoring");
-    }
-    mesh_min_level = - array_bits;
+  int max_root_blocks = std::max( { mx, my, mz } );
+  int array_bits = 0;
+  while (max_root_blocks=(max_root_blocks>>1)) ++array_bits;
+  if (! (p->type("Adapt:min_level") == parameter_unknown)) {
+    WARNING ("Config::read_mesh_()",
+             "Parameters 'Adapt : min_level' is depreciated: ignoring");
+  }
+  mesh_min_level = - array_bits;
 #else
-    mesh_min_level = p->value_integer("Adapt:min_level",0);
+  mesh_min_level = p->value_integer("Adapt:min_level",0);
 #endif
 
   if ( mesh_min_level > 0 ) {
-    ERROR1 ("Config::read", 
+    ERROR1 ("Config::read",
             "Adapt:min_level has invalid value, %d. It should be less than or "
-            "equal to 0", 
+            "equal to 0",
             mesh_min_level);
   }
 
@@ -746,7 +752,7 @@ void Config::read_mesh_ (Parameters * p) throw()
   if (mesh_root_rank < 3) mesh_root_size[2] = 1;
 
   // Dimensions of the active zone on each block along each axis
-  const std::array<int,3> az_shape = {mesh_root_size[0] / mesh_root_blocks[0], 
+  const std::array<int,3> az_shape = {mesh_root_size[0] / mesh_root_blocks[0],
                                       mesh_root_size[1] / mesh_root_blocks[1],
                                       mesh_root_size[2] / mesh_root_blocks[2]};
 
@@ -759,10 +765,10 @@ void Config::read_mesh_ (Parameters * p) throw()
       std::string az_str = format_mesh_dims_(mesh_root_rank, az_shape.data());
       std::string gd_str = format_mesh_dims_(mesh_root_rank,
                                              field_ghost_depth);
-      ERROR2 ("Config::read", 
+      ERROR2 ("Config::read",
 	      "Dimensions of the active zone on each block, currently %s, "
               "should be at least double the ghost depth for AMR simulations. "
-              "Ghost depth is currently %s.", 
+              "Ghost depth is currently %s.",
               az_str.c_str(), gd_str.c_str());
     } else if ( (az_shape[0]%2 != 0) ||
                 ((mesh_root_rank > 1) && (az_shape[1]%2 != 0)) ||
@@ -773,7 +779,7 @@ void Config::read_mesh_ (Parameters * p) throw()
               "should each be even for AMR simulations" ,
               az_str.c_str());
     }
-  } else if ( mesh_max_level == 0 ) {   
+  } else if ( mesh_max_level == 0 ) {
     if ( (az_shape[0] < field_ghost_depth[0]) ||
          (az_shape[1] < field_ghost_depth[1]) ||
          (az_shape[2] < field_ghost_depth[2]) ) {
@@ -830,18 +836,18 @@ void Config::read_mesh_ (Parameters * p) throw()
     level++;
   }
 
-  // Ensure the number of regions to refine during initialization 
+  // Ensure the number of regions to refine during initialization
   // matches the max initial level specified in the Adapt group
   if (refined_regions_lower.size() > 0 && refined_regions_lower.size() != mesh_max_initial_level) {
     ERROR2("Config::read_mesh_()",
-    "The number of lower coordinates defining regions to refine (%d) should equal Adapt:max_initial_level (%d)", 
-    refined_regions_lower.size(), 
+    "The number of lower coordinates defining regions to refine (%d) should equal Adapt:max_initial_level (%d)",
+    refined_regions_lower.size(),
     mesh_max_initial_level);
   }
   if (refined_regions_upper.size() > 0 && refined_regions_upper.size() != mesh_max_initial_level) {
     ERROR2("Config::read_mesh_()",
-    "The number of upper coordinates defining regions to refine (%d) should equal Adapt:max_initial_level (%d)", 
-    refined_regions_upper.size(), 
+    "The number of upper coordinates defining regions to refine (%d) should equal Adapt:max_initial_level (%d)",
+    refined_regions_upper.size(),
     mesh_max_initial_level);
   }
 }
@@ -863,12 +869,12 @@ void Config::read_method_ (Parameters * p) throw()
   method_courant.resize(num_method);
   method_schedule_index.resize(num_method);
   method_type.resize(num_method);
-  
+
   method_courant_global = p->value_float ("Method:courant",1.0);
-  
+
   for (int index_method=0; index_method<num_method; index_method++) {
 
-    std::string name = 
+    std::string name =
       p->list_value_string(index_method,"Method:list");
 
     std::string full_name = std::string("Method:") + name;
@@ -966,7 +972,7 @@ void Config::read_output_ (Parameters * p) throw()
 
     TRACE1 ("index = %d",index_output);
 
-    output_list[index_output] = 
+    output_list[index_output] =
       p->list_value_string (index_output,"Output:list","unknown");
 
     p->group_set(1,output_list[index_output]);
@@ -1034,14 +1040,14 @@ void Config::read_output_ (Parameters * p) throw()
     }
 
     // Read schedule for the Output object
-      
+
     p->group_push("schedule");
-    output_schedule_index[index_output] = 
+    output_schedule_index[index_output] =
       read_schedule_(p, output_list[index_output]);
     p->group_pop();
-
-    // Image 
     
+    // Image
+
     if (output_type[index_output] == "image") {
 
 
@@ -1065,27 +1071,27 @@ void Config::read_output_ (Parameters * p) throw()
       output_image_log[index_output] = p->value_logical("image_log",false);
       output_image_abs[index_output] = p->value_logical("image_abs",false);
 
-      output_image_mesh_color[index_output] = 
+      output_image_mesh_color[index_output] =
 	p->value_string("image_mesh_color","level");
       output_image_mesh_order[index_output] =
 	p->value_string("image_mesh_order","none");
 
-      output_image_color_particle_attribute[index_output] = 
+      output_image_color_particle_attribute[index_output] =
 	p->value_string("image_color_particle_attribute","");
 
       output_image_size[index_output].resize(2);
-      output_image_size[index_output][0] = 
+      output_image_size[index_output][0] =
 	p->list_value_integer(0,"image_size",512);
-      output_image_size[index_output][1] = 
+      output_image_size[index_output][1] =
 	p->list_value_integer(1,"image_size",512);
 
-      output_image_reduce_type[index_output] = 
+      output_image_reduce_type[index_output] =
 	p->value_string("image_reduce_type","sum");
 
-      output_image_face_rank[index_output] = 
+      output_image_face_rank[index_output] =
 	p->value_integer("image_face_rank",3);
 
-      output_image_ghost[index_output] = 
+      output_image_ghost[index_output] =
 	p->value_logical("image_ghost",false);
 
       output_image_min[index_output] =
@@ -1159,7 +1165,7 @@ void Config::read_output_ (Parameters * p) throw()
       }
 
     }
-  }  
+  }
 
 }
 
@@ -1173,7 +1179,7 @@ void Config::read_particle_ (Parameters * p) throw()
 
   particle_batch_size = p->value_integer("Particle:batch_size",1024);
 
-  num_particles = p->list_length("Particle:list"); 
+  num_particles = p->list_length("Particle:list");
 
   particle_list.resize(num_particles);
   particle_interleaved.resize(num_particles);
@@ -1206,14 +1212,14 @@ void Config::read_particle_ (Parameters * p) throw()
 
     // are attributes are interleaved?
 
-    particle_interleaved[it] = 
+    particle_interleaved[it] =
       p->value_logical(type_str+":interleaved",false);
 
     // Particle:<type>:constants list elements contain name, type, and
     // value
 
     std::string const_str = type_str + ":constants";
-    
+
     const int nc3 = p->list_length(const_str);
 
     ASSERT2 ("read_particle_",
@@ -1245,7 +1251,7 @@ void Config::read_particle_ (Parameters * p) throw()
       particle_constant_type[it][ia]  = type;
 
       if (cello::type_is_float(type_val[type])) {
-	particle_constant_value[it][ia] = 
+	particle_constant_value[it][ia] =
 	  p->list_value_float (3*ia+2,const_str,0.0);
       } else if (cello::type_is_int(type_val[type])) {
 	particle_constant_value[it][ia] =
@@ -1258,7 +1264,7 @@ void Config::read_particle_ (Parameters * p) throw()
     // name and its type (see type_enum in cello.hpp)
 
     std::string attrib_str = type_str + ":attributes";
-    
+
     const int na2 = p->list_length(attrib_str);
 
     ASSERT1 ("read_particle_",
@@ -1288,7 +1294,7 @@ void Config::read_particle_ (Parameters * p) throw()
 
       particle_attribute_name[it][ia]  = name;
       particle_attribute_type[it][ia]  = type;
-     
+
       attribute_index[name] = ia;
     }
 
@@ -1336,7 +1342,7 @@ void Config::read_particle_ (Parameters * p) throw()
 
   // Add particles to groups (Group : <group_name> : particle_list)
 
-  int num_groups = p->list_length("Group:list"); 
+  int num_groups = p->list_length("Group:list");
 
   for (int index_group = 0; index_group < num_groups; index_group++) {
 
@@ -1365,7 +1371,7 @@ void Config::read_particle_ (Parameters * p) throw()
 
 void Config::read_performance_ (Parameters * p) throw()
 {
-#ifdef CONFIG_USE_PAPI  
+#ifdef CONFIG_USE_PAPI
   if (p->type("Performance:papi:counters") == parameter_list) {
     int length = p->list_length("Performance:papi:counters");
     performance_papi_counters.resize(length);
@@ -1376,15 +1382,15 @@ void Config::read_performance_ (Parameters * p) throw()
 	     i,performance_papi_counters[i].c_str());
     }
   }
-#endif  
+#endif
 
   performance_warnings = p->value_logical("Performance:warnings",false);
 
 #ifdef CONFIG_USE_PROJECTIONS
-  
+
   int i_on = -1;
   int i_off = -1;
-  
+
   if (p->type("Performance:projections:schedule_on:var") != parameter_unknown) {
     p->group_set(0,"Performance");
     p->group_push("projections");
@@ -1401,7 +1407,7 @@ void Config::read_performance_ (Parameters * p) throw()
 
   performance_projections_on_at_start =  p->value_logical
     ("Performance:projections:on_at_start",true);
-  
+
   // Check that both projections_on and off schedules are defined or undefined together
   if ((i_on == -1 && i_off == -1) || (i_on != -1 && i_off != -1)) {
     performance_on_schedule_index  = i_on;
@@ -1412,7 +1418,7 @@ void Config::read_performance_ (Parameters * p) throw()
 	   "must be both defined or both undefined",
 	   i_on,i_off);
   }
-#endif    
+#endif
 
 }
 
@@ -1424,13 +1430,13 @@ void Config::read_physics_ (Parameters * p) throw()
   // Physics
   //--------------------------------------------------
 
-  num_physics = p->list_length("Physics:list"); 
+  num_physics = p->list_length("Physics:list");
 
   physics_list.resize(num_physics);
-  
+
   for (int index_physics=0; index_physics<num_physics; index_physics++) {
 
-    std::string name = 
+    std::string name =
       p->list_value_string(index_physics,"Physics:list");
 
     physics_list[index_physics] = name;
@@ -1466,7 +1472,7 @@ void Config::read_solver_ (Parameters * p) throw()
 
   for (int index_solver=0; index_solver<num_solvers; index_solver++) {
 
-    std::string name = 
+    std::string name =
       p->list_value_string(index_solver,"Solver:list");
 
     std::string full_name = std::string("Solver:") + name;
@@ -1509,7 +1515,7 @@ void Config::read_solver_ (Parameters * p) throw()
 
     solver_field_b[index_solver] = p->value_string
       (full_name + ":field_b","unknown");
-  }  
+  }
 }
 
 //----------------------------------------------------------------------
@@ -1539,12 +1545,10 @@ void Config::read_stopping_ (Parameters * p) throw()
   stopping_interval = p->value_integer ( "Stopping:interval" , 1);
 }
 
+//----------------------------------------------------------------------
+
 void Config::read_units_ (Parameters * p) throw()
 {
-  //======================================================================
-  // Units
-  //======================================================================
-  
   units_mass    = p->value_float ("Units:mass",   1.0);
   units_density = p->value_float ("Units:density",1.0);
   units_length  = p->value_float ("Units:length", 1.0);
@@ -1570,6 +1574,13 @@ void Config::read_testing_ (Parameters * p) throw()
   testing_time_tolerance = p->value_float  ("Testing:time_tolerance", 1e-6);
 }
 
+//----------------------------------------------------------------------
+
+void Config::read_timestep_ (Parameters * p) throw()
+{
+  timestep_type = p->value_string("Timestep:type","global");
+}
+
 //======================================================================
 
 int Config::read_schedule_(Parameters * p, const std::string group)
@@ -1582,14 +1593,14 @@ int Config::read_schedule_(Parameters * p, const std::string group)
   schedule_start.resize(index+1);
   schedule_stop.resize(index+1);
   schedule_step.resize(index+1);
-  
+
   std::string var = p->value_string("var","none");
 
   schedule_var[index] = var;
 
   bool var_is_int = true;
 
-  // Get variable associated with the schedule 
+  // Get variable associated with the schedule
   if      (schedule_var[index] == "cycle")    var_is_int = true;
   else if (schedule_var[index] == "time")     var_is_int = false;
   else if (schedule_var[index] == "seconds")  var_is_int = false;

@@ -728,8 +728,8 @@ void Simulation::initialize_hierarchy_() throw()
 
   hierarchy_ = factory()->create_hierarchy
     (refinement,
-     config_->mesh_min_level,
-     config_->mesh_max_level);
+     cello::min_level(),
+     cello::max_level());
 
   hierarchy_->set_lower
     (config_->domain_lower[0],
@@ -801,7 +801,7 @@ void Simulation::initialize_block_array_() throw()
   // Create the root-level blocks for level = 0
   hierarchy_->create_block_array ();
 
-  // Create the "sub-root" blocks if mesh_min_level < 0
+  // Create the "sub-root" blocks if min_level < 0
   if (hierarchy_->min_level() < 0) {
     hierarchy_->create_subblock_array ();
   }
