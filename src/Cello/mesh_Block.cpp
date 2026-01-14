@@ -38,6 +38,7 @@ const char * phase_name[] = {
 
 Block::Block ()
   : CBase_Block(),
+    index_(thisIndex),
     data_(NULL),
     child_data_(NULL),
     level_next_(0),
@@ -66,7 +67,8 @@ Block::Block ()
     order_index_(0),
     order_count_(0),
     order_next_(),
-    index_(thisIndex)
+    level_lower_(-1),
+    level_upper_(-1)
 {
   PERF_START(perf_rindex_block);
   init_refresh_();
@@ -85,6 +87,7 @@ Block::Block (CkMigrateMessage *m)
 
 Block::Block ( MsgType msg_type )
   : CBase_Block(),
+    index_(thisIndex),
     data_(NULL),
     child_data_(NULL),
     level_next_(0),
@@ -111,11 +114,12 @@ Block::Block ( MsgType msg_type )
     index_method_(-1),
     index_solver_(),
     refresh_(),
-    index_(thisIndex),
     order_index_(0),
-    order_count_(1)
+    order_count_(1),
+    order_next_(),
+    level_lower_(-1),
+    level_upper_(-1)
 {
-
 #ifdef TRACE_BLOCK
   CkPrintf ("%d TRACE_BLOCK %s Block::Block(ip)\n",  CkMyPe(),name(thisIndex).c_str());
 #endif
@@ -144,7 +148,7 @@ void Block::set_msg_refine(MsgRefine * msg)
      msg->num_field_blocks_,
      msg->num_adapt_steps_,
      0, nullptr,
-     msg->refresh_type_,
+     msg->face_type_,
      msg->face_level_,
      msg->adapt_parent_,
      msg->state_);
@@ -164,6 +168,7 @@ void Block::set_msg_refine(MsgRefine * msg)
   CkPrintf ("TRACE_REFINE %s\n",name().c_str());
   fflush(stdout);
 #endif
+
   delete msg;
   PERF_STOP(perf_rindex_block);
 }
@@ -176,14 +181,24 @@ void Block::init_refine_
  int nx, int ny, int nz,
  int num_field_blocks,
  int num_adapt_steps,
- int narray, char * array, int refresh_type,
+ int narray, char * array, int face_type,
  const std::vector<int> & face_level,
  Adapt * adapt,
  State * state)
 {
   index_ = index;
   *state_ = *state;
+
   state_->init_method(cello::problem()->num_methods());
+
+  // Initialize method state only if supercycling any methods
+  // bool do_supercycle = 0;
+  // const auto & ss_list = cello::config()->method_max_supercycle;
+  // for (auto ss: ss_list)
+  //    if (ss != 1) do_supercycle = true;
+  //  state_->init_method
+  //    ( do_supercycle ? cello::problem()->num_methods() : 0 );
+
   adapt_step_ = num_adapt_steps;
   adapt_ready_ = false;
   adapt_balanced_ = false;
@@ -215,7 +230,7 @@ void Block::init_refine_
 		     num_field_blocks,
 		     xm,xp, ym,yp, zm,zp);
 
-  data_->allocate();
+  data_->allocate(index.level());
 
   child_data_ = NULL;
 
@@ -282,11 +297,14 @@ void Block::init_refine_
     cello::field_descr()->ghost_depth(0,g3,g3+1,g3+2);
     Refresh * refresh = new Refresh;
     refresh->add_all_data();
+    refresh -> set_adaptive_timestep
+      (state_->state_type() == State::Type::Level);
 
     FieldFace * field_face = create_face
-      (if3, ic3, g3, refresh_fine, refresh);
+      (if3, ic3, g3, +1, refresh);
 
     // Copy refined field data
+
     field_face -> array_to_face (array, data()->field());
 
     delete field_face;
@@ -401,6 +419,8 @@ void Block::pup(PUP::er &p)
   p | order_index_;
   p | order_count_;
   p | order_next_;
+  p | level_lower_;
+  p | level_upper_;
 }
 
 //----------------------------------------------------------------------
@@ -437,14 +457,14 @@ ItFace Block::it_face
 
 ItNeighbor Block::it_neighbor (Index index,
                                int min_face_rank,
-			       int neighbor_type,
-			       int min_level, int coarse_level) throw()
+                               int neighbor_type,
+                               int coarse_level,
+                               int level_lower,
+                               int level_upper,
+                               DirType dir_type) throw()
 {
   if (min_face_rank == -1) {
     min_face_rank = cello::config()->adapt_min_face_rank;
-  }
-  if (min_level == INDEX_UNDEFINED_LEVEL) {
-    min_level = cello::min_level();
   }
   int n3[3];
   size_array(&n3[0],&n3[1],&n3[2]);
@@ -452,7 +472,8 @@ ItNeighbor Block::it_neighbor (Index index,
   cello::hierarchy()->get_periodicity(p3,p3+1,p3+2);
   return ItNeighbor
     (this,min_face_rank,p3,n3,index,
-     neighbor_type,min_level,coarse_level);
+     neighbor_type,coarse_level,level_lower,level_upper,
+     dir_type);
 }
 
 //----------------------------------------------------------------------
@@ -634,7 +655,9 @@ void Block::apply_initial_(MsgRefine * msg) throw ()
   fflush(stdout);
 #endif
   if (! cello::is_initial_cycle(state_->cycle(),InitCycleKind::fresh)) {
+
     msg->update(data());
+
   } else {
     TRACE("Block::apply_initial_()");
     Simulation * simulation = cello::simulation();
@@ -701,9 +724,11 @@ Block::~Block()
     int g3[3]={0,0,0};
     Refresh * refresh = new Refresh;
     refresh->add_all_data();
+    refresh -> set_adaptive_timestep
+      (state()->state_type() == State::Type::Level);
 
     FieldFace * field_face = create_face
-      ( if3,ic3,g3,refresh_coarse,refresh);
+      ( if3,ic3,g3,-1,refresh);
 
     field_face->face_to_array(data()->field(),&n,&array);
     delete field_face;
@@ -744,9 +769,11 @@ void Block::p_refresh_child
   int  g3[3] = {0,0,0};
   Refresh * refresh = new Refresh;
   refresh->add_all_data();
+  refresh -> set_adaptive_timestep
+    (state()->state_type() == State::Type::Level);
 
   FieldFace * field_face = create_face
-    (if3, ic3, g3, refresh_coarse,refresh);
+    (if3, ic3, g3, -1,refresh);
 
   field_face -> array_to_face (buffer, data()->field());
   delete field_face;
@@ -1038,11 +1065,12 @@ Index Block::index_from_global(int ix, int iy, int iz, int level, int min_level)
 
 FieldFace * Block::create_face
 (int if3[3], int ic3[3], int g3[3],
- int refresh_type, Refresh * refresh, bool new_refresh) const
+ int face_type, Refresh * refresh, bool new_refresh) const
 {
-  FieldFace  * field_face = new FieldFace(cello::rank());
+  FieldFace  * field_face = new FieldFace;
 
-  field_face -> set_refresh_type (refresh_type);
+  field_face -> set_level (level());
+  field_face -> set_face_type (face_type);
   field_face -> set_child (ic3[0],ic3[1],ic3[2]);
   field_face -> set_face (if3[0],if3[1],if3[2]);
   field_face -> set_ghost(g3[0],g3[1],g3[2]);
@@ -1300,3 +1328,4 @@ bool Block::refine_during_initialization(Index index) const throw()
 
   return false;
 }
+

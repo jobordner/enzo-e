@@ -24,9 +24,10 @@ Problem::Problem() throw()
     units_(nullptr),
     index_refine_(0),
     index_output_(0),
-    index_boundary_(0)
+    index_boundary_(0),
+    id_refresh_initial_(0)
 {
-  
+
 }
 
 //----------------------------------------------------------------------
@@ -126,16 +127,17 @@ void Problem::pup (PUP::er &p)
   for (int i=0; i<n; i++) {
     p | restrict_list_[i]; // PUP::able
   }
-  
+
   p | index_refine_;
   p | index_output_;
   p | index_boundary_;
+  p | id_refresh_initial_;
 }
 
 //----------------------------------------------------------------------
 
-void Problem::initialize_boundary(Config * config, 
-				  Parameters * parameters) throw()
+void Problem::initialize_boundary(Config * config,
+                                  Parameters * parameters) throw()
 {
   for (int index=0; index < config->num_boundary; index++) {
 
@@ -164,7 +166,7 @@ void Problem::initialize_boundary(Config * config,
 //----------------------------------------------------------------------
 
 void Problem::initialize_initial(Config * config,
-				 Parameters * parameters) throw()
+                                 Parameters * parameters) throw()
 {
 
   for (int index=0; index < config->num_initial; index++) {
@@ -174,9 +176,9 @@ void Problem::initialize_initial(Config * config,
     Initial * initial = create_initial_ (type,index,config,parameters);
 
     ASSERT1("Problem::initialize_initial",
-	    "Initial type %s not recognized",
-	    config->initial_list[index].c_str(),
-	    (initial != nullptr) );
+            "Initial type %s not recognized",
+            config->initial_list[index].c_str(),
+            (initial != nullptr) );
 
     initial_list_.push_back( initial );
   }
@@ -185,7 +187,7 @@ void Problem::initialize_initial(Config * config,
 //----------------------------------------------------------------------
 
 void Problem::initialize_physics(Config * config,
-				 Parameters * parameters) throw()
+                                 Parameters * parameters) throw()
 {
 
   for (int index=0; index < config->num_physics; index++) {
@@ -196,9 +198,9 @@ void Problem::initialize_physics(Config * config,
       (type,index,config,parameters);
 
     ASSERT1("Problem::initialize_physics",
-	    "Physics type %s not recognized",
-	    config->physics_list[index].c_str(),
-	    (physics != nullptr) );
+            "Physics type %s not recognized",
+            config->physics_list[index].c_str(),
+            (physics != nullptr) );
 
     physics_list_.push_back( physics );
   }
@@ -209,13 +211,13 @@ void Problem::initialize_physics(Config * config,
 //----------------------------------------------------------------------
 
 void Problem::initialize_refine(Config * config,
-				Parameters * parameters) throw()
+                                Parameters * parameters) throw()
 {
   for (int index=0; index<config->num_adapt; index++) {
 
     std::string name = config->adapt_type[index];
 
-    Refine * refine = create_refine_ 
+    Refine * refine = create_refine_
       (name,index,config,parameters);
 
     if (refine) {
@@ -223,17 +225,17 @@ void Problem::initialize_refine(Config * config,
       int index_schedule = config->adapt_schedule_index[index];
 
       if (index_schedule >= 0) {
-	refine->set_schedule
-	  (Schedule::create( config->schedule_var[index_schedule],
-			     config->schedule_type[index_schedule],
-			     config->schedule_start[index_schedule],
-			     config->schedule_stop[index_schedule],
-			     config->schedule_step[index_schedule],
-			     config->schedule_list[index_schedule]));
+        refine->set_schedule
+          ( Schedule::create( config->schedule_var[index_schedule],
+                              config->schedule_type[index_schedule],
+                              config->schedule_start[index_schedule],
+                              config->schedule_stop[index_schedule],
+                              config->schedule_step[index_schedule],
+                              config->schedule_list[index_schedule]));
       }
     } else {
       ERROR1("Problem::initialize_refine",
-	     "Cannot create Refine type %s",name.c_str());
+             "Cannot create Refine type %s",name.c_str());
     }
   }
 }
@@ -245,8 +247,8 @@ void Problem::initialize_stopping(Config * config) throw()
   stopping_ = create_stopping_("default",config);
 
   ASSERT("Problem::initialize_stopping",
-	  "Stopping object not successfully created",
-	  stopping_ != nullptr);
+         "Stopping object not successfully created",
+         stopping_ != nullptr);
 }
 
 //----------------------------------------------------------------------
@@ -257,17 +259,17 @@ void Problem::initialize_prolong(Config * config) throw()
   ASSERT ("Problem::initialize_prolong()",
           "Initial default prolongation must be added to Problem::prolong_list_ first",
           (prolong_list_.size() == 0));
-  
+
   Prolong * prolong = create_prolong_(config->field_prolong,config);
 
   ASSERT1("Problem::initialize_prolong",
-	  "Prolong type %s not recognized",
-	  config->field_prolong.c_str(),
-	  prolong != nullptr);
+          "Prolong type %s not recognized",
+          config->field_prolong.c_str(),
+          prolong != nullptr);
 
   prolong_list_.push_back(prolong);
 
-}  
+}
 
 //----------------------------------------------------------------------
 
@@ -281,9 +283,9 @@ void Problem::initialize_restrict(Config * config) throw()
   Restrict * restrict = create_restrict_(config->field_restrict,config);
 
   ASSERT1("Problem::initialize_restrict",
-	  "Restrict type %s not recognized",
-	  config->field_restrict.c_str(),
-	  restrict != nullptr);
+          "Restrict type %s not recognized",
+          config->field_restrict.c_str(),
+          restrict != nullptr);
 
   restrict_list_.push_back(restrict);
 
@@ -295,7 +297,7 @@ void Problem::initialize_output
 (Config * config, const Factory * factory) throw()
 {
   FieldDescr * field_descr = cello::field_descr();
-  
+
   for (int index=0; index < config->num_output; index++) {
 
     std::string type       = config->output_type[index];
@@ -304,8 +306,8 @@ void Problem::initialize_output
 
     if (output == nullptr) {
       ERROR2("Problem::initialize_output",
-	     "Unknown parameter type Output:%s:type = %s",
-	     config->output_list[index].c_str(),type.c_str());
+             "Unknown parameter type Output:%s:type = %s",
+             config->output_list[index].c_str(),type.c_str());
     } else {
 
       if (config->output_name[index].size() > 0) {
@@ -325,7 +327,7 @@ void Problem::initialize_output
 
         std::string dir_name;
         std::vector<std::string> dir_args;
-      
+
         dir_name = config->output_dir_global;
 
         if (config->output_dir[index].size() > 0) {
@@ -359,7 +361,7 @@ void Problem::initialize_output
             output->set_it_field_index(it_field);
             break;
           }
-        } 
+        }
         // if no fields are "*", create field index iterator
         if (! all_fields) {
           ItIndexList * it_field = new ItIndexList;
@@ -395,7 +397,7 @@ void Problem::initialize_output
             output->set_it_particle_index(it_particle);
             break;
           }
-        } 
+        }
         // if no particles are "*", create particle index iterator
         if (! all_particles) {
           ItIndexList * it_particle = new ItIndexList;
@@ -462,7 +464,7 @@ void Problem::initialize_output
     // Add the initialized Output object to the Simulation's list of
     // output objects
 
-    output_list_.push_back(output); 
+    output_list_.push_back(output);
 
   } // (for index)
 
@@ -473,16 +475,23 @@ void Problem::initialize_output
 void Problem::initialize_method
 ( Config * config, const Factory * factory ) throw()
 {
-  const size_t num_method = config->method_list.size();
-
-  Method::courant_global = config->method_courant_global;
-
-  const std::string root_path = "Method:null";
-  ASSERT("Problem::initialize_method()", "Something is wrong",
+  ASSERT("Problem::initialize_method()",
+         "Simulation object does not exist!",
          cello::simulation());
 
-  ParameterGroup p_group(*(cello::simulation()->parameters()), root_path);
-  method_list_.push_back(new MethodNull(p_group));
+  // Add initial "null" method to refresh fields (refresh should be
+  // added to
+  ParameterGroup p_group(*(cello::simulation()->parameters()), "Method:null");
+  MethodNull * method_null = new MethodNull(p_group);
+  method_list_.push_back(method_null);
+  std::vector<double> list_of_0;
+  list_of_0.push_back(0.0);
+  // only call at cycle 0 to refresh all fields
+  method_null->set_schedule
+     ( Schedule::create( "cycle","list",0,0,1,list_of_0));
+
+  // Create methods
+  const size_t num_method = config->method_list.size();
 
   for (size_t index_method=0; index_method < num_method ; index_method++) {
 
@@ -492,25 +501,27 @@ void Problem::initialize_method
 
     if (method) {
 
-      method_list_.push_back(method); 
+      method_list_.push_back(method);
 
       int index_schedule = config->method_schedule_index[index_method];
 
       if (index_schedule != -1) {
-	method->set_schedule
-	  (Schedule::create( config->schedule_var[index_schedule],
-			     config->schedule_type[index_schedule],
-			     config->schedule_start[index_schedule],
-			     config->schedule_stop[index_schedule],
-			     config->schedule_step[index_schedule],
-			     config->schedule_list[index_schedule]));
+        method->set_schedule
+          ( Schedule::create( config->schedule_var[index_schedule],
+                              config->schedule_type[index_schedule],
+                              config->schedule_start[index_schedule],
+                              config->schedule_stop[index_schedule],
+                              config->schedule_step[index_schedule],
+                              config->schedule_list[index_schedule]));
       }
       method->set_max_supercycle(config->method_max_supercycle[index_method]);
       method->set_index(num_methods() - 1);
 
     } else {
+
       ERROR1("Problem::initialize_method",
-	     "Unknown Method %s",name.c_str());
+             "Unknown Method %s",name.c_str());
+
     }
   }
 }
@@ -529,11 +540,11 @@ void Problem::initialize_solver( Config * config ) throw()
 
     if (solver) {
 
-      solver_list_.push_back(solver); 
+      solver_list_.push_back(solver);
 
     } else {
       ERROR1("Problem::initialize_solver",
-	     "Unknown Solver %s",type.c_str());
+             "Unknown Solver %s",type.c_str());
     }
   }
 }
@@ -546,7 +557,7 @@ void Problem::initialize_units(Config * config) throw()
 
   ASSERT("Problem::initialize_units",
 	  "Units object not successfully created",
-	  units_ != nullptr);
+         units_ != nullptr);
 }
 
 //======================================================================
@@ -625,7 +636,7 @@ Initial * Problem::create_initial_
  Config * config,
  Parameters * parameters
  ) throw ()
-{ 
+{
   //--------------------------------------------------
   // parameter: Initial : cycle
   // parameter: Initial : time
@@ -635,13 +646,13 @@ Initial * Problem::create_initial_
 
   if (type == "value") {
     initial = new InitialValue(parameters,
-			       config->initial_cycle,
-			       config->initial_time);
+                               config->initial_cycle,
+                               config->initial_time);
   } else if (type == "trace") {
     initial = new InitialTrace (config->initial_trace_name,
-				config->initial_trace_field,
-				config->initial_trace_mpp,
-				config->initial_trace_dx,
+                                config->initial_trace_field,
+                                config->initial_trace_mpp,
+                                config->initial_trace_dx,
                                 config->initial_trace_dy,
                                 config->initial_trace_dz);
   }
@@ -658,7 +669,7 @@ Refine * Problem::create_refine_
  Config *           config,
  Parameters *       parameters
  ) throw ()
-{ 
+{
 
   if (type == "density") {
 
@@ -671,7 +682,7 @@ Refine * Problem::create_refine_
 
   } else if (type == "slope") {
 
-    return new RefineSlope 
+    return new RefineSlope
       (config->adapt_min_refine[index],
        config->adapt_max_coarsen[index],
        config->adapt_field_list[index],
@@ -681,7 +692,7 @@ Refine * Problem::create_refine_
 
   } else if (type == "shear") {
 
-    return new RefineShear 
+    return new RefineShear
       (config->adapt_min_refine[index],
        config->adapt_max_coarsen[index],
        config->adapt_max_level[index],
@@ -692,7 +703,7 @@ Refine * Problem::create_refine_
 
     std::string param_str = "Adapt:" + config->adapt_list[index] + ":value";
 
-    return new RefineMask 
+    return new RefineMask
       (parameters,
        param_str,
        config->adapt_max_level[index],
@@ -714,7 +725,7 @@ Refine * Problem::create_refine_
 
 //----------------------------------------------------------------------
 
-Stopping * Problem::create_stopping_ 
+Stopping * Problem::create_stopping_
 (
  std::string  type,
  Config * config
@@ -723,13 +734,13 @@ Stopping * Problem::create_stopping_
 /// @param config  Configuration parameter class
 {
   return new Stopping(config->stopping_cycle,
-		      config->stopping_time,
-		      config->stopping_seconds);
+                      config->stopping_time,
+                      config->stopping_seconds);
 }
 
 //----------------------------------------------------------------------
 
-Units * Problem::create_units_ 
+Units * Problem::create_units_
 (
  Config * config
  ) throw ()
@@ -737,22 +748,22 @@ Units * Problem::create_units_
 /// @param config  Configuration parameter class
 {
   Units * units = new Units;
-  
+
   if (config->units_mass == 1.0) {
 
     units->set_using_density (config->units_length,
-			       config->units_density,
-			       config->units_time);
-    
+                              config->units_density,
+                              config->units_time);
+
   } else if (config->units_density == 1.0) {
 
     units->set_using_mass (config->units_length,
-			    config->units_mass,
-			    config->units_time);
+                           config->units_mass,
+                           config->units_time);
   } else {
-    
+
     ERROR("Problem::create_units_",
-	  "Cannot set both Units:density and Units:time parameters");
+          "Cannot set both Units:density and Units:time parameters");
   }
 
   return units;
@@ -760,7 +771,7 @@ Units * Problem::create_units_
 
 //----------------------------------------------------------------------
 
-Solver * Problem::create_solver_ 
+Solver * Problem::create_solver_
 ( std::string  type,
   int index_solver,
   Config * config
@@ -781,7 +792,7 @@ Solver * Problem::create_solver_
     const int index_restrict = restrict_list_.size();
     prolong_list_.push_back(prolong);
     restrict_list_.push_back(restrict);
-    
+
     solver = new SolverNull
       (config->solver_list         [index_solver],
        config->solver_field_x      [index_solver],
@@ -795,13 +806,13 @@ Solver * Problem::create_solver_
   }
 
   if (solver) solver->set_index(index_solver);
-  
+
   return solver;
 }
 
 //----------------------------------------------------------------------
 
-Physics * Problem::create_physics_ 
+Physics * Problem::create_physics_
 ( std::string type,
   int index,
   Config * config,
@@ -894,7 +905,7 @@ Compute * Problem::create_compute
 
 //----------------------------------------------------------------------
 
-Method * Problem::create_method_ 
+Method * Problem::create_method_
 ( std::string  name,
   int index_method,
   Config * config,
@@ -903,8 +914,10 @@ Method * Problem::create_method_
 {
   TRACE1("Problem::create_method %s",name.c_str());
 
-  // move creation of p_access up the call stack?
-  ASSERT("Problem::create_method_", "Something is wrong", cello::simulation());
+  ASSERT("Problem::create_method_",
+         "Simulation object does not exist!",
+         (cello::simulation() != nullptr));
+
   Parameters* parameters = cello::simulation()->parameters();
   const std::string root_path =
     ("Method:" + parameters->list_value_string(index_method, "Method:list"));
@@ -933,10 +946,6 @@ Method * Problem::create_method_
   } else if (name == "refresh") {
     method = new MethodRefresh(p_group);
   } else if (name == "debug") {
-
-    // TODO: refactor to use MethodDebug's constructor
-    //   - as an aside, the number of fields and particles specified in the
-    //     parameter file may be inaccurate. We probably don't want to do that
     method = new MethodDebug
       (config->num_fields,
        config->num_particles,
@@ -952,7 +961,7 @@ Method * Problem::create_method_
 
 //----------------------------------------------------------------------
 
-Output * Problem::create_output_ 
+Output * Problem::create_output_
 (
  std::string    name,
  int index,
@@ -963,7 +972,7 @@ Output * Problem::create_output_
 /// @param index          Index of output object in Object list
 /// @param config         Configuration parameter object
 /// @param factory        Factory object for creating Io objects of correct type
-{ 
+{
 
   Output * output = nullptr;
 
@@ -992,11 +1001,14 @@ Output * Problem::create_output_
     double      image_max = config->output_image_max[index];
 
     double image_lower[3] = { config->output_image_lower[index][0],
-			      config->output_image_lower[index][1],
-			      config->output_image_lower[index][2] };
+                              config->output_image_lower[index][1],
+                              config->output_image_lower[index][2] };
     double image_upper[3] = { config->output_image_upper[index][0],
-			      config->output_image_upper[index][1],
-			      config->output_image_upper[index][2] };
+                              config->output_image_upper[index][1],
+                              config->output_image_upper[index][2] };
+
+    const int image_history = config->output_image_history[index];
+
     // AXIS
 
     int image_axis = config->output_axis[index][0] - 'x';
@@ -1004,28 +1016,29 @@ Output * Problem::create_output_
     bool use_min_max =
       (image_min != std::numeric_limits<double>::max()) &&
       (image_max != -std::numeric_limits<double>::max());
-    
+
     output = new OutputImage (index,factory,
-			      CkNumPes(),
-			      config->mesh_root_size,
-			      config->mesh_root_blocks,
-			      min_level,
-			      max_level,
-			      leaf_only,
-			      image_type,
-			      image_size,
-			      image_reduce_type,
-			      image_mesh_color,
-			      image_mesh_order,
-			      image_color_particle_attribute,
-			      image_lower, image_upper,
-			      image_face_rank,
-			      image_axis,
-			      image_log,
-			      image_abs,
-			      image_ghost,
+                              CkNumPes(),
+                              config->mesh_root_size,
+                              config->mesh_root_blocks,
+                              min_level,
+                              max_level,
+                              leaf_only,
+                              image_type,
+                              image_size,
+                              image_reduce_type,
+                              image_mesh_color,
+                              image_mesh_order,
+                              image_color_particle_attribute,
+                              image_lower, image_upper,
+                              image_history,
+                              image_face_rank,
+                              image_axis,
+                              image_log,
+                              image_abs,
+                              image_ghost,
                               use_min_max,
-			      image_min, image_max);
+                              image_min, image_max);
 
   } else if (name == "data") {
 
@@ -1034,7 +1047,7 @@ Output * Problem::create_output_
   } else if (name == "checkpoint") {
 
     output = new OutputCheckpoint (index,factory,
-				   config,CkNumPes());
+                                   config,CkNumPes());
 
   }
 
@@ -1045,7 +1058,7 @@ Output * Problem::create_output_
 //----------------------------------------------------------------------
 
 Prolong * Problem::create_prolong_ ( std::string  name ,
-				     Config * config) throw ()
+                                     Config * config) throw ()
 {
   Prolong * prolong = 0;
 
@@ -1058,20 +1071,20 @@ Prolong * Problem::create_prolong_ ( std::string  name ,
     prolong = new ProlongInject;
 
   } else {
-    
+
     ERROR1("Problem::create_prolong_",
-	  "Unrecognized Field:prolong parameter %s",name.c_str());
+           "Unrecognized Field:prolong parameter %s",name.c_str());
 
   }
 
   return prolong;
-  
+
 }
 
 //----------------------------------------------------------------------
 
 Restrict * Problem::create_restrict_ ( std::string  name ,
-				     Config * config) throw ()
+                                       Config * config) throw ()
 {
   Restrict * restrict = 0;
 
@@ -1080,14 +1093,14 @@ Restrict * Problem::create_restrict_ ( std::string  name ,
     restrict = new RestrictLinear;
 
   } else {
-    
+
     ERROR1("Problem::create_restrict_",
-	  "Unrecognized Field:restrict parameter %s",name.c_str());
+           "Unrecognized Field:restrict parameter %s",name.c_str());
 
   }
 
   return restrict;
-  
+
 }
 
 //----------------------------------------------------------------------

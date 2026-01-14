@@ -78,18 +78,19 @@ EnzoSolverEnzo::EnzoSolverEnzo
   const int min_face_rank = cello::config()->adapt_min_face_rank;
 
   // Create new refresh object
-  Refresh refresh_level
+  Refresh * refresh_level = Refresh::create
     (ghost_depth,min_face_rank, neighbor_level, sync_face, 0);
-  refresh_level.set_callback(CkIndex_EnzoBlock::p_solver_enzo_refresh_level_end());
+  refresh_level->set_callback
+    (CkIndex_EnzoBlock::p_solver_enzo_refresh_level_end());
 
   ir_level_list_.resize(max_level + 1);
   int level = 0;
   for (auto & ir_level : ir_level_list_) {
-    refresh_level.add_field (ix_);
-    refresh_level.set_level(level);
-    refresh_level.set_prolong(index_prolong);
-    refresh_level.set_restrict(index_restrict);
-    refresh_level.set_final_sync(false);
+    refresh_level->add_field (ix_);
+    refresh_level->set_level(level);
+    refresh_level->set_prolong(index_prolong);
+    refresh_level->set_restrict(index_restrict);
+    refresh_level->set_final_sync(false);
 
     ir_level = cello::simulation()->new_register_refresh(refresh_level);
     cello::simulation()->refresh_set_name(ir_level,
@@ -169,7 +170,7 @@ void EnzoSolverEnzo::restrict_send(EnzoBlock * enzo_block)
   int ic3[3];
   index.child(level,&ic3[0],&ic3[1],&ic3[2],min_level_);
 
-  FieldMsg * msg = pack_field_(enzo_block,ib_,refresh_coarse,ic3);
+  FieldMsg * msg = pack_field_(enzo_block,ib_,-1,ic3);
 
   // Send packed field to parent
   Index index_parent = enzo_block->index().index_parent(min_level_);
@@ -198,7 +199,7 @@ void EnzoSolverEnzo::restrict_recv(EnzoBlock * enzo_block,
       msg = *pmsg_restrict_(enzo_block,i);
       *pmsg_restrict_(enzo_block,i) = nullptr;
       // Unpack field from message then delete message
-      unpack_field_(enzo_block,msg,ib_,refresh_coarse);
+      unpack_field_(enzo_block,msg,ib_,-1);
     }
 
     if (enzo_block->level() > 0) {
@@ -262,7 +263,7 @@ void EnzoSolverEnzo::prolong_send(EnzoBlock * enzo_block)
 
   while (it_child.next(ic3)) {
 
-    FieldMsg * msg = pack_field_(enzo_block,ix_,refresh_fine,ic3);
+    FieldMsg * msg = pack_field_(enzo_block,ix_,+1,ic3);
 
     Index index_child = enzo_block->index().index_child(ic3,min_level_);
 
@@ -294,7 +295,7 @@ void EnzoSolverEnzo::prolong_recv(EnzoBlock * enzo_block,
     *pmsg_prolong_(enzo_block) = NULL;
 
     // Unpack field from message then delete message
-    unpack_field_(enzo_block,msg,ix_,refresh_fine);
+    unpack_field_(enzo_block,msg,ix_,+1);
 
     refresh_level_begin(enzo_block,enzo_block->level());
   }
@@ -458,7 +459,7 @@ FieldMsg * EnzoSolverEnzo::pack_field_(EnzoBlock * enzo_block,
   int  if3[3] = {0,0,0};
   int g3[3];
   cello::field_descr()->ghost_depth(index_field,g3,g3+1,g3+2);
-  if (refresh_type != refresh_fine)
+  if (refresh_type != +1)
     for (int i=0; i<3; i++) g3[i]=0;
 
   Refresh * refresh = new Refresh;
@@ -469,9 +470,9 @@ FieldMsg * EnzoSolverEnzo::pack_field_(EnzoBlock * enzo_block,
   FieldFace * field_face = enzo_block->create_face
     (if3, ic3, g3, refresh_type, refresh);
 
-  if (refresh_type == refresh_fine) {
+  if (refresh_type == +1) {
     refresh->set_prolong(index_prolong_);
-  } else if (refresh_type == refresh_coarse) {
+  } else if (refresh_type == -1) {
     refresh->set_restrict(index_restrict_);
   }
 
@@ -507,7 +508,7 @@ void EnzoSolverEnzo::unpack_field_
   int if3[3] = {0,0,0};
   int g3[3];
   cello::field_descr()->ghost_depth(index_field,g3,g3+1,g3+2);
-  if (refresh_type != refresh_fine)
+  if (refresh_type != +1)
     for (int i=0; i<3; i++) g3[i]=0;
   Refresh * refresh = new Refresh;
   refresh->set_prolong(index_prolong_);
@@ -519,9 +520,9 @@ void EnzoSolverEnzo::unpack_field_
   FieldFace * field_face = enzo_block->create_face
     (if3, ic3, g3, refresh_type, refresh);
 
-  if (refresh_type == refresh_fine) {
+  if (refresh_type == +1) {
     refresh->set_prolong(index_prolong_);
-  } else if (refresh_type == refresh_coarse) {
+  } else if (refresh_type == -1) {
     refresh->set_restrict(index_restrict_);
   }
 

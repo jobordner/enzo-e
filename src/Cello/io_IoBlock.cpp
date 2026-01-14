@@ -24,6 +24,8 @@ IoBlock::IoBlock() throw ()
   meta_name_.push_back("order_index");
   meta_name_.push_back("order_count");
   meta_name_.push_back("order_next");
+  meta_name_.push_back("level_lower");
+  meta_name_.push_back("level_upper");
 }
 
 //----------------------------------------------------------------------
@@ -44,6 +46,8 @@ void IoBlock::set_block (Block * block) throw()
   Index order_next;
   block->get_order(&order_index_, &order_count_, &order_next);
   order_next.values(order_next_);
+  level_lower_ = block->state()->level_lower();
+  level_upper_ = block->state()->level_upper();
 }
 
 //----------------------------------------------------------------------
@@ -95,6 +99,12 @@ void IoBlock::meta_value
     *buffer = (void *) & order_next_;
     *type   = type_int;
     *nxd    = 3;
+  } else if (index == count++) {
+    *buffer = (void *) & level_lower_;
+    *type   = type_int;
+  } else if (index == count++) {
+    *buffer = (void *) & level_upper_;
+    *type   = type_int;
   }
 }
 //======================================================================
@@ -116,6 +126,8 @@ int IoBlock::data_size () const
   SIZE_SCALAR_TYPE(size,long long, order_index_);
   SIZE_SCALAR_TYPE(size,long long, order_count_);
   SIZE_ARRAY_TYPE(size,int, order_next_,3);
+  SIZE_SCALAR_TYPE(size,int,level_lower_);
+  SIZE_SCALAR_TYPE(size,int,level_upper_);
 
   return size;
 }
@@ -139,6 +151,8 @@ char * IoBlock::save_data (char * buffer) const
   SAVE_SCALAR_TYPE(pc,long long, order_index_);
   SAVE_SCALAR_TYPE(pc,long long, order_count_);
   SAVE_ARRAY_TYPE(pc,int, order_next_,3);
+  SAVE_SCALAR_TYPE(pc,int,level_lower_);
+  SAVE_SCALAR_TYPE(pc,int,level_upper_);
 
   ASSERT2 ("IoBlock::save_data()",
   	   "Expecting buffer size %d actual size %d",
@@ -168,6 +182,8 @@ char * IoBlock::load_data (char * buffer)
   LOAD_SCALAR_TYPE(pc,long long, order_index_);
   LOAD_SCALAR_TYPE(pc,long long, order_count_);
   LOAD_ARRAY_TYPE(pc,int, order_next_,3);
+  LOAD_SCALAR_TYPE(pc,int,level_lower_);
+  LOAD_SCALAR_TYPE(pc,int,level_upper_);
 
   return pc;
 }
@@ -191,5 +207,6 @@ void IoBlock::save_to (void * v)
   Index order_next;
   order_next.set_values(order_next_);
   b->set_order(order_index_, order_count_,order_next);
+  b->state()->set_level_range (level_lower_,level_upper_);
 }
 

@@ -88,7 +88,7 @@ public: // interface
    int nx, int ny, int nz,
    int num_field_data,
    int count_adapt,
-   int narray, char * array, int refresh_type,
+   int narray, char * array, int face_type,
    const std::vector<int> & face_level,
    Adapt * adapt,
    State * state,

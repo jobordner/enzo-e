@@ -125,15 +125,6 @@ enum axis_enum {
 };
 typedef int axis_type;
 
-/// @enum     refresh_type
-/// @brief    Type of mesh refinement--coarsen, refine, or stay the same
-enum refresh_type {
-  refresh_unknown,
-  refresh_coarse,
-  refresh_same,
-  refresh_fine
-};
-
 /// @enum     reduce_enum
 /// @brief    Reduction operator, used for image projections
 enum reduce_enum {
@@ -609,10 +600,17 @@ enum class InitCycleKind {
 
 //--------------------------------------------------
 
+
+// argument_type is used to allow commas in type name despite cpp macro expansion,
+// eg std::pair<int,int>. Must be called with parethesis (std::pair<int,int>)
+
+template<typename T> struct argument_type;
+template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
+
 #define SIZE_SET_TYPE(COUNT,TYPE,SET)           \
   {                                             \
     (COUNT) += sizeof(int);			\
-    (COUNT) += (SET).size() * sizeof(TYPE);     \
+    (COUNT) += (SET).size() * sizeof(argument_type<void(TYPE)>::type);     \
   }
 #define SAVE_SET_TYPE(POINTER,TYPE,SET)                         \
   {                                                             \
@@ -621,20 +619,21 @@ enum class InitCycleKind {
     (POINTER) += sizeof(int);                                   \
     auto iter = (SET).begin();                                  \
     while (iter != (SET).end()) {                               \
-      memcpy(POINTER,(TYPE*)&(*iter),sizeof(TYPE));      \
-      (POINTER) += sizeof(TYPE);                                \
+      memcpy(POINTER,(argument_type<void(TYPE)>::type*)&(*iter),sizeof(argument_type<void(TYPE)>::type));      \
+      (POINTER) += sizeof(argument_type<void(TYPE)>::type);                                \
       ++iter;                                                   \
     }                                                           \
   }
+
 #define LOAD_SET_TYPE(POINTER,TYPE,SET)                 \
   {                                                     \
     int size;                                           \
     memcpy(&size, POINTER, sizeof(int));                \
     (POINTER) += sizeof(int);                           \
     for (int i=0; i<size; i++) {                        \
-      TYPE first;                                       \
-      memcpy((TYPE*)&first,POINTER,sizeof(TYPE));       \
-      (POINTER) += sizeof(TYPE);                        \
+      argument_type<void(TYPE)>::type first;                            \
+      memcpy((argument_type<void(TYPE)>::type*)&first,POINTER,sizeof(argument_type<void(TYPE)>::type));       \
+      (POINTER) += sizeof(argument_type<void(TYPE)>::type);                        \
       (SET).insert(first);                              \
     }                                                   \
   }
@@ -878,6 +877,8 @@ namespace cello {
   int             min_level();
   /// Return the maximum allowed refinement level
   int             max_level();
+  /// Return the maximum actual refinement level
+  int             finest_level();
   /// Return the cell volume at the given level relative to the root level
   double          relative_cell_volume (int level);
   //----------------------------------------------------------------------

@@ -82,7 +82,9 @@ void EnzoMethodComovingExpansion::compute ( Block * block) throw()
       /* Compute adot/a at time = t-1/2dt (time-centered). */
 
       int has_history = ((field.num_history() > 0) &&
-  			 (field.history_time(1) > 0.));
+                         (field.history_time(1) > 0.) && // why needed?
+                         (field.history_time(0) > field.history_time(1)));
+
       enzo_float compute_time;
       if (has_history) {
   	compute_time = 0.5 * (enzo_block->state()->time() +
@@ -92,7 +94,6 @@ void EnzoMethodComovingExpansion::compute ( Block * block) throw()
   	compute_time = enzo_block->state()->time();
       }
 
-      //      printf ("DEBUG_VELOCITY time old new = %g %g\n",field.history_time(1),enzo_block->state()->time());
       enzo_float cosmo_a=1.0;
       enzo_float cosmo_dadt=0.0;
       cosmology->compute_expansion_factor (&cosmo_a, &cosmo_dadt, compute_time);

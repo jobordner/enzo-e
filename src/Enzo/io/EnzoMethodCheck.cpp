@@ -469,7 +469,7 @@ void IoEnzoWriter::file_write_block_ (EnzoMsgCheck * msg_check)
      cello::field_descr(),
      cello::particle_descr());
 
-  data->allocate();
+  data->allocate(index_block.level());
 
   msg_check->update(data);
 
@@ -615,7 +615,7 @@ DataMsg * EnzoBlock::create_data_msg_ ()
 
   // Create FieldFace object specifying fields to send
   FieldFace * field_face = create_face
-    (if3,ic3,g3, refresh_same, refresh);
+    (if3,ic3,g3, 0, refresh);
 
   // Create data message object to send
   DataMsg *   data_msg   = new DataMsg;

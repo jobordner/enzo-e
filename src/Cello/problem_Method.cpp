@@ -25,7 +25,10 @@ Method::Method (double courant) throw()
     index_perf_(-1)
 {
   ir_post_ = add_refresh_();
-  cello::refresh(ir_post_)->set_callback(CkIndex_Block::p_compute_continue());
+  Refresh * refresh = cello::refresh(ir_post_);
+  refresh->set_callback(CkIndex_Block::p_compute_continue());
+  refresh -> set_adaptive_timestep
+    (cello::simulation()->state()->state_type() == State::Type::Level);
 }
 
 //----------------------------------------------------------------------
@@ -66,8 +69,8 @@ int Method::add_refresh_ (int neighbor_type)
   const int min_face_rank = 0; // cello::config()->adapt_min_face_rank;
 
   // Set default refresh object
-  Refresh refresh_default
-    (ghost_depth,min_face_rank, neighbor_type, sync_neighbor, 0);
+  Refresh * refresh_default = 
+    Refresh::create (ghost_depth,min_face_rank, neighbor_type, sync_neighbor, 0);
 
   return cello::simulation()->new_register_refresh(refresh_default);
 }
@@ -87,6 +90,13 @@ void Method::set_schedule (Schedule * schedule) throw()
   schedule_ = schedule;
 }
 
+bool Method::is_scheduled(Block * block) const
+{
+  return 
+    (! schedule_) ||
+    (schedule_->write_this_cycle
+     (block->state()->cycle(), block->state()->time()));
+}
 //======================================================================
 
 bool Method::is_solve_cycle_(Block * block)

@@ -77,7 +77,7 @@ void Problem::output_next(Simulation * simulation) throw()
   } while (output && ! output->is_scheduled(cycle, time));
 
   // assert (! output) || ( output->is_scheduled() )
-  
+
   if (output != NULL) {
 
     output->next();  // update Output's schedule

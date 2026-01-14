@@ -9,7 +9,7 @@
 #ifndef MESH_IT_NEIGHBOR_HPP
 #define MESH_IT_NEIGHBOR_HPP
 
-class ItNeighbor {
+class ItNeighbor : public ItType {
 
   /// @class    ItNeighbor
   /// @ingroup  Mesh
@@ -26,54 +26,79 @@ public: // interface
    int n3[3],
    Index index,
    int neighbor_type,
-   int min_level,
-   int root_level);
+   int root_level,
+   int level_lower = 0,
+   int level_upper = std::numeric_limits<int>::max(),
+   DirType dir_type = DirType::Both);
 
-  /// Destructor
-  ~ItNeighbor();
+  ItNeighbor (ItNeighbor &&) = default;
+  ItNeighbor & operator = (ItNeighbor &&) = default;
+
+  /// Charm++ PUP::able declarations
+  PUPable_decl(ItNeighbor);
+
+  ItNeighbor (CkMigrateMessage *m)
+    : ItType (m)
+  { }
 
   /// CHARM++ Pack / Unpack function
   inline void pup (PUP::er &p)
   {
     // NOTE: change this function whenever attributes change
     TRACEPUP;
-    const bool up = p.isUnpacking();
-    if (up) block_ = new Block;
-    p | *block_;
-    PUParray(p,of3_,3);
-    PUParray(p,ic3_,3);
-    PUParray(p,ipf3_,3);
-    p | rank_;
-    p | min_face_rank_;
-    PUParray (p,periodic_,3);
-    PUParray (p,n3_,3);
-    p | index_;
-    p | level_;
-    p | neighbor_type_;
-    p | min_level_;
-    p | root_level_;
+    ItType::pup(p);
+    // const bool up = p.isUnpacking();
+    // if (up) block_ = new Block;
+    // p | *block_;
+    // PUParray(p,of3_,3);
+    // PUParray(p,ic3_,3);
+    // PUParray(p,ipf3_,3);
+    // p | rank_;
+    // p | min_face_rank_;
+    // PUParray (p,periodic_,3);
+    // PUParray (p,n3_,3);
+    // p | index_;
+    // p | neighbor_type_;
+    // p | root_level_;
+    // p | level_lower_;
+    // p | level_upper_;
+    // p | dir_type_;
+    // p | refresh_type_;
   }
 
+
+  // public interface
+public:
+
   /// Reduce another value
-  bool next (int of3[3])
+  bool next (int of3[3]) override
   {
     const bool retval = next_();
     if (retval) face_(of3);
     return retval;
   }
 
+  /// Return the level of this blocke current face
+  int this_level () const
+  { return index_.level(); }
+
   /// Return the level of the current face
-  int face_level () const  throw () 
+  int face_level () const override
   { return block_->face_level(of3_); }
 
-  void child(int ic3[3]) const ;
+  int face_type() const override
+  {
+    return face_level() - this_level();
+  }
 
-  Index index() const ;
+  void child(int ic3[3]) const  override;
+
+  Index index() const  override;
 
   /// Reset the Iterator to the beginning
-  void reset();
+  void reset() override;
 
-  bool is_reset() const;
+  bool is_reset() const override;
 
 private: // functions
 
@@ -134,17 +159,21 @@ private: // attributes
   /// Index
   Index index_;
 
-  /// Level of this block
-  int level_;
-
   /// Neighbor type (neighbor_leaf or neighbor_tree)
   int neighbor_type_;
 
-  /// Minimum level of the Mesh (may be negative)
-  int min_level_;
-  
   /// Level of coarse grid when neighbor_type_ == neighbor_leaf
   int root_level_;
+
+  /// Level range for adaptive time-stepping
+  int level_lower_;
+  int level_upper_;
+
+  /// Direction for adaptive time-stepping
+  DirType dir_type_;
+
+  /// Refresh type for adaptive time-stepping ("eager" or "casual")
+  RefreshType refresh_type_;
 
 };
 

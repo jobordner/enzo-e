@@ -30,12 +30,13 @@ public: // interface
       time_(0.0),
       dt_(0.0),
       cycle_level_(),
-      time_level_(),
+      time_level_curr_(),
+      time_level_prev_(),
       dt_level_(),
       stopping_(false),
       method_state_(),
       level_lower_(0),
-      level_upper_(1)
+      level_upper_(std::numeric_limits<int>::max())
   {
   }
 
@@ -46,12 +47,13 @@ public: // interface
       time_(time),
       dt_(dt),
       cycle_level_(),
-      time_level_(),
+      time_level_curr_(),
+      time_level_prev_(),
       dt_level_(),
       stopping_(stopping),
       method_state_(),
       level_lower_(0),
-      level_upper_(1),
+      level_upper_(std::numeric_limits<int>::max()),
       state_type_(Type::Global),
       state_next_(Next::Sequential)
   {
@@ -73,7 +75,8 @@ public: // interface
     p | time_;
     p | dt_;
     p | cycle_level_;
-    p | time_level_;
+    p | time_level_curr_;
+    p | time_level_prev_;
     p | dt_level_;
     p | stopping_;
     p | method_state_;
@@ -94,8 +97,7 @@ public: // interface
 
   virtual void set_time (double time)
   { time_ = time; }
-  virtual void set_time (double time, int level)
-  { set_(time_level_,level,time); }
+  virtual void set_time (double time, int level);
 
   void set_dt (double dt)
   { dt_ = dt; }
@@ -105,10 +107,6 @@ public: // interface
 
   void set_stopping (bool stopping)
   { stopping_ = stopping; }
-
-  void set_levels (int level_lower, int level_upper = 0)
-  { level_lower_ = level_lower;
-    level_upper_ = level_upper ? level_upper : level_lower_ + 1; }
 
   void init (int cycle, double time, double dt, bool stopping)
   {
@@ -137,6 +135,10 @@ public: // interface
     }
   }
 
+  bool method_solve_step(int index) const {
+    return (method_state_.size() == 0) ?
+      true : (method_state_[index].step() == 0);
+  }
   void set_type (const std::string & type, int max_level)
   {
     if (type == "global") {
@@ -149,12 +151,14 @@ public: // interface
 
       // allocate level states and initialize from global 
       cycle_level_.resize(max_level+1);
-      time_level_.resize(max_level+1);
+      time_level_curr_.resize(max_level+1);
+      time_level_prev_.resize(max_level+1);
       dt_level_.resize(max_level+1);
       for (int i=0; i<=max_level; i++) {
         cycle_level_[i]  = cycle_;
         dt_level_[i]  = dt_;
-        time_level_[i]  = time_;
+        time_level_curr_[i]  = time_;
+        time_level_prev_[i]  = time_;
       }
 
     } else {
@@ -166,14 +170,18 @@ public: // interface
     }
   }
 
+  Type state_type() const { return state_type_; }
+
   void set_level_type (const std::string & level_type, int max_level)
   {
     if (level_type == "sequential") {
       state_next_ = Next::Sequential;
+      level_lower_ = 0;
+      level_upper_ = 1;
     } else if (level_type == "concurrent") {
       state_next_ = Next::Concurrent;
       level_lower_ = 0;
-      level_upper_ = max_level;
+      level_upper_ = max_level+1;
     } else {
       ERROR1 ("State::set_level_type()",
               "Unknown State level_type %s (should be \"sequential\" or \"concurrent\"",
@@ -185,42 +193,59 @@ public: // interface
   /// Accessors
   //----------------------------------------------------------------------
 
-  int cycle() const
-  {
-    int cycle = cycle_;
-    if ( state_type_ == Type::Level ) {
-      if ( state_next_ == Next::Sequential ) {
-        cycle = std::accumulate(cycle_level_.begin(), cycle_level_.end(), 0);
-      } else if ( state_next_ == Next::Concurrent ) {
-        cycle = cycle_level_.back();
-      }
-    }
-    return cycle;
-  }
+
+  /// Cycle accessors
+  int cycle() const { return cycle_; }
+
   int cycle(int level) const
   {
     alloc_(cycle_level_,level);
-    return cycle_level_[level]; }
+    return cycle_level_[level];
+  }
 
+  /// Time accessors
   double time() const
   {
     double time = time_;
     if ( state_type_ == Type::Level ) {
-      time = *std::min_element(time_level_.begin(), time_level_.end());
+      time = *std::min_element(time_level_curr_.begin(),
+                               time_level_curr_.end());
     }
     return time;
   }
+
   double time(int level) const
   {
-    alloc_(time_level_,level);
-    return time_level_[level]; }
+    if (state_type_ == Type::Global) return time_;
+    alloc_(time_level_curr_,level);
+    return time_level_curr_[level];
+  }
 
-  double dt() const
-  { return dt_; }
-  double dt(int level) const
+  double time_curr(int level) const { return time(level); }
+
+  /// Return the time for the previous cycle in the given level
+  double time_prev(int level) const
   {
+    if (state_type_ == Type::Global) return time_;
+    alloc_(time_level_prev_,level);
+    return time_level_prev_[level];
+  }
+
+  /// Timestep accessors
+
+  double dt() const { return dt_; }
+
+  double dt(int level) const
+  { return dt_level(level); }
+
+  double dt_level(int level) const
+  {
+    if (state_type_ == Type::Global) return dt_;
     alloc_(dt_level_,level);
-    return dt_level_[level]; }
+    return dt_level_[level];
+  }
+
+  /// Stopping criteria accessors
 
   bool stopping () const { return stopping_; }
 
@@ -233,25 +258,27 @@ public: // interface
     return method_state_[index_method];
   }
 
-  int num_methods() const {
-    return method_state_.size();
-  }
+  int num_methods() const { return method_state_.size(); }
 
   int level_lower() const { return level_lower_; }
   int level_upper() const { return level_upper_; }
+  void set_level_range (int lower, int upper)
+  { level_lower_ = lower;
+    level_upper_ = upper;
+  }
 
   //----------------------------------------------------------------------
   // Modifiers
   //----------------------------------------------------------------------
 
   /// Update level range for next set of timesteps
-  void advance();
+  virtual void advance();
 
   /// Return whether blocks in the given level can advance
-  bool is_active ( int level );
+  bool is_active ( int level ) const;
 
   /// Return whether blocks in the given level participate in barriers
-  bool in_barrier ( int level );
+  bool in_barrier ( int level ) const;
 
   /// Packing / unpacking
   //----------------------------------------------------------------------
@@ -264,7 +291,8 @@ public: // interface
     SIZE_SCALAR_TYPE(size,double,time_);
     SIZE_SCALAR_TYPE(size,double,dt_);
     SIZE_VECTOR_TYPE(size,int,cycle_level_);
-    SIZE_VECTOR_TYPE(size,double,time_level_);
+    SIZE_VECTOR_TYPE(size,double,time_level_curr_);
+    SIZE_VECTOR_TYPE(size,double,time_level_prev_);
     SIZE_VECTOR_TYPE(size,double,dt_level_);
     SIZE_SCALAR_TYPE(size,bool,stopping_);
     SIZE_VECTOR_OBJECT_TYPE(size, MethodState, method_state_);
@@ -283,7 +311,8 @@ public: // interface
     SAVE_SCALAR_TYPE(pc,double,time_);
     SAVE_SCALAR_TYPE(pc,double,dt_);
     SAVE_VECTOR_TYPE(pc,int,cycle_level_);
-    SAVE_VECTOR_TYPE(pc,double,time_level_);
+    SAVE_VECTOR_TYPE(pc,double,time_level_curr_);
+    SAVE_VECTOR_TYPE(pc,double,time_level_prev_);
     SAVE_VECTOR_TYPE(pc,double,dt_level_);
     SAVE_SCALAR_TYPE(pc,bool,stopping_);
     SAVE_VECTOR_OBJECT_TYPE(pc, MethodState, method_state_);
@@ -302,7 +331,8 @@ public: // interface
     LOAD_SCALAR_TYPE(pc,double,time_);
     LOAD_SCALAR_TYPE(pc,double,dt_);
     LOAD_VECTOR_TYPE(pc,int,cycle_level_);
-    LOAD_VECTOR_TYPE(pc,double,time_level_);
+    LOAD_VECTOR_TYPE(pc,double,time_level_curr_);
+    LOAD_VECTOR_TYPE(pc,double,time_level_prev_);
     LOAD_VECTOR_TYPE(pc,double,dt_level_);
     LOAD_SCALAR_TYPE(pc,bool,stopping_);
     LOAD_VECTOR_OBJECT_TYPE(pc, MethodState, method_state_);
@@ -316,45 +346,45 @@ public: // interface
   //----------------------------------------------------------------------
   // Debugging
   //----------------------------------------------------------------------
-  void print(std::string msg)
+  virtual void print(std::string msg)
   {
     CkPrintf ("State %s\n",msg.c_str());
 
     if (state_type_ == Type::Global) {
 
       CkPrintf ("   cycle_ = %d",cycle_);
-      CkPrintf ("   time_  = %g",time_);
+      CkPrintf ("   time_ = %g",time_);
       CkPrintf ("   dt_    = %g",dt_);
 
     } else if (state_type_ == Type::Level) {
 
       CkPrintf ("   cycle_level_[] = ");
-      for (int level=0; level<cycle_level_.size(); level++) {
-        CkPrintf (" %d",cycle_level_[level]);
-      }
+      for (auto cycle: cycle_level_) CkPrintf (" %d",cycle);
       CkPrintf ("\n");
 
-      CkPrintf ("   time_level_[] = ");
-      for (int level=0; level<time_level_.size(); level++) {
-        CkPrintf (" %g",time_level_[level]);
-      }
+      CkPrintf ("   time_level_curr_[] = ");
+      for (auto time: time_level_curr_) CkPrintf (" %g",time);
+      CkPrintf ("\n");
+
+      CkPrintf ("   time_level_prev_[] = ");
+      for (auto time: time_level_prev_) CkPrintf (" %g",time);
       CkPrintf ("\n");
 
       CkPrintf ("   dt_level_[] = ");
-      for (int level=0; level<dt_level_.size(); level++) {
-        CkPrintf (" %g",dt_level_[level]);
-      }
+      for (auto dt: dt_level_) CkPrintf (" %g",dt);
       CkPrintf ("\n");
 
     }
 
     CkPrintf ("  stopping_ %d\n",stopping_?1:0);
 
-    for (int i=0; i<method_state_.size(); i++) {
-      CkPrintf ("       Method %d time      %g\n",i,method_state_[i].time());
-      CkPrintf ("       Method %d dt        %g\n",i,method_state_[i].dt());
-      CkPrintf ("       Method %d num_steps %d\n",i,method_state_[i].num_steps());
-      CkPrintf ("       Method %d step      %d\n",i,method_state_[i].step());
+    int i=0;
+    for (auto & method_state: method_state_) {
+      CkPrintf ("       Method %d time      %g\n",i,method_state.time());
+      CkPrintf ("       Method %d dt        %g\n",i,method_state.dt());
+      CkPrintf ("       Method %d num_steps %d\n",i,method_state.num_steps());
+      CkPrintf ("       Method %d step      %d\n",i,method_state.step());
+      i++;
     }
 
     CkPrintf ("   level_lower_ %d\n",level_lower_);
@@ -415,7 +445,9 @@ protected: // attributes
   mutable std::vector<int> cycle_level_;
 
   /// Current level time (mutable for resizing)
-  mutable std::vector<double> time_level_;
+  mutable std::vector<double> time_level_curr_;
+  /// Previous level time (mutable for resizing)
+  mutable std::vector<double> time_level_prev_;
 
   /// Current level timestep (mutable for resizing)
   mutable std::vector<double> dt_level_;

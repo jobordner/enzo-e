@@ -17,16 +17,21 @@ ItNeighbor::ItNeighbor
  int n3[3],
  Index index,
  int neighbor_type,
- int min_level,
- int root_level)
-  : block_(block),
+ int root_level,
+ int level_lower,
+ int level_upper,
+ DirType dir_type)
+  : ItType (),
+    block_(block),
     rank_(cello::rank()),
     min_face_rank_(min_face_rank),
     index_(index),
-    level_(index.level()),
     neighbor_type_(neighbor_type),
-    min_level_(min_level),
-    root_level_(root_level)
+    root_level_(root_level),
+    level_lower_(level_lower),
+    level_upper_(level_upper),
+    dir_type_(dir_type),
+    refresh_type_(cello::simulation()->refresh_type())
 {
   if (!block->is_leaf()) {
     WARNING1("ItNeighbor::ItNeighbor",
@@ -42,51 +47,35 @@ ItNeighbor::ItNeighbor
 
 //----------------------------------------------------------------------
 
-ItNeighbor::~ItNeighbor() 
-{
-}
-
-//----------------------------------------------------------------------
-
-bool ItNeighbor::next_ ()
-{
-  do {
-    increment_();
-  } while ( ! valid_() );
-  return (! is_reset()) ;
-}
-
-//----------------------------------------------------------------------
-
 Index ItNeighbor::index() const
 {
   Index index_neighbor = index_.index_neighbor(of3_,n3_);
-  int face_level = block_->face_level(of3_);
-  if (face_level == level_) {
+
+  const int face_level = this->face_level();
+  const int this_level = this->this_level();
+
+  if (face_level == this_level) {
+
     return index_neighbor;
-  } else if (face_level == level_ + 1) {
+
+  } else if (face_level == this_level + 1) {
+
     return index_neighbor.index_child(ic3_);
-  } else if (face_level == level_ - 1) {
+
+  } else if (face_level == this_level - 1) {
+
     return index_neighbor.index_parent();
+
   } else {
-    ERROR4("ItNeighbor::index()",
-          "Block %s in level %d has neighbor %s in level %d",
-           block_->name().c_str(),
-           level_,
-           block_->name(index_neighbor).c_str(),
-           face_level);
+    WARNING2("ItNeighbor::index",
+             "ItNeighbor assumes a balanced mesh, but "
+             "|level %d - face_level %d| > 1",
+             this_level,face_level);
+
     return index_neighbor;
+
   }
 }
-
-//----------------------------------------------------------------------
-
-void ItNeighbor::face_(int of3[3]) const
-{
-  of3[0] = (rank_ >= 1) ? of3_[0] : 0;
-  of3[1] = (rank_ >= 2) ? of3_[1] : 0;
-  of3[2] = (rank_ >= 3) ? of3_[2] : 0;
-} 
 
 //----------------------------------------------------------------------
 
@@ -100,8 +89,8 @@ void ItNeighbor::child(int ic3[3]) const
     ic3[1] = 0;
     ic3[2] = 0;
   }
-  if (face_level() < level_) {
-    index_.child (level_,&ic3[0],&ic3[1],&ic3[2]);
+  if (face_level() < this_level()) {
+    index_.child (this_level(),&ic3[0],&ic3[1],&ic3[2]);
   }
 } 
 
@@ -117,18 +106,37 @@ void ItNeighbor::reset()
 
 //----------------------------------------------------------------------
 
+bool ItNeighbor::is_reset() const
+{
+  return (of3_[0] == -2);
+}
+
+//======================================================================
+
+bool ItNeighbor::next_ ()
+{
+  do {
+    increment_();
+  } while ( ! valid_() );
+  return (! is_reset()) ;
+}
+
+//----------------------------------------------------------------------
+
+void ItNeighbor::face_(int of3[3]) const
+{
+  of3[0] = (rank_ >= 1) ? of3_[0] : 0;
+  of3[1] = (rank_ >= 2) ? of3_[1] : 0;
+  of3[2] = (rank_ >= 3) ? of3_[2] : 0;
+} 
+
+//----------------------------------------------------------------------
+
 void ItNeighbor::reset_child_()
 {
   ic3_[0] = -2;
   ic3_[1] = 0;
   ic3_[2] = 0;
-}
-
-//----------------------------------------------------------------------
-
-bool ItNeighbor::is_reset() const
-{
-  return (of3_[0] == -2);
 }
 
 //----------------------------------------------------------------------
@@ -145,7 +153,7 @@ void ItNeighbor::increment_()
   if (is_reset()) {
     set_first_();
   } else {
-    if ( face_level() > level_ ) {
+    if ( face_level() > this_level() ) {
       if (is_reset_child_())
 	set_first_child_();
       else 
@@ -210,6 +218,34 @@ bool ItNeighbor::valid_()
 {
   if (is_reset()) return true;
 
+  // Check level range for adaptive time-stepping
+
+  //    for adaptive time-stepping, skip faces for inactive levels
+  //    depending on block level, face level, and refresh type (eager
+  //    or casual)
+
+  const bool l_send = (dir_type_ == DirType::Send || dir_type_ == DirType::Both);
+  const bool l_recv = (dir_type_ == DirType::Recv || dir_type_ == DirType::Both);
+
+  bool l_face_active = true;
+  bool l_this_active = true;
+
+  if (refresh_type_ == RefreshType::Casual) {
+
+    l_face_active = level_lower_ - 1  <= face_level();
+    l_this_active = level_lower_ - 1  <= this_level();
+
+  } else if (refresh_type_ == RefreshType::Eager) {
+
+    l_face_active =
+      level_lower_ - 1 <= face_level() && face_level() <= level_upper_;
+    l_this_active =
+      level_lower_ - 1 <= this_level() && this_level() <= level_upper_;
+  }
+
+  if ( (l_send && (! l_face_active)) || (l_recv && (! l_this_active)) )
+      return false;
+
   // Check that face rank is in range
 
   int face_rank = rank_;
@@ -223,7 +259,7 @@ bool ItNeighbor::valid_()
   // Return false if neighbor_tree type and in different root-level tree
 
   if ((neighbor_type_ == neighbor_tree) &&
-      (! index().is_in_same_subtree(index_,min_level_,root_level_))) {
+      (! index().is_in_same_subtree(index_,cello::min_level(),root_level_))) {
       return false;
   }
 
@@ -252,7 +288,7 @@ bool ItNeighbor::valid_()
   //            |      | true|false|   
   //  ----------+      +-----+-----+
 
-  if (face_level() > level_) {
+  if (face_level() > this_level()) {
 
     if (is_reset_child_()) return false;
 
@@ -266,12 +302,12 @@ bool ItNeighbor::valid_()
       if (! valid) return false;
     }
 
-  } else if (face_level() < level_) {
+  } else if (face_level() < this_level()) {
 
     // Skip coarse oblique neighbors
 
     int ic3[3] = {0,0,0};
-    index_.child (level_,&ic3[0],&ic3[1],&ic3[2]);
+    index_.child (this_level(),&ic3[0],&ic3[1],&ic3[2]);
 
     bool valid = true;
 

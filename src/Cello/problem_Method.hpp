@@ -87,6 +87,9 @@ public: // virtual functions
   /// Set schedule
   void set_schedule (Schedule * schedule) throw();
 
+  /// Whether method is scheduled this cycle
+  bool is_scheduled(Block *) const;
+
   /// Query the associated courant factor
   double courant() const throw ()
   { return courant_; }

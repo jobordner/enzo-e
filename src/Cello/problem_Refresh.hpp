@@ -13,39 +13,16 @@
 class Box;
 class Prolong;
 class Restrict;
+class ItNeighbor;
+enum class DirType;
+
 class Refresh : public PUP::able {
 
   /// @class    Refresh
   /// @ingroup  Problem
   /// @brief    [\ref Problem]
 
-public: // interface
-
-  /// empty constructor for charm++ pup()
-  Refresh() throw()
-  : all_fields_(false),
-    field_list_src_(),
-    field_list_dst_(),
-    all_particles_(false),
-    particles_are_copied_(false),
-    particle_list_(),
-    all_fluxes_(false),
-    ghost_depth_(0),
-    min_face_rank_(0),
-    neighbor_type_(neighbor_leaf),
-    accumulate_(false),
-    sync_type_   (sync_unknown),
-    sync_id_ (-1),
-    active_(true),
-    callback_(0) ,
-    level_(0),
-    root_level_(0),
-    id_refresh_(-1),
-    id_prolong_(0),
-    id_restrict_(0),
-    final_sync_(false)
-  {
-  }
+  private:
 
   /// Create an initialized Refresh object
   Refresh
@@ -72,6 +49,56 @@ public: // interface
       callback_(0),
       level_(0),
       root_level_(0),
+      adaptive_timestep_(false),
+      level_lower_(0),
+      level_upper_(std::numeric_limits<int>::max()),
+      id_refresh_(-1),
+      id_prolong_(0),
+      id_restrict_(0),
+      final_sync_(0)
+  {
+  }
+
+public: // interface
+
+  static Refresh * create
+  (int ghost_depth,
+   int min_face_rank,
+   int neighbor_type,
+   int sync_type,
+   int sync_id,
+   bool active=true)
+  {
+    return new Refresh
+      (ghost_depth,
+       min_face_rank,
+       neighbor_type,
+       sync_type,
+       sync_id,
+       active);
+  }
+
+  /// empty constructor for charm++ pup()
+  Refresh() throw()
+    : all_fields_(false),
+      field_list_src_(),
+      field_list_dst_(),
+      all_particles_(false),
+      particles_are_copied_(false),
+      particle_list_(),
+      all_fluxes_(false),
+      ghost_depth_(0),
+      min_face_rank_(0),
+      neighbor_type_(neighbor_leaf),
+      accumulate_(false),
+      sync_type_   (sync_unknown),
+      sync_id_ (-1),
+      active_(true),
+      callback_(0) ,
+      root_level_(0),
+      adaptive_timestep_(false),
+      level_lower_(0),
+      level_upper_(std::numeric_limits<int>::max()),
       id_refresh_(-1),
       id_prolong_(0),
       id_restrict_(0),
@@ -100,12 +127,14 @@ public: // interface
       sync_id_ (-1),
       active_(true),
       callback_(0),
-      level_(0),
       root_level_(0),
+      adaptive_timestep_(false),
+      level_lower_(0),
+      level_upper_(std::numeric_limits<int>::max()),
       id_refresh_(-1),
       id_prolong_(-1),
       id_restrict_(-1),
-      final_sync_(false)
+      final_sync_(0)
   {
   }
 
@@ -119,8 +148,8 @@ public: // interface
     p | field_list_src_;
     p | field_list_dst_;
     p | all_particles_;
-    p | particle_list_;
     p | particles_are_copied_;
+    p | particle_list_;
     p | all_fluxes_;
     p | ghost_depth_;
     p | min_face_rank_;
@@ -132,6 +161,9 @@ public: // interface
     p | callback_;
     p | level_;
     p | root_level_;
+    p | adaptive_timestep_;
+    p | level_lower_;
+    p | level_upper_;
     p | id_refresh_;
     p | id_prolong_;
     p | id_restrict_;
@@ -192,12 +224,12 @@ public: // interface
   bool any_fields() const
   { return (all_fields_ || (field_list_src_.size() > 0)); }
 
-  /// Return the list of source fields participating in the Refresh operation
-  std::vector<int> field_list_src() const;
-
+  std::vector<int> field_list_src(int level = 0,
+                                  int face_type = 0) const;
   /// Return the list of destination fields participating in the
   /// Refresh operation
-  std::vector<int> field_list_dst() const;
+  std::vector<int> field_list_dst(int level = 0,
+                                  int face_type = 0) const;
 
   //--------------------------------------------------
   // PARTICLE METHODS
@@ -298,6 +330,22 @@ public: // interface
   void set_root_level(int root_level)
   { root_level_ = root_level; }
 
+  /// Set whether using adptive timestepping
+  void set_adaptive_timestep (bool adaptive_timestep)
+  { adaptive_timestep_ = adaptive_timestep; }
+  int adaptive_timestep () const
+  { return adaptive_timestep_; }
+
+  /// Set the lower and puper limits (plus one) on levels being refreshed
+  void set_level_lower(int level_lower)
+  { level_lower_ = level_lower; }
+  void set_level_upper(int level_upper)
+  { level_upper_ = level_upper; }
+  int level_lower() const
+  { return level_lower_; }
+  int level_upper() const
+  { return level_upper_; }
+
   /// Return the current minimum rank (dimension) of faces to refresh
   /// e.g. 0: everything, 1: omit corners, 2: omit corners and edges
   int min_face_rank() const
@@ -362,6 +410,10 @@ public: // interface
   /// Return the sync object associated with this refresh object
   Sync * sync( Block * block );
 
+  ItNeighbor it_neighbor (Block * block, DirType dir_type);
+
+  //----------------------------------------------------------------------
+
   void print(FILE * fp = nullptr) const
   {
     if (!fp) fp = stdout;
@@ -393,13 +445,16 @@ public: // interface
     fprintf (fp,"     callback: %d\n",callback_);
     fprintf (fp,"     level: %d\n",level_);
     fprintf (fp,"     root_level: %d\n",root_level_);
+    fprintf (fp,"     adaptive_timestep: %d\n",adaptive_timestep_?1:0);
+    fprintf (fp,"     level_lower: %d\n",level_lower_);
+    fprintf (fp,"     level_upper: %d\n",level_upper_);
   }
 
   /// Return loop limits 0:3 for 4x4x4 particle data array indices
   /// for the given neighbor
   void get_particle_bin_limits
   (int rank,
-   int refresh_type,
+   int face_type,
    int if3[3], int ic3[3],
    int lower[3], int upper[3])
   {
@@ -411,20 +466,15 @@ public: // interface
 	lower[axis] = 3;
 	upper[axis] = 4;
       } else {
-	if (refresh_type == refresh_same) {
+	if (face_type == 0) {
 	  lower[axis] = 1;
 	  upper[axis] = 3;
-	} else if (refresh_type == refresh_fine) {
+	} else if (face_type > 0) {
 	  lower[axis] = ic3[axis] + 1;
 	  upper[axis] = ic3[axis] + 2;
-	} else if (refresh_type == refresh_coarse) {
+	} else if (face_type < 0) {
 	  lower[axis] = 1 - ic3[axis];
 	  upper[axis] = 4 - ic3[axis];
-	} else {
-	  print();
-	  ERROR1 ("Refresh::get_particle_bin_limits()",
-		  "unknown refresh_type %d",
-		  refresh_type);
 	}
       }
     }
@@ -480,6 +530,11 @@ public: // interface
   char * load_data (char * buffer);
 
   //--------------------------------------------------
+
+private: // methods
+
+  void include_history_fields_(std::vector<int> & field_list,
+                               int level, int face_type) const;
 
 private: // attributes
 
@@ -539,6 +594,13 @@ private: // attributes
 
   /// Coarse level for neighbor_tree type
   int root_level_;
+
+  /// Whether adaptive timestepping is used
+  bool adaptive_timestep_;
+
+  /// Level range for adaptive time-stepping
+  int level_lower_;
+  int level_upper_;
 
   /// ID in refresh_list_[]
   int id_refresh_;

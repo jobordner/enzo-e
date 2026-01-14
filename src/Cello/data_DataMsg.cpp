@@ -15,8 +15,8 @@ long DataMsg::counter[CONFIG_NODE_SIZE] = {0};
 
 #ifdef TRACE_DATA_MSG
 #   undef TRACE_DATA_MSG
-#   define TRACE_DATA_MSG(MSG) CkPrintf ("TRACE_DATA_MSG %p %s\n", \
-                                         (void *)this,MSG); fflush(stdout);
+#   define TRACE_DATA_MSG(MSG) CkPrintf ("%d TRACE_DATA_MSG %p %s\n", \
+                                         CkMyPe(),(void *)this,std::string(MSG).c_str()); fflush(stdout);
 #else
 #   define TRACE_DATA_MSG(MSG) /* ... */
 #endif
@@ -122,8 +122,6 @@ void DataMsg::update_scalars ( Data * data)
 
 int DataMsg::data_size () const
 {
-  TRACE_DATA_MSG("size_data()");
-
   FieldFace    * ff = field_face_;
   ParticleData * pd = particle_data_;
   auto & fd = face_fluxes_list_;
@@ -194,12 +192,7 @@ int DataMsg::data_size () const
 
 char * DataMsg::save_data (char * buffer) const
 {
-  TRACE_DATA_MSG("save_data()");
-  union {
-    char * pc;
-    int  * pi;
-    cello_float * pcf;
-  };
+  union { char * pc; int * pi; };
 
   pc = buffer;
 
@@ -223,7 +216,7 @@ char * DataMsg::save_data (char * buffer) const
   if (n_ff > 0) {
     pc = ff->save_data (pc);
   }
-    // save field array
+  // save field array
   if (n_ff > 0 && n_fa > 0) {
     ff->face_to_array(field,pc);
     pc += n_fa;
@@ -285,15 +278,10 @@ char * DataMsg::save_data (char * buffer) const
 
 char * DataMsg::load_data (char * buffer)
 {
-  TRACE_DATA_MSG("load_data()");
   // 2. De-serialize message data from input buffer into the allocated
   // message (must be consistent with pack())
 
-  union {
-    char * pc;
-    int  * pi;
-    cello_float * pcf;
-  };
+  union { char * pc; int * pi; };
 
   pc = buffer;
 
@@ -305,7 +293,7 @@ char * DataMsg::load_data (char * buffer)
 
   // load field face
   if (n_ff > 0) {
-    field_face_ = new FieldFace(cello::rank());
+    field_face_ = new FieldFace;
     pc = field_face_->load_data (pc);
   } else {
     field_face_ = nullptr;

@@ -103,51 +103,20 @@ public: // functions
   /// Return whether the field has been inserted
   bool is_field(const std::string & name) const throw();
 
-  /// Return the integer handle for the named field
-  int field_id(const std::string & name) const throw();
+  /// Return the integer handle for the named field. If history > 0 return
+  /// older version if available
+  int field_id(const std::string & name, int history = 0) const throw();
 
   //----------------------------------------------------------------------
   // History
   //----------------------------------------------------------------------
 
   /// Set the history depth for storing old field values
-  void set_history (int history) throw()
-  {
-    const int np = num_permanent();
-    const int nh = history;
-
-    if (history > history_) {
-      history_id_.resize(np*nh);
-      for (int ih=0; ih<nh; ih++) {
-	for (int ip=0; ip<np; ip++) {
-
-	  int i = ip + np*ih;
-
-	  const int ih = insert_temporary();
-
-	  history_id_[i] = ih;
-
-	  // set precision
-	  set_precision (ih, precision(ip));
-
-	  // set ghost zones
-	  int gx,gy,gz;
-	  ghost_depth(ip,&gx,&gy,&gz);
-	  set_ghost_depth(ih,gx,gy,gz);
-
-	  // set centering
-	  int cx,cy,cz;
-	  centering(ip,&cx,&cy,&cz);
-	  set_centering(ih,cx,cy,cz);
-	}
-      }
-    }
-    history_ = history;
-  }
+  void set_history (int history) throw();
 
   void reset_history(int history) throw()
   {
-    history_ = 0;
+    history_ = 0; // 0 forces recalculation in set_history()
     set_history(history);
   }
 
@@ -155,12 +124,32 @@ public: // functions
   int num_history () const throw()
   { return history_; }
 
-  /// Return the temporary field id for ih'th generation of permanent
-  /// field ip (0 is current, 1 first generation, etc.)
-  int history_id (int ip, int ih) const throw()
+  /// Return the temporary field id for given history "age" (0 is
+  /// current, 1 first generation, etc.) for field ip
+  int history_id (int ip, int age) const throw()
   {
-    const int np = num_permanent();
-    return (ih == 0) ? ip : history_id_[ip + np*(ih-1)];
+    return (age == 0 || is_temporary(ip)) ?
+      ip : history_id_[ip + num_permanent()*(age-1)];
+  }
+
+  /// Return the age of the given field id
+  int history_age (int ip) const throw()
+  {
+    // (age == 0)
+    if (ip < num_permanent()) {
+      return 0;
+    } else {
+      // (age > 0) or temporary
+      int i=0;
+      //    find inverse map i of history_id_[i] = ip
+      for (i=0; i<history_id_.size(); i++)
+        if (history_id_[i]==ip) break;
+      //     if found, return computed age
+      //     otherwise it's a non-saved temporary so must be age 0
+      return (i < history_id_.size()) ?
+        (1 + i/num_permanent()) : 0;
+    }
+
   }
 
   //----------------------------------------------------------------------

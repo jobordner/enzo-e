@@ -1,7 +1,9 @@
 include "input/test_cosmo.incl"
-Adapt { min_level = -2; }
+ Adapt { min_level = -2; }
  Stopping { cycle = 160; }
- Method {
+
+Field { list += ["X_copy" ];
+Method {
      gravity {
          solver = "dd";
      };

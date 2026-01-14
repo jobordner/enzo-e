@@ -158,6 +158,7 @@ void Config::pup (PUP::er &p)
   p | output_image_face_rank;
   p | output_image_min;
   p | output_image_max;
+  p | output_image_history;
   p | output_min_level;
   p | output_max_level;
   p | output_leaf_only;
@@ -242,7 +243,8 @@ void Config::pup (PUP::er &p)
 
   p | timestep_type;
   p | timestep_level_type;
-
+  p | timestep_refresh_type;
+  p | timestep_max_level_dt_ratio;
 }
 
 //----------------------------------------------------------------------
@@ -956,6 +958,7 @@ void Config::read_output_ (Parameters * p) throw()
   output_image_face_rank.resize(num_output);
   output_image_min.resize(num_output);
   output_image_max.resize(num_output);
+  output_image_history.resize(num_output);
   output_min_level.resize(num_output);
   output_max_level.resize(num_output);
   output_leaf_only.resize(num_output);
@@ -1099,6 +1102,9 @@ void Config::read_output_ (Parameters * p) throw()
 	p->value_float("image_min",std::numeric_limits<double>::max());
       output_image_max[index_output] =
 	p->value_float("image_max",-std::numeric_limits<double>::max());
+
+      output_image_history[index_output] =
+	p->value_integer("image_history",0);
 
       output_min_level[index_output] = p->value_integer("min_level",0);
       output_max_level[index_output] =
@@ -1573,14 +1579,20 @@ void Config::read_testing_ (Parameters * p) throw()
     testing_time_final[0]  = p->value_float  ("Testing:time_final", 0.0);
   }
   testing_time_tolerance = p->value_float  ("Testing:time_tolerance", 1e-6);
+  timestep_max_level_dt_ratio =
+    p->value_float("Timestep:max_level_dt_ratio",std::numeric_limits<double>::max());
 }
 
 //----------------------------------------------------------------------
 
 void Config::read_timestep_ (Parameters * p) throw()
 {
-  timestep_type       = p->value_string("Timestep:type",      "global");
-  timestep_level_type = p->value_string("Timestep:level_type","sequential");
+  // "global" or "level"
+  timestep_type       = p->value_string("Timestep:type", "global");
+  // "sequential" or "concurrent"
+  timestep_level_type   = p->value_string("Timestep:level_type",  "sequential");
+  // "casual" or "eager"
+  timestep_refresh_type = p->value_string("Timestep:refresh_type","casual");
 }
 
 //======================================================================

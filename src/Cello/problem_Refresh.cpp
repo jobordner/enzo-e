@@ -42,34 +42,35 @@ void Refresh::add_all_fields(std::string field_group)
 
 //----------------------------------------------------------------------
 
-std::vector<int> Refresh::field_list_src() const
+std::vector<int> Refresh::field_list_src(int level, int face_type) const
 {
-  std::vector<int> field_list;
+  std::vector<int> field_list = field_list_src_;
   if (all_fields_) {
     int nf = cello::field_descr()->field_count();
+    field_list.resize(nf);
     for (int i=0; i<nf; i++) {
-      field_list.push_back(i);
+      field_list[i] = i;
     }
-    return field_list;
-  } else {
-    return field_list_src_;
   }
+  include_history_fields_(field_list, level,face_type);
+  return field_list;
 }
 
 //----------------------------------------------------------------------
 
-std::vector<int> Refresh::field_list_dst() const
+
+std::vector<int> Refresh::field_list_dst(int level, int face_type) const
 {
-  std::vector<int> field_list;
+  std::vector<int> field_list = field_list_dst_;
   if (all_fields_) {
     int nf = cello::field_descr()->field_count();
+    field_list.resize(nf);
     for (int i=0; i<nf; i++) {
-      field_list.push_back(i);
+      field_list[i] = i;
     }
-    return field_list;
-  } else {
-    return field_list_dst_;
   }
+  include_history_fields_(field_list,level,face_type);
+  return field_list;
 }
 
 //----------------------------------------------------------------------
@@ -107,10 +108,6 @@ Prolong * Refresh::prolong ()
 {
   Problem * problem = cello::problem();
   Prolong * prolong = problem ? problem->prolong(id_prolong_) : nullptr;
-  if (prolong == nullptr) {
-    WARNING("Refresh::prolong()",
-            "Creating new ProlongLinear, potential memory leak");
-  }
   return prolong ? prolong : new ProlongLinear;
 }
 
@@ -120,10 +117,6 @@ Restrict * Refresh::restrict ()
 {
   Problem * problem = cello::problem();
   Restrict * restrict = problem ? problem->restrict(id_restrict_) : nullptr;
-  if (restrict == nullptr) {
-    WARNING("Refresh::restrict()",
-            "Creating new RestrictLinear, potential memory leak");
-  }
   return restrict ? restrict : new RestrictLinear;
 }
   
@@ -156,6 +149,9 @@ int Refresh::data_size () const
   SIZE_SCALAR_TYPE(count,int,callback_);
   SIZE_SCALAR_TYPE(count,int,level_);
   SIZE_SCALAR_TYPE(count,int,root_level_);
+  SIZE_SCALAR_TYPE(count,bool,adaptive_timestep_);
+  SIZE_SCALAR_TYPE(count,int,level_lower_);
+  SIZE_SCALAR_TYPE(count,int,level_upper_);
   SIZE_SCALAR_TYPE(count,int,id_refresh_);
   SIZE_SCALAR_TYPE(count,int,id_prolong_);
   SIZE_SCALAR_TYPE(count,int,id_restrict_);
@@ -190,6 +186,9 @@ char * Refresh::save_data (char * buffer) const
   SAVE_SCALAR_TYPE(p,int,callback_);
   SAVE_SCALAR_TYPE(p,int,level_);
   SAVE_SCALAR_TYPE(p,int,root_level_);
+  SAVE_SCALAR_TYPE(p,bool,adaptive_timestep_);
+  SAVE_SCALAR_TYPE(p,int,level_lower_);
+  SAVE_SCALAR_TYPE(p,int,level_upper_);
   SAVE_SCALAR_TYPE(p,int,id_refresh_);
   SAVE_SCALAR_TYPE(p,int,id_prolong_);
   SAVE_SCALAR_TYPE(p,int,id_restrict_);
@@ -228,6 +227,9 @@ char * Refresh::load_data (char * buffer)
   LOAD_SCALAR_TYPE(p,int,callback_);
   LOAD_SCALAR_TYPE(p,int,level_);
   LOAD_SCALAR_TYPE(p,int,root_level_);
+  LOAD_SCALAR_TYPE(p,bool,adaptive_timestep_);
+  LOAD_SCALAR_TYPE(p,int,level_lower_);
+  LOAD_SCALAR_TYPE(p,int,level_upper_);
   LOAD_SCALAR_TYPE(p,int,id_refresh_);
   LOAD_SCALAR_TYPE(p,int,id_prolong_);
   LOAD_SCALAR_TYPE(p,int,id_restrict_);
@@ -241,3 +243,47 @@ char * Refresh::load_data (char * buffer)
   return p;
 }
 
+//----------------------------------------------------------------------
+
+ItNeighbor Refresh::it_neighbor
+(Block * block, DirType dir_type)
+{
+  int n3[3], p3[3];
+  cello::hierarchy()->root_blocks    (n3,n3+1,n3+2);
+  cello::hierarchy()->get_periodicity(p3,p3+1,p3+2);
+  return ItNeighbor
+    (block,
+     min_face_rank(),
+     p3,n3,block->index(),
+     neighbor_type(),
+     root_level(),
+     level_lower(),
+     level_upper(),
+     dir_type);
+}
+
+//----------------------------------------------------------------------
+
+void Refresh::include_history_fields_ (std::vector<int> & field_list,
+                                       int level, int face_type) const
+{
+  // skip if not including field history
+
+  if ( ! ((adaptive_timestep()) &&
+          (face_type == 1) ) ) return;
+
+  // If adaptive timestepping and refining, add history = 1 fields
+  // so receiver can interpolate in time
+
+  FieldDescr * field_descr = cello::field_descr();
+  const int n = field_list.size();
+  for (int k=0; k<n; k++) {
+    // Add previous timestep for src field if available
+    int id_new = field_list[k];
+    int id_old = field_descr->history_id(id_new,1);
+    if (field_descr->history_age(id_new) == 0 &&
+        field_descr->history_age(id_old) == 1) {
+      field_list.push_back(id_old);
+    }
+  }
+}

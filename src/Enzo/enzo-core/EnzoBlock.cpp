@@ -274,12 +274,13 @@ void EnzoBlock::instantiate_children() throw()
     for (int i=0; i<face_level.size(); i++) {
       face_level[i] = child_face_level_curr_[o+i];
     }
+    int face_type;
     MsgRefine * msg = new MsgRefine
       (index_child,
        nx,ny,nz,
        num_field_blocks,
        adapt_step_,
-       refresh_fine,
+       face_type = +1,
        face_level,
        &adapt_,state_.get());
 

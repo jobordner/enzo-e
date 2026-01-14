@@ -332,8 +332,8 @@ PARALLEL_MAIN_BEGIN
 	  FieldFace face_lower (3);
 	  FieldFace face_upper (3);
 
-	  face_lower.set_refresh_type(refresh_same);
-	  face_upper.set_refresh_type(refresh_same);
+	  face_lower.set_face_type(0);
+	  face_upper.set_face_type(0);
 
 	  face_lower.set_ghost(g33[0][0],g33[0][1],g33[0][2]);
 	  face_upper.set_ghost(g33[0][0],g33[0][1],g33[0][2]);

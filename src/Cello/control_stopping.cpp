@@ -21,11 +21,11 @@
 #include "charm_simulation.hpp"
 #include "charm_mesh.hpp"
 
-// #define DEBUG_STOPPING
 
-// #define TRACE_DT
-
+// #define DEBUG_ATS
 // #define DEBUG_STATE
+// #define DEBUG_STOPPING
+// #define TRACE_DT
 
 #ifdef DEBUG_STOPPING
 #   define TRACE_STOPPING(A)					\
@@ -34,7 +34,6 @@
 #else
 #   define TRACE_STOPPING(A) ;
 #endif
-
 
 //----------------------------------------------------------------------
 
@@ -81,14 +80,13 @@ void Block::stopping_begin_()
     }
   }
 
-  CkCallback callback (CkIndex_Block::r_stopping_compute_timestep(NULL),
-                       thisProxy);
-
 #ifdef TRACE_CONTRIBUTE
   CkPrintf ("%s %s:%d DEBUG_CONTRIBUTE\n",
             name().c_str(),__FILE__,__LINE__); fflush(stdout);
 #endif
 
+  CkCallback callback (CkIndex_Block::r_stopping_compute_timestep(NULL),
+                       thisProxy);
   contribute
     (n*sizeof(double), min_reduce.data(), CkReduction::min_double, callback);
 
@@ -107,38 +105,39 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 
   double * min_reduce = (double * )msg->getData();
 
-  state_->set_stopping(min_reduce[0] == 1.0);
+  auto & state_global = cello::simulation()->state();
 
-  // Compute timestep
+  state_       -> set_stopping(min_reduce[0] == 1.0);
+  state_global -> set_stopping(min_reduce[0] == 1.0);
+
+  // Compute global and level timesteps
+
+  //    global timestep
   double dt_global = stopping_compute_global_dt_(min_reduce);
+
+  //    level timestep
   std::vector<double> dt_level;
   dt_level.resize(cello::max_level()+1);
+
   stopping_compute_level_dt_(min_reduce,dt_level);
 
+  // Update method timesteps for supercycling
   stopping_update_method_state_(min_reduce,dt_global);
 
   delete msg;
 
-  // Update Block state timesteps
-  //    global
-  state_->set_dt(dt_global);
-  //    level
+  // Update Block and Simulation state global and level timesteps
+
+  state_      ->set_dt (dt_global);
+  state_global->set_dt (dt_global);
+
+  // Initialize level dt in state() objects
   int level = 0;
   for (auto & dt : dt_level) {
-    state_->set_dt(dt,level++);
+    state_      ->set_dt (dt,level);
+    state_global->set_dt (dt,level);
+    level++;
   }
-
-  // Update simulation state to block state
-  Simulation * simulation = cello::simulation();
-  //    global
-  simulation->state()->set_dt (dt_global);
-  //    level
-  level = 0;
-  for (auto & dt : dt_level) {
-    simulation->state()->set_dt (dt,level++);
-  }
-
-  simulation->state()->set_stopping(state_->stopping());
 
   performance_projections_update_logging_();
 
@@ -250,22 +249,38 @@ void Block::stopping_compute_level_dt_(double min_reduce[], std::vector <double>
   // Adjust dt for global courant condition
   for (auto & dt : dt_level) dt *= Method::courant_global;
 
-  // adjust timesteps to align with any scheduled output times
+  // Apply max_level_dt_ratio to limit timestep ratios between levels
+  double max_ratio = cello::config()->timestep_max_level_dt_ratio;
+  int level_dt_min = std::distance
+    (dt_level.begin(),std::min_element (dt_level.begin(),dt_level.end()));
+  double dt_min = *std::min_element (dt_level.begin(),dt_level.end());
+  int level = 0;
+  for (auto & dt : dt_level) {
+    dt = std::min(dt,dt_min*std::pow(max_ratio,level_dt_min-level));
+    level++;
+  }
+
+  // adjust level timesteps to align with any scheduled output times
   int index_output=0;
   while (Output * output = problem->output(index_output++)) {
     Schedule * schedule = output->schedule();
     int level = 0;
     for (auto & dt : dt_level) {
       double time_curr = state_->time(level++);
-      schedule->update_timestep(time_curr,dt);
+      dt = schedule->update_timestep(time_curr,dt);
     }
   }
 
-  // Reduce timestep to not overshoot final time from stopping criteria
+  // Reduce level timesteps to not overshoot next-coarser timestep
+  for (int level = 1; level <= cello::max_level(); level++) {
+    if (dt_level[level-1] != std::numeric_limits<double>::max())
+      dt_level[level] = std::min
+        (dt_level[level], state_->time(level-1) - state_->time(level));
+  }
 
+  // Reduce level timesteps to not overshoot time stopping criteria
   double time_stop = problem->stopping()->stop_time();
-
-  int level = 0;
+  level = 0;
   for (auto & dt : dt_level) {
     double time_curr = state_->time(level++);
     dt = std::min (dt, (time_stop - time_curr));
@@ -287,6 +302,7 @@ void Block::stopping_update_method_state_
   }
 #endif
   for (int k=0; k<problem->num_methods(); k++) {
+  //  for (int k=0; k<state()->num_methods(); k++) {
     const double dt_method = min_reduce[k+1];
     const int max_super = problem->method(k)->max_supercycle();
     const double max_dt_method = dt_global*max_super;

@@ -78,7 +78,8 @@ public: // interface
       units_(nullptr),
       index_refine_(0),
       index_output_(0),
-      index_boundary_(0)
+      index_boundary_(0),
+      id_refresh_initial_(0)
   {}
 
   /// CHARM++ Pack / Unpack function
@@ -225,6 +226,9 @@ public: // interface
   (std::string type,
    Config * config) throw();
 
+  int id_refresh_initial () const
+  { return id_refresh_initial_; }
+
 protected: // functions
 
   /// Deallocate components
@@ -346,6 +350,8 @@ protected: // attributes
   /// Index of currently active Boundary object
   int index_boundary_;
 
+  /// Id of initial refresh
+  int id_refresh_initial_;
 };
 
 #endif /* PROBLEM_PROBLEM_HPP */

@@ -61,6 +61,7 @@ Simulation::Simulation
   sync_restart_created_(),
   sync_restart_next_(),
   refresh_list_(),
+  refresh_type_(RefreshType::Unknown),
   index_output_(-1),
   num_solver_iter_(),
   max_solver_iter_(),
@@ -125,6 +126,7 @@ Simulation::Simulation()
   sync_restart_created_(),
   sync_restart_next_(),
   refresh_list_(),
+  refresh_type_(RefreshType::Unknown),
   index_output_(-1),
   num_solver_iter_(),
   max_solver_iter_(),
@@ -177,6 +179,7 @@ Simulation::Simulation (CkMigrateMessage *m)
     sync_restart_created_(),
     sync_restart_next_(),
     refresh_list_(),
+    refresh_type_(RefreshType::Unknown),
     index_output_(-1),
     num_solver_iter_(),
     max_solver_iter_(),
@@ -278,6 +281,7 @@ void Simulation::pup (PUP::er &p)
   p | schedule_balance_;
 
   p | refresh_list_;
+  p | refresh_type_;
   p | refresh_name_;
 
   PUParray(p,dir_checkpoint_,256);
@@ -353,8 +357,31 @@ void Simulation::initialize_simulation_() throw()
               config_->initial_time,
               0.0, false);
 
+  const std::string type = cello::config()->timestep_type;
+  const std::string level_type = cello::config()->timestep_level_type;
+  const int max_level = cello::max_level();
+  state_->set_type ( type, max_level );
+  state_->set_level_type ( level_type, max_level );
+
   cycle_watch_   = config_->initial_cycle - 1;
   cycle_initial_ = config_->initial_cycle;
+
+  if (config_->timestep_refresh_type == "casual") {
+
+    refresh_type_ = RefreshType::Casual;
+
+  } else if (config_->timestep_refresh_type == "eager") {
+
+    refresh_type_ = RefreshType::Eager;
+
+  } else {
+
+    ERROR1 ("Simulation::initialize_simulation_()", 
+            "Unrecognized timestep_refresh_type parameter value %s "
+            "(must be \"casual\" or \"eager\")",
+            config_->timestep_refresh_type.c_str());
+
+  }
 }
 
 //----------------------------------------------------------------------
@@ -942,19 +969,38 @@ void Simulation::data_delete_particles(int64_t count)
 
 void Simulation::monitor_output()
 {
+  Monitor * monitor = this->monitor();
 
-  Monitor * monitor = cello::monitor();
   monitor-> print("", "-------------------------------------");
   const bool in_p = monitor->include_proc();
   const bool in_t = monitor->include_time();
   monitor->set_include_proc(true);
   monitor->set_include_time(true);
-  monitor-> print("Simulation", "cycle %04d", state_->cycle());
+  monitor-> print("Simulation", "cycle %04d",      state_->cycle());
   monitor-> print("Simulation", "time-sim %15.12e",state_->time());
-  monitor-> print("Simulation", "dt %15.12e", state_->dt());
+  monitor-> print("Simulation", "dt %15.12e",      state_->dt());
+  if (state_->state_type() == State::Type::Level) {
+    std::string active_levels{""};
+    for (int level=0; level<=hierarchy_->max_level(); level++) {
+      monitor-> print("Simulation", "cycle-level %d %04d",
+                        level,state_->cycle(level));
+    }
+    for (int level=0; level<=hierarchy_->max_level(); level++) {
+      monitor-> print("Simulation", "time-level %d %15.12e",
+                        level,state_->time(level));
+    }
+    for (int level=0; level<=hierarchy_->max_level(); level++) {
+      monitor-> print("Simulation", "dt-level %d %15.12e",
+                        level,state_->dt_level(level));
+    }
+    for (int level=0; level<=hierarchy_->max_level(); level++) {
+      static const char digit[] = "0123456789";
+      active_levels.push_back(state_->is_active(level) ? digit[level%10] : ' ');
+    }
+    monitor-> print("Simulation", "active levels [ %s ]", active_levels.c_str());
+  }
   monitor->set_include_proc(in_p);
   monitor->set_include_time(in_t);
-
   thisProxy.p_monitor_performance();
 }
 
@@ -1067,6 +1113,8 @@ void Simulation::monitor_performance()
 void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
 {
   PERF_REDUCE_STOP(perf_rindex_reduce_simulation);
+  const Monitor * monitor = this->monitor();
+
   if (CkMyPe() == 0) {
     long long * counters_reduce = (long long *)msg->getData();
 
@@ -1088,20 +1136,20 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
     for (int i=0; i<num_solver; i++) {
       const long long num_solver_iter = counters_reduce[m++]; // 15
       if (num_solver_iter>0) {
-        monitor()->print ("perf:solver","num-%s-iter %lld",
+        monitor->print ("perf:solver","num-%s-iter %lld",
                           problem()->solver(i)->name().c_str(),
                           num_solver_iter);
       }
     }
 
-    monitor()->print("perf:counter","msg-coarsen %lld", msg_coarsen);
-    monitor()->print("perf:counter","msg-refine %lld", msg_refine);
-    monitor()->print("perf:counter","msg-refresh %lld", msg_refresh);
-    monitor()->print("perf:counter","data-msg %lld", data_msg);
-    monitor()->print("perf:counter","field-face %lld", field_face);
-    monitor()->print("perf:counter","particle-data %lld", particle_data);
+    monitor->print("perf:counter","msg-coarsen %lld", msg_coarsen);
+    monitor->print("perf:counter","msg-refine %lld", msg_refine);
+    monitor->print("perf:counter","msg-refresh %lld", msg_refresh);
+    monitor->print("perf:counter","data-msg %lld", data_msg);
+    monitor->print("perf:counter","field-face %lld", field_face);
+    monitor->print("perf:counter","particle-data %lld", particle_data);
 
-    monitor()->print("perf:data","num-particles total %lld",
+    monitor->print("perf:data","num-particles total %lld",
                      num_particles);
 
     // compute total blocks and leaf blocks
@@ -1110,7 +1158,7 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
     for (int i=hierarchy_->min_level(); i<=hierarchy_->max_level(); i++) {
       const long long num_blocks_level = counters_reduce[m++]; // NL
       if (i>=0) {
-        monitor()->print("perf:mesh","blocks-level_%d %lld",
+        monitor->print("perf:mesh","blocks-level_%d %lld",
                          i,num_blocks_level);
       }
 
@@ -1125,8 +1173,8 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
       }
     }
 
-    monitor()->print ("perf:mesh","leaf-blocks %lld",  num_leaf_blocks);
-    monitor()->print ("perf:mesh","total-blocks %lld", num_total_blocks);
+    monitor->print ("perf:mesh","leaf-blocks %lld",  num_leaf_blocks);
+    monitor->print ("perf:mesh","total-blocks %lld", num_total_blocks);
 
     const long long num_blocks_total   = counters_reduce[m++]; // 10
 
@@ -1147,7 +1195,7 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
            (ir == index_region_cycle)) &&
           (counters_reduce[m] != 0);
         if (do_print) {
-          monitor()->print("perf:region","%s %s %lld",
+          monitor->print("perf:region","%s %s %lld",
                            performance_->region_name(ir).c_str(),
                            performance_->counter_name(ic).c_str(),
                            counters_reduce[m]);
@@ -1167,37 +1215,35 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
 
     for (int i=0; i<num_solver; i++) {
       const long long max_solver_iters       = counters_reduce[m++]; // 15
-      monitor()->print ("perf:solver","max-%s-iter %lld",
+      monitor->print ("perf:solver","max-%s-iter %lld",
                         problem()->solver(i)->name().c_str(),
                         max_solver_iters);
     }
     cello::simulation()->clear_solver_iter(); // clear it for the next solve
 
-    monitor()->print ("perf:balance","max-proc-blocks %lld",  max_proc_blocks);
-    monitor()->print ("perf:balance","max-node-blocks %lld",  max_node_blocks);
-    monitor()->print ("perf:balance","max-proc-particles %lld", max_proc_particles);
-    monitor()->print ("perf:balance","max-node-particles %lld", max_node_particles);
+    monitor->print ("perf:balance","max-proc-blocks %lld",  max_proc_blocks);
+    monitor->print ("perf:balance","max-node-blocks %lld",  max_node_blocks);
+    monitor->print ("perf:balance","max-proc-particles %lld", max_proc_particles);
+    monitor->print ("perf:balance","max-node-particles %lld", max_node_particles);
 
     const double avg_proc_blocks = 1.0*num_blocks_total/CkNumPes();
     const double avg_node_blocks = 1.0*num_blocks_total/CkNumNodes();
 
-    monitor()->print
-      ("perf:balance","eff-blocks-core %f (%.0f/%lld)",
-       avg_proc_blocks / max_proc_blocks,
-       avg_proc_blocks, max_proc_blocks);
-    monitor()->print
-      ("perf:balance","eff-blocks-node %f (%.0f/%lld)",
-       avg_node_blocks / max_node_blocks,
-       avg_node_blocks, max_node_blocks);
+    monitor->print
+      ("Performance","simulation balance-eff-blocks-core %f",
+       avg_proc_blocks / max_proc_blocks);
+    monitor->print
+      ("Performance","simulation balance-eff-blocks-node %f",
+       avg_node_blocks / max_node_blocks);
 
     if (num_particles > 0) {
       const double avg_proc_particles = 1.0*num_particles/CkNumPes();
       const double avg_node_particles = 1.0*num_particles/CkNumNodes();
-      monitor()->print
+      monitor->print
         ("perf:balance","eff-particles-core %f (%.0f/%lld)",
          avg_proc_particles / max_proc_particles,
          avg_proc_particles , max_proc_particles );
-      monitor()->print
+      monitor->print
         ("perf:balance","eff-particles-node %f (%.0f/%lld)",
          avg_node_particles / max_node_particles,
          avg_node_particles , max_node_particles );

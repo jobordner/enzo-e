@@ -18,6 +18,7 @@ class Parameters;
 class Performance;
 class Problem;
 class Schedule;
+enum class RefreshType;
 
 #include <errno.h>
 #include <iostream>
@@ -336,14 +337,14 @@ public: // virtual functions
   //--------------------------------------------------
 
   /// refresh_register
-  int new_register_refresh (const Refresh & refresh)
+  int new_register_refresh (Refresh * refresh)
   {
     const int id_refresh = refresh_list_.size();
     ASSERT("Simulation::new_register_refresh()",
 	   "id_refresh must be >= 0",
 	   (id_refresh >= 0));
+    refresh->set_id(id_refresh);
     refresh_list_.push_back(refresh);
-    refresh_list_[id_refresh].set_id(id_refresh);
     return id_refresh;
   }
   void refresh_set_name (int id, std::string name)
@@ -352,7 +353,7 @@ public: // virtual functions
       refresh_name_.resize(id+1);
     refresh_name_[id] = name;
   }
-  
+
   std::string refresh_name (int id) const
   {
     return (0 <= id && id < int(refresh_name_.size())) ?
@@ -360,12 +361,15 @@ public: // virtual functions
   }
 
   /// Return the given refresh object
-  Refresh & refresh_list (int id_refresh)
+  Refresh * refresh_list (int id_refresh)
   { return refresh_list_[id_refresh]; }
 
   /// Return the number of refresh objects registered
   int refresh_count() const
   { return refresh_list_.size(); }
+
+  RefreshType refresh_type() const
+  { return refresh_type_; }
 
   //--------------------------------------
   // Initialization
@@ -529,9 +533,13 @@ protected: // attributes
 
   /// Refresh phase lists
 
-  std::vector < Refresh >     refresh_list_;
+  std::vector < Refresh * > refresh_list_;
   std::vector < std::string > refresh_name_;
 
+  /// Refresh scheduling type when using adaptive time-stepping: either
+  /// Casual (when needed) or Eager (asap).
+  RefreshType refresh_type_;
+  
   /// Saved latest checkpoint directory for creating symlink
   char dir_checkpoint_[256];
 

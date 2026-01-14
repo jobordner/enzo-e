@@ -136,7 +136,7 @@ void Data::field_cell_width
 
 //----------------------------------------------------------------------
 
-void Data::allocate () throw()
+void Data::allocate (int level) throw()
 {
   // allocate Block scalar storage
   scalar_data_long_double_.allocate(cello::scalar_descr_long_double());
@@ -149,7 +149,7 @@ void Data::allocate () throw()
   // allocate Block Field storage
   for (size_t i=0; i<field_data_.size(); i++) {
     field_data_[i]->set_history_(cello::field_descr());
-    auto time = cello::simulation()->state()->time();
+    auto time = cello::simulation()->state()->time(level);
     field_data_[i]->init_history_time(cello::field_descr(),time);
     field_data_[i]->allocate_permanent(cello::field_descr(),true);
   }

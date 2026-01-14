@@ -79,7 +79,7 @@ void MethodDebug::compute ( Block * block) throw()
     int gx,gy,gz;
     field.dimensions (0,&mx,&my,&mz);
     field.ghost_depth (0,&gx,&gy,&gz);
-
+    gx=gy=gz=0;
     const double rel_vol = cello::relative_cell_volume (block->level());
     int k=1;
     for (int index_field=0; index_field<num_fields_; index_field++) {
@@ -90,8 +90,8 @@ void MethodDebug::compute ( Block * block) throw()
         for (int iy=gy; iy<my-gy; iy++) {
           for (int ix=gx; ix<mx-gx; ix++) {
             int i=ix + mx*(iy + my*iz);
-            reduce[k+kmin] = std::min(reduce[k],(long double)(values[i]));
-            reduce[k+kmax] = std::max(reduce[k+1],(long double)(values[i]));
+            reduce[k+kmin] = std::min(reduce[k+kmin],(long double)(values[i]));
+            reduce[k+kmax] = std::max(reduce[k+kmax],(long double)(values[i]));
             reduce[k+ksum] += values[i];
             reduce[k+knum] += rel_vol;
           }
@@ -115,8 +115,8 @@ void MethodDebug::compute ( Block * block) throw()
         for (int i=0; i<cello::rank(); i++) {
           for (int ip=0; ip<np; ip++) {
             double value = position[i][ip];
-            reduce[k+4*i+kmin] = std::min(reduce[k+4*i+0],(long double)(value));
-            reduce[k+4*i+kmax] = std::max(reduce[k+4*i+1],(long double)(value));
+            reduce[k+4*i+kmin] = std::min(reduce[k+4*i+kmin],(long double)(value));
+            reduce[k+4*i+kmax] = std::max(reduce[k+4*i+kmax],(long double)(value));
             reduce[k+4*i+ksum] += value;
             reduce[k+4*i+knum] += 1;
           }
@@ -219,7 +219,7 @@ void MethodDebug::compute_continue
     for (int i_f=0; i_f<num_fields_; i_f++) {
       std::string name = field.field_name(i_f).c_str();
       cello::monitor()->print
-        ("Method", "Field %s min %20.16Lg avg %20.16Lg max %20.16Lg",name.c_str(),
+        ("Method", "Field %s min %30.24Lg avg %30.24Lg max %30.24Lg",name.c_str(),
          field_min_[i_f],field_sum_[i_f]/field_count_[i_f],field_max_[i_f]);
     }
     for (int it=0; it<num_particles_; it++) {
@@ -227,7 +227,7 @@ void MethodDebug::compute_continue
         const char axis[3] = {'X','Y','Z'};
         const std::string name = particle.type_name(it).c_str();
         cello::monitor()->print
-          ("Method", "Particle %s %c min avg max %20.16Lg %20.16Lg %20.16Lg",
+          ("Method", "Particle %s %c min avg max %30.24Lg %30.24Lg %30.24Lg",
            name.c_str(),axis[i],
            particle_min_[i][it],
            particle_sum_[i][it]/particle_count_[i][it],

@@ -87,11 +87,11 @@ int Solver::add_refresh_ ()
   const int min_face_rank = cello::config()->adapt_min_face_rank;
 
   // Create new refresh object
-  Refresh refresh
+  Refresh * refresh = Refresh::create
     (ghost_depth,min_face_rank, neighbor_type_(), sync_type_(), 0);
 
-  refresh.set_prolong(index_prolong_);
-  refresh.set_restrict(index_restrict_);
+  refresh->set_prolong(index_prolong_);
+  refresh->set_restrict(index_restrict_);
 
   return cello::simulation()->new_register_refresh(refresh);
 }

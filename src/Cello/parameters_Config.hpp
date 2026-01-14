@@ -108,6 +108,7 @@ public: // interface
     output_image_face_rank(),
     output_image_min(),
     output_image_max(),
+    output_image_history(),
     output_schedule_index(),
     output_max_level(),
     output_min_level(),
@@ -170,7 +171,9 @@ public: // interface
     testing_time_final(),
     testing_time_tolerance(0.0),
     timestep_type(),
-    timestep_level_type()
+    timestep_level_type(),
+    timestep_refresh_type(),
+    timestep_max_level_dt_ratio()
   { }
 
   /// CHARM++ PUP::able declaration
@@ -265,6 +268,7 @@ public: // interface
       output_image_face_rank(),
       output_image_min(),
       output_image_max(),
+      output_image_history(),
       output_schedule_index(),
       output_max_level(),
       output_min_level(),
@@ -328,7 +332,9 @@ public: // interface
       testing_time_final(),
       testing_time_tolerance(0.0),
       timestep_type(),
-      timestep_level_type()
+      timestep_level_type(),
+      timestep_refresh_type(),
+      timestep_max_level_dt_ratio()
   {
     for (int axis=0; axis<3; axis++) {
       domain_lower[axis] = 0.0;
@@ -482,6 +488,7 @@ public: // attributes
   std::vector < int >         output_image_face_rank;
   std::vector < double>       output_image_min;
   std::vector < double>       output_image_max;
+  std::vector < int>          output_image_history;
   std::vector < int >         output_schedule_index;
   std::vector < int >         output_max_level;
   std::vector < int >         output_min_level;
@@ -576,7 +583,9 @@ public: // attributes
 
   std::string                timestep_type;
   std::string                timestep_level_type;
-
+  std::string                timestep_refresh_type;
+  double                     timestep_max_level_dt_ratio;
+  
 protected: // functions
 
   void read_adapt_       ( Parameters * ) throw();

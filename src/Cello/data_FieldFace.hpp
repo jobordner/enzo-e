@@ -26,7 +26,7 @@ public: // interface
 
   /// Constructor of uninitialized FieldFace
 
-  FieldFace (int rank) throw();
+  FieldFace (int rank = 0) throw();
 
   /// Destructor
   ~FieldFace() throw();
@@ -43,7 +43,7 @@ public: // interface
   //----------------------------------------------------------------------
 
   /// Set whether or not to include ghost zones along each axis
-  inline void set_ghost (int gx, int gy, int gz)
+  void set_ghost (int gx, int gy, int gz)
   {
     ghost_[0] = gx;
     ghost_[1] = gy;
@@ -86,19 +86,24 @@ public: // interface
     child_[2] = icz;
   }
 
-  /// Set refresh type: refresh_fine(prolong),
-  /// refresh_coarse(restrict), or refresh_same(copy)
+  /// Set level of associated Block
+  void set_level (int level)
+  { level_ = level; }
 
-  void set_refresh_type (int refresh_type)
-  {  refresh_type_ = refresh_type;  }
+  /// Set face type: > 0 for finer level, < 0 for coarser level, 0 for
+  /// same level
+  void set_face_type (int face_type)
+  {  face_type_ = face_type;  }
+
+  int face_type() const { return face_type_; }
 
   Prolong * prolong ()
   { return refresh_->prolong(); }
 
   Restrict * restrict ()
   { return refresh_->restrict(); }
-  
-  /// Set the Refresh object 
+
+  /// Set the Refresh object
   void set_refresh (Refresh * refresh, bool new_refresh)
   {
     refresh_ = refresh;
@@ -106,11 +111,8 @@ public: // interface
   }
 
   /// Return the Refresh object
-  Refresh * refresh () const
-  { return refresh_; }
-  
-  void set_field_list (std::vector<int> field_list);
-  
+  Refresh * refresh () const { return refresh_; }
+
   /// Create an array with the field's face data
   void face_to_array(Field field, int * n, char ** array) throw();
 
@@ -193,11 +195,26 @@ private: // functions
   /// Adjust box for accumulating values instead of assigning them
   void box_adjust_accumulate_ (Box * box, int accumulate, int g3[3]);
 
+  /// Whether this FieldFace operation involves interpolating in
+  /// time for adaptive timestepping
+  bool include_history_() const;
+
+  /// Perform interpolation in time on prolonged fields if needed in
+  /// adaptive timestepping
+  void time_interpolate_(Field field, const std::vector<int> & field_list,
+                         bool invert_face=false);
+
 private: // attributes
 
   /// Rank of the problem
   int rank_;
-  
+
+  /// Level of the associated block
+  int level_;
+
+  /// Face type: finer (> 0) , coarser (< 0), or same (0)
+  int face_type_;
+
   /// Select face, including edges and corners (-1,-1,-1) to (1,1,1)
   int face_[3];
 
@@ -207,15 +224,13 @@ private: // attributes
   /// Child index (0,0,0) to (1,1,1) if restriction or prolongation are used
   int child_[3];
 
-  /// Refresh type: fine, coarse, or same
-  int refresh_type_;
-
   /// Refresh object for lists of particles and fields to copy,
   /// and whether to copy or add
   Refresh * refresh_;
 
   /// Whether refresh object should be deleted in destructor
   bool new_refresh_;
+
 };
 
 #endif /* DATA_FIELD_FACE_HPP */

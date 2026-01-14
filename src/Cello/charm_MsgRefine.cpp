@@ -23,7 +23,7 @@ MsgRefine::MsgRefine()
     nx_(-1), ny_(-1), nz_(-1),
     num_field_blocks_(-1),
     num_adapt_steps_(-1),
-    refresh_type_(refresh_unknown),
+    face_type_(0),
     face_level_(),
     adapt_parent_(nullptr),
     state_(nullptr),
@@ -39,7 +39,7 @@ MsgRefine::MsgRefine
 (Index index,
  int nx, int ny, int nz,
  int num_field_blocks, int num_adapt_steps,
- int refresh_type,
+ int face_type,
  const std::vector<int> & face_level,
  Adapt * adapt_parent,
  State * state,
@@ -52,7 +52,7 @@ MsgRefine::MsgRefine
     nx_(nx), ny_(ny), nz_(nz),
     num_field_blocks_(num_field_blocks),
     num_adapt_steps_(num_adapt_steps),
-    refresh_type_(refresh_type),
+    face_type_(face_type),
     face_level_(),
     adapt_parent_(adapt_parent),
     state_(state),
@@ -108,7 +108,7 @@ void * MsgRefine::pack (MsgRefine * msg)
   SIZE_SCALAR_TYPE(    size,int,    msg->nz_);
   SIZE_SCALAR_TYPE(    size,int,    msg->num_field_blocks_);
   SIZE_SCALAR_TYPE(    size,int,    msg->num_adapt_steps_);
-  SIZE_SCALAR_TYPE(    size,int,    msg->refresh_type_);
+  SIZE_SCALAR_TYPE(    size,int,    msg->face_type_);
   SIZE_VECTOR_TYPE(    size,int,    msg->face_level_);
   SIZE_OBJECT_PTR_TYPE(size,Adapt,  msg->adapt_parent_);
   SIZE_OBJECT_PTR_TYPE(size,State,  msg->state_);
@@ -133,7 +133,7 @@ void * MsgRefine::pack (MsgRefine * msg)
   SAVE_SCALAR_TYPE(    pc,int,    msg->nz_);
   SAVE_SCALAR_TYPE(    pc,int,    msg->num_field_blocks_);
   SAVE_SCALAR_TYPE(    pc,int,    msg->num_adapt_steps_);
-  SAVE_SCALAR_TYPE(    pc,int,    msg->refresh_type_);
+  SAVE_SCALAR_TYPE(    pc,int,    msg->face_type_);
   SAVE_VECTOR_TYPE(    pc,int,    msg->face_level_);
   SAVE_OBJECT_PTR_TYPE(pc,Adapt,  msg->adapt_parent_);
   SAVE_OBJECT_PTR_TYPE(pc,State,  msg->state_);
@@ -177,7 +177,7 @@ MsgRefine * MsgRefine::unpack(void * buffer)
   LOAD_SCALAR_TYPE(    pc,int,    msg->nz_);
   LOAD_SCALAR_TYPE(    pc,int,    msg->num_field_blocks_);
   LOAD_SCALAR_TYPE(    pc,int,    msg->num_adapt_steps_);
-  LOAD_SCALAR_TYPE(    pc,int,    msg->refresh_type_);
+  LOAD_SCALAR_TYPE(    pc,int,    msg->face_type_);
   LOAD_VECTOR_TYPE(    pc,int,    msg->face_level_);
   LOAD_OBJECT_PTR_TYPE(pc,Adapt,  msg->adapt_parent_);
   LOAD_OBJECT_PTR_TYPE(pc,State,  msg->state_);
@@ -261,7 +261,7 @@ void MsgRefine::print()
   CkPrintf ("int nx_, ny_, nz_ = %d %d %d\n",nx_, ny_, nz_);
   CkPrintf ("int num_field_blocks_ = %d\n",num_field_blocks_);
   CkPrintf ("int num_adapt_steps_ = %d\n",num_adapt_steps_);
-  CkPrintf ("int refresh_type_ = %d\n",refresh_type_);
+  CkPrintf ("int face_type_ = %d\n",face_type_);
   if (restart_io_reader_ >= 0)
     CkPrintf ("int restart_io_reader_ = %d\n",restart_io_reader_);
   if (adapt_parent_)

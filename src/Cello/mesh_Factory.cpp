@@ -89,8 +89,6 @@ void Factory::create_block_array
   TRACE7("Factory::create_block_array(na(%d %d %d) n(%d %d %d) num_field_data %d)",
 	 nbx,nby,nbz,nx,ny,nz,num_field_data);
 
-  int count_adapt;
-
   int    cycle = 0;
   double time  = 0.0;
   double dt    = 0.0;
@@ -107,12 +105,15 @@ void Factory::create_block_array
 
         Index index(ix,iy,iz);
 
+        int count_adapt;
+        int face_type;
+
         MsgRefine * msg = new MsgRefine
           (index,
            nx,ny,nz,
            num_field_data,
            count_adapt = 0,
-           refresh_same,
+           face_type = 0,
            face_level,
            nullptr,
            nullptr);
@@ -157,8 +158,6 @@ void Factory::create_subblock_array
     if (nby > 1) nby = ceil(0.5*nby);
     if (nbz > 1) nbz = ceil(0.5*nbz);
 
-    int count_adapt;
-
     int    cycle = 0;
     double time  = 0.0;
     double dt    = 0.0;
@@ -175,17 +174,19 @@ void Factory::create_subblock_array
 	  int shift = -level;
 
 	  Index index(ix<<shift,iy<<shift,iz<<shift);
-
 	  index.set_level(level);
 
-	  TRACE3 ("inserting %d %d %d",ix,iy,iz);
+          int count_adapt;
+          int face_type;
+
+          TRACE3 ("inserting %d %d %d",ix,iy,iz);
 
 	  MsgRefine * msg = new MsgRefine
 	    (index,
 	     nx,ny,nz,
 	     num_field_blocks,
 	     count_adapt = 0,
-	     refresh_same,
+	     face_type = 0,
 	     face_level,
              nullptr,
              nullptr);
@@ -211,7 +212,7 @@ void Factory::create_block
  int nx, int ny, int nz,
  int num_field_data,
  int count_adapt,
- int narray, char * array, int refresh_type,
+ int narray, char * array, int face_type,
  const std::vector<int> & face_level,
  Adapt * adapt,
  State * state,
@@ -238,7 +239,7 @@ void Factory::create_block
      nx,ny,nz,
      num_field_data,
      count_adapt,
-     refresh_type,
+     face_type,
      face_level,
      adapt,
      state,

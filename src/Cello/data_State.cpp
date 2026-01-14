@@ -10,47 +10,52 @@
 #include "data.hpp"
 
 //----------------------------------------------------------------------
+void State::set_time (double time, int level)
+{
+  double time_curr = time_level_curr_[level];
+  if (time > time_curr) {
+    set_(time_level_prev_,level,time_curr);
+    set_(time_level_curr_,level,time);
+  }
+}
 
 void State::advance()
 {
-  if (state_type_ == Type::Global) {
-    cycle_++;
-    time_+= dt_;
-  } else if (state_type_ == Type::Level) {
+  ++cycle_;
+  time_ += dt_;
+
+  if (state_type_ == Type::Level) {
+
     for (int level=level_lower_; level<level_upper_; level++) {
       cycle_level_[level]++;
-      const double time_next = time_level_[level] + dt_level_[level];
-      time_level_[level] = (level > 0) ? std::min(time_level_[level-1],time_next) : time_next;
+      const double time_next = time_level_curr_[level] + dt_level_[level];
+      time_level_prev_[level] = time_level_curr_[level];
+      time_level_curr_[level] = time_next;
     }
-  }
-  // Update level range if LTS
-  if (state_type_ == Type::Level) {
+
     if (state_next_ == Next::Sequential) {
-      int level=time_level_.size() - 1;
-      while (level >= 0 && time_level_[level] == time_level_[level-1])
+
+      int level=time_level_curr_.size() - 1;
+      while (level > 0 && time_level_curr_[level] == time_level_curr_[level-1])
         level--;
       level_lower_ = level;
       level_upper_ = level + 1;
+
     } else if (state_next_ == Next::Concurrent) {
-      int level=time_level_.size() - 1;
-      while (level >= 0 && (time_level_[level] == time_level_[level-1]))
+
+      int level=time_level_curr_.size() - 1;
+      while (level > 0 && (time_level_curr_[level] == time_level_curr_[level-1]))
         level--;
       level_lower_ = level;
-      level_upper_ = time_level_.size();
+      level_upper_ = time_level_curr_.size();
+
     }
   }
 }
 
 //----------------------------------------------------------------------
 
-void State::update_dt (std::vector<double> & dt_level)
-{
-  INCOMPLETE("State::update_dt()");
-}
-
-//----------------------------------------------------------------------
-
-bool State::is_active ( int level )
+bool State::is_active ( int level ) const
 {
   bool retval = true;
   if (state_type_ == Type::Level) {
@@ -61,7 +66,7 @@ bool State::is_active ( int level )
 
 //----------------------------------------------------------------------
 
-bool State::in_barrier ( int level )
+bool State::in_barrier ( int level ) const
 {
   bool retval = true;
   if (state_type_ == Type::Level) {

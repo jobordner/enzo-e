@@ -823,7 +823,7 @@ FieldMsg * EnzoSolverMg0::pack_residual_(EnzoBlock * enzo_block) throw()
   // copy data from EnzoBlock to array via FieldFace
 
   FieldFace * field_face = enzo_block->create_face
-    (if3, ic3, g3, refresh_coarse, refresh);
+    (if3, ic3, g3, -1, refresh);
 
   refresh->set_restrict(index_restrict_);
 
@@ -874,7 +874,7 @@ void EnzoSolverMg0::unpack_residual_
   int * ic3 = msg->ic3;
 
   FieldFace * field_face = enzo_block->create_face
-    (if3, ic3, g3, refresh_coarse, refresh);
+    (if3, ic3, g3, -1, refresh);
 
   refresh->set_restrict(index_restrict_);
 
@@ -907,7 +907,7 @@ FieldMsg * EnzoSolverMg0::pack_correction_
   // copy data from EnzoBlock to array via FieldFace
 
   FieldFace * field_face = enzo_block->create_face
-    (if3, ic3, g3, refresh_fine, refresh);
+    (if3, ic3, g3, +1, refresh);
 
   Field field = enzo_block->data()->field();
   int narray;
@@ -954,7 +954,7 @@ void EnzoSolverMg0::unpack_correction_
   // copy data from msg to this EnzoBlock
 
   FieldFace * field_face = enzo_block->create_face
-    (if3, msg->ic3, g3, refresh_fine, refresh);
+    (if3, msg->ic3, g3, +1, refresh);
 
   Field field = enzo_block->data()->field();
   field_face->array_to_face (msg->a, field);

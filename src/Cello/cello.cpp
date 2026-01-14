@@ -489,7 +489,7 @@ namespace cello {
 
   Refresh * refresh(int ir)
   {
-    return simulation() ? &simulation()->refresh_list(ir) : nullptr;
+    return simulation() ? simulation()->refresh_list(ir) : nullptr;;
   }
 
   //----------------------------------------------------------------------
@@ -530,6 +530,11 @@ namespace cello {
 
   int max_level()
   { return config()->mesh_max_level; }
+
+  //----------------------------------------------------------------------
+
+  int finest_level()
+  { return hierarchy() ? hierarchy()->finest_level() : 0; }
 
   //----------------------------------------------------------------------
 

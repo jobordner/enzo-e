@@ -80,19 +80,48 @@ void Block::stopping_exit_()
 
 void Block::compute_exit_ ()
 {
-  // Update Simulation state (first block only)
+  control_sync_barrier(CkIndex_Block::r_compute_exit_continue(nullptr));
+}
 
-  int cs = cello::simulation()->state()->cycle();
-  int cb = state()->cycle();
-  if (cs != cb) *cello::simulation()->state() = *state();
+//----------------------------------------------------------------------
+
+void Block::r_compute_exit_continue (CkReductionMsg * msg)
+{
+  delete msg;
+  
+  update_global_state_();
 
   adapt_enter_();
 }
 
 //----------------------------------------------------------------------
 
+void Block::update_global_state_()
+{
+
+  auto & state_global = cello::simulation()->state();
+  // update simulation global state
+  state_global->set_cycle(state()->cycle());
+  state_global->set_time (state()->time());
+
+  if ( (state()->state_type() == State::Type::Level) &&
+       (state()->is_active(level())) ) {
+
+    state_global->set_level_range(level_lower_,level_upper_);
+    // update simulation level states using saved level range
+    for (int level=level_lower_; level < level_upper_; level++) {
+      state_global->set_cycle(state()->cycle(level),level);
+      state_global->set_time (state()->time (level),level);
+    }
+  }
+}
+
+//----------------------------------------------------------------------
+
 void Block::control_sync (int entry_point, int sync_type, int id_sync,
-			  int min_face_rank, int neighbor_type, int root_level)
+			  int min_face_rank, int neighbor_type, int root_level,
+                          int level_lower, int level_upper,
+                          DirType dir_type)
 {
   if (sync_type == sync_quiescence) {
 
@@ -101,7 +130,8 @@ void Block::control_sync (int entry_point, int sync_type, int id_sync,
   } else if (sync_type == sync_neighbor) {
 
     control_sync_neighbor
-      (entry_point,id_sync,min_face_rank, neighbor_type,root_level);
+      (entry_point,id_sync,min_face_rank, neighbor_type,root_level,
+       level_lower,level_upper, dir_type);
 
   } else if (sync_type == sync_face) {
  
@@ -138,9 +168,12 @@ void Block::control_sync_barrier (int entry_point)
 //----------------------------------------------------------------------
 
 void Block::control_sync_neighbor(int entry_point, int id_sync,
-				  int min_face_rank,
-				  int neighbor_type,
-				  int root_level)
+                                  int min_face_rank,
+                                  int neighbor_type,
+                                  int root_level,
+                                  int level_lower,
+                                  int level_upper,
+                                  DirType dir_type)
 {
   if ( ! is_leaf() ) {
 
@@ -156,10 +189,9 @@ void Block::control_sync_neighbor(int entry_point, int id_sync,
 
   int num_neighbors = 0;
 
-  const int min_level = cello::min_level();
-
   ItNeighbor it_neighbor = this->it_neighbor
-    (index_,min_face_rank,neighbor_type,min_level,root_level);
+    (index_,min_face_rank,neighbor_type,root_level,
+     level_lower, level_upper, dir_type);
 
   int of3[3];  // ignored
   while (it_neighbor.next(of3)) {

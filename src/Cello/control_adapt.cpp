@@ -29,6 +29,7 @@
 void Block::adapt_enter_()
 {
   if ( do_adapt_()) {
+    cello::hierarchy()->set_num_blocks_changed(0);
     adapt_begin_();
 
   } else {
@@ -103,6 +104,9 @@ void Block::adapt_barrier_()
 void Block::adapt_next_()
 {
   PERF_REDUCE_STOP(perf_rindex_reduce_adapt);
+  int num_blocks_changed = cello::hierarchy()->num_blocks_changed();
+  cello::hierarchy()->set_num_blocks_changed
+    (std::max(adapt_changed_,num_blocks_changed));
 
   update_levels_();
 
@@ -184,7 +188,9 @@ void Block::adapt_end_()
 
   const int initial_cycle = cello::config()->initial_cycle;
   const bool is_first_cycle = (initial_cycle == state_->cycle());
-  const int level_maximum = cello::config()->mesh_max_level;
+  const int level_maximum = std::min
+    (cello::config()->mesh_max_initial_level,
+     cello::config()->mesh_max_level);
 
   bool adapt_again = (is_first_cycle && (adapt_step_ < level_maximum));
   adapt_step_++;
@@ -339,8 +345,10 @@ void Block::adapt_refine_()
       cello::field_descr()->ghost_depth(0,g3,g3+1,g3+2);
       Refresh * refresh = new Refresh;
       refresh->add_all_data();
+      refresh -> set_adaptive_timestep
+        (state()->state_type() == State::Type::Level);
       FieldFace * field_face = create_face
-	(if3,ic3,g3, refresh_fine, refresh);
+	(if3,ic3,g3, +1, refresh);
 
       // Create data message object to send
       DataMsg * data_msg = new DataMsg;
@@ -373,7 +381,7 @@ void Block::adapt_refine_()
 	 nx,ny,nz,
 	 num_field_data,
 	 adapt_step_,
-	 narray, array, refresh_fine,
+	 narray, array, +1,
          face_level,
          &adapt_,state_.get(),
 	 cello::simulation());
@@ -879,9 +887,11 @@ void Block::adapt_coarsen_()
   int g3[3] = {0,0,0};
   Refresh * refresh = new Refresh;
   refresh->add_all_data();
+  refresh -> set_adaptive_timestep
+    (state()->state_type() == State::Type::Level);
 
   FieldFace * field_face = create_face
-    (if3, ic3, g3, refresh_coarse, refresh);
+    (if3, ic3, g3, -1, refresh);
 
   const Index index_parent = index_.index_parent();
 

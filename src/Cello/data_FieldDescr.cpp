@@ -79,17 +79,56 @@ bool FieldDescr::is_field(const std::string & name) const throw()
 
 //----------------------------------------------------------------------
 
-int FieldDescr::field_id(const std::string & name) const throw()
+int FieldDescr::field_id(const std::string & name, int ih) const throw()
 {
   auto it = id_.find(name);
   if (it != id_.end()) {
-    return it->second;
+    int id = it->second;
+    return (ih == 0) ? id : history_id(id,ih);
   } else {
     //    WARNING1("FieldDescr::field_id()",
     //	   "Trying to access unknown Field \"%s\"",
     //	   name.c_str());
     return -1;
   }
+}
+
+//----------------------------------------------------------------------
+
+void FieldDescr::set_history (int history) throw()
+{
+  const int np = num_permanent();
+  const int nh = history;
+
+  if (history > history_) {
+    history_id_.resize(np*nh);
+    for (int ih=0; ih<nh; ih++) {
+      for (int ip=0; ip<np; ip++) {
+
+        int i = ip + np*ih;
+
+        const int ih = insert_temporary();
+
+        history_id_[i] = ih;
+
+        // set precision
+        set_precision (ih, precision(ip));
+
+        // set ghost zones
+        int gx,gy,gz;
+        ghost_depth(ip,&gx,&gy,&gz);
+        set_ghost_depth(ih,gx,gy,gz);
+
+        // set centering
+        int cx,cy,cz;
+        centering(ip,&cx,&cy,&cz);
+        set_centering(ih,cx,cy,cz);
+      }
+    }
+  }
+
+  history_ = history;
+
 }
 
 //----------------------------------------------------------------------

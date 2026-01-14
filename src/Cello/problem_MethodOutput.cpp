@@ -594,7 +594,7 @@ void MethodOutput::file_write_block_
      cello::particle_descr());
 
     // Allocate fields
-    data->allocate();
+    data->allocate(block->level());
 
     msg_output->update(data);
   }
@@ -775,8 +775,9 @@ DataMsg * MethodOutput::create_data_msg_ (Block * block)
     // all fields
     refresh->add_all_fields();
   } else if (field_list_.size() > 0) {
-    // some fields
-    refresh->set_field_list(field_list_);
+    for (auto f: field_list_) {
+      refresh->add_field(f);
+    }
   } else {
     // no fields
     any_fields = false;
@@ -797,7 +798,7 @@ DataMsg * MethodOutput::create_data_msg_ (Block * block)
 
   // Create FieldFace object specifying fields to send
   FieldFace * field_face = block->create_face
-    (if3,ic3,g3, refresh_same, refresh);
+    (if3,ic3,g3, 0, refresh);
 
   int gx=-1,gy=-1,gz=-1;
   field_face->ghost(&gx,&gy,&gz);

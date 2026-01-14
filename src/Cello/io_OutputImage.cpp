@@ -37,6 +37,7 @@ OutputImage::OutputImage(int index,
 			 std::string color_particle_attribute,
 			 double image_lower[],
 			 double image_upper[],
+                         int image_history,
 			 int face_rank,
 			 int axis,
 			 bool image_log,
@@ -48,6 +49,7 @@ OutputImage::OutputImage(int index,
   image_data_(NULL),
   image_mesh_(NULL),
   color_particle_attribute_(color_particle_attribute),
+  image_history_(image_history),
   axis_(axis),
   use_min_max_(use_min_max),
   min_value_(min_value),
@@ -324,13 +326,9 @@ void OutputImage::write_block ( const Block *  block ) throw()
 
       // add block contribution to image
 
-      const char * field_values = (include_ghost_) ?
-        field.values(index_field) : field.unknowns(index_field);
-
-      float  * field_float  = (float*)field_values;
-      double * field_double = (double*)field_values;
-
-      const int precision = field.precision(index_field);
+      cello_float * field_values = (include_ghost_) ?
+        (cello_float *) field.values ( index_field,image_history_) :
+        (cello_float *) field.unknowns(index_field,image_history_);
 
       double factor = (nb3[IZ] > 1) ? 1.0 / pow(2.0,1.0*level) : 1.0;
       if (rank >= 2 && (std::abs(dm3[IZ] - dp3[IZ]) < h3[IZ])) factor = 1.0;
@@ -355,12 +353,7 @@ void OutputImage::write_block ( const Block *  block ) throw()
 		double zhi = dp3[IZ] + 0.5*h3[IZ];
 		if (rank < 3 || (zlo <= z && z <= zhi)) {
 		  int i=ix*d3[IX] + iy*d3[IY] + iz*d3[IZ];
-		  double value = 0.0;
-		  if (precision == precision_single) {
-		    value = field_float[i];
-		  } else if (precision == precision_double) {
-		    value = field_double[i];
-		  }
+		  double value = field_values[i];
 		  reduce_box_filled_(image_data_,jxm,jxp,jym,jyp, (value*factor));
 		}
 	      }

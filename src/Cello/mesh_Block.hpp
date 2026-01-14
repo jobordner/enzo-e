@@ -216,7 +216,7 @@ public:
    int nx, int ny, int nz,
    int num_field_blocks,
    int num_adapt_steps,
-   int narray, char * array, int refresh_type,
+   int narray, char * array, int face_type,
    const std::vector<int> & face_level,
    Adapt * adapt,
    State * state);
@@ -239,8 +239,10 @@ public:
   ItNeighbor it_neighbor(Index index,
                          int min_face_rank = -1,
 			 int neighbor_type = neighbor_leaf,
-			 int min_level = INDEX_UNDEFINED_LEVEL,
-			 int root_level = 0) throw();
+			 int root_level = 0,
+                         int level_lower = 0,
+                         int level_upper = std::numeric_limits<int>::max(),
+                         DirType dir_type = DirType::Both) throw();
 
   //--------------------------------------------------
   // Charm++ virtual
@@ -271,9 +273,10 @@ public:
     initial_exit_();  delete msg;
   }
 
-  void initial_exit_();
+  /// Exiting initialization
   void p_initial_exit()
   { initial_exit_(); }
+  void initial_exit_();
 
   void r_initial_new_continue(CkReductionMsg * msg)
   { delete msg; initial_new_continue_(); }
@@ -305,11 +308,7 @@ public:
 
   void p_compute_exit()
   {      compute_exit_();  }
-  void r_compute_exit(CkReductionMsg * msg)
-  {
-    delete msg;
-    compute_exit_();
-  }
+  void r_compute_exit_continue (CkReductionMsg * msg);
 
   /// Return the currently active Method
   int index_method() const throw()
@@ -371,6 +370,8 @@ protected: // methods
 
   /// Update Method state variables after method completes a step
   void compute_update_method_state_(int index_method);
+
+  void update_global_state_();
 
 public: // methods
 
@@ -542,7 +543,10 @@ public:
 
   /// Syncronize before continuing with next callback
   void control_sync (int entry_point, int sync_type, int id, int min_face_rank,
-		     int neighbor_type,int root_level);
+		     int neighbor_type,int root_level,
+                     int level_lower = 0,
+                     int level_upper = std::numeric_limits<int>::max(),
+                     DirType dir_type = DirType::Both);
 
   /// synchronize with count other chares; count only needs to be
   /// supplied once with others count arguments 0.
@@ -552,7 +556,10 @@ public:
   }
 
   void control_sync_neighbor (int entry_point, int id,
-			      int neighbor_type,int min_face_rank,int root_level);
+			      int neighbor_type,int min_face_rank,int root_level,
+                              int level_lower = 0,
+                              int level_upper = std::numeric_limits<int>::max(),
+                              DirType dir_type = DirType::Both);
   void control_sync_face     (int entry_point, int id, int min_face_rank);
   void control_sync_barrier  (int entry_point);
   void control_sync_quiescence (int entry_point);
@@ -590,12 +597,12 @@ public:
   int refresh_load_flux_faces_ (Refresh & refresh);
 
   void refresh_load_field_face_
-  (Refresh & refresh, int refresh_type, Index index, int if3[3], int ic3[3]);
+  (Refresh & refresh, int face_type, Index index, int if3[3], int ic3[3]);
   /// Send particles in list to corresponding indices
   void particle_send_(Refresh & refresh, int nl,Index index_list[],
                       ParticleData * particle_list[]);
   void refresh_load_flux_face_
-  (Refresh & refresh, int refresh_type, Index index, int if3[3], int ic3[3]);
+  (Refresh & refresh, int face_type, Index index, int if3[3], int ic3[3]);
 
   void refresh_exit (Refresh & refresh);
 
@@ -632,7 +639,7 @@ protected:
   /// Handle the special case of refresh on interpolated faces
   /// requiring extra padding
   int refresh_load_coarse_face_
-  (Refresh refresh,  int refresh_type,
+  (Refresh refresh,  int face_type,
    Index index_neighbor, int if3[3],int ic3[3]);
 
   /// Send padded array of fields to neighbor for interpolations whose
@@ -652,9 +659,9 @@ protected:
   int refresh_load_particle_faces_ (Refresh * refresh);
 
   // void refresh_load_field_face_
-  // (int refresh_type, Index index, int if3[3], int ic3[3]);
+  // (int face_type, Index index, int if3[3], int ic3[3]);
   void refresh_load_particle_face_
-  (int refresh_type, Index index, int if3[3], int ic3[3]);
+  (int face_type, Index index, int if3[3], int ic3[3]);
 
   //--------------------------------------------------
   // PARTICLES
@@ -795,7 +802,7 @@ public: // virtual functions
 
   FieldFace * create_face
   (int if3[3], int ic3[3], int g3[3],
-   int refresh_type,
+   int face_type,
    Refresh * refresh,
    bool new_refresh = true) const;
 
@@ -870,13 +877,6 @@ protected: // functions
 
   /// Update boundary conditions
   void update_boundary_ ();
-
-  /// Set the current refresh object
-  void set_refresh (Refresh * refresh)
-  {
-    // WARNING: known memory leak (see bug # 133)
-    refresh_.push_back(new Refresh (*refresh));
-  };
 
   /// Return the currently-active Refresh object
   Refresh * refresh () throw()
@@ -990,10 +990,15 @@ protected: // attributes
   std::vector < Sync > refresh_sync_list_;
   std::vector < std::vector <MsgRefresh * > > refresh_msg_list_;
 
-  /// Index and total count used for ordering blocks, e.g. for dynamic load balancing
+  /// Index and total count used for ordering blocks, e.g. for dynamic
+  /// load balancing
   long long order_index_;
   long long order_count_;
   Index order_next_;
+
+  /// Saved level range for updating global state after block barrier
+  int level_lower_;
+  int level_upper_;
 };
 
 #endif /* COMM_BLOCK_HPP */
