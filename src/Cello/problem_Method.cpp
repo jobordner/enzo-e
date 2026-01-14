@@ -22,6 +22,7 @@ Method::Method (double courant) throw()
     super_field_prev_(),
     is_time_curr_(-1),
     is_time_prev_(-1),
+    call_on_all_levels_(false),
     index_perf_(-1)
 {
   ir_post_ = add_refresh_();
@@ -55,24 +56,21 @@ void Method::pup (PUP::er &p)
   p | super_field_prev_;
   p | is_time_curr_;
   p | is_time_prev_;
+  p | call_on_all_levels_;
   p | index_perf_;
-
 }
 
 //----------------------------------------------------------------------
 
 int Method::add_refresh_ (int neighbor_type)
 {
-  // set Method::ir_post_
+  const int ghost_depth = 4;
+  const int min_face_rank = 0;
 
-  const int ghost_depth = 4; // std::max(g3[0],std::max(g3[1],g3[2]));
-  const int min_face_rank = 0; // cello::config()->adapt_min_face_rank;
-
-  // Set default refresh object
-  Refresh * refresh_default = 
+  Refresh * refresh = 
     Refresh::create (ghost_depth,min_face_rank, neighbor_type, sync_neighbor, 0);
 
-  return cello::simulation()->new_register_refresh(refresh_default);
+  return cello::simulation()->new_register_refresh (refresh);
 }
 
 //----------------------------------------------------------------------

@@ -19,13 +19,14 @@ void State::set_time (double time, int level)
   }
 }
 
-void State::advance()
+void State::advance(int level_top)
 {
   ++cycle_;
   time_ += dt_;
 
   if (state_type_ == Type::Level) {
 
+    // update level cycles and level times for active levels
     for (int level=level_lower_; level<level_upper_; level++) {
       cycle_level_[level]++;
       const double time_next = time_level_curr_[level] + dt_level_[level];
@@ -33,9 +34,18 @@ void State::advance()
       time_level_curr_[level] = time_next;
     }
 
+    // update level cycles and level times for empty levels
+    const int level_max = time_level_curr_.size();
+
+    for (int level=level_top+1; level<level_max; level++) {
+      cycle_level_[level] = cycle_level_[level_top];
+      time_level_prev_[level] = time_level_prev_[level_top];
+      time_level_curr_[level] = time_level_curr_[level_top];
+    }
+
     if (state_next_ == Next::Sequential) {
 
-      int level=time_level_curr_.size() - 1;
+      int level = level_top;
       while (level > 0 && time_level_curr_[level] == time_level_curr_[level-1])
         level--;
       level_lower_ = level;
@@ -43,7 +53,7 @@ void State::advance()
 
     } else if (state_next_ == Next::Concurrent) {
 
-      int level=time_level_curr_.size() - 1;
+      int level = level_max - 1;
       while (level > 0 && (time_level_curr_[level] == time_level_curr_[level-1]))
         level--;
       level_lower_ = level;

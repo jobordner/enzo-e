@@ -19,6 +19,11 @@
 EnzoBlock::EnzoBlock( CkMigrateMessage *m)
   : CBase_EnzoBlock (m)
 {
+#ifdef TRACE_BLOCK
+  CkPrintf ("%d TRACE_BLOCK %s EnzoBlock::EnzoBlock(CkMigrateMessage*)\n",
+            CkMyPe(),name(thisIndex).c_str());
+  fflush(stdout);
+#endif
   // replace Block's State with EnzoState
   state_ = std::make_shared<EnzoState>(0, 0.0, 0.0, false);
 
@@ -33,9 +38,8 @@ EnzoBlock::EnzoBlock( MsgType msg_type)
   // replace Block's State with EnzoState
   state_ = std::make_shared<EnzoState>(0, 0.0, 0.0, false);
 #ifdef TRACE_BLOCK
-
-  CkPrintf ("%d %p TRACE_BLOCK %s EnzoBlock(ip) msg_type %d\n",
-            CkMyPe(),(void *)this,name(thisIndex).c_str(),int(msg_type));
+  CkPrintf ("%d TRACE_BLOCK %s EnzoBlock::EnzoBlock(ip)\n",
+            CkMyPe(),name(thisIndex).c_str());
   fflush(stdout);
 #endif
 
@@ -109,6 +113,11 @@ void EnzoBlock::pup(PUP::er &p)
   PUParray(p,GridStartIndex,MAX_DIMENSION);
   PUParray(p,GridEndIndex,MAX_DIMENSION);
   PUParray(p,CellWidth,MAX_DIMENSION);
+
+  // If tagged for deletion, then delete after unpacking
+  if (coarsened_ && p.isUnpacking()) {
+    ckDestroy();
+  }
 }
 
 //======================================================================
@@ -285,7 +294,7 @@ void EnzoBlock::instantiate_children() throw()
        &adapt_,state_.get());
 
     msg->set_data_msg(data_msg);
-    cello::simulation()->p_refine_create_block (msg);
+    cello::simulation()->refine_create_block (msg);
 
     children_.push_back(index_child);
   }

@@ -10,6 +10,8 @@
 
 #define FORTRAN_STORE
 
+// #define UNIFORM_FIELDS
+
 //----------------------------------------------------------------------
 
 // #define CONFIG_SMP_MODE
@@ -278,13 +280,12 @@ void FieldFace::array_to_face (char * array, Field field) throw()
     int i3[3], n3[3];
 
     // adjust face relative to sender
-    invert_face();
 
     field.size(n3,n3+1,n3+2);
     Box box (rank_,n3,g3);
-    set_box_(&box);
+    bool invert;
+    set_box_(&box,invert=true);
     box.set_centering(c3);
-    invert_face();
 
     box_adjust_accumulate_(&box,accumulate,g3);
 
@@ -346,6 +347,7 @@ void FieldFace::array_to_face (char * array, Field field) throw()
   }
   // Interpolate fields in time if needed when adaptive time-stepping
   // (note invert_face parameter is set since at receiving end)
+
   time_interpolate_(field,field_list_dst,true);
 }
 
@@ -364,6 +366,97 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
   int n3[3];
   field_src.size (n3,n3+1,n3+2);
 
+#ifdef UNIFORM_FIELDS
+
+  size_t index_src = 0;
+  size_t index_dst = 0;
+  int m3[3],g3[3],c3[3];
+  field_src.dimensions (index_src,m3,m3+1,m3+2);
+  field_src.ghost_depth(index_src,g3,g3+1,g3+2);
+  field_src.centering  (index_src,c3,c3+1,c3+2);
+
+  Box box (rank_,n3,g3);
+  set_box_(&box);
+  box.set_centering(c3);
+
+  bool lpad;
+  int is3[3], ns3[3];
+  int id3[3], nd3[3];
+
+  box.get_start_size
+    (is3,ns3,BlockType::send,BlockType::send,lpad=true);
+  box.get_start_size
+    (id3,nd3,BlockType::receive,BlockType::receive,lpad=false);
+
+  // Adjust loop limits if accumulating to include ghost zones
+  // on neighbor axes
+
+  precision_type precision = field_src.precision(index_src);
+
+  for (size_t i_f=0; i_f < field_list_src.size(); i_f++) {
+
+    const bool accumulate = refresh_->accumulate(i_f);
+    ASSERT1("FieldFace::face_to_face()",
+           "UNIFORM_FIELDS set but accumulate i_f=%d != 0",
+           i_f,!accumulate);
+
+    index_src = field_list_src[i_f];
+    index_dst = field_list_dst[i_f];
+    CHECK_COARSE(field_src,index_src);
+
+    char * values_src = field_src.values(index_src);
+    char * values_dst = field_dst.values(index_dst);
+
+    // scale by density if needed to convert to conservative form
+    mul_by_density_(field_src,index_src,is3,ns3,m3);
+
+    if (face_type_ > 0) {
+
+      // Prolong field
+
+      // adjust for full-block interpolation to child
+      prolong()->apply (precision,
+                        values_dst,m3,id3, nd3,
+                        values_src,m3,is3, ns3,
+                        accumulate);
+
+    } else if (face_type_ < 0) {
+
+      // Restrict field
+
+      restrict()->apply (precision,
+                         values_dst,m3,id3, nd3,
+                         values_src,m3,is3, ns3,
+                         accumulate);
+
+    } else {
+
+      // Copy faces to ghosts
+
+      union { float * fs4; double * fs8; long double * fs16; };
+      union { float * fd4; double * fd8; long double * fd16; };
+      fs4 = (float *) values_src;
+      fd4 = (float *) values_dst;
+
+      // Copy field to array
+
+      if (precision == precision_single) {
+	copy_ ( fd4, m3,nd3,id3,fs4, m3, ns3,is3,accumulate);
+      } else if (precision == precision_double) {
+	copy_ ( fd8, m3,nd3,id3,fs8, m3, ns3,is3,accumulate);
+      } else if (precision == precision_quadruple) {
+	copy_ ( fd16,m3,nd3,id3,fs16,m3,ns3,is3,accumulate);
+      } else {
+	ERROR("FieldFace::face_to_face()", "Unsupported precision");
+      }
+    }
+    // unscale by density if needed to convert back from conservative form
+    div_by_density_(field_src,index_src,is3,ns3,m3);
+    div_by_density_(field_dst,index_dst,id3,nd3,m3);
+
+  }
+
+#else
   for (size_t i_f=0; i_f < field_list_src.size(); i_f++) {
 
     size_t index_src = field_list_src[i_f];
@@ -408,12 +501,6 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
 
       // Prolong field
 
-      bool need_padding = (g3[0]%2==1) || (g3[1]%2==1) || (g3[2]%2==1);
-
-      ASSERT("FieldFace::face_to_face()",
-             "Odd ghost zones not implemented yet: prolong needs padding",
-             (! need_padding) );
-
       // adjust for full-block interpolation to child
       prolong()->apply (precision,
                         values_dst,m3,id3, nd3,
@@ -455,8 +542,9 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
     div_by_density_(field_dst,index_dst,id3,nd3,m3);
 
   }
-
+#endif
   // Interpolate fields in time if needed when adaptive time-stepping
+
   time_interpolate_(field_dst,field_list_dst);
 
 #ifdef CONFIG_SMP_MODE
@@ -874,9 +962,13 @@ void FieldFace::div_by_density_
 
 //----------------------------------------------------------------------
 
-void FieldFace::set_box_(Box * box)
+void FieldFace::set_box_(Box * box, bool invert)
 {
+  // Invert face direction if from destination perspective,
+  // and restore afterwards
+  if (invert) invert_face();
   box->set_block(BoxType_receive,face_type_,face_,child_);
+  if (invert) invert_face();
 
   Prolong * prolong = this->prolong();
   int pad = prolong ? refresh_->coarse_padding(prolong) : 0;
@@ -916,64 +1008,78 @@ void FieldFace::box_adjust_accumulate_ (Box * box, int accumulate, int g3[3])
 //----------------------------------------------------------------------
 
 void FieldFace::time_interpolate_
-(Field field,  const std::vector<int> & field_list,
- bool invert)
+(Field field,  const std::vector<int> & field_list, bool invert)
 {
   if (! include_history_()) return;
 
-  const double t_curr = cello::simulation()->state()->time_curr(level_ + 1);
-  const double t_prev = cello::simulation()->state()->time_prev(level_);
-  const double t_next = cello::simulation()->state()->time_curr(level_);
+  std::shared_ptr<State> state { cello::simulation()->state() };
 
-  const double c_next = (t_curr - t_prev) / (t_next - t_prev);
-  const double c_prev = (1.0 - c_next);
+  double time_this_curr = state->time_curr(level_);
+  double time_this_prev = state->time_prev(level_);
+  double time_face_curr = state->time_curr(level_ + face_type_);
+  double time_face_prev = state->time_prev(level_ + face_type_);
+
+  if (time_this_curr == time_this_prev) return;
 
   int n3[3];
   field.size (n3,n3+1,n3+2);
-  if (t_next != t_prev) {
 
-    for (size_t i_f=0; i_f < field_list.size(); i_f++) {
-      const int id_curr = field_list[i_f];
-      if (field.history_age(id_curr) == 0) {
-        const int id_prev = field.history_id(id_curr,1);
-        int m3[3],g3[3],c3[3];
+  for (size_t i_f=0; i_f < field_list.size(); i_f++) {
 
-        field.dimensions (id_curr,m3,m3+1,m3+2);
-        field.ghost_depth(id_curr,g3,g3+1,g3+2);
-        field.centering  (id_curr,c3,c3+1,c3+2);
+    const int id_this = field_list[i_f];
+    const int age_this = field.history_age(id_this);
 
-        const bool accumulate = refresh_->accumulate(i_f);
+    if (age_this != 0) continue;
 
-        if (invert) invert_face();
-        Box box (rank_,n3,g3);
-        set_box_(&box);
-        box.set_centering(c3);
-        if (invert) invert_face();
+    // Interpolate both current and previous fields
 
-        box_adjust_accumulate_(&box,accumulate,g3);
+    int id_curr = field.history_id(id_this,0);
+    int id_prev = field.history_id(id_this,1);
 
-        bool lpad;
-        int i3_f[3], n3_f[3];
+    int m3[3],g3[3],c3[3];
 
-        box.get_start_size
-          (i3_f,n3_f,BlockType::receive,BlockType::receive,lpad=false);
+    field.dimensions (id_this,m3,m3+1,m3+2);
+    field.ghost_depth(id_this,g3,g3+1,g3+2);
+    field.centering  (id_this,c3,c3+1,c3+2);
 
-        const double t_next = cello::simulation()->state()->time(level_);
+    const bool accumulate = refresh_->accumulate(i_f);
 
-        // curr initially is coarse next
-        // prev is coarse prev
-        // curr = curr + prev
-        cello_float * field_next = (cello_float *) field.values(id_curr);
-        cello_float * field_curr = (cello_float *) field.values(id_curr);
-        cello_float * field_prev = (cello_float *) field.values(id_prev);
+    Box box (rank_,n3,g3);
+    set_box_(&box,invert);
+    box.set_centering(c3);
 
-        for (int iz=i3_f[2]; iz<i3_f[2]+n3_f[2]; iz++) {
-          for (int iy=i3_f[1]; iy<i3_f[1]+n3_f[1]; iy++) {
-            for (int ix=i3_f[0]; ix<i3_f[0]+n3_f[0]; ix++) {
-              int i=ix + m3[0]*(iy + m3[1]*iz);
-              field_curr[i] = c_prev*field_prev[i] + c_next*field_next[i];
-            }
-          }
+    box_adjust_accumulate_(&box,accumulate,g3);
+
+    bool lpad;
+    int i3_f[3], n3_f[3];
+
+    box.get_start_size
+      (i3_f,n3_f,BlockType::receive,BlockType::receive,lpad=false);
+
+    cello_float * field_prev = (cello_float *) field.values(id_prev);
+    cello_float * field_curr = (cello_float *) field.values(id_curr);
+
+
+    double dt_this = (time_this_curr - time_this_prev);
+
+    // coefficients for interpolating current field
+    const double cc_c = (time_face_curr - time_this_prev) / dt_this;
+    const double cc_p = (1.0 - cc_c);
+
+    // coefficients for interpolating previous field
+    const double cp_c = (time_face_prev - time_this_prev) / dt_this;
+    const double cp_p = (1.0 - cp_c);
+
+    // interpolate current and previous fields together since mutually
+    // dependent
+    for (int iz=i3_f[2]; iz<i3_f[2]+n3_f[2]; iz++) {
+      for (int iy=i3_f[1]; iy<i3_f[1]+n3_f[1]; iy++) {
+        for (int ix=i3_f[0]; ix<i3_f[0]+n3_f[0]; ix++) {
+          int i=ix + m3[0]*(iy + m3[1]*iz);
+          cello_float value_c = (cc_p)*field_prev[i] + cc_c*field_curr[i];
+          cello_float value_p = (cp_p)*field_prev[i] + cp_c*field_curr[i];
+          field_curr[i] = value_c;
+          field_prev[i] = value_p;
         }
       }
     }
@@ -984,8 +1090,5 @@ void FieldFace::time_interpolate_
 
 bool FieldFace::include_history_() const
 {
-  const bool l_adapt = refresh_->adaptive_timestep();
-  const bool l_face = (face_type_ == +1);
-
-  return (l_adapt && l_face);
+  return refresh_->include_history(face_type_); 
 }

@@ -48,11 +48,11 @@ public: // interface
     p | time_;
     p |  dt_;
     PUParray(p,array_,3);
+    p | level_lower_;
+    p | level_upper_;
     p | order_index_;
     p | order_count_;
     PUParray(p,order_next_,3);
-    p | level_lower_;
-    p | level_upper_;
   }
 
   /// Set block
@@ -117,12 +117,12 @@ public: // interface
     CkPrintf ("DEBUG_IO_BLOCK dt_             %g\n", dt_);
     CkPrintf ("DEBUG_IO_BLOCK array_          %d %d %d\n",
               array_[0], array_[1], array_[2]);
+    CkPrintf ("DEBUG_IO_BLOCK level_lower_    %d\n",   level_lower_);
+    CkPrintf ("DEBUG_IO_BLOCK level_upper_    %d\n",   level_upper_);
     CkPrintf ("DEBUG_IO_BLOCK order_index_    %lld\n", order_index_);
     CkPrintf ("DEBUG_IO_BLOCK order_count_    %lld\n", order_count_);
     CkPrintf ("DEBUG_IO_BLOCK order_next_     %08x %08x %08x\n",
               order_next_[0],order_next_[1],order_next_[2]);
-    CkPrintf ("DEBUG_IO_BLOCK level_lower_    %d\n",   level_lower_);
-    CkPrintf ("DEBUG_IO_BLOCK level_upper_    %d\n",   level_upper_);
   }
 protected: // attributes
 
@@ -134,11 +134,11 @@ protected: // attributes
   double time_;
   double dt_;
   int array_[3];
+  int level_lower_;
+  int level_upper_;
   long long order_index_;
   long long order_count_;
   int order_next_[3];
-  int level_lower_;
-  int level_upper_;
 
 };
 

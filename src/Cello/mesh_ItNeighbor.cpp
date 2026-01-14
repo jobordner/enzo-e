@@ -67,6 +67,7 @@ Index ItNeighbor::index() const
     return index_neighbor.index_parent();
 
   } else {
+
     WARNING2("ItNeighbor::index",
              "ItNeighbor assumes a balanced mesh, but "
              "|level %d - face_level %d| > 1",
@@ -266,9 +267,9 @@ bool ItNeighbor::valid_()
   // Return false if on boundary and not periodic
 
   for (int axis=0; axis<rank_; axis++) {
+    const bool is_on_boundary =
+      index_.is_on_boundary(axis,of3_[axis],n3_[axis]);
     for (int face=0; face < 2; face++) {
-      const bool is_on_boundary =
-	index_.is_on_boundary(axis,of3_[axis],n3_[axis]);
       const bool is_face =
 	(face==0 && of3_[axis] == -1) || (face==1 && of3_[axis] == 1);
       const bool is_periodic = periodic_[axis];

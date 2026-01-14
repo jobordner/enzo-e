@@ -22,7 +22,33 @@ class Refresh : public PUP::able {
   /// @ingroup  Problem
   /// @brief    [\ref Problem]
 
-  private:
+  // private:
+  /// empty constructor for charm++ pup()
+  // Refresh() throw()
+  // : all_fields_(false),
+  //   field_list_src_(),
+  //   field_list_dst_(),
+  //   all_particles_(false),
+  //   particles_are_copied_(false),
+  //   particle_list_(),
+  //   all_fluxes_(false),
+  //   ghost_depth_(0),
+  //   min_face_rank_(0),
+  //   neighbor_type_(neighbor_leaf),
+  //   accumulate_(false),
+  //   sync_type_   (sync_unknown),
+  //   sync_id_ (-1),
+  //   active_(true),
+  //   callback_(0) ,
+  //   level_(0),
+  //   root_level_(0),
+  //   level_lower_(0),
+  //   level_upper_(std::numeric_limits<int>::max()),
+  //   id_refresh_(-1),
+  //   id_prolong_(-1),
+  //   id_restrict_(-1)
+  // {
+  // }
 
   /// Create an initialized Refresh object
   Refresh
@@ -52,10 +78,12 @@ class Refresh : public PUP::able {
       adaptive_timestep_(false),
       level_lower_(0),
       level_upper_(std::numeric_limits<int>::max()),
+      global_(false),
+      advanced_time_(false),
       id_refresh_(-1),
-      id_prolong_(0),
-      id_restrict_(0),
-      final_sync_(0)
+      id_prolong_(-1),
+      id_restrict_(-1),
+      final_sync_(false)
   {
   }
 
@@ -95,13 +123,16 @@ public: // interface
       sync_id_ (-1),
       active_(true),
       callback_(0) ,
+      level_(0),
       root_level_(0),
       adaptive_timestep_(false),
       level_lower_(0),
       level_upper_(std::numeric_limits<int>::max()),
+      global_(false),
+      advanced_time_(false),
       id_refresh_(-1),
-      id_prolong_(0),
-      id_restrict_(0),
+      id_prolong_(-1),
+      id_restrict_(-1),
       final_sync_(false)
   {
   }
@@ -127,14 +158,17 @@ public: // interface
       sync_id_ (-1),
       active_(true),
       callback_(0),
+      level_(0),
       root_level_(0),
       adaptive_timestep_(false),
       level_lower_(0),
       level_upper_(std::numeric_limits<int>::max()),
+      global_(false),
+      advanced_time_(false),
       id_refresh_(-1),
       id_prolong_(-1),
       id_restrict_(-1),
-      final_sync_(0)
+      final_sync_(false)
   {
   }
 
@@ -164,6 +198,8 @@ public: // interface
     p | adaptive_timestep_;
     p | level_lower_;
     p | level_upper_;
+    p | global_;
+    p | advanced_time_;
     p | id_refresh_;
     p | id_prolong_;
     p | id_restrict_;
@@ -336,15 +372,32 @@ public: // interface
   int adaptive_timestep () const
   { return adaptive_timestep_; }
 
+  void set_global(bool global = true)
+  {  global_ = global; }
+  bool global() const { return global_; }
+
+  void set_advanced_time (bool advanced_time = true)
+  { advanced_time_ = advanced_time; }
+  bool advanced_time () const
+  { return advanced_time_; }
+
   /// Set the lower and puper limits (plus one) on levels being refreshed
   void set_level_lower(int level_lower)
   { level_lower_ = level_lower; }
   void set_level_upper(int level_upper)
   { level_upper_ = level_upper; }
   int level_lower() const
+  //  { return global_ ? 0 : level_lower_; }
   { return level_lower_; }
   int level_upper() const
+  //  { return global_ ? 4 : level_upper_; }
   { return level_upper_; }
+
+  bool level_active (int level) const
+  {
+    //    return (global_ || (level_lower_ <= level && level < level_upper_));
+    return (level_lower_ <= level) && (level < level_upper_);
+  }
 
   /// Return the current minimum rank (dimension) of faces to refresh
   /// e.g. 0: everything, 1: omit corners, 2: omit corners and edges
@@ -417,37 +470,39 @@ public: // interface
   void print(FILE * fp = nullptr) const
   {
     if (!fp) fp = stdout;
-    fprintf (fp,"Refresh %p\n",(void*)this);
-    fprintf (fp,"     all_fields = %d\n",all_fields_);
-    fprintf (fp,"     src fields:");
+    CkPrintf ("Refresh %p\n",(void*)this);
+    CkPrintf ("     all_fields = %d\n",all_fields_);
+    CkPrintf ("     src fields:");
     for (size_t i=0; i<field_list_src_.size(); i++)
-      fprintf (fp," %d",field_list_src_[i]);
-    fprintf (fp,"\n");
-    fprintf (fp,"     dst fields:");
+      CkPrintf (" %d",field_list_src_[i]);
+    CkPrintf ("\n");
+    CkPrintf ("     dst fields:");
     for (size_t i=0; i<field_list_dst_.size(); i++)
-      fprintf (fp," %d",field_list_dst_[i]);
-    fprintf (fp,"\n");
-    fprintf (fp,"     all_particles = %d\n",all_particles_);
-    fprintf (fp,"     particles:");
+      CkPrintf (" %d",field_list_dst_[i]);
+    CkPrintf ("\n");
+    CkPrintf ("     all_particles = %d\n",all_particles_);
+    CkPrintf ("     particles:");
     for (size_t i=0; i<particle_list_.size(); i++)
-      fprintf (fp," %d",particle_list_[i]);
-    fprintf (fp,"\n");
-    fprintf (fp,"     all_fluxes = %d\n",all_fluxes_);
-    fprintf (fp,"\n");
-    fprintf (fp,"     ghost_depth = %d\n",ghost_depth_);
-    fprintf (fp,"     min_face_rank: %d\n",min_face_rank_);
-    fprintf (fp,"     neighbor_type: %d\n",neighbor_type_);
-    fprintf (fp,"     accumulate: %d\n",accumulate_);
-    fprintf (fp,"     sync_type: %d\n",sync_type_);
-    fprintf (fp,"     sync_id: %d\n",sync_id_);
-    fprintf (fp,"     id_refresh: %d\n",id_refresh_);
-    fprintf (fp,"     active: %d\n",active_);
-    fprintf (fp,"     callback: %d\n",callback_);
-    fprintf (fp,"     level: %d\n",level_);
-    fprintf (fp,"     root_level: %d\n",root_level_);
-    fprintf (fp,"     adaptive_timestep: %d\n",adaptive_timestep_?1:0);
-    fprintf (fp,"     level_lower: %d\n",level_lower_);
-    fprintf (fp,"     level_upper: %d\n",level_upper_);
+      CkPrintf (" %d",particle_list_[i]);
+    CkPrintf ("\n");
+    CkPrintf ("     all_fluxes = %d\n",all_fluxes_);
+    CkPrintf ("\n");
+    CkPrintf ("     ghost_depth = %d\n",ghost_depth_);
+    CkPrintf ("     min_face_rank: %d\n",min_face_rank_);
+    CkPrintf ("     neighbor_type: %d\n",neighbor_type_);
+    CkPrintf ("     accumulate: %d\n",accumulate_);
+    CkPrintf ("     sync_type: %d\n",sync_type_);
+    CkPrintf ("     sync_id: %d\n",sync_id_);
+    CkPrintf ("     id_refresh: %d\n",id_refresh_);
+    CkPrintf ("     active: %d\n",active_);
+    CkPrintf ("     callback: %d\n",callback_);
+    CkPrintf ("     level: %d\n",level_);
+    CkPrintf ("     root_level: %d\n",root_level_);
+    CkPrintf ("     adaptive_timestep: %d\n",adaptive_timestep_?1:0);
+    CkPrintf ("     level_lower: %d\n",level_lower_);
+    CkPrintf ("     level_upper: %d\n",level_upper_);
+    CkPrintf ("     global: %d\n",global_);
+    CkPrintf ("     advanced_time: %d\n",advanced_time_);
   }
 
   /// Return loop limits 0:3 for 4x4x4 particle data array indices
@@ -494,7 +549,7 @@ public: // interface
   /// Set the prolongation operator for refresh
   void set_prolong (int id_prolong)
   { id_prolong_ = id_prolong; }
-  
+
   /// Return the prolongation operator for refresh
   Prolong * prolong ();
   /// Return the prolongation id
@@ -508,12 +563,16 @@ public: // interface
   /// Return the restriction operator for refresh
   Restrict * restrict ();
 
+  /// Whether to include history fields for this face
+  bool include_history(int face_type) const;
+
   /// Whether to bypass final sync
   int final_sync() { return final_sync_; }
 
   /// Set whether to bypass final sync
   void set_final_sync (int sync = true)
   { final_sync_ = sync; }
+
   //--------------------------------------------------
 
   /// Return the number of bytes required to serialize the data object
@@ -533,8 +592,7 @@ public: // interface
 
 private: // methods
 
-  void include_history_fields_(std::vector<int> & field_list,
-                               int level, int face_type) const;
+  void include_history_fields_(std::vector<int> & field_list, int face_type) const;
 
 private: // attributes
 
@@ -601,6 +659,15 @@ private: // attributes
   /// Level range for adaptive time-stepping
   int level_lower_;
   int level_upper_;
+
+  /// Whether to ignore level range and refresh entire hierarchy
+  int global_;
+
+  /// Whether to use t or t+dt when time-interpolating for
+  /// adaptive time-stepping. Used for refresh at end of
+  /// method list when active levels have advanced but current
+  /// time hasn't been updated yet
+  bool advanced_time_;
 
   /// ID in refresh_list_[]
   int id_refresh_;

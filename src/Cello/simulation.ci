@@ -32,6 +32,7 @@ module simulation {
     entry void r_output_barrier (CkReductionMsg * msg);
     entry void p_output_start (int index_output);
 
+    entry void r_advance_state_exit(CkReductionMsg * msg);
     entry void r_monitor_performance_reduce (CkReductionMsg * msg);
     entry void p_monitor_performance();
 

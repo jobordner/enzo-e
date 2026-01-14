@@ -41,15 +41,15 @@ public: // interface
 
   int id_refresh() const
   { return id_refresh_; }
-  
+
   // Set the DataMsg object
   void set_data_msg (DataMsg * data_msg);
 
   /// Update the Data with data stored in this message
   void update (Data * data);
 
-  void print(const char * message, FILE * fp=nullptr);
-  
+  void print(const char * message);
+
 public: // static methods
 
   /// Pack data to serialize
@@ -57,7 +57,7 @@ public: // static methods
 
   /// Unpack data to de-serialize
   static MsgRefresh * unpack(void *);
-  
+
 protected: // attributes
 
   /// Whether destination is local or remote

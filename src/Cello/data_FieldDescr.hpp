@@ -132,6 +132,17 @@ public: // functions
       ip : history_id_[ip + num_permanent()*(age-1)];
   }
 
+  /// Return the current field (history = 0) corresponding to the given id
+  /// with history >= 0.
+  int curr_id (int id) const throw()
+  {
+    if (history_age(id) == 0) return id;
+    int i=0;
+    for (i=0; i<history_id_.size(); i++)
+      if (history_id_[i] == id) break;
+    return i % num_permanent();
+  }
+
   /// Return the age of the given field id
   int history_age (int ip) const throw()
   {

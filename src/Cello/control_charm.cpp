@@ -80,18 +80,68 @@ void Block::stopping_exit_()
 
 void Block::compute_exit_ ()
 {
-  control_sync_barrier(CkIndex_Block::r_compute_exit_continue(nullptr));
+  cello::simulation()->compute_advance_state();
+}
+
+//----------------------------------------------------------------------
+
+void Simulation::compute_advance_state()
+{
+  // Transition from Block to Simulation parallelism
+  if (sync_advance_state_.next()) {
+    // Advance Simulation state
+    const int level_top = cello::hierarchy()->finest_level();
+    state_->advance(level_top);
+    // barrier before exiting compute
+    auto callback = CkCallback
+      (CkIndex_Simulation::r_advance_state_exit(nullptr),thisProxy);
+    contribute(callback);
+  }
+}
+
+//----------------------------------------------------------------------
+
+void Simulation::r_advance_state_exit(CkReductionMsg * msg)
+{
+  delete msg;
+  if (CkMyPe() == 0) cello::block_array().p_compute_exit_continue();
 }
 
 //----------------------------------------------------------------------
 
 void Block::r_compute_exit_continue (CkReductionMsg * msg)
+
 {
   delete msg;
-  
-  update_global_state_();
+  compute_exit_continue_();
+}
 
-  adapt_enter_();
+//----------------------------------------------------------------------
+
+void Block::p_compute_exit_continue ()
+
+{
+  compute_exit_continue_();
+}
+
+//----------------------------------------------------------------------
+
+void Block::compute_exit_continue_ ()
+{
+  if (cello::simulation()->state()->state_type() == State::Type::Level) {
+    int ir_cycle_end = cello::simulation()->ir_cycle_end();
+    Refresh * refresh = cello::refresh(ir_cycle_end);
+
+    refresh->add_all_fields();
+    refresh->add_all_particles();
+    refresh->set_global();
+    refresh->set_active (is_leaf());
+    refresh->set_adaptive_timestep (true);
+    refresh->set_callback(CkIndex_Block::p_adapt_enter());
+    refresh_start (ir_cycle_end,CkIndex_Block::p_adapt_enter());
+  } else {
+    adapt_enter_();
+  }
 }
 
 //----------------------------------------------------------------------
@@ -105,13 +155,20 @@ void Block::update_global_state_()
   state_global->set_time (state()->time());
 
   if ( (state()->state_type() == State::Type::Level) &&
-       (state()->is_active(level())) ) {
+       (level_lower_ <= level() && level() < level_upper_)) {
 
     state_global->set_level_range(level_lower_,level_upper_);
     // update simulation level states using saved level range
     for (int level=level_lower_; level < level_upper_; level++) {
       state_global->set_cycle(state()->cycle(level),level);
       state_global->set_time (state()->time (level),level);
+    }
+    // extend to finer levels if finest level < max_level
+    const int level_top = cello::hierarchy()->finest_level();
+    const int level_max = cello::hierarchy()->max_level();
+    for (int level=level_top+1; level<=level_max; level++) {
+      state_global->set_cycle(state()->cycle(level_top),level);
+      state_global->set_time(state()->time(level_top),level);
     }
   }
 }

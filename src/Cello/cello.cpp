@@ -437,6 +437,12 @@ namespace cello {
     FieldDescr * field_descr = cello::field_descr();
     Config   * config  = (Config *) cello::config();
     field_descr->reset_history(config->field_history);
+    // Ensure have history of fields for level-adaptive time
+    if (simulation()->state()->state_type() == State::Type::Level) {
+      ASSERT ("cello::finalize_fields()",
+              "Field:history must be at least 1",
+              (config->field_history >= 1));
+    }
   }
 
   //----------------------------------------------------------------------

@@ -64,11 +64,11 @@ Block::Block ()
     index_method_(-1),
     index_solver_(),
     refresh_(),
-    order_index_(0),
-    order_count_(0),
-    order_next_(),
     level_lower_(-1),
-    level_upper_(-1)
+    level_upper_(-1),
+    order_index_(0),
+    order_count_(1),
+    order_next_()
 {
   PERF_START(perf_rindex_block);
   init_refresh_();
@@ -114,14 +114,14 @@ Block::Block ( MsgType msg_type )
     index_method_(-1),
     index_solver_(),
     refresh_(),
+    level_lower_(-1),
+    level_upper_(-1),
     order_index_(0),
     order_count_(1),
-    order_next_(),
-    level_lower_(-1),
-    level_upper_(-1)
+    order_next_()
 {
 #ifdef TRACE_BLOCK
-  CkPrintf ("%d TRACE_BLOCK %s Block::Block(ip)\n",  CkMyPe(),name(thisIndex).c_str());
+  CkPrintf ("%d TRACE_BLOCK %s Block::Block(ip %d)\n",  CkMyPe(),name(thisIndex).c_str(),ip_source);
 #endif
 
   PERF_START(perf_rindex_block);
@@ -416,11 +416,12 @@ void Block::pup(PUP::er &p)
     for (int i=0; i<len; i++) refresh_msg_list_[i].clear();
   }
 
+  p | level_lower_;
+  p | level_upper_;
+
   p | order_index_;
   p | order_count_;
   p | order_next_;
-  p | level_lower_;
-  p | level_upper_;
 }
 
 //----------------------------------------------------------------------
@@ -774,6 +775,8 @@ void Block::p_refresh_child
 
   FieldFace * field_face = create_face
     (if3, ic3, g3, -1,refresh);
+  // Adjust level for child block
+  field_face->set_level (level()+1);
 
   field_face -> array_to_face (buffer, data()->field());
   delete field_face;
@@ -940,6 +943,15 @@ std::string Block::name8(Index index) const throw()
 void Block::size_array (int * nx, int * ny, int * nz) const throw ()
 {
   cello::hierarchy()->root_blocks(nx,ny,nz);
+}
+
+//----------------------------------------------------------------------
+
+int Block::ip_home () const
+{
+  int ax,ay,az;
+  cello::hierarchy()->root_blocks(&ax,&ay,&az);
+  return thisIndex.ip_home(ax,ay,az);
 }
 
 //----------------------------------------------------------------------

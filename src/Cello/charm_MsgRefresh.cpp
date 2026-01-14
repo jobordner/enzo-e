@@ -131,17 +131,15 @@ void MsgRefresh::update (Data * data)
 
 //----------------------------------------------------------------------
 
-void MsgRefresh::print (const char * message, FILE * fp_in)
+void MsgRefresh::print (const char * message)
 {
-  FILE * fp = fp_in ? fp_in : stdout;
-
-  fprintf (fp,"%s MSG_REFRESH %p\n",message,(void*)this);
+  CkPrintf ("%s MSG_REFRESH %p\n",message,(void*)this);
   if (data_msg_) {
     data_msg_->print(message);
   } else {
-    fprintf (fp,"%s MSG_REFRESH data_msg_ = nil\n",message);
+    CkPrintf ("%s MSG_REFRESH data_msg_ = nil\n",message);
   }
-  fprintf (fp,"%s MSG_REFRESH is_local_ %d\n",message,is_local_?1:0);
-  fprintf (fp,"%s MSG_REFRESH id_refresh_ %d\n",message,id_refresh_);
-  fprintf (fp,"%s MSG_REFRESH buffer_ %p\n",message,buffer_);
+  CkPrintf ("%s MSG_REFRESH is_local_ %d\n",message,is_local_?1:0);
+  CkPrintf ("%s MSG_REFRESH id_refresh_ %d\n",message,id_refresh_);
+  CkPrintf ("%s MSG_REFRESH buffer_ %p\n",message,buffer_);
 }

@@ -171,6 +171,7 @@ public: // interface
   }
 
   Type state_type() const { return state_type_; }
+  Next state_next() const { return state_next_; }
 
   void set_level_type (const std::string & level_type, int max_level)
   {
@@ -271,8 +272,9 @@ public: // interface
   // Modifiers
   //----------------------------------------------------------------------
 
-  /// Update level range for next set of timesteps
-  virtual void advance();
+  /// Update level range for next set of timesteps given maximum level
+  /// of blocks in the hierarchy
+  virtual void advance(int level_top);
 
   /// Return whether blocks in the given level can advance
   bool is_active ( int level ) const;
@@ -346,6 +348,22 @@ public: // interface
   //----------------------------------------------------------------------
   // Debugging
   //----------------------------------------------------------------------
+  void print_line(std::string msg)
+  {
+    CkPrintf ("State %d %s: %d %g %g : ",CkMyPe(),msg.c_str(),cycle_,time_,dt_);
+    int n=cycle_level_.size();
+    for (int i=0; i<n; i++) {
+      CkPrintf (" [%d: %d %g %g %g]",
+                i,
+                cycle_level_[i],
+                time_level_prev_[i],
+                time_level_curr_[i],
+                dt_level_[i]);
+    }
+    CkPrintf ("\n");
+  }
+
+
   virtual void print(std::string msg)
   {
     CkPrintf ("State %s\n",msg.c_str());

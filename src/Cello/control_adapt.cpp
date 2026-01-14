@@ -339,9 +339,9 @@ void Block::adapt_refine_()
     if ( ! is_child_(index_child) ) {
 
       // Create FieldFace for interpolating field data to child ic3[]
-
       int if3[3] = {0,0,0};
-      int g3[3];
+      // Include ghosts needed by some prolong operations
+      int g3[3] = {0,0,0};
       cello::field_descr()->ghost_depth(0,g3,g3+1,g3+2);
       Refresh * refresh = new Refresh;
       refresh->add_all_data();
@@ -971,7 +971,13 @@ void Block::p_adapt_recv_child (MsgCoarsen * msg)
 
 void Block::p_adapt_delete()
 {
-  ckDestroy();
+  if (CkMyPe() != ip_home()) {
+    const int ip = ip_home();
+    coarsened_ = true;
+    migrateMe(ip_home());
+  } else {
+    ckDestroy();
+  }
 }
 
 //======================================================================

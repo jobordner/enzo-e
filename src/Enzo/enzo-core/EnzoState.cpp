@@ -10,9 +10,9 @@
 
 //----------------------------------------------------------------------
 
-void EnzoState::advance ()
+void EnzoState::advance (int level_top)
 {
-  State::advance();
+  State::advance(level_top);
   auto * cosmology = enzo::cosmology();
   if (cosmology) {
     // update block redshift
@@ -22,6 +22,10 @@ void EnzoState::advance ()
       for (int level=level_lower_; level<level_upper_; level++) {
         set_redshift
           (level,cosmology->redshift_from_time(time_level_curr_[level]));
+      }
+      const int level_max = time_level_curr_.size();
+      for (int level=level_top+1; level<level_max; level++) {
+        set_redshift(level,cosmology->redshift_from_time(time_level_curr_[level_top]));
       }
     }
   }

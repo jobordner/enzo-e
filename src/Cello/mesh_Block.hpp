@@ -98,6 +98,9 @@ public:
   int age() const throw()
   { return age_; };
 
+  /// Return the "home process" of the block
+  int ip_home() const;
+
   /// Return process to migrate to next if different from current
   int ip_next() const throw() { return ip_next_; }
 
@@ -112,6 +115,18 @@ public:
   void cell_width
   (double * dx, double * dy = 0, double * dz = 0)
   const throw();
+
+  double dt() const
+  {
+    return (state_->state_type() == State::Type::Global) ?
+      state_->dt() : state_->dt(index_.level());
+  }
+
+  double time() const
+  {
+    return (state_->state_type() == State::Type::Global) ?
+      state_->time() : state_->time(index_.level());
+  }
 
   /// Return whether this Block is a leaf in the octree array
   bool is_leaf() const
@@ -297,6 +312,8 @@ public:
 
   void p_compute_enter()
   {      compute_enter_();  }
+  void p_compute_begin()
+  {      compute_begin_();  }
 
   void p_compute_continue()
   {      compute_continue_();  }
@@ -309,6 +326,13 @@ public:
   void p_compute_exit()
   {      compute_exit_();  }
   void r_compute_exit_continue (CkReductionMsg * msg);
+  void p_compute_exit_continue ();
+
+protected:
+
+  void compute_exit_continue_();
+
+public:
 
   /// Return the currently active Method
   int index_method() const throw()
@@ -999,6 +1023,7 @@ protected: // attributes
   /// Saved level range for updating global state after block barrier
   int level_lower_;
   int level_upper_;
+
 };
 
 #endif /* COMM_BLOCK_HPP */

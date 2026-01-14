@@ -71,7 +71,9 @@ public: // interface
     if (fy) (*fy) = face_[1]; 
     if (fz) (*fz) = face_[2]; 
   }
-  
+
+  /// Invert the face direction depending on source / destination
+  /// perspective
   inline void invert_face ()
   {
     face_[0] = -face_[0];
@@ -89,6 +91,8 @@ public: // interface
   /// Set level of associated Block
   void set_level (int level)
   { level_ = level; }
+  /// Return level of associated Block
+  int level () const { return level_; }
 
   /// Set face type: > 0 for finer level, < 0 for coarser level, 0 for
   /// same level
@@ -146,7 +150,7 @@ public: // interface
   char * load_data (char * buffer);
 
   void print (const char * message);
-  
+
   //--------------------------------------------------
 
 private: // functions
@@ -189,8 +193,10 @@ private: // functions
   (Field field, int index_field,
    const int i3[3], const int n3[3], const int m3[3]);
 
-  /// Initialize the associated Box object box_ using current attributes
-  void set_box_(Box * box);
+  /// Initialize the associated Box object box_ using current
+  /// attributes. Invert face direction if at destination's
+  /// perspective
+  void set_box_(Box * box, bool invert = false);
 
   /// Adjust box for accumulating values instead of assigning them
   void box_adjust_accumulate_ (Box * box, int accumulate, int g3[3]);
@@ -201,7 +207,8 @@ private: // functions
 
   /// Perform interpolation in time on prolonged fields if needed in
   /// adaptive timestepping
-  void time_interpolate_(Field field, const std::vector<int> & field_list,
+  void time_interpolate_(Field field,
+                         const std::vector<int> & field_list,
                          bool invert_face=false);
 
 private: // attributes

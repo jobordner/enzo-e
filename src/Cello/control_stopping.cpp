@@ -21,7 +21,7 @@
 #include "charm_simulation.hpp"
 #include "charm_mesh.hpp"
 
-
+// #define TRACE_METHOD_DT
 // #define DEBUG_ATS
 // #define DEBUG_STATE
 // #define DEBUG_STOPPING
@@ -152,14 +152,15 @@ void Block::performance_projections_update_logging_()
 {
 
 #ifdef CONFIG_USE_PROJECTIONS
+  Simulation * simulation = cello::simulation();
   bool was_off = (simulation->projections_tracing() == false);
   bool was_on  = (simulation->projections_tracing() == true);
   Schedule * schedule_on = simulation->projections_schedule_on();
   Schedule * schedule_off = simulation->projections_schedule_off();
   bool turn_on  = schedule_on ?
-    schedule_on->write_this_cycle(cycle_,time_) : false;
+    schedule_on->write_this_cycle(state()->cycle(),state()->time()) : false;
   bool turn_off = schedule_off ?
-    schedule_off->write_this_cycle(cycle_,time_) : false;
+    schedule_off->write_this_cycle(state()->cycle(),state()->time()) : false;
 
   static bool active = false;
   if (!active && turn_on) {
@@ -228,27 +229,38 @@ double Block::stopping_compute_global_dt_ (double min_reduce[])
 
 //----------------------------------------------------------------------
 
-void Block::stopping_compute_level_dt_(double min_reduce[], std::vector <double> & dt_level)
+void Block::stopping_compute_level_dt_
+(double min_reduce[], std::vector <double> & dt_level)
 {
   Problem * problem = cello::simulation()->problem();
 
   // compute minimum timestep dt_level[] for each level over all methods
 
-  for (auto & dt : dt_level) dt = std::numeric_limits<double>::max();
+  double max = std::numeric_limits<double>::max();
+  for (auto & dt : dt_level) dt = max;
 
   const int nm = problem->num_methods();
   const int nl = cello::max_level() + 1;
 
+  // Initialize method level
+  std::vector<double> dt_method[10];
+  for (int il=0; il<nl; il++) {
+    dt_method[il].resize(nm);
+    for (auto & dt : dt_method[il]) dt = max;
+  }
+
+  // Initialize level timesteps
   for (int il=0; il<nl; il++) {
     for (int im=0; im<nm; im++) {
       const int k = 1+im+nm*(il);
       dt_level[il] = std::min(dt_level[il],min_reduce[k]);
+      dt_method[il][im] = min_reduce[k];
     }
   }
 
-  // Adjust dt for global courant condition
+  // Adjust level timesteps for global courant condition
   for (auto & dt : dt_level) dt *= Method::courant_global;
-
+  
   // Apply max_level_dt_ratio to limit timestep ratios between levels
   double max_ratio = cello::config()->timestep_max_level_dt_ratio;
   int level_dt_min = std::distance
@@ -256,7 +268,7 @@ void Block::stopping_compute_level_dt_(double min_reduce[], std::vector <double>
   double dt_min = *std::min_element (dt_level.begin(),dt_level.end());
   int level = 0;
   for (auto & dt : dt_level) {
-    dt = std::min(dt,dt_min*std::pow(max_ratio,level_dt_min-level));
+    dt = std::min(dt,dt_min*std::pow(max_ratio,level_dt_min - level));
     level++;
   }
 
@@ -271,13 +283,56 @@ void Block::stopping_compute_level_dt_(double min_reduce[], std::vector <double>
     }
   }
 
-  // Reduce level timesteps to not overshoot next-coarser timestep
-  for (int level = 1; level <= cello::max_level(); level++) {
-    if (dt_level[level-1] != std::numeric_limits<double>::max())
-      dt_level[level] = std::min
-        (dt_level[level], state_->time(level-1) - state_->time(level));
+  const int level_lower = state_->level_lower();
+  const int level_upper = state_->level_upper();
+
+  // Adjust coarser dt to be k(1-e)*dt_h for integer k and small e to
+  // reduce sliver timesteps at finest level
+  double tol = cello::config()->timestep_adjust_tolerance;
+  std::string adjust_type = cello::config()->timestep_adjust_type;
+  if (adjust_type != "none") {
+    bool l_prev = false;;
+    if (adjust_type == "previous") {
+      l_prev = true;
+    } else if (adjust_type == "finest") {
+      l_prev = false;
+    } else {
+      ERROR1 ("Block::stopping_compute_level_dt_()",
+              "Unknown Timestep:adjust_type parameter value %s: "
+              "must be [\"none\"|\"previous\"|\"finest\"]",
+              adjust_type.c_str());
+    }
+    const double dth = dt_level[cello::max_level()];
+    for (int level=level_upper - 2; level >= level_lower; level--) {
+      double dtp = dt_level[level+1];
+      double dt = l_prev ? dtp : dth;
+      // double dt = dtp; // dt previous level
+      dt_level[level] = dt*std::max (1.0, tol*std::floor(dt_level[level]/dt));
+    }
   }
 
+  // Reduce level timesteps to not overshoot next-coarser timestep
+  if (state_->state_next() == State::Next::Sequential) {
+    for (int level = 1; level <= cello::max_level(); level++) {
+      if (state_->is_active(level)) {
+        if (dt_level[level-1] != std::numeric_limits<double>::max()) {
+          dt_level[level] = std::min
+            (dt_level[level], state_->time(level-1) - state_->time(level));
+        }
+      }
+    }
+  } else if (state_->state_next() == State::Next::Concurrent) {
+    if (level_lower > 0) {
+      for (int level = 1; level <= cello::max_level(); level++) {
+        if (state_->is_active(level)) {
+          if (dt_level[level-1] != std::numeric_limits<double>::max()) {
+            dt_level[level] = std::min
+              (dt_level[level], state_->time(level_lower-1) - state_->time(level));
+          }
+        }
+      }
+    }
+  }
   // Reduce level timesteps to not overshoot time stopping criteria
   double time_stop = problem->stopping()->stop_time();
   level = 0;
@@ -285,6 +340,25 @@ void Block::stopping_compute_level_dt_(double min_reduce[], std::vector <double>
     double time_curr = state_->time(level++);
     dt = std::min (dt, (time_stop - time_curr));
   }
+#ifdef TRACE_METHOD_DT
+  if (index().is_root()) {
+    CkPrintf ("TRACE_METHOD DT actual:");
+    for (int il=0; il<nl; il++) {
+      double dt = dt_level[il];
+      CkPrintf (" %g",dt==max?-1:dt);
+    }
+    CkPrintf("\n");
+    for (int im=0; im<nm; im++) {
+      CkPrintf ("TRACE_METHOD DT method %d:",im);
+      for (int il=0; il<nl; il++) {
+        const int k = 1+im+nm*(il);
+        double dt = dt_method[il][im];
+        CkPrintf (" %g",dt==max?-1:dt);
+      }
+      CkPrintf("\n");
+    }
+  }
+#endif
 }
 
 //----------------------------------------------------------------------

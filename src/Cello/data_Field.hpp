@@ -197,10 +197,17 @@ public: // interface
   int num_history () const
   { return field_descr_->num_history(); }
 
-  /// Return the temporary field id for ih'th generation of permanent
-  /// field ip (0 is current, 1 first generation, etc.)
+  /// Return the temporary field id for ih'th generation of field ip
+  /// (0 is current, 1 first generation, etc.) Field id may have history
+  /// > 0
+
   int history_id (int ip, int ih) const throw()
-  { return field_descr_->history_id(ip,ih);  }
+  { return field_descr_->history_id(curr_id(ip),ih);  }
+
+  /// Return the current field (history = 0) corresponding to the given id
+  /// with history >= 0.
+  int curr_id (int id) const throw()
+  { return field_descr_->curr_id(id); }
 
   /// Return the age of the field if permanent, or 0 if temporary
   int history_age (int ip)

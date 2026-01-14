@@ -112,6 +112,7 @@ int RestrictLinear::apply_
 	      values_f[i_f + dx + dy] );
 	}
       }
+
     } else { // accumulate
 
       for (int ix_c=0; ix_c<n3_c[0]; ix_c++) {

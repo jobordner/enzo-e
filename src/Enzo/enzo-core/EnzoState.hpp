@@ -50,7 +50,7 @@ public: // interface
   }
 
   /// Update redshift whenever time is updated
-  void advance() override;
+  void advance(int level_top) override;
   void set_time (double time) override;
   void set_time (double time, int level) override;
 
