@@ -147,14 +147,15 @@ int Refresh::data_size () const
   SIZE_SCALAR_TYPE(count,int,sync_id_);
   SIZE_SCALAR_TYPE(count,int,active_);
   SIZE_SCALAR_TYPE(count,int,callback_);
+  SIZE_SCALAR_TYPE(count,int,level_);
   SIZE_SCALAR_TYPE(count,int,root_level_);
   SIZE_SCALAR_TYPE(count,bool,adaptive_timestep_);
   SIZE_SCALAR_TYPE(count,int,level_lower_);
   SIZE_SCALAR_TYPE(count,int,level_upper_);
   SIZE_SCALAR_TYPE(count,int,id_refresh_);
-
   SIZE_SCALAR_TYPE(count,int,id_prolong_);
   SIZE_SCALAR_TYPE(count,int,id_restrict_);
+  SIZE_SCALAR_TYPE(count,int,final_sync_);
 
   return count;
 
@@ -183,14 +184,15 @@ char * Refresh::save_data (char * buffer) const
   SAVE_SCALAR_TYPE(p,int,sync_id_);
   SAVE_SCALAR_TYPE(p,int,active_);
   SAVE_SCALAR_TYPE(p,int,callback_);
+  SAVE_SCALAR_TYPE(p,int,level_);
   SAVE_SCALAR_TYPE(p,int,root_level_);
   SAVE_SCALAR_TYPE(p,bool,adaptive_timestep_);
   SAVE_SCALAR_TYPE(p,int,level_lower_);
   SAVE_SCALAR_TYPE(p,int,level_upper_);
   SAVE_SCALAR_TYPE(p,int,id_refresh_);
-
   SAVE_SCALAR_TYPE(p,int,id_prolong_);
   SAVE_SCALAR_TYPE(p,int,id_restrict_);
+  SAVE_SCALAR_TYPE(p,int,final_sync_);
 
   ASSERT2 ("Refresh::save_data\n",
  	   "Actual size %ld does not equal computed size %d",
@@ -223,14 +225,15 @@ char * Refresh::load_data (char * buffer)
   LOAD_SCALAR_TYPE(p,int,sync_id_);
   LOAD_SCALAR_TYPE(p,int,active_);
   LOAD_SCALAR_TYPE(p,int,callback_);
+  LOAD_SCALAR_TYPE(p,int,level_);
   LOAD_SCALAR_TYPE(p,int,root_level_);
   LOAD_SCALAR_TYPE(p,bool,adaptive_timestep_);
   LOAD_SCALAR_TYPE(p,int,level_lower_);
   LOAD_SCALAR_TYPE(p,int,level_upper_);
   LOAD_SCALAR_TYPE(p,int,id_refresh_);
-
   LOAD_SCALAR_TYPE(p,int,id_prolong_);
   LOAD_SCALAR_TYPE(p,int,id_restrict_);
+  LOAD_SCALAR_TYPE(p,int,final_sync_);
 
   ASSERT2 ("Refresh::load_data\n",
 	   "Actual size %ld does not equal computed size %d",

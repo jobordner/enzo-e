@@ -45,6 +45,7 @@ void Block::refresh_start (int id_refresh, int callback)
 {
   PERF_START(perf_rindex_refresh);
   CHECK_ID(id_refresh);
+
   Refresh * refresh = cello::refresh(id_refresh);
   Sync * sync = sync_(id_refresh);
 
@@ -61,9 +62,9 @@ void Block::refresh_start (int id_refresh, int callback)
 
   if ( refresh->is_active() ) {
 
-    ASSERT1 ("Block::refresh_start()",
-	     "refresh[%d] state is not inactive",
-	     id_refresh,
+    ASSERT2 ("Block::refresh_start()",
+	     "%s refresh[%d] state is not inactive",
+	     name().c_str(),id_refresh,
 	     (sync->state() == RefreshState::INACTIVE));
 
     sync->set_state(RefreshState::ACTIVE);
@@ -241,16 +242,49 @@ void Block::refresh_exit (Refresh & refresh)
   CHECK_ID(refresh.id());
   update_boundary_();
 
-  control_sync
-    (refresh.callback(),
-     refresh.sync_type(),
-     refresh.sync_exit(),
-     refresh.min_face_rank(),
-     refresh.neighbor_type(),
-     refresh.root_level(),
-     refresh.level_lower(),
-     refresh.level_upper(),
-     DirType::Both);
+  //  if (refresh.final_sync()) {
+  if (true) {
+
+    control_sync (refresh.callback(),
+                  refresh.sync_type(),
+                  refresh.sync_exit(),
+                  refresh.min_face_rank(),
+                  refresh.neighbor_type(),
+                  refresh.root_level(),
+                  refresh.level_lower(),
+                  refresh.level_upper(),
+                  DirType::Both);
+
+  } else {
+
+    // Invoke callback depending on sync_type
+    if (refresh.sync_type() == sync_quiescence) {
+
+      if (index_.is_root())
+        CkStartQD(CkCallback (refresh.callback(),proxy_main));
+
+    } else if (refresh.sync_type() == sync_neighbor) {
+
+      CkCallback(refresh.callback(),
+                 CkArrayIndexIndex(index_),thisProxy).send(nullptr);
+
+    } else if (refresh.sync_type() == sync_face) {
+
+      CkCallback(refresh.callback(),
+                 CkArrayIndexIndex(index_),thisProxy).send(nullptr);
+
+    } else if (refresh.sync_type() == sync_barrier) {
+
+      contribute(CkCallback (refresh.callback(),thisProxy));
+
+    } else {
+      ERROR1 ("Block::refresh_exit()",
+              "Unknown sync type %d",
+              refresh.sync_type());
+    }
+
+  }
+
   PERF_REFRESH_STOP(perf_rindex_refresh_exit);
   PERF_STOP(perf_rindex_refresh);
 }
@@ -312,24 +346,62 @@ int Block::refresh_load_field_faces_ (Refresh & refresh)
 
   } else if (neighbor_type == neighbor_level) {
 
-    // Loop over neighbor Blocks in same level (not necessarily leaves)
+    // Handle neighbors in same level (not necessarily leaves)
+    // (L) -- (L)
 
-    ItFace it_face = this->it_face(min_face_rank,index_);
+    const int level_refresh = refresh.level();
+    const int level_block   = level();
 
-    int if3[3];
-    while (it_face.next(if3)) {
+    if ((level_refresh == 0) || (level_block == level_refresh)) {
 
-      // count all faces if not a leaf, else don't count if face level
-      // is less than this block's level
+      ItFace it_face = this->it_face(min_face_rank,index_);
 
-      if ( ! is_leaf() || face_level(if3) >= level()) {
-	Index index_face = it_face.index();
-	int ic3[3] = {0,0,0};
-	refresh_load_field_face_ (refresh,0,index_face,if3,ic3);
-	++count;
+      int if3[3];
+      while (it_face.next(if3)) {
 
+        // count all faces in this level, including non-leaf blocks
+        if ( (level_refresh == 0) || (face_level(if3) >= level_refresh)) {
+          Index index_face = it_face.index();
+          int ic3[3] = {0,0,0};
+          refresh_load_field_face_ (refresh,0,index_face,if3,ic3);
+          ++count;
+
+        }
       }
+    }
 
+    // Handle leaf blocks with coarse neighbors
+    // (L-1) -- (L)
+
+    if (level_refresh > 0 && is_leaf()) {
+
+      const int min_level = cello::config()->mesh_min_level;
+
+      ItNeighbor it_neighbor = this->it_neighbor
+        (index_,min_face_rank, neighbor_leaf,min_level,refresh.root_level());
+
+      int if3[3];
+      while (it_neighbor.next(if3)) {
+
+        Index index_neighbor = it_neighbor.index();
+        const int level_face = it_neighbor.face_level();
+        Prolong * prolong = refresh.prolong();
+        int pad = refresh.coarse_padding(prolong);
+        // if refreshing this level and neighbor is coarse, increment
+        // counter for expected received face data
+        if ((level_block == level_refresh) &&
+            (level_face == level_block - 1)) {
+          ++count;
+          // if I'm the coarse neighbor of a level-refreshed block,
+          // send face data
+        } else if ((level_block == level_refresh - 1) &&
+                   (level_face == level_block + 1)) {
+          int ic3[3];
+          it_neighbor.child(ic3);
+          refresh_load_field_face_
+            (refresh,+1,index_neighbor,if3,ic3);
+        }
+      }
     }
   }
   return count;

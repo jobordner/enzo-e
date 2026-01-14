@@ -23,7 +23,32 @@ class Refresh : public PUP::able {
   /// @brief    [\ref Problem]
 
 
-  private:
+  /// empty constructor for charm++ pup()
+  // Refresh() throw()
+  // : all_fields_(false),
+  //   field_list_src_(),
+  //   field_list_dst_(),
+  //   all_particles_(false),
+  //   particles_are_copied_(false),
+  //   particle_list_(),
+  //   all_fluxes_(false),
+  //   ghost_depth_(0),
+  //   min_face_rank_(0),
+  //   neighbor_type_(neighbor_leaf),
+  //   accumulate_(false),
+  //   sync_type_   (sync_unknown),
+  //   sync_id_ (-1),
+  //   active_(true),
+  //   callback_(0) ,
+  //   level_(0),
+  //   root_level_(0),
+  //   level_lower_(0),
+  //   level_upper_(std::numeric_limits<int>::max()),
+  //   id_refresh_(-1),
+  //   id_prolong_(-1),
+  //   id_restrict_(-1)
+  // {
+  // }
 
   /// Create an initialized Refresh object
   Refresh
@@ -48,13 +73,15 @@ class Refresh : public PUP::able {
       sync_id_(sync_id),
       active_(active),
       callback_(0),
+      level_(0),
       root_level_(0),
       adaptive_timestep_(false),
       level_lower_(0),
       level_upper_(std::numeric_limits<int>::max()),
       id_refresh_(-1),
-      id_prolong_(0),
-      id_restrict_(0)
+      id_prolong_(-1),
+      id_restrict_(-1),
+      final_sync_(false)
   {
   }
 
@@ -99,8 +126,9 @@ public: // interface
       level_lower_(0),
       level_upper_(std::numeric_limits<int>::max()),
       id_refresh_(-1),
-      id_prolong_(0),
-      id_restrict_(0)
+      id_prolong_(-1),
+      id_restrict_(-1),
+      final_sync_(false)
   {
   }
 
@@ -131,7 +159,8 @@ public: // interface
       level_upper_(std::numeric_limits<int>::max()),
       id_refresh_(-1),
       id_prolong_(-1),
-      id_restrict_(-1)
+      id_restrict_(-1),
+      final_sync_(false)
   {
   }
 
@@ -156,6 +185,7 @@ public: // interface
     p | sync_id_;
     p | active_;
     p | callback_;
+    p | level_;
     p | root_level_;
     p | adaptive_timestep_;
     p | level_lower_;
@@ -163,6 +193,7 @@ public: // interface
     p | id_refresh_;
     p | id_prolong_;
     p | id_restrict_;
+    p | final_sync_;
   }
 
   //--------------------------------------------------
@@ -311,6 +342,13 @@ public: // interface
   void set_callback(int callback)
   { callback_ = callback; }
 
+  /// Level for neighbor_tree neighbor type
+  int level() const { return level_; };
+
+  /// Set the level for neighbor_tree neighbor type
+  void set_level(int level)
+  { level_ = level; }
+
   /// Coarse level for neighbor_tree neighbor type
   int root_level() const { return root_level_; };
 
@@ -431,6 +469,7 @@ public: // interface
     fprintf (fp,"     id_refresh: %d\n",id_refresh_);
     fprintf (fp,"     active: %d\n",active_);
     fprintf (fp,"     callback: %d\n",callback_);
+    fprintf (fp,"     level: %d\n",level_);
     fprintf (fp,"     root_level: %d\n",root_level_);
     fprintf (fp,"     adaptive_timestep: %d\n",adaptive_timestep_?1:0);
     fprintf (fp,"     level_lower: %d\n",level_lower_);
@@ -491,10 +530,16 @@ public: // interface
   /// Set the restriction operator for refresh
   void set_restrict (int id_restrict)
   { id_restrict_ = id_restrict; }
-  
+
   /// Return the restriction operator for refresh
   Restrict * restrict ();
-  
+
+  /// Whether to bypass final sync
+  int final_sync() { return final_sync_; }
+
+  /// Set whether to bypass final sync
+  void set_final_sync (int sync = true)
+  { final_sync_ = sync; }
   //--------------------------------------------------
 
   /// Return the number of bytes required to serialize the data object
@@ -570,6 +615,9 @@ private: // attributes
   /// Callback after the refresh operation
   int callback_;
 
+  /// This level for level refresh
+  int level_;
+
   /// Coarse level for neighbor_tree type
   int root_level_;
 
@@ -586,6 +634,9 @@ private: // attributes
   /// ids of interpolation and restriction operators
   int id_prolong_;
   int id_restrict_;
+
+  /// Whether to perform a final synchronization (using sync_exit())
+  int final_sync_;
 };
 
 #endif /* PROBLEM_REFRESH_HPP */

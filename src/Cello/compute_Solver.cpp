@@ -47,7 +47,8 @@ Solver::Solver (std::string name,
     solve_type_(solve_type),
     index_prolong_(index_prolong),
     index_restrict_(index_restrict),
-    ir_post_(-1)
+    ir_post_(-1),
+    include_ghosts_(false)
 {
   FieldDescr * field_descr = cello::field_descr();
   ix_ = field_descr->field_id(field_x);
@@ -71,7 +72,8 @@ Solver::Solver () throw()
     solve_type_(solve_leaf),
     index_prolong_(0),
     index_restrict_(0),
-    ir_post_(-1)
+    ir_post_(-1),
+    include_ghosts_(false)
 {
   ir_post_ = add_refresh_();
 }
@@ -102,13 +104,13 @@ void Solver::monitor_output_
  double rr_min,
  double rr,
  double rr_max,
- bool final) throw()
+ bool is_final) throw()
 {
   Monitor * monitor = cello::monitor();
 
   monitor->print("Solver", "%s %s iter %04d  err %.16g [%g %g]",
 		 this->name().c_str(),
-		 final ? "final" : "",
+		 is_final ? "final" : "",
 		 iter,
 		 (rr0 != 0) ? (rr    / rr0) : 0.0,
 		 (rr0 != 0) ? (rr_min/ rr0) : 0.0,
@@ -143,7 +145,6 @@ void Solver::begin_(Block * block)
     CkPrintf ("%s TRACE_SOLVER %d Solver::begin_(%s)\n",
 	    block->name().c_str(),index_,name_.c_str());
 #endif  
-	    
   block->push_solver(index_);
 }
 

@@ -858,6 +858,8 @@ namespace cello {
   ScalarDescr *   scalar_descr_void();
   /// Return the ScalarDescr object defining Block index Scalar data values
   ScalarDescr *   scalar_descr_index();
+  template <class T>
+  T & scalar(Block *, int is, int i=0);
 
   /// Return the ith Output object
   Output *        output (int index);
@@ -868,6 +870,7 @@ namespace cello {
   /// Return the number of children each Block may have
   int             num_children();
   int             num_children(int rank);
+  int             num_children(Block * block);
   /// Return the number of Blocks on this process
   size_t          num_blocks_process();
   /// Return the minimum allowed refinement level

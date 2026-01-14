@@ -241,10 +241,10 @@ void EnzoMethodGravity::compute(Block * block) throw()
         }
       } else { // ! cosmology
 
-        const double scale = -4.0 * (cello::pi) * (enzo::grav_constant_codeU());
-        for (int i=0; i<m; i++) {
-          B[i] = scale * DT[i];
-        }
+        const long double scale =
+          -4.0 * (cello::pi) * (enzo::grav_constant_codeU());
+
+        field.scale(ib, scale, idt);
 
       }
 
@@ -252,7 +252,13 @@ void EnzoMethodGravity::compute(Block * block) throw()
 
     Solver * solver = enzo::problem()->solver(index_solver_);
 
-    // May exit before solve is done...
+    // skip refresh if solution already has up-to-date ghost zones
+
+    solver->set_callback
+      (solver->is_refreshed() ?
+       CkIndex_EnzoBlock::p_method_gravity_end() :
+       CkIndex_EnzoBlock::p_method_gravity_continue());
+
     solver->set_callback (CkIndex_EnzoBlock::p_method_gravity_continue());
 
     // Save previous potential
@@ -267,7 +273,11 @@ void EnzoMethodGravity::compute(Block * block) throw()
            "max_supercycle > 1 but potential_curr field not defined",
            (ix >= 0));
 
-    std::shared_ptr<Matrix> A (std::make_shared<EnzoMatrixLaplace>(order_));
+    std::shared_ptr<Matrix> A2 = std::make_shared<EnzoMatrixLaplace2>();
+    std::shared_ptr<Matrix> A4 = std::make_shared<EnzoMatrixLaplace4>();
+    std::shared_ptr<Matrix> A6 = std::make_shared<EnzoMatrixLaplace6>();
+    std::shared_ptr<Matrix> A = (order_ == 2) ? A2 : (order_ == 4) ? A4 : (order_ == 6) ? A6 : A2;
+
     solver->set_field_x(ix);
     solver->set_field_b(ib);
     solver->apply (A, block);

@@ -150,7 +150,7 @@ public: // interface
   { return field_descr_->is_centered(id); }
 
   /// depth of ghost zones of given field
-  void ghost_depth(int id, int * gx, int * gy = 0, int * gz = 0) const 
+  int  ghost_depth(int id, int * gx = 0, int * gy = 0, int * gz = 0) const 
     throw()
   { return field_descr_->ghost_depth(id,gx,gy,gz); }
 
@@ -247,8 +247,8 @@ public: // interface
 
   /// Return size of fields on the data, assuming centered (this only includes
   /// the active zone)
-  void size(int * nx, int * ny = 0, int * nz = 0) const throw()
-  { field_data_->size(nx,ny,nz); }
+  int size(int * nx = 0, int * ny = 0, int * nz = 0) const throw()
+  { return field_data_->size(nx,ny,nz); }
 
   /// Return dimensions of fields on the data, without assuming that it is
   /// cell-centered. This always includes ghost zones (regardless of whether

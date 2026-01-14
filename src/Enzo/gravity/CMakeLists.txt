@@ -17,14 +17,18 @@ add_library(Enzo_gravity
 
   matrix/EnzoMatrixDiagonal.cpp matrix/EnzoMatrixDiagonal.hpp
   matrix/EnzoMatrixIdentity.cpp matrix/EnzoMatrixIdentity.hpp
-  matrix/EnzoMatrixLaplace.cpp matrix/EnzoMatrixLaplace.hpp
+  matrix/EnzoMatrixLaplace2.cpp matrix/EnzoMatrixLaplace2.hpp
+  matrix/EnzoMatrixLaplace4.cpp matrix/EnzoMatrixLaplace4.hpp
+  matrix/EnzoMatrixLaplace6.cpp matrix/EnzoMatrixLaplace6.hpp
 
   solvers/EnzoSolverBiCgStab.cpp solvers/EnzoSolverBiCgStab.hpp
   solvers/EnzoSolverCg.cpp solvers/EnzoSolverCg.hpp
   solvers/EnzoSolverDd.cpp solvers/EnzoSolverDd.hpp
+  solvers/EnzoSolverEnzo.cpp solvers/EnzoSolverEnzo.hpp
   solvers/EnzoSolverDiagonal.cpp solvers/EnzoSolverDiagonal.hpp
   solvers/EnzoSolverJacobi.cpp solvers/EnzoSolverJacobi.hpp
   solvers/EnzoSolverMg0.cpp solvers/EnzoSolverMg0.hpp
+  solvers/EnzoSolverRBGS.cpp solvers/EnzoSolverRBGS.hpp
 )
 add_library(Enzo::gravity ALIAS Enzo_gravity)
 

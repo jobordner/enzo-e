@@ -1,6 +1,6 @@
 // See LICENSE_CELLO file for license and copyright information
 
-/// @file     mesh_Classname.cpp
+/// @file     mesh_Box.cpp
 /// @author   James Bordner (jobordner@ucsd.edu)
 /// @date     2020-09-21
 /// @brief
