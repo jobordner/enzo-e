@@ -80,6 +80,8 @@ EnzoMethodPmDeposit::EnzoMethodPmDeposit (ParameterGroup p)
   refresh->add_field("velocity_x");
   refresh->add_field("velocity_y");
   refresh->add_field("velocity_z");
+
+  refresh->set_final_sync();
 }
 
 //----------------------------------------------------------------------

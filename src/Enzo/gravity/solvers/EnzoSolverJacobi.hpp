@@ -40,7 +40,8 @@ public: // interface
       w_(0),
       i_iter_(-1),
       n_(0),
-      ir_smooth_(-1)
+      ir_smooth_(-1),
+      local_(false)
   { }
 
   /// CHARM++ Pack / Unpack function
@@ -56,6 +57,7 @@ public: // interface
     p | i_iter_;
     p | n_;
     p | ir_smooth_;
+    p | local_;
   }
 
 public: // virtual methods
@@ -124,6 +126,12 @@ protected: // methods
     return scalar_data->value(scalar_descr,i_iter_);
   }
 
+  /// Serial Jacobi solver if local_ == true
+  void local_solve_ (Block * block);
+
+  /// Clean up after solve and call Solver::end_()
+  void end_ (Block * block );
+
 protected: // attributes
 
   // NOTE: change pup() function whenever attributes change
@@ -148,6 +156,9 @@ protected: // attributes
 
   // Refresh after each smoothing
   int ir_smooth_;
+
+  /// Whether to solve on a standalone Block
+  bool local_;
 };
 
 #endif /* ENZO_ENZO_SOLVER_JACOBI_HPP */

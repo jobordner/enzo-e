@@ -16,7 +16,8 @@ enum mesh_color_type {
   mesh_color_process,
   mesh_color_neighbor,
   mesh_color_age,
-  mesh_color_scalar
+  mesh_color_scalar,
+  mesh_color_order
 };
 
 class OutputImage : public Output {

@@ -36,25 +36,38 @@ public: // interface
   }
 
   /// Compute residual R <-- B - A*X
-  void residual (int ir, int ib, int ix, Block * block, int g0=1) throw();
+  void residual (int ir, int ib, int ix,
+                 Field field, double hx, double hy, double hz,
+                 int g0=1) throw();
   
 
 public: // virtual functions
 
   /// Apply the matrix to a vector Y <-- A*X
-  virtual void matvec (int iy, int ix, Block * block, int g0=1) throw() = 0;
+  virtual void matvec (int iy, int ix,
+                       Field field, double hx, double hy, double hz,
+                       int g0=1) throw() = 0;
 
   virtual void matvec (precision_type precision,
-		       void * y, void * x, int g0=1) throw() = 0;
+		       void * y, void * x,
+                       Field field, double hx, double hy, double hz,
+                       int g0=1) throw() = 0;
   
   /// Extract the diagonal into the given field
-  virtual void diagonal (int ix, Block * block, int g0=1) throw() = 0;
+  virtual void diagonal (int ix,
+                         Field field, double hx, double hy, double hz,
+                         int g0=1) throw() = 0;
 
   /// Whether the matrix is singular or not
   virtual bool is_singular() const throw() = 0;
 
-  /// How many ghost zones required for matvec
-  virtual int ghost_depth() const throw() = 0;
+  /// What is the stencil width for the matrix; equivalently how many
+  /// ghost zones required for matvec
+  virtual int stencil_width() const throw() = 0;
+
+  /// Return given stencil value
+  virtual double stencil_value (int ix, int iy, int iz,
+                                double hx, double hy, double hz) const = 0;
 
 protected: // functions
 

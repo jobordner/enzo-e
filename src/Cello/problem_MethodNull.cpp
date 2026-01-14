@@ -22,4 +22,5 @@ void MethodNull::init_refresh_()
   refresh->add_all_particles();
   refresh->set_global();
   refresh->set_advanced_time (advanced_time_);
+  refresh->set_final_sync();
 }

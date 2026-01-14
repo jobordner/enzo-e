@@ -67,11 +67,12 @@ Index ItNeighbor::index() const
     return index_neighbor.index_parent();
 
   } else {
-
-    WARNING2("ItNeighbor::index",
-             "ItNeighbor assumes a balanced mesh, but "
-             "|level %d - face_level %d| > 1",
-             this_level,face_level);
+    ERROR4("ItNeighbor::index()",
+          "Block %s in level %d has neighbor %s in level %d",
+           block_->name().c_str(),
+           this_level,
+           block_->name(index_neighbor).c_str(),
+           face_level);
 
     return index_neighbor;
 

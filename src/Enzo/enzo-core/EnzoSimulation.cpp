@@ -162,7 +162,7 @@ void EnzoSimulation::refine_create_block(MsgRefine * msg)
   //==================================================
 #endif
   
-  enzo::block_array()[index].insert(ip,MsgType::msg_refine,ip);
+  enzo::block_array()[index].insert(MsgType::msg_refine,ip);
 }
 
 //----------------------------------------------------------------------

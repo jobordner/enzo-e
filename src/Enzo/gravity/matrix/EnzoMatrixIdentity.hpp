@@ -18,7 +18,7 @@ public: // interface
 
   /// Create a new EnzoMatrixIdentity
   EnzoMatrixIdentity () throw()
-  : Matrix(), mx_(0), my_(0), mz_(0)
+  : Matrix()
   { }
 
   /// Destructor
@@ -30,45 +30,52 @@ public: // interface
 
   /// CHARM++ migration constructor
   EnzoMatrixIdentity(CkMigrateMessage *m)
-    : Matrix(m),
-      mx_(0), my_(0), mz_(0)
+    : Matrix(m)
   { }
 
   /// CHARM++ Pack / Unpack function
   void pup (PUP::er &p)
   { TRACEPUP;
     PUP::able::pup(p);
-    p | mx_;
-    p | my_;
-    p | mz_;
   }
 
 public: // virtual functions
 
   /// Apply the matrix to a vector Y <-- A*X
-  virtual void matvec (int id_y, int id_x, Block * block, int g0 = 1) throw();
+  virtual void matvec (int id_y, int id_x,
+                       Field field, double hx, double hy, double hz,
+                       int g0 = 1) throw();
   virtual void matvec (precision_type precision,
-		       void * y, void * x, int g0=1) throw();
+		       void * y, void * x,
+                       Field field, double hx, double hy, double hz,
+                       int g0=1) throw();
 
   /// Extract the diagonal into the given field
-  virtual void diagonal (int id_x, Block * block, int g0 = 1) throw();
+  virtual void diagonal (int id_x,
+                         Field field, double hx, double hy, double hz,
+                         int g0 = 1) throw();
 
 protected: // functions
 
-  void matvec_ (enzo_float * Y, enzo_float * X, int g0) const throw();
+  void matvec_ (enzo_float * Y, enzo_float * X,
+                Field field, double hx, double hy, double hz,
+                int g0) const throw();
 
-  void diagonal_ (enzo_float * X, int g0) const throw();
+  void diagonal_ (enzo_float * X,
+                  Field field, double hx, double hy, double hz,
+                  int g0) const throw();
 
   bool is_singular() const throw()
   { return false; }
-  
+
   /// How many ghost zones required for matvec
-  virtual int ghost_depth() const throw()
+  virtual int stencil_width() const throw() override
   { return 0; }
 
-protected: // attributes
+  virtual double stencil_value (int ix, int iy, int iz,
+                                double hx, double hy, double hz) const override;
 
-  int mx_,my_,mz_;
+protected: // attributes
 
 };
 

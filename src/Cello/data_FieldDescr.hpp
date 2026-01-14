@@ -200,7 +200,7 @@ public: // functions
             std::get<2>(centering_[id_field]) == 0); }
 
   /// depth of ghost zones of given field
-  void ghost_depth(int id_field, int * gx, int * gy = 0, int * gz = 0) const 
+  int  ghost_depth(int id_field, int * gx = 0, int * gy = 0, int * gz = 0) const 
     throw();
 
   /// whether the field is a conserved quantity

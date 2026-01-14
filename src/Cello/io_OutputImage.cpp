@@ -616,6 +616,10 @@ double OutputImage::mesh_color_(const Block * block, int level) const
     int is = scalar->index (image_color_scalar_);
     ScalarData<double> * scalar_data = ((Block *)block)->data()->scalar_data_double();
     value = *scalar_data->value(cello::scalar_descr_double(),is);
+  } else if (mesh_color_type_ == mesh_color_order) {
+    long long index,count;
+    block->get_order (&index, &count);
+    value = (count) > 0 ? 1.0*index/count : 0;
   } else {
     ERROR1 ("OutputImage::mesh_color_()",
 	    "Unknown mesh_color_type_ %d",
