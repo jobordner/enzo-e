@@ -87,9 +87,9 @@ public: // interface
   /// Initializers
   //----------------------------------------------------------------------
 
-  virtual void set_cycle(int cycle)
+  void set_cycle(int cycle)
   { cycle_ = cycle; }
-  virtual void set_cycle(int cycle, int level)
+  void set_cycle(int cycle, int level)
   { set_(cycle_level_,level,cycle); }
 
   virtual void set_time (double time)
@@ -97,15 +97,16 @@ public: // interface
   virtual void set_time (double time, int level)
   { set_(time_level_,level,time); }
 
-  virtual void set_dt (double dt)
+  void set_dt (double dt)
   { dt_ = dt; }
-  virtual void set_dt (double dt, int level)
+  void set_dt (double dt, int level)
   { set_(dt_level_,level,dt); }
+  void update_dt (std::vector<double> & dt_level);
 
-  virtual void set_stopping (bool stopping)
+  void set_stopping (bool stopping)
   { stopping_ = stopping; }
 
-  virtual void set_levels (int level_lower, int level_upper = 0)
+  void set_levels (int level_lower, int level_upper = 0)
   { level_lower_ = level_lower;
     level_upper_ = level_upper ? level_upper : level_lower_ + 1; }
 
@@ -136,19 +137,79 @@ public: // interface
     }
   }
 
+  void set_type (const std::string & type, int max_level)
+  {
+    if (type == "global") {
+
+      state_type_ = Type::Global;
+
+    } else if (type == "level") {
+
+      state_type_ = Type::Level;
+
+      // allocate level states and initialize from global 
+      cycle_level_.resize(max_level+1);
+      time_level_.resize(max_level+1);
+      dt_level_.resize(max_level+1);
+      for (int i=0; i<=max_level; i++) {
+        cycle_level_[i]  = cycle_;
+        dt_level_[i]  = dt_;
+        time_level_[i]  = time_;
+      }
+
+    } else {
+
+      ERROR1 ("State::set_type()",
+              "Unknown State type '%s' (should be \"global\" or \"level\"",
+              type.c_str());
+
+    }
+  }
+
+  void set_level_type (const std::string & level_type, int max_level)
+  {
+    if (level_type == "sequential") {
+      state_next_ = Next::Sequential;
+    } else if (level_type == "concurrent") {
+      state_next_ = Next::Concurrent;
+      level_lower_ = 0;
+      level_upper_ = max_level;
+    } else {
+      ERROR1 ("State::set_level_type()",
+              "Unknown State level_type %s (should be \"sequential\" or \"concurrent\"",
+              level_type.c_str());
+    }
+  }
+
   //----------------------------------------------------------------------
   /// Accessors
   //----------------------------------------------------------------------
 
   int cycle() const
-  { return cycle_; }
+  {
+    int cycle = cycle_;
+    if ( state_type_ == Type::Level ) {
+      if ( state_next_ == Next::Sequential ) {
+        cycle = std::accumulate(cycle_level_.begin(), cycle_level_.end(), 0);
+      } else if ( state_next_ == Next::Concurrent ) {
+        cycle = cycle_level_.back();
+      }
+    }
+    return cycle;
+  }
   int cycle(int level) const
   {
     alloc_(cycle_level_,level);
     return cycle_level_[level]; }
 
   double time() const
-  { return time_; }
+  {
+    double time = time_;
+    if ( state_type_ == Type::Level ) {
+      time = *std::min_element(time_level_.begin(), time_level_.end());
+    }
+    return time;
+  }
   double time(int level) const
   {
     alloc_(time_level_,level);
@@ -259,27 +320,33 @@ public: // interface
   {
     CkPrintf ("State %s\n",msg.c_str());
 
-    CkPrintf ("   cycle_         = %d",cycle_);
-    CkPrintf ("   time_         = %d",time_);
-    CkPrintf ("   dt_         = %d",dt_);
+    if (state_type_ == Type::Global) {
 
-    CkPrintf ("   cycle_level_[] = ");
-    for (int level=0; level<cycle_level_.size(); level++) {
-      CkPrintf (" %d",cycle_level_[level]);
-    }
-    CkPrintf ("\n");
+      CkPrintf ("   cycle_ = %d",cycle_);
+      CkPrintf ("   time_  = %g",time_);
+      CkPrintf ("   dt_    = %g",dt_);
 
-    CkPrintf ("   time_level_[] = ");
-    for (int level=0; level<time_level_.size(); level++) {
-      CkPrintf (" %g",time_level_[level]);
-    }
-    CkPrintf ("\n");
+    } else if (state_type_ == Type::Level) {
 
-    CkPrintf ("   dt_level_[] = ");
-    for (int level=0; level<dt_level_.size(); level++) {
-      CkPrintf (" %g",dt_level_[level]);
+      CkPrintf ("   cycle_level_[] = ");
+      for (int level=0; level<cycle_level_.size(); level++) {
+        CkPrintf (" %d",cycle_level_[level]);
+      }
+      CkPrintf ("\n");
+
+      CkPrintf ("   time_level_[] = ");
+      for (int level=0; level<time_level_.size(); level++) {
+        CkPrintf (" %g",time_level_[level]);
+      }
+      CkPrintf ("\n");
+
+      CkPrintf ("   dt_level_[] = ");
+      for (int level=0; level<dt_level_.size(); level++) {
+        CkPrintf (" %g",dt_level_[level]);
+      }
+      CkPrintf ("\n");
+
     }
-    CkPrintf ("\n");
 
     CkPrintf ("  stopping_ %d\n",stopping_?1:0);
 
@@ -292,6 +359,13 @@ public: // interface
 
     CkPrintf ("   level_lower_ %d\n",level_lower_);
     CkPrintf ("   level_upper_ %d\n",level_upper_);
+
+    CkPrintf ("    state_type_ %s\n",
+              (state_type_ == Type::Global) ?
+              "global" : "level" );
+    CkPrintf ("    state_next_ %s\n",
+              (state_next_ == Next::Sequential) ?
+              "sequential" : "concurrent" );
   }
 
 protected: // functions

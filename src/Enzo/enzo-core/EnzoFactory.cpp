@@ -63,10 +63,7 @@ void EnzoFactory::create_block_array
 
   int count_adapt;
 
-  int    cycle = enzo::simulation()->state()->cycle();
-  double time  = enzo::simulation()->state()->time();
-  double dt    = 0.0;
-  State state (cycle,time,dt,false);
+  State state = create_state_();
 
 #ifdef TRACE_FACTORY
   CkPrintf ("TRACE_FACTORY %s:%d\n",__FILE__,__LINE__); fflush(stdout);
@@ -140,10 +137,7 @@ void EnzoFactory::create_subblock_array
   int nax,nay,naz;
   cello::hierarchy()->root_blocks(&nax,&nay,&naz);
 
-  int    cycle = enzo::simulation()->state()->cycle();
-  double time  = enzo::simulation()->state()->time();
-  double dt    = 0.0;
-  State state (cycle,time,dt,false);
+  State state = create_state_();
 
   std::vector<int> face_level;
   face_level.clear();
@@ -246,3 +240,24 @@ void EnzoFactory::create_block
   proxy_enzo_simulation[ip].p_refine_create_block (msg);
 }
 
+//======================================================================
+
+State EnzoFactory::create_state_() const
+{
+  // Create initialized State object
+
+  int    cycle = enzo::simulation()->state()->cycle();
+  double time  = enzo::simulation()->state()->time();
+  State state (cycle,time,0.0,false);
+
+  // Set time-stepping type and adaptive time-stepping parameters
+
+  const std::string type = cello::config()->timestep_type;
+  const std::string level_type = cello::config()->timestep_level_type;
+  const int max_level = cello::max_level();
+
+  state.set_type       ( type,       max_level );
+  state.set_level_type ( level_type, max_level );
+
+  return state;
+}

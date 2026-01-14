@@ -62,12 +62,12 @@ void EnzoBlock::set_msg_check(EnzoMsgCheck * msg)
 void EnzoBlock::set_msg_refine(MsgRefine * msg)
 {
 #ifdef TRACE_BLOCK
-  CkPrintf ("%d %p :%d TRACE_BLOCK %s EnzoBlock p_set_msg_refine()\n",
+  CkPrintf ("%d %p :%d TRACE_BLOCK %s EnzoBlock set_msg_refine()\n",
             CkMyPe(),(void *)this,__LINE__,name(thisIndex).c_str());
   fflush(stdout);
 #endif
   int io_reader = msg->restart_io_reader_;
-  Block::p_set_msg_refine(msg);
+  Block::set_msg_refine(msg);
   initialize();
   Block::initialize();
   // If refined block and restarting, notify file reader block is created

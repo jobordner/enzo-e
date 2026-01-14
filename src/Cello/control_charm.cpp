@@ -80,8 +80,11 @@ void Block::stopping_exit_()
 
 void Block::compute_exit_ ()
 {
-  // Update Simulation state
-  *cello::simulation()->state() = *state();
+  // Update Simulation state (first block only)
+
+  int cs = cello::simulation()->state()->cycle();
+  int cb = state()->cycle();
+  if (cs != cb) *cello::simulation()->state() = *state();
 
   adapt_enter_();
 }

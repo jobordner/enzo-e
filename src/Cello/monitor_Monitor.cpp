@@ -102,6 +102,7 @@ void Monitor::header () const
   print ("Define","CELLO_VERSION       %s", CELLO_VERSION);
 #ifdef CONFIG_HAVE_VERSION_CONTROL
   print ("Define","CHANGESET           %s",CELLO_CHANGESET);
+  print ("Define","BRANCH              %s",CELLO_BRANCH);
 #endif
   print ("Define","CHARM_PATH          %s",CHARM_PATH);
   // print ("Define","CHARM_VERSION       %d",CHARM_VERSION);

@@ -169,7 +169,8 @@ public: // interface
     testing_cycle_final(0),
     testing_time_final(),
     testing_time_tolerance(0.0),
-    timestep_type()
+    timestep_type(),
+    timestep_level_type()
   { }
 
   /// CHARM++ PUP::able declaration
@@ -326,7 +327,8 @@ public: // interface
       testing_cycle_final(0),
       testing_time_final(),
       testing_time_tolerance(0.0),
-      timestep_type()
+      timestep_type(),
+      timestep_level_type()
   {
     for (int axis=0; axis<3; axis++) {
       domain_lower[axis] = 0.0;
@@ -573,6 +575,7 @@ public: // attributes
   // Timestep
 
   std::string                timestep_type;
+  std::string                timestep_level_type;
 
 protected: // functions
 

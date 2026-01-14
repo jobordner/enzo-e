@@ -211,6 +211,13 @@ if (have_git)
           OUTPUT_VARIABLE CELLO_CHANGESET
           OUTPUT_STRIP_TRAILING_WHITESPACE
         )
+  execute_process(
+      COMMAND
+        git rev-parse --abbrev-ref HEAD
+          RESULT_VARIABLE BRANCH_RESULT
+          OUTPUT_VARIABLE CELLO_BRANCH
+          OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
 endif()
 
 option (smp "Use Charm++ in SMP mode." OFF)

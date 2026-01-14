@@ -45,7 +45,7 @@ public: // interface
     :  CBase_EnzoBlock()
   {
     // replace Block's State with EnzoState
-    state_ = std::make_shared<EnzoState> (0, 0.0, 0.0, false);
+    state_ = std::make_shared<EnzoState> (0, 0.0, 0.0, false );
 
     for (int i=0; i<MAX_DIMENSION; i++) {
       GridLeftEdge[i] = 0;

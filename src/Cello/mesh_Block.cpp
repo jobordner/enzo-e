@@ -41,7 +41,7 @@ Block::Block ()
     data_(NULL),
     child_data_(NULL),
     level_next_(0),
-    state_(new State(0,0.0,0.0,false)),
+    state_(new State (0, 0.0, 0.0, false)),
     index_initial_(0),
     children_(),
     sync_coarsen_(),
@@ -132,7 +132,7 @@ Block::Block ( MsgType msg_type )
 
 //----------------------------------------------------------------------
 
-void Block::p_set_msg_refine(MsgRefine * msg)
+void Block::set_msg_refine(MsgRefine * msg)
 {
   PERF_START(perf_rindex_block);
 
@@ -155,7 +155,7 @@ void Block::p_set_msg_refine(MsgRefine * msg)
 
 #ifdef TRACE_BLOCK
   {
-  CkPrintf ("%d %s index TRACE_BLOCK p_set_msg_refine(MsgRefine) done\n",
+  CkPrintf ("%d %s index TRACE_BLOCK set_msg_refine(MsgRefine) done\n",
             CkMyPe(),name(msg->index_).c_str());
   }
 #endif
@@ -182,14 +182,8 @@ void Block::init_refine_
  State * state)
 {
   index_ = index;
+  *state_ = *state;
   state_->init_method(cello::problem()->num_methods());
-  state_->init(state->cycle(),
-               state->time(),
-               state->dt(),
-               state->stopping());
-  for (int i=0; i<state->num_methods(); i++) {
-    state_->method(i) = state->method(i);
-  }
   adapt_step_ = num_adapt_steps;
   adapt_ready_ = false;
   adapt_balanced_ = false;
@@ -657,6 +651,8 @@ void Block::apply_initial_(MsgRefine * msg) throw ()
     }
   }
 }
+
+//----------------------------------------------------------------------
 
 void Block::initial_begin()
 {
