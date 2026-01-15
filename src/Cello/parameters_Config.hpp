@@ -460,7 +460,7 @@ public: // attributes
   std::vector<int>           method_max_supercycle;
   std::vector<int>           method_schedule_index;
   std::vector<double>        method_courant;
-  std::vector <std::string>  method_order_ordering;
+  std::vector<std::string>  method_order_ordering;
   std::vector<std::string>   method_type;
 
 
