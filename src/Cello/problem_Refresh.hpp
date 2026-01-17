@@ -45,8 +45,8 @@ class Refresh : public PUP::able {
   //   level_lower_(0),
   //   level_upper_(std::numeric_limits<int>::max()),
   //   id_refresh_(-1),
-  //   id_prolong_(-1),
-  //   id_restrict_(-1)
+  //   id_prolong_(0),
+  //   id_restrict_(0)
   // {
   // }
 
@@ -81,8 +81,8 @@ class Refresh : public PUP::able {
       global_(false),
       advanced_time_(false),
       id_refresh_(-1),
-      id_prolong_(-1),
-      id_restrict_(-1),
+      id_prolong_(0),
+      id_restrict_(0),
       final_sync_(false)
   {
   }
@@ -131,8 +131,8 @@ public: // interface
       global_(false),
       advanced_time_(false),
       id_refresh_(-1),
-      id_prolong_(-1),
-      id_restrict_(-1),
+      id_prolong_(0),
+      id_restrict_(0),
       final_sync_(false)
   {
   }
@@ -166,8 +166,8 @@ public: // interface
       global_(false),
       advanced_time_(false),
       id_refresh_(-1),
-      id_prolong_(-1),
-      id_restrict_(-1),
+      id_prolong_(0),
+      id_restrict_(0),
       final_sync_(false)
   {
   }
