@@ -77,15 +77,14 @@ EnzoSolverEnzo::EnzoSolverEnzo
   const int ghost_depth = std::max({g3[0],g3[1],g3[2]});
   const int min_face_rank = cello::config()->adapt_min_face_rank;
 
-  // Create new refresh object
-  Refresh * refresh_level = Refresh::create
-    (ghost_depth,min_face_rank, neighbor_level, sync_face, 0);
-  refresh_level->set_callback
-    (CkIndex_EnzoBlock::p_solver_enzo_refresh_level_end());
-
   ir_level_list_.resize(max_level + 1);
   int level = 0;
   for (auto & ir_level : ir_level_list_) {
+    // Create new refresh object
+    Refresh * refresh_level = Refresh::create
+      (ghost_depth,min_face_rank, neighbor_level, sync_face, 0);
+    refresh_level->set_callback
+      (CkIndex_EnzoBlock::p_solver_enzo_refresh_level_end());
     refresh_level->add_field (ix_);
     refresh_level->set_level(level);
     refresh_level->set_prolong(index_prolong);

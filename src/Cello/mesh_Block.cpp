@@ -189,15 +189,13 @@ void Block::init_refine_
   index_ = index;
   *state_ = *state;
 
-  state_->init_method(cello::problem()->num_methods());
-
-  // Initialize method state only if supercycling any methods
-  // bool do_supercycle = 0;
-  // const auto & ss_list = cello::config()->method_max_supercycle;
-  // for (auto ss: ss_list)
-  //    if (ss != 1) do_supercycle = true;
-  //  state_->init_method
-  //    ( do_supercycle ? cello::problem()->num_methods() : 0 );
+  // Initialize method state if supercycling any methods
+  bool do_supercycle = 0;
+  const auto & ss_list = cello::config()->method_max_supercycle;
+  for (auto ss: ss_list)
+     if (ss != 1) do_supercycle = true;
+   state_->init_method
+     ( do_supercycle ? cello::problem()->num_methods() : 0 );
 
   adapt_step_ = num_adapt_steps;
   adapt_ready_ = false;

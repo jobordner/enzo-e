@@ -159,16 +159,10 @@ void Block::compute_done ()
 
 void Block::compute_update_method_state_(int index_method)
 {
-  //  auto & method_state = state()->method(index_method);
-
-  //  method_state.advance();
-
-  //  if (index_method_ < state()->num_methods()) {
-//    // Advance method state if any methods super-cycling
-//    auto & method_state = state()->method(index_method);
-//
-//    method_state.advance();
-//  }
+  if (index_method_ < state_->num_methods()) {
+    auto & method_state = state()->method(index_method);  
+    method_state.advance();
+  }
 }
 
 //----------------------------------------------------------------------
