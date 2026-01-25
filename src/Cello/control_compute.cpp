@@ -15,7 +15,6 @@
 
 // #define DEBUG_COMPUTE
 
-
 //======================================================================
 
 void Block::compute_enter_ ()
@@ -69,6 +68,7 @@ void Block::compute_next_ ()
     if (is_scheduled) {
 
 #ifdef DEBUG_COMPUTE
+  if (state()->cycle() >= CYCLE)
       CkPrintf ("DEBUG_REFRESH %s:%d calling refresh_[enter|start]\n",__FILE__,__LINE__);
 #endif
 

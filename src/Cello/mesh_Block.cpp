@@ -61,7 +61,7 @@ Block::Block ()
     age_(0),
     ip_next_(-1),
     name_(""),
-    index_method_(-1),
+    index_method_(0),
     index_solver_(),
     refresh_(),
     level_lower_(-1),
@@ -111,7 +111,7 @@ Block::Block ( MsgType msg_type )
     ip_next_(-1),
     name_(""),
     name8_(""),
-    index_method_(-1),
+    index_method_(0),
     index_solver_(),
     refresh_(),
     level_lower_(-1),
@@ -189,13 +189,8 @@ void Block::init_refine_
   index_ = index;
   *state_ = *state;
 
-  // Initialize method state if supercycling any methods
-  bool do_supercycle = 0;
-  const auto & ss_list = cello::config()->method_max_supercycle;
-  for (auto ss: ss_list)
-     if (ss != 1) do_supercycle = true;
-   state_->init_method
-     ( do_supercycle ? cello::problem()->num_methods() : 0 );
+  // Initialize method state
+  state_->init_method (cello::problem()->num_methods() );
 
   adapt_step_ = num_adapt_steps;
   adapt_ready_ = false;

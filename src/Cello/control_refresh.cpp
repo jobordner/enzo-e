@@ -243,8 +243,8 @@ void Block::refresh_exit (Refresh & refresh)
   CHECK_ID(refresh.id());
   update_boundary_();
 
-  //  if (refresh.final_sync()) {
-  if (true) {
+  if (refresh.final_sync()) {
+    // if (true) {
 
     control_sync
       (refresh.callback(),

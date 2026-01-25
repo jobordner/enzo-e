@@ -141,7 +141,7 @@ void Solver::begin_(Block * block)
 {
   PERF_SOLVER_START(this);
 #ifdef TRACE_SOLVER  
-  if (block->cycle() >= CYCLE)
+  if (block->state()->cycle() >= CYCLE)
     CkPrintf ("%s TRACE_SOLVER %d Solver::begin_(%s)\n",
 	    block->name().c_str(),index_,name_.c_str());
 #endif  
@@ -155,7 +155,7 @@ void Solver::end_(Block * block)
   PERF_SOLVER_STOP(this);
   int index = block->pop_solver();
 #ifdef TRACE_SOLVER  
-  if (block->cycle() >= CYCLE)
+  if (block->state()->cycle() >= CYCLE)
     CkPrintf ("%s TRACE_SOLVER %d Solver::end_(%s)\n",
 	      block->name().c_str(),index,name_.c_str());
 #endif  
