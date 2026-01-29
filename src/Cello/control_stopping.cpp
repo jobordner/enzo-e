@@ -49,25 +49,21 @@ void Block::stopping_begin_()
   PERF_START(perf_rindex_stopping);
   TRACE_STOPPING("Block::stopping_begin_");
 
-  Simulation * simulation = cello::simulation();
-
-  simulation->set_phase(phase_stopping);
-
-  Problem * problem = simulation->problem();
+  cello::simulation()->set_phase(phase_stopping);
 
   //    allocate reduction vector for stopping criteria plus method dt
 
   // Evaluate local stopping criteria
 
-  const int nm = problem->num_methods();
+  const int nm = cello::problem()->num_methods();
   const int nl = cello::max_level() + 1;
   const int n = 1 + nm*nl;
 
   std::vector<double> min_reduce(n,std::numeric_limits<double>::max());
 
   // Determine whether stopping criteria satisfied
-  Stopping * stopping = problem->stopping();
-  const int stop_block = stopping->complete(state_->cycle(),state_->time());
+  const int stop_block = cello::stopping()->complete
+    (state_->cycle(),state_->time());
 
   min_reduce[0] = stop_block ? 1.0 : 0.0;
 
@@ -76,7 +72,7 @@ void Block::stopping_begin_()
     const int il = level();
     for (int im=0; im<nm; im++) {
       const int k = 1+im+nm*(il);
-      min_reduce[k] = problem->method(im)->timestep(this);
+      min_reduce[k] = cello::method(im)->timestep(this);
     }
   }
 
@@ -99,7 +95,7 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 {
   /* PERF_REDUCE_STOP(perf_rindex_reduce_stopping); */
   PERF_START(perf_rindex_stopping);
-  
+
   TRACE_STOPPING("Block::r_stopping_compute_timestep");
   ++age_;
 
@@ -112,19 +108,19 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 
   // Compute global and level timesteps
 
-  //    global timestep
-  double dt_global = stopping_compute_global_dt_(min_reduce);
+  const int nm = cello::problem()->num_methods();
+  const int nl = cello::max_level() + 1;
 
-  //    level timestep
-  std::vector<double> dt_level;
-  dt_level.resize(cello::max_level()+1);
+  // Extract global timestep, timestep per level, and timestep per method
 
-  stopping_compute_level_dt_(min_reduce,dt_level);
-
-  // Update method timesteps for supercycling
-  stopping_update_method_state_(min_reduce,dt_global);
+  double dt_global = stopping_dt_global_(min_reduce,nl,nm);
+  auto dt_level =    stopping_dt_level_ (min_reduce,nl,nm);
+  auto dt_method =   stopping_dt_method_(min_reduce,nl,nm);
 
   delete msg;
+
+  // Update method timesteps for supercycling
+  stopping_update_method_state_(dt_method,dt_global);
 
   // Update Block and Simulation state global and level timesteps
 
@@ -148,57 +144,44 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 
 //----------------------------------------------------------------------
 
-void Block::performance_projections_update_logging_()
+void Block::stopping_update_method_state_
+(const std::vector<double> & dt_method, double dt_global)
 {
+  // update Method states for supercycling
 
-#ifdef CONFIG_USE_PROJECTIONS
-  Simulation * simulation = cello::simulation();
-  bool was_off = (simulation->projections_tracing() == false);
-  bool was_on  = (simulation->projections_tracing() == true);
-  Schedule * schedule_on = simulation->projections_schedule_on();
-  Schedule * schedule_off = simulation->projections_schedule_off();
-  bool turn_on  = schedule_on ?
-    schedule_on->write_this_cycle(state()->cycle(),state()->time()) : false;
-  bool turn_off = schedule_off ?
-    schedule_off->write_this_cycle(state()->cycle(),state()->time()) : false;
-
-  static bool active = false;
-  if (!active && turn_on) {
-    active = true;
-    simulation->monitor()->print
-      ("Performance","turning projections logging ON\n");
-
-    performance->set_projections_tracing(true);
-
-    traceBegin();
-
-  } else if (active && turn_off) {
-    active = false;
-
-    simulation->monitor()->print
-      ("Performance","turning projections logging OFF\n");
-
-    performance->set_projections_tracing(false);
-
-    traceEnd();
-
+#ifdef DEBUG_STATE
+  // Write current state
+  if (index().is_root()) {
+    state()->print("update_method_state");
   }
 #endif
-
+  for (int k=0; k<dt_method.size(); k++) {
+    const int max_super = cello::method(k)->max_supercycle();
+    const double max_dt_method = dt_global*max_super;
+    const double ratio = dt_method[k] / dt_global;
+    const int desired_super = int(std::floor(ratio));
+    const int allowed_super = std::min(desired_super,max_super);
+    State::MethodState & method_state = state_->method(k);
+    const int step = method_state.step();
+    const int num_steps = method_state.num_steps();
+    bool update_state = (step >= num_steps);
+    if (update_state) {
+      method_state.set_time(state_->time());
+      method_state.set_dt(allowed_super * dt_global);
+      method_state.set_num_steps(allowed_super);
+      method_state.set_step(0);
+    }
+  }
 }
 
 //----------------------------------------------------------------------
 
-double Block::stopping_compute_global_dt_ (double min_reduce[])
+double Block::stopping_dt_global_
+(const double min_reduce[],int nl,int nm)
 {
-  Problem * problem = cello::simulation()->problem();
-
   // compute minimum timestep dt_global over all methods and all levels
 
   double dt_global = std::numeric_limits<double>::max();
-
-  const int nm = problem->num_methods();
-  const int nl = cello::max_level() + 1;
 
   for (int il=0; il<nl; il++) {
     for (int im=0; im<nm; im++) {
@@ -213,14 +196,14 @@ double Block::stopping_compute_global_dt_ (double min_reduce[])
   // adjust timestep dt to align with any scheduled output times
   double time_curr = state_->time();
   int index_output=0;
-  while (Output * output = problem->output(index_output++)) {
+  while (Output * output = cello::output(index_output++)) {
     Schedule * schedule = output->schedule();
     dt_global = schedule->update_timestep(time_curr,dt_global);
   }
 
   // Reduce timestep to not overshoot final time from stopping criteria
 
-  double time_stop = problem->stopping()->stop_time();
+  double time_stop = cello::stopping()->stop_time();
 
   dt_global = std::min (dt_global, (time_stop - time_curr));
 
@@ -229,38 +212,36 @@ double Block::stopping_compute_global_dt_ (double min_reduce[])
 
 //----------------------------------------------------------------------
 
-void Block::stopping_compute_level_dt_
-(double min_reduce[], std::vector <double> & dt_level)
+std::vector<double> Block::stopping_dt_method_
+(const double min_reduce[], int nl, int nm)
 {
-  Problem * problem = cello::simulation()->problem();
+  std::vector<double> dt_method;
+  dt_method.resize(nm);
 
+  for (int im=0; im<nm; im++) {
+    dt_method[im] = std::numeric_limits<double>::max();
+    for (int il=0; il<nl; il++) {
+      const int k = 1+im+nm*(il);
+      dt_method[im] = std::min(dt_method[im],min_reduce[k]);
+    }
+  }
+  return dt_method;
+}
+//----------------------------------------------------------------------
+
+std::vector<double> Block::stopping_dt_level_
+(const double min_reduce[], int nl, int nm)
+{
+  std::vector<double> dt_level;
+  dt_level.resize(nl);
   // compute minimum timestep dt_level[] for each level over all methods
 
   double max = std::numeric_limits<double>::max();
   for (auto & dt : dt_level) dt = max;
 
-  const int nm = problem->num_methods();
-  const int nl = cello::max_level() + 1;
-
-  // Initialize method level
-  std::vector<double> dt_method[10];
-  for (int il=0; il<nl; il++) {
-    dt_method[il].resize(nm);
-    for (auto & dt : dt_method[il]) dt = max;
-  }
-
-  // Initialize level timesteps
-  for (int il=0; il<nl; il++) {
-    for (int im=0; im<nm; im++) {
-      const int k = 1+im+nm*(il);
-      dt_level[il] = std::min(dt_level[il],min_reduce[k]);
-      dt_method[il][im] = min_reduce[k];
-    }
-  }
-
   // Adjust level timesteps for global courant condition
   for (auto & dt : dt_level) dt *= Method::courant_global;
-  
+
   // Apply max_level_dt_ratio to limit timestep ratios between levels
   double max_ratio = cello::config()->timestep_max_level_dt_ratio;
   int level_dt_min = std::distance
@@ -274,7 +255,7 @@ void Block::stopping_compute_level_dt_
 
   // adjust level timesteps to align with any scheduled output times
   int index_output=0;
-  while (Output * output = problem->output(index_output++)) {
+  while (Output * output = cello::output(index_output++)) {
     Schedule * schedule = output->schedule();
     int level = 0;
     for (auto & dt : dt_level) {
@@ -297,7 +278,7 @@ void Block::stopping_compute_level_dt_
     } else if (adjust_type == "finest") {
       l_prev = false;
     } else {
-      ERROR1 ("Block::stopping_compute_level_dt_()",
+      ERROR1 ("Block::stopping_dt_level_()",
               "Unknown Timestep:adjust_type parameter value %s: "
               "must be [\"none\"|\"previous\"|\"finest\"]",
               adjust_type.c_str());
@@ -334,65 +315,13 @@ void Block::stopping_compute_level_dt_
     }
   }
   // Reduce level timesteps to not overshoot time stopping criteria
-  double time_stop = problem->stopping()->stop_time();
+  double time_stop = cello::stopping()->stop_time();
   level = 0;
   for (auto & dt : dt_level) {
     double time_curr = state_->time(level++);
     dt = std::min (dt, (time_stop - time_curr));
   }
-#ifdef TRACE_METHOD_DT
-  if (index().is_root()) {
-    CkPrintf ("TRACE_METHOD DT actual:");
-    for (int il=0; il<nl; il++) {
-      double dt = dt_level[il];
-      CkPrintf (" %g",dt==max?-1:dt);
-    }
-    CkPrintf("\n");
-    for (int im=0; im<nm; im++) {
-      CkPrintf ("TRACE_METHOD DT method %d:",im);
-      for (int il=0; il<nl; il++) {
-        const int k = 1+im+nm*(il);
-        double dt = dt_method[il][im];
-        CkPrintf (" %g",dt==max?-1:dt);
-      }
-      CkPrintf("\n");
-    }
-  }
-#endif
-}
-
-//----------------------------------------------------------------------
-
-void Block::stopping_update_method_state_
-(double min_reduce[], double dt_global)
-{
-  // update Method states for supercycling
-  Simulation * simulation = cello::simulation();
-  Problem * problem = simulation->problem();
-#ifdef DEBUG_STATE
-  // Write current state
-  if (index().is_root()) {
-    state()->print("update_method_state");
-  }
-#endif
-  for (int k=0; k<state()->num_methods(); k++) {
-    const double dt_method = min_reduce[k+1];
-    const int max_super = problem->method(k)->max_supercycle();
-    const double max_dt_method = dt_global*max_super;
-    const double ratio = dt_method / dt_global;
-    const int desired_super = int(std::floor(ratio));
-    const int allowed_super = std::min(desired_super,max_super);
-    State::MethodState & method_state = state_->method(k);
-    const int step = method_state.step();
-    const int num_steps = method_state.num_steps();
-    bool update_state = (step >= num_steps);
-    if (update_state) {
-      method_state.set_time(state_->time());
-      method_state.set_dt(allowed_super * dt_global);
-      method_state.set_num_steps(allowed_super);
-      method_state.set_step(0);
-    }
-  }
+  return dt_level;
 }
 
 //----------------------------------------------------------------------
@@ -454,6 +383,47 @@ void Block::ResumeFromSync()
   TRACE_STOPPING("load_balance exit");
   PERF_STOP(perf_rindex_balance);
   stopping_exit_();
+}
+
+//----------------------------------------------------------------------
+
+void Block::performance_projections_update_logging_()
+{
+
+#ifdef CONFIG_USE_PROJECTIONS
+  Simulation * simulation = cello::simulation();
+  bool was_off = (simulation->projections_tracing() == false);
+  bool was_on  = (simulation->projections_tracing() == true);
+  Schedule * schedule_on = simulation->projections_schedule_on();
+  Schedule * schedule_off = simulation->projections_schedule_off();
+  bool turn_on  = schedule_on ?
+    schedule_on->write_this_cycle(state()->cycle(),state()->time()) : false;
+  bool turn_off = schedule_off ?
+    schedule_off->write_this_cycle(state()->cycle(),state()->time()) : false;
+
+  static bool active = false;
+  if (!active && turn_on) {
+    active = true;
+    cello::monitor()->print
+      ("Performance","turning projections logging ON\n");
+
+    performance->set_projections_tracing(true);
+
+    traceBegin();
+
+  } else if (active && turn_off) {
+    active = false;
+
+    cello::monitor()->print
+      ("Performance","turning projections logging OFF\n");
+
+    performance->set_projections_tracing(false);
+
+    traceEnd();
+
+  }
+#endif
+
 }
 
 //----------------------------------------------------------------------

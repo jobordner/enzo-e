@@ -55,8 +55,9 @@ void Block::restart_enter_()
 //----------------------------------------------------------------------
 
 void Simulation::p_restart_enter (std::string name_dir)
-{
   // [ Called on root process only ]
+{
+  cello::monitor()->print ("Simulation","Restart");
 
   restart_directory_ = name_dir;
 

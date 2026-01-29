@@ -1243,6 +1243,8 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
     const long long max_node_blocks    = counters_reduce[m++]; // 13
     const long long max_node_particles = counters_reduce[m++]; // 14
 
+    // Solver iterations
+
     for (int i=0; i<num_solver; i++) {
       const long long max_solver_iters       = counters_reduce[m++]; // 15
       monitor->print ("perf:solver","max-%s-iter %lld",
@@ -1251,32 +1253,46 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
     }
     cello::simulation()->clear_solver_iter(); // clear it for the next solve
 
-    monitor->print ("perf:balance","max-proc-blocks %lld",  max_proc_blocks);
-    monitor->print ("perf:balance","max-node-blocks %lld",  max_node_blocks);
-    monitor->print ("perf:balance","max-proc-particles %lld", max_proc_particles);
-    monitor->print ("perf:balance","max-node-particles %lld", max_node_particles);
+    // Block load balance metrics
 
+    //    block process load-balance
     const double avg_proc_blocks = 1.0*num_blocks_total/CkNumPes();
-    const double avg_node_blocks = 1.0*num_blocks_total/CkNumNodes();
+    monitor->print ("perf:balance","max-blocks-proc %lld",  max_proc_blocks);
+    monitor->print ("perf:balance","avg-blocks-proc %f",  avg_proc_blocks);
+    monitor->print ("perf:balance","eff-blocks-core %f",
+                    avg_proc_blocks / max_proc_blocks);
 
-    monitor->print
-      ("Performance","simulation balance-eff-blocks-core %f",
-       avg_proc_blocks / max_proc_blocks);
-    monitor->print
-      ("Performance","simulation balance-eff-blocks-node %f",
-       avg_node_blocks / max_node_blocks);
+    //    block node load-balance
+    if (CkNumPes() != CkNumNodes()) {
+      const double avg_node_blocks = 1.0*num_blocks_total/CkNumNodes();
+      monitor->print ("perf:balance","max-blocks-node %lld",  max_node_blocks);
+      monitor->print ("perf:balance","avg-blocks-node %f",  avg_node_blocks);
+      monitor->print ("perf:balance","eff-blocks-node %f",
+                      avg_node_blocks / max_node_blocks);
+    }
+
+    // Particle load-balance metrics
 
     if (num_particles > 0) {
+      //    particle process load-balance
       const double avg_proc_particles = 1.0*num_particles/CkNumPes();
-      const double avg_node_particles = 1.0*num_particles/CkNumNodes();
-      monitor->print
-        ("perf:balance","eff-particles-core %f (%.0f/%lld)",
-         avg_proc_particles / max_proc_particles,
-         avg_proc_particles , max_proc_particles );
-      monitor->print
-        ("perf:balance","eff-particles-node %f (%.0f/%lld)",
-         avg_node_particles / max_node_particles,
-         avg_node_particles , max_node_particles );
+      monitor->print ("perf:balance","max-particles-proc %lld",
+                      max_proc_particles);
+      monitor->print ("perf:balance","avg-particles-proc %f",
+                      avg_proc_particles);
+      monitor->print ("perf:balance","eff-particles-core %f",
+                      avg_proc_particles / max_proc_particles );
+
+      //    particle node load-balance
+      if (CkNumPes() != CkNumNodes()) {
+        const double avg_node_particles = 1.0*num_particles/CkNumNodes();
+        monitor->print ("perf:balance","max-particles-node %lld",
+                        max_node_particles);
+        monitor->print ("perf:balance","avg-particles-node %f",
+                        avg_node_particles);
+        monitor->print ("perf:balance","eff-particles-node %f",
+                        avg_node_particles / max_node_particles );
+      }
     }
 
     ASSERT3("Simulation::monitor_performance()",

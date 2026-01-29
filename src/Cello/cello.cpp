@@ -365,6 +365,13 @@ namespace cello {
 
   //----------------------------------------------------------------------
 
+  Method * method(int k)
+  {
+    return problem() ? problem()->method(k) : nullptr;
+  }
+
+  //----------------------------------------------------------------------
+
   Performance *   performance()
   {
     return simulation() ? simulation()->performance() : nullptr;
@@ -454,6 +461,13 @@ namespace cello {
 
   //----------------------------------------------------------------------
 
+  Output * output(int k)
+  {
+    return problem() ? problem()->output(k) : nullptr;
+  }
+
+  //----------------------------------------------------------------------
+
   ParticleDescr * particle_descr()
   {
     static ParticleDescr * particle_descr_[CONFIG_NODE_SIZE] = {nullptr};
@@ -472,16 +486,16 @@ namespace cello {
 
   //----------------------------------------------------------------------
 
-  Output * output(int index)
+  Solver * solver(int index)
   {
-    return problem() ? problem()->output(index) : nullptr;
+    return problem() ? problem()->solver(index) : nullptr;
   }
 
   //----------------------------------------------------------------------
 
-  Solver * solver(int index)
+  Stopping * stopping()
   {
-    return problem() ? problem()->solver(index) : nullptr;
+    return problem() ? problem()->stopping() : nullptr;
   }
 
   //----------------------------------------------------------------------

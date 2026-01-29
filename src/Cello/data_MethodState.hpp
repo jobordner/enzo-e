@@ -87,9 +87,9 @@ public:
   { step_level_[level] = step; }
 
   /// Increment step and advance time by dt
-  void advance()
+  void advance(double dt)
   {
-    time_ += dt_;
+    time_ += dt;
     step_++;
   };
 

@@ -90,6 +90,7 @@ void EnzoMethodCheck::compute ( Block * block) throw()
 void EnzoSimulation::r_method_check_enter(CkReductionMsg *msg)
 // [ Called on ip=0 only ]
 {
+  cello::monitor()->print("Method", "checkpoint");
   delete msg;
 
   check_num_files_  = enzo::config()->method_check_num_files;

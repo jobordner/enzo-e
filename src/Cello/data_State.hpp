@@ -126,12 +126,17 @@ public: // interface
 
   void init_method(int num_methods = 0)
   {
+    alloc_method(num_methods);
+    for (auto & m : method_state_)
+      m.init();
+  }
+
+  void alloc_method(int num_methods = 0)
+  {
     if (num_methods == 0) {
       method_state_.clear();
     } else {
       method_state_.resize(num_methods);
-      for (auto & m : method_state_)
-        m.init();
     }
   }
 

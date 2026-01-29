@@ -774,11 +774,21 @@ protected:
   void stopping_balance_();
   void stopping_load_balance_();
   void stopping_exit_();
-  double stopping_compute_global_dt_(double min_reduce[]);
-  void stopping_compute_level_dt_(double min_reduce[],
-                                  std::vector <double> & dt_level);
+
+  /// Compute global dt as minimum over all methods and all levels
+  double stopping_dt_global_(const double min_reduce[], int nl, int nm);
+
+  /// Compute dt per level as minimum over methods in each level
+  std::vector<double> stopping_dt_level_
+     (const double min_reduce[], int nl, int nm);
+
+  /// Compute dt per method as minimum over all levels per method
+  std::vector <double> stopping_dt_method_
+     (const double min_reduce[], int nl,int nm);
+
+  /// Update method state for super-cycling methods
   void stopping_update_method_state_
-  (double min_reduce[],double dt_global);
+  (const std::vector<double> & dt_method, double dt_global);
 
 public:
   /// Exit the stopping phase to exit

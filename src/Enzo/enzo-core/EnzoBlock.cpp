@@ -32,6 +32,8 @@ EnzoBlock::EnzoBlock( CkMigrateMessage *m)
   proxy_enzo_simulation[0].p_method_balance_check();
 }
 
+//----------------------------------------------------------------------
+
 EnzoBlock::EnzoBlock( MsgType msg_type)
   : CBase_EnzoBlock (msg_type)
 {

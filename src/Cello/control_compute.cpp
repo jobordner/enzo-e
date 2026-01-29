@@ -149,7 +149,7 @@ void Block::compute_done ()
 #endif
 
   PERF_METHOD_STOP(method());
-  //  compute_update_method_state_(index_method_);
+  compute_update_method_state_(index_method_);
 
   index_method_++;
   compute_next_();
@@ -161,7 +161,7 @@ void Block::compute_update_method_state_(int index_method)
 {
   if (index_method_ < state_->num_methods()) {
     auto & method_state = state()->method(index_method);  
-    method_state.advance();
+    method_state.advance(state_->dt());
   }
 }
 

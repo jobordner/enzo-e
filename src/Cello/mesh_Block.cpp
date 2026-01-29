@@ -190,7 +190,7 @@ void Block::init_refine_
   *state_ = *state;
 
   // Initialize method state
-  state_->init_method (cello::problem()->num_methods() );
+  state_->alloc_method (cello::problem()->num_methods());
 
   adapt_step_ = num_adapt_steps;
   adapt_ready_ = false;
@@ -773,6 +773,7 @@ void Block::p_refresh_child
 
   field_face -> array_to_face (buffer, data()->field());
   delete field_face;
+  PERF_STOP(perf_rindex_refresh_child);
 }
 
 //----------------------------------------------------------------------

@@ -51,12 +51,13 @@ input="input-clean.data"
 grep -v WARNING $input_raw > $input
 
 ADAPT=`      awk '/perf:region adapt/  {print $(NF-2)}' $input | sort | uniq`
-BALANCE_EFF=`awk '/perf:balance eff-/  {print $(NF-2)}' $input | sort | uniq`
+BALANCE_EFF=`awk '/perf:balance eff-/  {print $(NF-1)}' $input | sort | uniq`
 BALANCE_MAX=`awk '/perf:balance max-/  {print $(NF-1)}' $input | sort | uniq`
 MEMORY=`     awk '/perf:region cycle / {print $(NF-1)}' $input | sort | uniq`
 MESH=`       awk '/perf:mesh /         {print $(NF-1)}' $input | sort | uniq`
 METHOD=`     awk '/perf:region method/ {print $(NF-2)}' $input | sort | uniq`
 REDUCE=`     awk '/perf:region reduce/ {print $(NF-2)}' $input | sort | uniq`
+REDSHIFT=`   awk '/Method comoving_expansion/ {print $(NF-1)}' $input | sort | uniq`
 REFRESH=`    awk '/perf:region refresh/{print $(NF-2)}' $input | sort | uniq`
 SMP=`        awk '/perf:region smp/    {print $(NF-2)}' $input | sort | uniq`
 SOLVER=`     awk '/perf:region solver/ {print $(NF-2)}' $input | sort | uniq`
@@ -98,6 +99,14 @@ for reduce in $REDUCE; do
        fi
 done
 
+echo "REDSHIFT = $REDSHIFT"
+for redshift in $REDSHIFT; do
+    if [[ ! -e "$redshift.data" ]]; then
+           echo "Generating $redshift.data"
+           awk '/Simulation cycle/{c=$NF}; /comoving_expansion redshift/{print c,$NF}' $input > $redshift.data
+       fi
+done
+
 for smp in $SMP; do
     if [[ ! -e "$smp.data" ]]; then
            echo "Generating $smp.data"
@@ -136,7 +145,7 @@ done
 for balance in $BALANCE_EFF; do
     if [[ ! -e "$balance.data" ]]; then
            echo "Generating $balance.data"
-           awk '/Simulation cycle/{c=$NF}; /perf:balance '"$balance"' /{print c,$(NF-1)}' $input > balance_$balance.data
+           awk '/Simulation cycle/{c=$NF}; /perf:balance '"$balance"' /{print c,$NF}' $input > balance_$balance.data
        fi
 done
 for balance in $BALANCE_MAX; do

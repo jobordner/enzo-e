@@ -21,6 +21,7 @@ BEGIN{
     num_end=index(line,":");
     num  = substr(line,1,num_end-1)
     line = substr(line,num_end+1,length(line)-num_end+1)
-#    print file,num,line
+
     print "** TODO [[file:" file"::"num"]["file":"num"]]"
-};
+    print line;
+}

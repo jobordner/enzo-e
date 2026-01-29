@@ -56,6 +56,7 @@ class Field;
 class FieldDescr;
 class Grouping;
 class Hierarchy;
+class Method;
 class Monitor;
 class Output;
 class Parameters;
@@ -66,6 +67,7 @@ class Refresh;
 class ScalarDescr;
 class Simulation;
 class Solver;
+class Stopping;
 class Units;
 
 #ifdef CELLO_DEBUG
@@ -809,6 +811,8 @@ namespace cello {
   CProxy_Block    block_array();
   /// Return a pointor to the Problem object defining the problem being solved
   Problem *       problem();
+  /// Return a pointor to the kth Method object 
+  Method *       method(int k);
   /// Return a pointor to the Performance object
   Performance *   performance();
   /// Return a pointor to the ith Bounday object
@@ -838,6 +842,8 @@ namespace cello {
   Grouping *      particle_groups();
   /// Return a pointer to the Monitor object for writing output to stdout
   Monitor *       monitor();
+  /// Return a pointer to the kth Output object 
+  Output *        output(int k);
   /// Return a pointer to the Units object
   Units *         units();
   /// Return reference to in indexed Refresh object
@@ -861,11 +867,10 @@ namespace cello {
   ScalarDescr *   scalar_descr_index();
   template <class T>
   T & scalar(Block *, int is, int i=0);
-
-  /// Return the ith Output object
-  Output *        output (int index);
   /// Return the ith Solver
   Solver *        solver(int index);
+  /// Return the Stopping object for stopping criteria
+  Stopping *      stopping();
   /// Return the dimensional rank of the simulation
   int             rank ();
   /// Return the number of children each Block may have
