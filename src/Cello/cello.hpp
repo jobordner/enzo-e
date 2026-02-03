@@ -146,26 +146,53 @@ enum reduce_enum {
   reduce_set      /// Value of last processed (used for mesh plotting)
 };
 
-/* #define CELLO_REDUCE_TYPE_QUAD */ /* select for accuracy (default) */
-#define CELLO_REDUCE_TYPE_DOUBLE /* select for performance */
-
 /// @typedef cello_reduce_type
 /// @brief   type to use for global reductions; "long double" (quad) is
-///          default for accuracy, but can cause significant slow-down
-///          on some platforms (e.g. Grace-Hopper with NVIDIA compilers)
+///          default for double, and double is default for single precision
+///          for accuracy. Can be overridden using CONFIG_REDUCTION_[QUAD|DOUBLE|SINGLE]
+///          This may be useful for AMD or other architectures where quad
+///          precision is performed in software
 
-/// Use "quad" reduction type (higher accuracy)
+
+#undef CONFIG_REDUCE_DEFINED
+#ifdef CONFIG_REDUCE_QUAD
+#   define CELLO_REDUCE_TYPE_QUAD
+#   define CONFIG_REDUCE_DEFINED
+#elif CONFIG_REDUCE_DOUBLE
+#   define CELLO_REDUCE_TYPE_DOUBLE
+#   define CONFIG_REDUCE_DEFINED
+#elif CONFIG_REDUCE_SINGLE
+#   define CELLO_REDUCE_TYPE_SINGLE
+#   define CONFIG_REDUCE_DEFINED
+#endif
+
+// Define CELLO_REDUCE based on CONFIG_PRECISION if not explicitly defined
+// using CONFIG_REDUCE. Use double-sized for accuracy when possible.
+
+#ifndef CONFIG_REDUCE_DEFINED
+#   ifdef CONFIG_PRECISION_SINGLE
+#      define CELLO_REDUCE_TYPE_DOUBLE
+#   endif
+#   ifdef CONFIG_PRECISION_DOUBLE
+#      define CELLO_REDUCE_TYPE_QUAD
+#   endif
+#   ifdef CONFIG_PRECISION_QUAD
+#      define CELLO_REDUCE_TYPE_QUAD
+#   endif
+#endif
+
 #ifdef  CELLO_REDUCE_TYPE_QUAD
 typedef long double cello_reduce_type;
 #   define CELLO_REDUCE_DEFINED
 #endif
-
-/// Use "double" reduction type (higher performance)
 #ifdef CELLO_REDUCE_TYPE_DOUBLE
 typedef double cello_reduce_type;
 #   define CELLO_REDUCE_DEFINED
 #endif
-
+#ifdef CELLO_REDUCE_TYPE_SINGLE
+typedef float cello_reduce_type;
+#   define CELLO_REDUCE_DEFINED
+#endif
 #ifndef CELLO_REDUCE_DEFINED
 #   error "CELLO_REDUCE_TYPE is neither double nor quad (long double)"
 #endif

@@ -55,6 +55,12 @@ else()
   # PREC_STRING is used during test setup
   set(PREC_STRING "single")
 endif()
+option(USE_DOUBLE_REDUCE "Use double precision for reductions." OFF)
+if (USE_DOUBLE_REDUCE)
+  add_compile_definitions(CONFIG_REDUCE_DOUBLE)
+  # REDUCE_STRING is used during test setup
+  set(REDUCE_STRING "double")
+endif()
 add_compile_definitions(SMALL_INTS)
 
 #----------------------------------------------------------------------------------------

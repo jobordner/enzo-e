@@ -1098,28 +1098,28 @@ void Config::read_output_ (Parameters * p) throw()
       output_image_abs[index_output] = p->value_logical(path,"image_abs",false);
 
       output_image_mesh_color[index_output] =
-	p->value_string("image_mesh_color","level");
+	p->value_string(path,"image_mesh_color","level");
       output_image_mesh_order[index_output] =
-	p->value_string("image_mesh_order","none");
+	p->value_string(path,"image_mesh_order","none");
 
 
       output_image_color_particle_attribute[index_output] =
-	p->value_string("image_color_particle_attribute","");
+	p->value_string(path,"image_color_particle_attribute","");
 
       output_image_size[index_output].resize(2);
       output_image_size[index_output][0] =
-	p->list_value_integer(0,"image_size",512);
+	p->list_value_integer(0,path,"image_size",512);
       output_image_size[index_output][1] =
-	p->list_value_integer(1,"image_size",512);
+	p->list_value_integer(1,path,"image_size",512);
 
       output_image_reduce_type[index_output] =
-	p->value_string("image_reduce_type","sum");
+	p->value_string(path,"image_reduce_type","sum");
 
       output_image_face_rank[index_output] =
-	p->value_integer("image_face_rank",3);
+	p->value_integer(path,"image_face_rank",3);
 
       output_image_ghost[index_output] =
-	p->value_logical("image_ghost",false);
+	p->value_logical(path,"image_ghost",false);
 
       output_image_min[index_output] =
 	p->value_float(path,"image_min",std::numeric_limits<double>::max());
@@ -1127,9 +1127,9 @@ void Config::read_output_ (Parameters * p) throw()
 	p->value_float(path,"image_max",-std::numeric_limits<double>::max());
 
       output_image_history[index_output] =
-	p->value_integer("image_history",0);
+	p->value_integer(path,"image_history",0);
 
-      output_min_level[index_output] = p->value_integer("min_level",0);
+      output_min_level[index_output] = p->value_integer(path,"min_level",0);
       output_max_level[index_output] =
 	p->value_integer(path,"max_level",std::numeric_limits<int>::max());
       output_leaf_only[index_output] = p->value_logical(path,"leaf_only",true);
@@ -1195,6 +1195,7 @@ void Config::read_output_ (Parameters * p) throw()
       }
 
     }
+    path.pop_back();
   }
 }
 
@@ -1636,7 +1637,7 @@ int Config::read_schedule_(Parameters * p,
   schedule_stop.resize(index+1);
   schedule_step.resize(index+1);
 
-  std::string var = p->value_string("var","none");
+  std::string var = p->value_string(path,"var","none");
 
   schedule_var[index] = var;
 

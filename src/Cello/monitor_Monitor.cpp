@@ -80,7 +80,9 @@ void Monitor::header () const
 	 t->tm_hour,
 	 t->tm_min,
 	 t->tm_sec);
-  print ("Input","File name            %s", cello::parameters()->file_name().c_str());
+
+  print ("Input","File name            %s", g_parameters.file_name().c_str());
+
   // Print all recognized configuration settings
 
   print ("Define","Simulation processors %d",CkNumPes());
@@ -88,6 +90,16 @@ void Monitor::header () const
   // Parallel type defines
 
   print ("Define","CELLO_PREC          %s",CELLO_PREC);
+
+#ifdef CELLO_REDUCE_TYPE_SINGLE
+  print ("Define","CELLO_REDUCE        single");
+#endif
+#ifdef CELLO_REDUCE_TYPE_DOUBLE
+  print ("Define","CELLO_REDUCE        double");
+#endif
+#ifdef CELLO_REDUCE_TYPE_QUAD
+  print ("Define","CELLO_REDUCE        quad");
+#endif
 
   print ("Define","CC                  %s",CELLO_CC);
   print ("Define","CFLAGS              %s",CELLO_CFLAGS);
