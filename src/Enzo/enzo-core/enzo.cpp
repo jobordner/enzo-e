@@ -9,6 +9,11 @@ namespace enzo {
     return proxy_enzo_simulation.ckLocalBranch();
   }
 
+  CProxy_EnzoSimulation simulation_array()
+  {
+    return (CProxy_EnzoSimulation) proxy_enzo_simulation;
+  }
+
   const EnzoFactory * factory()
   {
     return (const EnzoFactory *) simulation()->factory();

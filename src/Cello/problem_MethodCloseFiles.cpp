@@ -24,9 +24,9 @@ void method_close_files_mutex_init()
 
 MethodCloseFiles::MethodCloseFiles(ParameterGroup p) throw()
   : Method(),
-    seconds_stagger_( p.value_float("seconds_stagger",0.0) ),
-    seconds_delay_( p.value_float("seconds_delay",0.0) ),
-    group_size_(p.value_integer("group_size", std::numeric_limits<int>::max()))
+    seconds_stagger_( p.value("seconds_stagger",0.0) ),
+    seconds_delay_( p.value("seconds_delay",0.0) ),
+    group_size_(p.value("group_size", std::numeric_limits<int>::max()))
 {
   cello::simulation()->refresh_set_name(ir_post_,"close_files");
   Refresh * refresh = cello::refresh(ir_post_);
@@ -38,7 +38,7 @@ MethodCloseFiles::MethodCloseFiles(ParameterGroup p) throw()
 void MethodCloseFiles::compute( Block * block) throw()
 {
 #ifdef CONFIG_SMP_MODE
-  const bool is_first_cycle = (block->cycle() == cello::config()->initial_cycle);
+  const bool is_first_cycle = (block->state()->cycle() == cello::config()->initial_cycle);
   if (is_first_cycle) {
     throttle_stagger_();
     PERF_SMP_START(perf_rindex_smp_method_close_files);

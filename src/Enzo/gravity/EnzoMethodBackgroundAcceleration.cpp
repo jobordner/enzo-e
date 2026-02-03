@@ -281,7 +281,7 @@ EnzoMethodBackgroundAcceleration::EnzoMethodBackgroundAcceleration
  : Method(),
    zero_acceleration_(false),
    potential_center_xyz_{}, // fills array with zeros
-   flavor_(p.value_string("flavor","unknown")),
+   flavor_(p.value<std::string>("flavor","unknown")),
    galaxy_pack_dfltU_(nullptr),
    point_mass_pack_dfltU_(nullptr)
 {
@@ -292,7 +292,7 @@ EnzoMethodBackgroundAcceleration::EnzoMethodBackgroundAcceleration
   zero_acceleration_ = !preceded_by_gravity;
 
   for (int i = 0; i < 3; i++) {
-    potential_center_xyz_[i] = p.list_value_float(i,"center",0.5);
+    potential_center_xyz_[i] = p.value<double>(i,"center",0.5);
   }
 
   if (flavor_ == "GalaxyModel") {

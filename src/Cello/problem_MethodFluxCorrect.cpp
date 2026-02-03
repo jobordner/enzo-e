@@ -18,7 +18,7 @@ static std::map<std::string,double> parse_min_digit_map_(ParameterGroup p)
   std::string min_digits_name = "min_digits";
   if (p.type(min_digits_name) == parameter_float){
     // backwards compatibility
-    return { {"density", p.value_float(min_digits_name, 0.0)} };
+    return { {"density", p.value<double>(min_digits_name, 0.0)} };
   } else if (p.type(min_digits_name) == parameter_list){
     // load pairs of fields and min_digits
     const int list_length = p.list_length(min_digits_name);
@@ -31,14 +31,14 @@ static std::map<std::string,double> parse_min_digit_map_(ParameterGroup p)
 
     std::map<std::string,double> out;
     for (int i =0; i < list_length; i+=2){
-      std::string field = p.list_value_string(i, min_digits_name);
+      std::string field = p.value<std::string>(i, min_digits_name);
 
       ASSERT3("parse_min_digit_map_",
               "The \"%s\" field is listed more than once in %s:%s",
               field.c_str(), root_name.c_str(), min_digits_name.c_str(),
               out.find(field) == out.end());
 
-      out[field] = p.list_value_float(i+1,min_digits_name,0.0);
+      out[field] = p.value<double>(i+1,min_digits_name,0.0);
     }
     return out;
   } else if (p.param(min_digits_name) == nullptr) {
@@ -52,8 +52,8 @@ static std::map<std::string,double> parse_min_digit_map_(ParameterGroup p)
 //----------------------------------------------------------------------
 
 MethodFluxCorrect::MethodFluxCorrect(ParameterGroup p) noexcept
-  : MethodFluxCorrect(p.value_string("group","conserved"),
-                      p.value_logical("enable",true),
+  : MethodFluxCorrect(p.value<std::string>("group","conserved"),
+                      p.value<bool>("enable",true),
                       parse_min_digit_map_(p))
 { }
 

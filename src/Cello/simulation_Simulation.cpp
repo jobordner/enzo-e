@@ -542,12 +542,36 @@ void Simulation::initialize_config_() throw()
 
 void Simulation::initialize_monitor_() throw()
 {
+
   bool debug = config_->monitor_debug;
   int debug_mode = debug ? monitor_mode_all : monitor_mode_none;
-  monitor_->set_mode("DEBUG",debug_mode);
   monitor_->set_include_proc(config_->monitor_proc);
   monitor_->set_include_time(config_->monitor_time);
-  monitor_->set_verbose(config_->monitor_verbose);
+
+  std::string level = config_->monitor_level;
+
+  if (level == "none")   monitor_->set_level_(0);
+  if (level == "low")    monitor_->set_level_(1);
+  if (level == "medium") monitor_->set_level_(2);
+  if (level == "high")   monitor_->set_level_(3);
+
+  int index = config_->monitor_schedule_index;
+
+  for (auto component : config_->monitor_mute_list) {
+    monitor_->mute_component_(component);
+  }
+  for (auto component : config_->monitor_only_list) {
+    monitor_->only_component_(component);
+  }
+  Schedule * schedule = (index == -1) ? nullptr : Schedule::create
+    ( config_->schedule_var[index],
+      config_->schedule_type[index],
+      config_->schedule_start[index],
+      config_->schedule_stop[index],
+      config_->schedule_step[index],
+      config_->schedule_list[index]);
+  monitor_->set_schedule_(schedule);
+
 }
 
 //----------------------------------------------------------------------
@@ -894,12 +918,15 @@ int Simulation::initial_block_count() throw() {
   return block_count;
 }
 
+//----------------------------------------------------------------------
+
 void Simulation::p_initial_block_created() throw() {
   if (sync_init_block_count_.next()) {
     hierarchy_->block_array().doneInserting();
     hierarchy_->block_array().p_initial_begin();
   }
 }
+
 //----------------------------------------------------------------------
 
 void Simulation::p_set_block_array(CProxy_Block block_array)
@@ -912,7 +939,6 @@ void Simulation::p_set_block_array(CProxy_Block block_array)
   contribute(0,0,CkReduction::concat,callback);
   // --------------------------------------------------
 }
-
 //----------------------------------------------------------------------
 
 void Simulation::deallocate_() throw()
@@ -937,7 +963,9 @@ const Factory * Simulation::factory() const throw()
 
 void Simulation::update_state(int cycle, double time, double dt, double stop)
 {
+
   state_->init(cycle,time,dt,(stop != 0));
+  monitor_->update_state_(cycle,time);
 }
 
 //----------------------------------------------------------------------
@@ -1187,6 +1215,7 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
     long long num_leaf_blocks = 0;
     for (int i=hierarchy_->min_level(); i<=hierarchy_->max_level(); i++) {
       const long long num_blocks_level = counters_reduce[m++]; // NL
+
       if (i>=0) {
         monitor->print("perf:mesh","blocks-level_%d %lld",
                        i,num_blocks_level);

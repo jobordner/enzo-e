@@ -7,7 +7,12 @@ Method {
          solver = "dd";
      };
  }
-
+Monitor {
+   schedule {
+       var = "cycle";
+       step = 10;
+   }
+}
 Solver {
      list = [ "dd", "dd_root", "dd_domain", "dd_smooth", "root_coarse", "root_pre",
               "root_post" ];

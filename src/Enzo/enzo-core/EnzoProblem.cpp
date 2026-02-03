@@ -107,9 +107,10 @@ Initial * EnzoProblem::create_initial_
   Initial * initial = 0;
 
   // move creation of p_accessor up the call stack?
-  const std::string root_path =
-    ("Initial:" + parameters->list_value_string(index, "Initial:list"));
-  ParameterGroup p_group(*parameters, root_path);
+  parameter_path_type path;
+  path.push_back("Initial");
+  path.push_back(parameters->list_value_string(index,"Initial:list"));
+  ParameterGroup p_group(*parameters, path);
 
   int cycle   = config->initial_cycle;
   double time = config->initial_time;
@@ -202,9 +203,13 @@ Initial * EnzoProblem::create_initial_
        enzo_config->initial_turbulence_temperature,
        enzo::fluid_props()->gamma());
   } else if (type == "pm") {
-    std::string param_str = "Initial:" + config->initial_list[index] + ":mask";
+
+    parameter_path_type path;
+    path.push_back("Initial");
+    path.push_back(config->initial_list[index]);
+
     initial = new EnzoInitialPm
-      (parameters, param_str,
+      (parameters, path,"mask",
        cycle,time,
        enzo_config->initial_pm_field,
        enzo_config->initial_pm_mpp,
@@ -240,8 +245,7 @@ Initial * EnzoProblem::create_initial_
        enzo_config->initial_accretion_test_gas_pressure,
        enzo_config->initial_accretion_test_gas_radial_velocity);
   } else if (type == "shu_collapse") {
-    initial = new EnzoInitialShuCollapse
-      (cycle, time, p_group);
+    initial = new EnzoInitialShuCollapse (cycle, time, p_group);
   } else if (type == "bb_test") {
     initial = new EnzoInitialBBTest
       (cycle, time,
@@ -360,15 +364,15 @@ Solver * EnzoProblem::create_solver_
     solve_type = solve_unknown;
   }
 
-  Prolong * prolong = create_prolong_
+  Prolong * prolong_ptr = create_prolong_
     (enzo_config->solver_prolong[index_solver],config);
-  Restrict * restrict = create_restrict_
+  Restrict * restrict_ptr = create_restrict_
     (enzo_config->solver_restrict[index_solver],config);
 
   const int index_prolong = prolong_list_.size();
   const int index_restrict = restrict_list_.size();
-  prolong_list_.push_back(prolong);
-  restrict_list_.push_back(restrict);
+  prolong_list_.push_back(prolong_ptr);
+  restrict_list_.push_back(restrict_ptr);
 
   if (solver_type == "cg") {
 
@@ -523,7 +527,6 @@ Compute * EnzoProblem::create_compute
   Config * config ) throw()
 /// @param name  Name of the compute to create
 {
-
   Compute * compute = 0;
 
   TRACE1("EnzoProblem::create_compute %s",name.c_str());
@@ -556,7 +559,6 @@ Compute * EnzoProblem::create_compute
             compute->name().c_str(),name.c_str(),
             compute->name() == name);
   }
-
   return compute;
 }
 
@@ -571,7 +573,7 @@ Method * EnzoProblem::create_method_
 /// @param name   Name of the method to create
 /// @param config Configuration parameters class
 {
-  Method * method = 0;
+  Method * method = nullptr;
 
   // historically, this method would always call method->set_courant after
   // building a new method object. But, with this new p_group approach, each
@@ -584,9 +586,6 @@ Method * EnzoProblem::create_method_
   // move creation of p_group up the call stack?
   ASSERT("Problem::create_method_", "Something is wrong", cello::simulation());
   Parameters* parameters = cello::simulation()->parameters();
-  const std::string root_path =
-    ("Method:" + parameters->list_value_string(index_method, "Method:list"));
-  ParameterGroup p_group(*parameters, root_path);
 
   const EnzoConfig * enzo_config = enzo::config();
 
@@ -594,6 +593,12 @@ Method * EnzoProblem::create_method_
   const std::vector<std::string>& mlist = enzo_config->method_list;
   const bool store_fluxes_for_corrections =
     std::find(mlist.begin(), mlist.end(), "flux_correct") != mlist.end();
+
+  // Create ParameterGroup for method parameters
+  parameter_path_type path;
+  path.push_back("Method");
+  path.push_back(mlist[index_method]);
+  ParameterGroup p_group(*parameters, path);
 
   TRACE1("EnzoProblem::create_method %s",name.c_str());
   if (name == "ppm") {
@@ -664,7 +669,7 @@ Method * EnzoProblem::create_method_
     // the presence of this extra logic here is undesirable, but it appears
     // somewhat unavoidable
 
-    std::string solver_name = p_group.value_string("solver","unknown");
+    std::string solver_name = p_group.value<std::string>("solver","unknown");
 
     int index_solver = enzo_config->solver_index.at(solver_name);
 
@@ -673,11 +678,11 @@ Method * EnzoProblem::create_method_
 	     solver_name.c_str(),
 	     0 <= index_solver && index_solver < enzo_config->num_solvers);
 
-    Prolong * prolong = create_prolong_
-      (p_group.value_string("prolong","linear"),config);
+    Prolong * prolong_ptr = create_prolong_
+      (p_group.value<std::string>("prolong","linear"),config);
 
     const int index_prolong = prolong_list_.size();
-    prolong_list_.push_back(prolong);
+    prolong_list_.push_back(prolong_ptr);
 
     method = new EnzoMethodGravity
       (p_group, index_solver, index_prolong,
@@ -699,7 +704,7 @@ Method * EnzoProblem::create_method_
     // that parses the feedback flavor and creates the appropriate subclass.
 
     // we are reading Method:star_maker:flavor
-    std::string flavor = p_group.value_string("flavor", "stochastic");
+    std::string flavor = p_group.value<std::string>("flavor", "stochastic");
 
     // should generalize this to enable multiple maker types
     if (flavor == "stochastic"){
@@ -716,7 +721,7 @@ Method * EnzoProblem::create_method_
     // that parses the feedback flavor and creates the appropriate subclass.
 
     // we are reading Method:feedback:flavor
-    std::string flavor = p_group.value_string("flavor", "distributed");
+    std::string flavor = p_group.value<std::string>("flavor", "distributed");
 
     if (flavor == "distributed"){
       method = new EnzoMethodDistributedFeedback(p_group);
@@ -750,7 +755,7 @@ Method * EnzoProblem::create_method_
     // that parses the feedback flavor and creates the appropriate subclass.
 
     // we are reading Method:accretion:flavor
-    std::string flavor = p_group.value_string("flavor", "flavor");
+    std::string flavor = p_group.value<std::string>("flavor", "flavor");
 
     if (flavor == "threshold") {
       method = new EnzoMethodThresholdAccretion(p_group);
@@ -801,20 +806,20 @@ Prolong * EnzoProblem::create_prolong_
   Config *     config ) throw ()
 {
 
-  Prolong * prolong = 0;
+  Prolong * prolong_ptr = nullptr;
 
   const EnzoConfig * enzo_config = enzo::config();
 
   if (type == "enzo") {
-    prolong = new EnzoProlong
+    prolong_ptr = new EnzoProlong
       (enzo_config->prolong_enzo_type,
        enzo_config->prolong_enzo_positive,
        enzo_config->prolong_enzo_use_linear);
   } else {
-    prolong = Problem::create_prolong_(type,config);
+    prolong_ptr = Problem::create_prolong_(type,config);
   }
 
-  return prolong;
+  return prolong_ptr;
 
 }
 
@@ -826,21 +831,13 @@ Physics * EnzoProblem::create_physics_
    Config * config,
    Parameters * parameters) throw ()
 {
-
-  // move creation of p_accessor up the call stack?
-  // -> our initialization of ParameterGroup diverges from the other create_
-  //    methods to some degree. Namely, we directly construct `root_path` from
-  //    the `type` argument (rather than use the `index` argument to retrieve
-  //    the groupname from "Physics:list" parameter).
-  // -> We do this for 2 reasons:
-  //    1. we require a one-to-one mapping between the type and group-name
-  //    2. we may initialize a physics-object not included in the list for
-  //       compatability reasons
-  const std::string root_path = "Physics:" + type;
-  ParameterGroup p_group(*parameters, root_path);
-
-  Physics * physics = NULL;
+  Physics * physics = nullptr;
   const EnzoConfig * enzo_config = enzo::config();
+
+  parameter_path_type path;
+  path.push_back("Physics");
+  path.push_back(type);
+  ParameterGroup p_group(*parameters, path);
 
   if (type == "cosmology") {
 
@@ -872,6 +869,7 @@ Physics * EnzoProblem::create_physics_
              "object (it's okay if it comes before the \"gravity\" object)",
              enzo_config->physics_list[i] != "cosmology");
     }
+
     physics = new EnzoPhysicsGravity(p_group);
 
   } else {
@@ -894,8 +892,10 @@ void EnzoProblem::initialize_physics_coda_(Config * config,
   const std::vector<std::string> required = {"fluid_props", "gravity"};
   for (const std::string& name: required) {
     if (physics(name) != nullptr) { continue; }
-    physics_list_.push_back(create_physics_(name, physics_list_.size(),
-                                            config, parameters));
+    const int index = physics_list_.size();
+    physics_list_.push_back(nullptr);
+    physics_list_[index] = create_physics_
+      (name, index, config, parameters);
   }
 
   // in the future, we might want to move the following snippet from
@@ -941,13 +941,7 @@ Restrict * EnzoProblem::create_restrict_
  std::string  type,
  Config * config ) throw ()
 {
-
-  Restrict * restrict = 0;
-
-  restrict = Problem::create_restrict_(type,config);
-
-  return restrict;
-
+  return Problem::create_restrict_(type,config);
 }
 
 //----------------------------------------------------------------------

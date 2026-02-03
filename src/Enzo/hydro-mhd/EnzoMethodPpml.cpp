@@ -39,7 +39,7 @@ EnzoMethodPpml::EnzoMethodPpml(ParameterGroup p)
          "PPML solver is currently incompatible with a non-isothermal EOS",
          fluid_props->eos_variant().holds_alternative<EnzoEOSIsothermal>());
 
-  this->set_courant(p.value_float("courant",1.0));
+  this->set_courant(p.value<double>("courant",1.0));
 }
 
 //----------------------------------------------------------------------

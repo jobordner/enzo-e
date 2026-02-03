@@ -24,6 +24,8 @@ enum meta_type {
   meta_type_group
 };
 
+typedef int reduce_type;
+
 //----------------------------------------------------------------------
 // Global functions
 //----------------------------------------------------------------------
@@ -77,11 +79,6 @@ namespace cello {
 #include "io_OutputCheckpoint.hpp"
 #include "io_OutputData.hpp"
 #include "io_OutputImage.hpp"
-
-#include "io_Schedule.hpp"
-#include "io_ScheduleInterval.hpp"
-#include "io_ScheduleList.hpp"
-
 
 #endif /* _IO_HPP */
 

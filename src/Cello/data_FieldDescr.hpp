@@ -27,10 +27,29 @@ class FieldDescr
 public: // functions
 
   /// Initialize a FieldDescr object
-  FieldDescr() throw();
+  FieldDescr() throw()
+  : name_(),
+    num_permanent_(0),
+    num_temporary_(0),
+    id_(),
+    groups_(),
+    alignment_(1),
+    padding_(0),
+    precision_(),
+    centering_(),
+    ghost_depth_(),
+    conserved_(),
+    history_(0),
+    history_id_()
+  {
+    for (int i=0; i<3; i++) {
+      ghost_depth_default_[i] = 0;
+    }
+  }
 
   /// Destructor
-  ~FieldDescr() throw();
+  ~FieldDescr() throw()
+  { }
 
   /// Copy constructor
   FieldDescr(const FieldDescr & field_descr) throw();

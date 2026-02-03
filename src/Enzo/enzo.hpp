@@ -46,6 +46,7 @@
 //----------------------------------------------------------------------
 
 class CProxy_EnzoBlock;
+class CProxy_EnzoSimulation;
 class EnzoBlock;
 class EnzoConfig;
 class EnzoFactory;
@@ -67,6 +68,7 @@ namespace enzo {
   const EnzoFactory *       factory();
   EnzoProblem *             problem();
   EnzoSimulation *          simulation();
+  CProxy_EnzoSimulation     simulation_array();
   EnzoUnits *               units();
 
   EnzoPhysicsCosmology *    cosmology();

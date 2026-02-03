@@ -22,22 +22,22 @@
 EnzoMethodM1Closure::EnzoMethodM1Closure(ParameterGroup p)
   : Method(),
     // the following attributes get initialized straight from the parameter file
-    N_groups_(p.value_integer("N_groups",1)),
-    flux_function_(p.value_string("flux_function","GLF")),
-    hll_file_(p.value_string("hll_file","hll_evals.list")),
-    clight_frac_(p.value_float("clight_frac",1.0)),
-    photon_escape_fraction_(p.value_float("photon_escape_fraction",1.0)),
-    radiation_spectrum_(p.value_string("radiation_spectrum","custom")),
-    temperature_blackbody_(p.value_float("temperature_blackbody",0.0)),
-    particle_luminosity_(p.value_float("particle_luminosity",-1.0)),
-    min_photon_density_(p.value_float("min_photon_density",0.0)),
-    attenuation_(p.value_logical("attenuation",true)),
-    thermochemistry_(p.value_logical("thermochemistry",true)),
-    recombination_radiation_(p.value_logical("recombination_radiation",false)),
-    H2_photodissociation_(p.value_logical("H2_photodissociation",false)),
-    lyman_werner_background_(p.value_logical("lyman_werner_background",false)),
-    LWB_J21_(p.value_float("LWB_J21", -1.0)),
-    cross_section_calculator_(p.value_string("cross_section_calculator",
+    N_groups_(p.value<int>("N_groups",1)),
+    flux_function_(p.value<std::string>("flux_function","GLF")),
+    hll_file_(p.value<std::string>("hll_file","hll_evals.list")),
+    clight_frac_(p.value<double>("clight_frac",1.0)),
+    photon_escape_fraction_(p.value<double>("photon_escape_fraction",1.0)),
+    radiation_spectrum_(p.value<std::string>("radiation_spectrum","custom")),
+    temperature_blackbody_(p.value<double>("temperature_blackbody",0.0)),
+    particle_luminosity_(p.value<double>("particle_luminosity",-1.0)),
+    min_photon_density_(p.value<double>("min_photon_density",0.0)),
+    attenuation_(p.value<bool>("attenuation",true)),
+    thermochemistry_(p.value<bool>("thermochemistry",true)),
+    recombination_radiation_(p.value<bool>("recombination_radiation",false)),
+    H2_photodissociation_(p.value<bool>("H2_photodissociation",false)),
+    lyman_werner_background_(p.value<bool>("lyman_werner_background",false)),
+    LWB_J21_(p.value<double>("LWB_J21", -1.0)),
+    cross_section_calculator_(p.value<std::string>("cross_section_calculator",
                                              "vernier")),
     // the following batch of attributes get initialized shortly
     SED_(),
@@ -50,7 +50,7 @@ EnzoMethodM1Closure::EnzoMethodM1Closure(ParameterGroup p)
     M1_tables(nullptr)
 {
 
-  this->set_courant(p.value_float("courant",1.0));
+  this->set_courant(p.value<double>("courant",1.0));
 
   // finish parsing parameters (since this logic was moved here after the rest
   // of the function was written, we are putting it into its own scope to avoid
@@ -69,18 +69,18 @@ EnzoMethodM1Closure::EnzoMethodM1Closure(ParameterGroup p)
     double bin_width = 100.0 / N_groups_;
     for (int i = 0; i < N_groups_; i++) {
       // default SED (if this is being used) is flat spectrum
-      SED_[i] = p.list_value_float(i,"SED", 1.0/N_groups_);
-      energy_lower_[i] = p.list_value_float
+      SED_[i] = p.value<double>(i,"SED", 1.0/N_groups_);
+      energy_lower_[i] = p.value<double>
         (i, "energy_lower", 1.0 + bin_width*i);
-      energy_upper_[i] = p.list_value_float
+      energy_upper_[i] = p.value<double>
         (i, "energy_upper", 1.0 + bin_width*(i+1));
-      energy_mean_[i] = p.list_value_float
+      energy_mean_[i] = p.value<double>
         (i,"energy_mean", 0.5*(energy_lower_[i] + energy_upper_[i]));
 
       for (int j = 0; j < N_species; j++) {
         int sig_index = i*N_species + j;
-        sigmaN_[sig_index] = p.list_value_float(sig_index, "sigmaN", 0.0);
-        sigmaE_[sig_index] = p.list_value_float(sig_index, "sigmaE", 0.0);
+        sigmaN_[sig_index] = p.value<double>(sig_index, "sigmaN", 0.0);
+        sigmaE_[sig_index] = p.value<double>(sig_index, "sigmaE", 0.0);
       }
     }
   }

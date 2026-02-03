@@ -38,7 +38,7 @@ public: // interface
     adapt_include_ghosts(),
     adapt_output(),
     adapt_schedule_index(),
-    balance_schedule_index(0),
+    balance_schedule_index(-1),
     balance_type(),
     num_boundary(0),
     boundary_list(),
@@ -89,6 +89,10 @@ public: // interface
     monitor_verbose(false),
     monitor_proc(false),
     monitor_time(false),
+    monitor_schedule_index(-1),
+    monitor_level(),
+    monitor_mute_list(),
+    monitor_only_list(),
     num_output(0),
     output_list(),
     output_type(),
@@ -251,6 +255,10 @@ public: // interface
       monitor_verbose(false),
       monitor_proc(false),
       monitor_time(false),
+      monitor_schedule_index(-1),
+      monitor_level(),
+      monitor_mute_list(),
+      monitor_only_list(),
       num_output(0),
       output_list(),
       output_type(),
@@ -470,6 +478,10 @@ public: // attributes
   bool                       monitor_verbose;
   bool                       monitor_proc;
   bool                       monitor_time;
+  int                        monitor_schedule_index;
+  std::string                monitor_level;
+  std::vector<std::string>   monitor_mute_list;
+  std::vector<std::string>   monitor_only_list;
 
   // Output
 
@@ -615,6 +627,7 @@ protected: // functions
   void read_units_       ( Parameters * ) throw();
 
   int read_schedule_( Parameters * ,
+                      const parameter_path_type & parameter_path,
 		      const std::string group   );
 
 

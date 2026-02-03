@@ -259,15 +259,14 @@ void Problem::initialize_prolong(Config * config) throw()
   ASSERT ("Problem::initialize_prolong()",
           "Initial default prolongation must be added to Problem::prolong_list_ first",
           (prolong_list_.size() == 0));
-
-  Prolong * prolong = create_prolong_(config->field_prolong,config);
+  Prolong * prolong_ptr = create_prolong_(config->field_prolong,config);
 
   ASSERT1("Problem::initialize_prolong",
-          "Prolong type %s not recognized",
-          config->field_prolong.c_str(),
-          prolong != nullptr);
+	  "Prolong type %s not recognized",
+	  config->field_prolong.c_str(),
+	  prolong_ptr != nullptr);
 
-  prolong_list_.push_back(prolong);
+  prolong_list_.push_back(prolong_ptr);
 
 }
 
@@ -280,14 +279,14 @@ void Problem::initialize_restrict(Config * config) throw()
           "Initial default restriction must be added to Problem::restrict_list_ first",
           (restrict_list_.size() == 0));
 
-  Restrict * restrict = create_restrict_(config->field_restrict,config);
+  Restrict * restrict_ptr = create_restrict_(config->field_restrict,config);
 
   ASSERT1("Problem::initialize_restrict",
-          "Restrict type %s not recognized",
-          config->field_restrict.c_str(),
-          restrict != nullptr);
+	  "Restrict type %s not recognized",
+	  config->field_restrict.c_str(),
+	  restrict_ptr != nullptr);
 
-  restrict_list_.push_back(restrict);
+  restrict_list_.push_back(restrict_ptr);
 
 }
 
@@ -475,10 +474,6 @@ void Problem::initialize_output
 void Problem::initialize_method
 ( Config * config, const Factory * factory ) throw()
 {
-  ASSERT("Problem::initialize_method()",
-         "Simulation object does not exist!",
-         cello::simulation());
-
   const size_t num_method = config->method_list.size();
 
   for (size_t index_method=0; index_method < num_method ; index_method++) {
@@ -693,6 +688,7 @@ Refine * Problem::create_refine_
 
     return new RefineMask
       (parameters,
+       root_group,
        param_str,
        config->adapt_max_level[index],
        config->adapt_include_ghosts[index],
@@ -771,16 +767,16 @@ Solver * Problem::create_solver_
 
   if (type == "null") {
 
-    Prolong * prolong = create_prolong_
+    Prolong * prolong_ptr = create_prolong_
       (config->solver_prolong[index_solver],config);
-    Restrict * restrict = create_restrict_
+    Restrict * restrict_ptr = create_restrict_
       (config->solver_restrict[index_solver],config);
 
     const int index_prolong = prolong_list_.size();
     const int index_restrict = restrict_list_.size();
-    prolong_list_.push_back(prolong);
-    restrict_list_.push_back(restrict);
-
+    prolong_list_.push_back(prolong_ptr);
+    restrict_list_.push_back(restrict_ptr);
+    
     solver = new SolverNull
       (config->solver_list         [index_solver],
        config->solver_field_x      [index_solver],
@@ -902,14 +898,16 @@ Method * Problem::create_method_
 {
   TRACE1("Problem::create_method %s",name.c_str());
 
-  ASSERT("Problem::create_method_",
-         "Simulation object does not exist!",
+
+  ASSERT("Problem::create_method_", "cello::simulation() is null",
          (cello::simulation() != nullptr));
 
   Parameters* parameters = cello::simulation()->parameters();
-  const std::string root_path =
-    ("Method:" + parameters->list_value_string(index_method, "Method:list"));
-  ParameterGroup p_group(*parameters, root_path);
+
+  parameter_path_type path;
+  path.push_back("Method");
+  path.push_back(config->method_list[index_method]);
+  ParameterGroup p_group(*parameters, path);
 
   // No default method
   Method * method = nullptr;
@@ -939,9 +937,9 @@ Method * Problem::create_method_
     method = new MethodDebug
       (config->num_fields,
        config->num_particles,
-       p_group.value_logical("print",false),
-       p_group.value_logical("coarse",false),
-       p_group.value_logical("ghost",false));
+       p_group.value<bool>("print",false),
+       p_group.value<bool>("coarse",false),
+       p_group.value<bool>("ghost",false));
 
   } else if (name == "close_files") {
     method = new MethodCloseFiles(p_group);
@@ -1050,15 +1048,15 @@ Output * Problem::create_output_
 Prolong * Problem::create_prolong_ ( std::string  name ,
                                      Config * config) throw ()
 {
-  Prolong * prolong = 0;
+  Prolong * prolong_ptr = nullptr;
 
   if (name == "linear") {
 
-    prolong = new ProlongLinear;
+    prolong_ptr = new ProlongLinear;
 
   } else if (name == "inject") {
 
-    prolong = new ProlongInject;
+    prolong_ptr = new ProlongInject;
 
   } else {
 
@@ -1067,8 +1065,8 @@ Prolong * Problem::create_prolong_ ( std::string  name ,
 
   }
 
-  return prolong;
-
+  return prolong_ptr;
+  
 }
 
 //----------------------------------------------------------------------
@@ -1076,11 +1074,11 @@ Prolong * Problem::create_prolong_ ( std::string  name ,
 Restrict * Problem::create_restrict_ ( std::string  name ,
                                        Config * config) throw ()
 {
-  Restrict * restrict = 0;
+  Restrict * restrict_ptr = nullptr;
 
   if (name == "linear") {
 
-    restrict = new RestrictLinear;
+    restrict_ptr = new RestrictLinear;
 
   } else {
 
@@ -1089,8 +1087,8 @@ Restrict * Problem::create_restrict_ ( std::string  name ,
 
   }
 
-  return restrict;
-
+  return restrict_ptr;
+  
 }
 
 //----------------------------------------------------------------------

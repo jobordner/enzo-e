@@ -20,6 +20,7 @@ module simulation {
 
     entry void p_refine_create_block (MsgRefine *);
 
+    entry void r_initialize_next (CkReductionMsg * msg);
     entry void r_initialize_block_array (CkReductionMsg * msg);
 
     entry void s_write ();
@@ -35,6 +36,7 @@ module simulation {
     entry void r_advance_state_exit(CkReductionMsg * msg);
     entry void r_monitor_performance_reduce (CkReductionMsg * msg);
     entry void p_monitor_performance();
+    entry void p_monitor_output();
 
     entry void p_set_block_array (CProxy_Block block_array);
     entry void p_initial_block_created();

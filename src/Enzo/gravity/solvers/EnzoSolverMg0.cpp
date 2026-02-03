@@ -246,7 +246,7 @@ void EnzoSolverMg0::enter_solver_ (EnzoBlock * enzo_block) throw()
     // Compute sum(B) and length() to project B onto range of A
     // if A is singular (
 
-    long double reduce[2] = {0.0, 0.0};
+    cello_reduce_type reduce[2] = {0.0, 0.0};
 
     if (is_finest_(enzo_block)) {
 
@@ -260,8 +260,8 @@ void EnzoSolverMg0::enter_solver_ (EnzoBlock * enzo_block) throw()
                         enzo::block_array());
 
     PERF_REDUCE_START(perf_rindex_reduce_solver_mg0);
-    enzo_block->contribute(2*sizeof(long double), &reduce,
-                           sum_long_double_2_type, callback);
+    enzo_block->contribute(2*sizeof(cello_reduce_type), &reduce,
+			   sum_cello_reduce_2_type, callback);
   } else {
 
     begin_solve (enzo_block,nullptr);
@@ -273,7 +273,7 @@ void EnzoSolverMg0::enter_solver_ (EnzoBlock * enzo_block) throw()
 //----------------------------------------------------------------------
 
 void EnzoSolverMg0::compute_shift_
-(EnzoBlock * enzo_block,long double * reduce) throw()
+(EnzoBlock * enzo_block,cello_reduce_type * reduce) throw()
 {
   Field field = enzo_block->data()->field();
 
@@ -331,7 +331,7 @@ void EnzoSolverMg0::do_shift_(EnzoBlock * enzo_block,
 {
   if (msg != nullptr) {
 
-    long double* data = (long double*) msg->getData();
+    cello_reduce_type* data = (cello_reduce_type*) msg->getData();
 
     bs_ = data[0];
     bc_ = data[1];
@@ -373,7 +373,7 @@ void EnzoSolverMg0::begin_cycle_(EnzoBlock * enzo_block) throw()
 
     } else {
 
-      restrict (enzo_block);
+      do_restrict (enzo_block);
 
     }
 
@@ -405,10 +405,10 @@ void EnzoBlock::p_solver_mg0_solve_coarse()
   CkCallback callback(CkIndex_EnzoBlock::r_solver_mg0_barrier(nullptr),
 		      enzo::block_array());
 
-  long double data[1] = {solver->rr_local()};
+  cello_reduce_type data[1] = {solver->rr_local()};
 
   PERF_REDUCE_START(perf_rindex_reduce_solver_mg0);
-  contribute(sizeof(long double), data,  sum_long_double_type, callback);
+  contribute(sizeof(cello_reduce_type), data,  sum_cello_reduce_type, callback);
 }
 
 //----------------------------------------------------------------------
@@ -419,14 +419,14 @@ void EnzoBlock::r_solver_mg0_barrier(CkReductionMsg* msg)
   EnzoSolverMg0 * solver =
     static_cast<EnzoSolverMg0*> (this->solver());
 
-  long double rr = ((long double*) msg->getData())[0];
+  cello_reduce_type rr = ((cello_reduce_type*) msg->getData())[0];
   solver->set_rr(rr);
   solver->set_rr_local(0.0);
   if (*solver->piter(this)==0) solver->set_rr0(rr);
 
   delete msg;
 
-  solver->prolong(this);
+  solver->do_prolong(this);
 }
 
 //----------------------------------------------------------------------
@@ -436,12 +436,12 @@ void EnzoBlock::p_solver_mg0_restrict()
   EnzoSolverMg0 * solver =
     static_cast<EnzoSolverMg0*> (this->solver());
 
-  solver->restrict(this);
+  solver->do_restrict(this);
 }
 
 //----------------------------------------------------------------------
 
-void EnzoSolverMg0::restrict(EnzoBlock * enzo_block) throw()
+void EnzoSolverMg0::do_restrict(EnzoBlock * enzo_block) throw()
 ///      smooth.apply (A,X,B)
 ///      callback = p_restrict_send()
 ///      call refresh (X,level,"level")
@@ -603,7 +603,7 @@ void EnzoSolverMg0::restrict_recv
 
 //----------------------------------------------------------------------
 
-void EnzoSolverMg0::prolong(EnzoBlock * enzo_block) throw()
+void EnzoSolverMg0::do_prolong(EnzoBlock * enzo_block) throw()
 ///
 ///      solve A X = B
 ///      end_cycle()

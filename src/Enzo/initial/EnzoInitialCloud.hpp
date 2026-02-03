@@ -25,23 +25,23 @@ public: // interface
   /// Constructor
   EnzoInitialCloud(int cycle, double time, ParameterGroup p) noexcept
     : Initial(cycle,time),
-      subsample_n_(p.value_integer("subsample_n",0)),
-      cloud_radius_(p.value_float("cloud_radius",0.0)),
-      cloud_center_x_(p.value_float("cloud_center_x",0.0)),
-      cloud_center_y_(p.value_float("cloud_center_y",0.0)),
-      cloud_center_z_(p.value_float("cloud_center_z",0.0)),
-      density_cloud_(p.value_float("cloud_density",0.0)),
-      density_wind_(p.value_float("wind_density",0.0)),
-      etot_wind_(p.value_float("wind_total_energy",0.0)),
-      eint_wind_(p.value_float("wind_internal_energy",0.0)),
-      velocity_wind_(p.value_float("wind_velocity",0.0)),
-      metal_mass_frac_(p.value_float("metal_mass_fraction",0.0)),
-      perturb_Nwaves_(p.value_integer("perturb_Nwaves", 0)),
-      perturb_amplitude_(p.value_float("perturb_amplitude", 0.)),
-      perturb_min_wavelength_(p.value_float
+      subsample_n_(p.value<int>("subsample_n",0)),
+      cloud_radius_(p.value<double>("cloud_radius",0.0)),
+      cloud_center_x_(p.value<double>("cloud_center_x",0.0)),
+      cloud_center_y_(p.value<double>("cloud_center_y",0.0)),
+      cloud_center_z_(p.value<double>("cloud_center_z",0.0)),
+      density_cloud_(p.value<double>("cloud_density",0.0)),
+      density_wind_(p.value<double>("wind_density",0.0)),
+      etot_wind_(p.value<double>("wind_total_energy",0.0)),
+      eint_wind_(p.value<double>("wind_internal_energy",0.0)),
+      velocity_wind_(p.value<double>("wind_velocity",0.0)),
+      metal_mass_frac_(p.value<double>("metal_mass_fraction",0.0)),
+      perturb_Nwaves_(p.value<int>("perturb_Nwaves", 0)),
+      perturb_amplitude_(p.value<double>("perturb_amplitude", 0.)),
+      perturb_min_wavelength_(p.value<double>
                               ("perturb_min_lambda",
                                std::numeric_limits<double>::min())),
-      perturb_max_wavelength_(p.value_float
+      perturb_max_wavelength_(p.value<double>
                               ("perturb_max_lambda",
                                std::numeric_limits<double>::min())),
       perturb_seed_(0)
@@ -51,7 +51,7 @@ public: // interface
       perturb_max_wavelength_ = cloud_radius_;
     }
 
-    int perturb_seed_tmp = p.value_integer("perturb_seed",0);
+    int perturb_seed_tmp = p.value<int>("perturb_seed",0);
     ASSERT("EnzoInitialCloud",
            "Initial:cloud:perturb_seed must be a 32-bit unsigned integer",
            (perturb_seed_tmp >= 0) && (perturb_seed_tmp <= 4294967295L));
@@ -63,7 +63,7 @@ public: // interface
     } else if (uniform_bfield_length == 3) {
       initialize_uniform_bfield_ = true;
       for (int i = 0; i <3; i++) {
-        uniform_bfield_[i] = p.list_value_float(i,"uniform_bfield");
+        uniform_bfield_[i] = p.value<double>(i,"uniform_bfield");
       }
     } else {
       ERROR("EnzoInitialCloud",

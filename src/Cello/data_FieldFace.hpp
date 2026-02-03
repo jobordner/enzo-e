@@ -101,13 +101,6 @@ public: // interface
 
   int face_type() const { return face_type_; }
 
-  Prolong * prolong ()
-  { return refresh_->prolong(); }
-
-  Restrict * restrict ()
-  { return refresh_->restrict(); }
-
-  /// Set the Refresh object
   void set_refresh (Refresh * refresh, bool new_refresh)
   {
     refresh_ = refresh;
@@ -155,6 +148,12 @@ public: // interface
 
 private: // functions
 
+  Prolong * prolong_ ()
+  { return refresh_->get_prolong(); }
+
+  Restrict * restrict_ ()
+  { return refresh_->get_restrict(); }
+  
   /// copy data
   void copy_(const FieldFace & field_face); 
 

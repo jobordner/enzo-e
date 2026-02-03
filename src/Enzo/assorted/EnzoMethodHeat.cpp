@@ -14,7 +14,7 @@
 
 EnzoMethodHeat::EnzoMethodHeat (ParameterGroup p)
   : Method(),
-    alpha_(p.value_float("alpha",1.0))
+    alpha_(p.value<double>("alpha",1.0))
 {
 
   cello::define_field ("temperature");
@@ -25,7 +25,7 @@ EnzoMethodHeat::EnzoMethodHeat (ParameterGroup p)
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_field("temperature");
 
-  this->set_courant(p.value_float("courant",1.0));
+  this->set_courant(p.value<double>("courant",1.0));
 }
 
 //----------------------------------------------------------------------

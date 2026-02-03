@@ -647,14 +647,14 @@ static void setup_fluid_(Block *block, HydroInitPack hydro_init_pack,
 EnzoInitialInclinedWave::EnzoInitialInclinedWave(int cycle, double time,
                                                  ParameterGroup p) throw()
   : Initial (cycle,time),
-    alpha_(p.value_float("alpha",0.0)),
-    beta_(p.value_float("beta",0.0)),
+    alpha_(p.value<double>("alpha",0.0)),
+    beta_(p.value<double>("beta",0.0)),
     gamma_(enzo::fluid_props()->gamma()), // TODO: drop this as a parameter
-    amplitude_(p.value_float("amplitude",1.e-6)),
-    lambda_(p.value_float("lambda",1.0)),
-    parallel_vel_(p.value_float("parallel_vel",
+    amplitude_(p.value<double>("amplitude",1.e-6)),
+    lambda_(p.value<double>("lambda",1.0)),
+    parallel_vel_(p.value<double>("parallel_vel",
                                 std::numeric_limits<double>::min())),
-    pos_vel_(p.value_logical("positive_vel",true)),
+    pos_vel_(p.value<bool>("positive_vel",true)),
     wave_type_("")
 {
   const std::string wave_type_param_name = p.full_name("wave_type");
@@ -662,7 +662,7 @@ EnzoInitialInclinedWave::EnzoInitialInclinedWave(int cycle, double time,
     ERROR1("EnzoInitialInclinedWave::EnzoInitialInclinedWave",
            "%s must be specified", wave_type_param_name.c_str());
   } else {
-    wave_type_ = p.value_string("wave_type", "");
+    wave_type_ = p.value<std::string>("wave_type", "");
   }
 
   std::vector<std::string> mhd_waves = mhd_waves_();

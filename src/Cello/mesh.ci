@@ -9,9 +9,10 @@ module mesh {
 
   initnode void register_reduce_performance(void);
   initnode void register_reduce_method_debug(void);
-  initnode void register_sum_long_double(void);
-  initnode void register_sum_long_double_2(void);
-  initnode void register_sum_long_double_3(void);
+  initnode void register_sum_cello_reduce(void);
+  initnode void register_sum_cello_reduce_2(void);
+  initnode void register_sum_cello_reduce_3(void);
+  initnode void register_sum_cello_reduce_n(void);
   initnode void register_sum_long_double_n(void);
 
   initnode void mutex_init_hierarchy();

@@ -22,7 +22,7 @@ static std::vector<std::string> read_str_vec_(ParameterGroup p,
 {
   int length = p.list_length(name);
   std::vector<std::string> out(length);
-  for (int i = 0; i < length; i++) { out[i] = p.list_value_string(i, name); }
+  for (int i = 0; i < length; i++) { out[i] = p.value<std::string>(i, name); }
   return out;
 }
 
@@ -33,7 +33,7 @@ static std::vector<std::string> read_path_param_(ParameterGroup p,
 {
   const std::string root_path = p.get_group_path();
   if (p.type(name) == parameter_string) {
-    return { p.value_string(name,"") };
+    return { p.value<std::string>(name,"") };
   } else if (p.type(name) == parameter_list) {
     std::vector<std::string> out = read_str_vec_(p, name);
     if (out.size() == 0){
@@ -54,14 +54,14 @@ MethodOutput::MethodOutput(const Factory * factory, ParameterGroup p) noexcept
                  read_path_param_(p, "path_name"),
                  read_str_vec_(p, "field_list"),
                  read_str_vec_(p, "particle_list"),
-                 p.value_integer("ghost_depth",0),
-                 p.value_integer("min_face_rank",0), // default 0 all faces
-                 p.value_logical("all_fields", false),
-                 p.value_logical("all_particles", false),
-                 p.value_logical("all_blocks", true),
-                 p.list_value_integer(0,"blocking",1),
-                 p.list_value_integer(1,"blocking",1),
-                 p.list_value_integer(2,"blocking",1))
+                 p.value<int>("ghost_depth",0),
+                 p.value<int>("min_face_rank",0), // default 0 all faces
+                 p.value<bool>("all_fields", false),
+                 p.value<bool>("all_particles", false),
+                 p.value<bool>("all_blocks", true),
+                 p.value<int>(0,"blocking",1),
+                 p.value<int>(1,"blocking",1),
+                 p.value<int>(2,"blocking",1))
 { }
 
 //----------------------------------------------------------------------

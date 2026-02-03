@@ -114,7 +114,7 @@ public: // methods
   void begin_solve(EnzoBlock * enzo_block) throw();
 
   /// Restrict b to coarser Block
-  void restrict(EnzoBlock * enzo_block) throw();
+  void do_restrict(EnzoBlock * enzo_block) throw();
   void restrict_send(EnzoBlock * enzo_block) throw();
   void restrict_recv(EnzoBlock * enzo_block,
 		     FieldMsg * field_message) throw();
@@ -123,7 +123,7 @@ public: // methods
   void call_coarse_solver(EnzoBlock * enzo_block) throw();
   
   /// Begin the prolongation phase
-  void prolong(EnzoBlock * enzo_block) throw();
+  void do_prolong(EnzoBlock * enzo_block) throw();
   void prolong_send_(EnzoBlock * enzo_block) throw();
   void prolong_recv(EnzoBlock * enzo_block,
 		    FieldMsg * field_message) throw();

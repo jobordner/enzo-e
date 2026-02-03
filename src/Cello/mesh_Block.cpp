@@ -203,12 +203,6 @@ void Block::init_refine_
 
   Monitor * monitor = (simulation != NULL) ? simulation->monitor() : NULL;
 
-  if ((monitor != NULL) && monitor->is_verbose()) {
-    char buffer [80];
-    snprintf (buffer,sizeof(buffer),"Block() %s %d (%x %x %x) created",
-              name().c_str(), index.level(),index[0],index[1],index[2]);
-    monitor->print("Adapt",buffer);
-  }
   int ibx,iby,ibz;
   index.array(&ibx,&iby,&ibz);
 
@@ -226,7 +220,6 @@ void Block::init_refine_
   data_->allocate(index.level());
 
   child_data_ = NULL;
-
 
   sync_coarsen_.reset();
   sync_coarsen_.set_stop(cello::num_children());
@@ -695,13 +688,6 @@ Block::~Block()
   Simulation * simulation = cello::simulation();
 
   Monitor * monitor = simulation ? simulation->monitor() : NULL;
-
-  if (monitor && monitor->is_verbose()) {
-    char buffer [80];
-    snprintf (buffer,sizeof(buffer),"~Block() %s (%d;%d;%d) destroyed",
-              name().c_str(),index_[0],index_[1],index_[2]);
-    monitor->print("Adapt",buffer);
-  }
 
   const int level = this->level();
 
@@ -1334,4 +1320,3 @@ bool Block::refine_during_initialization(Index index) const throw()
 
   return false;
 }
-

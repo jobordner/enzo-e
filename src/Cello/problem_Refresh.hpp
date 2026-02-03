@@ -551,7 +551,7 @@ public: // interface
   { id_prolong_ = id_prolong; }
 
   /// Return the prolongation operator for refresh
-  Prolong * prolong ();
+  Prolong * get_prolong ();
   /// Return the prolongation id
   int index_prolong () const
   { return id_prolong_; }
@@ -561,8 +561,6 @@ public: // interface
   { id_restrict_ = id_restrict; }
 
   /// Return the restriction operator for refresh
-  Restrict * restrict ();
-
   /// Whether to include history fields for this face
   bool include_history(int face_type) const;
 
@@ -573,6 +571,8 @@ public: // interface
   void set_final_sync (int sync = true)
   { final_sync_ = sync; }
 
+  Restrict * get_restrict ();
+  
   //--------------------------------------------------
 
   /// Return the number of bytes required to serialize the data object

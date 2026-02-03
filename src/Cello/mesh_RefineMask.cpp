@@ -10,13 +10,14 @@
 //----------------------------------------------------------------------
 
 RefineMask::RefineMask(Parameters * parameters,
-		       const std::string parameter_name,
-		       int max_level,
-		       bool include_ghosts,
-		       std::string output) throw ()
+                       const parameter_path_type & path,
+                       const parameter_name_type & name,
+                       int max_level,
+                       bool include_ghosts,
+                       std::string output) throw ()
 
   : Refine (0.0, 0.0, max_level,include_ghosts, output),
-    value_(new Value(parameters,parameter_name))
+    value_(new Value(parameters,path,name))
 {
 }
 

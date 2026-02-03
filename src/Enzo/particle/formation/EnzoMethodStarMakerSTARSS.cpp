@@ -23,8 +23,8 @@
 EnzoMethodStarMakerSTARSS::EnzoMethodStarMakerSTARSS
 (ParameterGroup p)
   : EnzoMethodStarMaker(p),
-    min_level_(p.value_integer("min_level",0)),
-    turn_off_probability_(p.value_logical("turn_off_probability",false))
+    min_level_(p.value<int>("min_level",0)),
+    turn_off_probability_(p.value<bool>("turn_off_probability",false))
 {
   cello::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);

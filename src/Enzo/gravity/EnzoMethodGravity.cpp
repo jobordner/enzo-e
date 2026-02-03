@@ -20,11 +20,12 @@ EnzoMethodGravity::EnzoMethodGravity(ParameterGroup p, int index_solver,
                                      std::string type_super)
   : Method(),
     index_solver_(index_solver),
-    order_(p.value_integer("order",4)),
+    order_(p.value<int>("order",4)),
     ir_exit_(-1),
     index_prolong_(index_prolong),
+
     type_super_(),
-    dt_max_(p.value_float("dt_max",1.0e10))
+    dt_max_(p.value<double>("dt_max",1.0e10))
 {
   max_supercycle_ = max_super;
   // Initialize type_super_ super-cycling type
@@ -39,7 +40,7 @@ EnzoMethodGravity::EnzoMethodGravity(ParameterGroup p, int index_solver,
   }
 
   // Declare required fields
-  const bool accumulate = p.value_logical("accumulate",true);
+  const bool accumulate = p.value<bool>("accumulate",true);
 
   // Change this if fields used in this routine change
   // declare required fields
@@ -98,7 +99,7 @@ EnzoMethodGravity::EnzoMethodGravity(ParameterGroup p, int index_solver,
 
     // EnzoProlong does not work with accumulate!
     std::string prolong_name =
-      cello::problem()->prolong(index_prolong_)->name();
+      cello::problem()->get_prolong(index_prolong_)->name();
 
     ASSERT1("EnzoMethodGravity::EnzoMethodGravity()",
             "Requesting accumulated particle mass refresh: "

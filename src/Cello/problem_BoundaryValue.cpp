@@ -91,7 +91,7 @@ BoundaryValue::construct_ValueFList_pairs_
     const std::string grp_prefix = value_param_str + ":";
     for (const std::string& field_name : p_list) {
       std::vector<std::string> field_list = {field_name};
-      pair_vec.push_back( { Value(&p, grp_prefix + field_name), field_list } );
+      pair_vec.push_back( { Value(&p, root_group,grp_prefix + field_name), field_list } );
     }
 
   } else {
@@ -109,7 +109,7 @@ BoundaryValue::construct_ValueFList_pairs_
              value_param_str.c_str(), flist_param_str.c_str());
     }
 
-    pair_vec.push_back( { Value(&p, value_param_str), field_list } );
+    pair_vec.push_back( { Value(&p, root_group,value_param_str), field_list } );
   }
 
   if (pair_vec.size() == 0){

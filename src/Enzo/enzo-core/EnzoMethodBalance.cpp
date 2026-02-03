@@ -80,6 +80,10 @@ void EnzoSimulation::r_method_balance_count(CkReductionMsg * msg)
 
 void EnzoBlock::p_method_balance_migrate()
 {
+#ifdef TRACE_BALANCE
+  CkPrintf ("TRACE_BALANCE 5 p_method_balance_migrate() calling do_migrate()\n");
+  fflush(stdout);
+#endif
   static_cast<EnzoMethodBalance*> (method())->do_migrate(this);
 }
 
@@ -95,6 +99,7 @@ void EnzoMethodBalance::do_migrate(EnzoBlock * enzo_block)
 void EnzoSimulation::p_method_balance_check()
 {
   if (sync_method_balance_.next()) {
+
     sync_method_balance_.reset();
     enzo::block_array().doneInserting();
     enzo::block_array().p_method_balance_done();
@@ -109,6 +114,7 @@ void EnzoBlock::p_method_balance_done()
 
 void EnzoMethodBalance::done(EnzoBlock * enzo_block)
 {
+  enzo_block->set_ip_next(-1);
   enzo_block->compute_done();
 }
 

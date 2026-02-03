@@ -204,7 +204,10 @@ public: // virtual functions
 #endif
   }
 
-  /// Wait for all Hierarchy to be initialized before creating any Blocks
+  /// Ensure hierarchy_ initialized before creating blocks
+  void r_initialize_next(CkReductionMsg * msg);
+
+  /// Ensure hierarchy_ initialized on all Simulation objects before proceeding
   void r_initialize_block_array(CkReductionMsg * msg);
 
   /// Wait for all simulation objects to create blocks in levels <=0
@@ -267,6 +270,8 @@ public: // virtual functions
   //--------------------------------------------------
 
   void monitor_output();
+  void p_monitor_output()
+  { monitor_output(); }
 
    void p_monitor_performance()
    { monitor_performance(); };

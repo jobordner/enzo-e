@@ -45,7 +45,7 @@ void Block::output_exit_()
   PERF_START(perf_rindex_output);
 
   if (index_.is_root()) {
-    cello::simulation()->monitor_output();
+    cello::simulation_array()[0].p_monitor_output();
   }
 
   control_sync_barrier (CkIndex_Block::r_stopping_enter(NULL));

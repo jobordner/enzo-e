@@ -17,8 +17,8 @@
 
 #ifdef DEBUG_INITIAL
 #   define TRACE_INITIAL(MSG,BLOCK)                     \
-  CkPrintf ("TRACE_CONTROL_INITIAL %s %s\n",                    \
-            BLOCK->name().c_str(),MSG); fflush(stdout);
+  CkPrintf ("TRACE_CONTROL_INITIAL %s %s %d\n",                    \
+            BLOCK->name().c_str(),MSG,index_initial_); fflush(stdout);
 
 #   define TRACE_INITIAL_SIM(MSG)                       \
   CkPrintf ("TRACE_CONTROL_INITIAL %s\n",MSG); fflush(stdout);
@@ -67,10 +67,22 @@ void Simulation::initialize() throw()
   // on all processors before Blocks are created
 
   // Create the Block chare array and distribute proxy to all other processes
-  CProxy_Block block_array;
+
+  CkCallback callback
+    (CkIndex_Simulation::r_initialize_next(nullptr), thisProxy);
+  
+  contribute(callback);
+}
+
+//----------------------------------------------------------------------
+
+void Simulation::r_initialize_next(CkReductionMsg * msg) 
+{  
   if (CkMyPe() == 0) {
+    CProxy_Block block_array;
     bool allocate_data = true;
     block_array = hierarchy_->new_block_proxy (allocate_data);
+    // broadcast block_array to other Simulation objects
     thisProxy.p_set_block_array(block_array);
   }
 }
@@ -82,7 +94,6 @@ void Simulation::r_initialize_block_array(CkReductionMsg * msg)
   TRACE_INITIAL_SIM("Simulation::r_initialize_block_array_()");
   PERF_START(perf_rindex_initial);
   delete msg;
-  
   initialize_block_array_();
 }
 

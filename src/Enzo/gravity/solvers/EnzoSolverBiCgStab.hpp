@@ -159,10 +159,10 @@ public: // interface
   /// End the solve
   void end(EnzoBlock* enzo_block, int retval) throw();
 
-  void dot_recv_parent   (EnzoBlock *, int, long double *,
+  void dot_recv_parent   (EnzoBlock *, int, cello_reduce_type *,
 			  const std::vector<int> & is_array,
 			  int i_function, int iter);
-  void dot_recv_children   (EnzoBlock *, int, long double *,
+  void dot_recv_children   (EnzoBlock *, int, cello_reduce_type *,
 			  const std::vector<int> & is_array,
 			  int i_function);
 
@@ -199,36 +199,44 @@ public: // interface
   
   // Inner product methods
 
-  void inner_product_    (EnzoBlock *, int, long double *,
+  void inner_product_    (EnzoBlock *, int, cello_reduce_type *,
 			  const std::vector<int> & isa,
 			  CkCallback callback,
 			  int i_function);
-  void dot_compute_tree_ (EnzoBlock *, int, long double *,
+  void dot_compute_tree_ (EnzoBlock *, int, cello_reduce_type *,
 			  const std::vector<int> & is_array,
 			  int i_function, int iter);
-  void dot_send_parent_  (EnzoBlock *, int, long double *,
+  void dot_send_parent_  (EnzoBlock *, int, cello_reduce_type *,
 			  const std::vector<int> & is_array,
 			  int i_function, int iter);
-  void dot_send_children_(EnzoBlock *, int, long double *,
+  void dot_send_children_(EnzoBlock *, int, cello_reduce_type *,
 			  const std::vector<int> & is_array,
 			  int i_function);
-  void dot_save_         (EnzoBlock *, int, long double *,
+  void dot_save_         (EnzoBlock *, int, cello_reduce_type *,
 			  const std::vector<int> & is_array);
-  void dot_load_         (EnzoBlock *, int, long double *,
+  void dot_load_         (EnzoBlock *, int, cello_reduce_type *,
 			  const std::vector<int> & is_array);
   void dot_clear_        (EnzoBlock *, int, const std::vector<int> & is_array);
-  void dot_clear_        (EnzoBlock *, int, long double *);
+  void dot_clear_        (EnzoBlock *, int, cello_reduce_type *);
   void dot_done_         (EnzoBlock *, int i_function,
 			  const char * file, int line);
   void dot_increment_    (EnzoBlock *,
 			  int,
 			  const std::vector<int> & is_array,
-			  long double * dot_block);
+			  cello_reduce_type * dot_block);
 protected:
   
-  inline long double & scalar_ (Block *block, int i_scalar)
+  inline cello_reduce_type & scalar_ (Block *block, int i_scalar)
   {
-    return *block->data()->scalar_long_double().value(i_scalar);
+#ifdef CELLO_REDUCE_TYPE_QUAD
+  Scalar<long double> scalar =
+    block->data()->scalar_long_double();
+#endif  
+#ifdef CELLO_REDUCE_TYPE_DOUBLE
+  Scalar<double> scalar =
+    block->data()->scalar_double();
+#endif  
+    return *scalar.value(i_scalar);
   }
 
   bool is_singular_()

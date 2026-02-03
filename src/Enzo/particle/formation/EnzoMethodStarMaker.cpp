@@ -32,29 +32,29 @@ EnzoMethodStarMaker::EnzoMethodStarMaker(ParameterGroup p)
   refresh->add_all_fields();
 
   // parameter parsing:
-  use_density_threshold_     = p.value_logical("use_density_threshold",false);
-  use_velocity_divergence_   = p.value_logical("use_velocity_divergence",false);
-  use_self_gravitating_      = p.value_logical("use_self_gravitating", false);
-  use_altAlpha_              = p.value_logical("use_altAlpha",false);
-  use_h2_self_shielding_     = p.value_logical("use_h2_self_shielding", false);
-  use_jeans_mass_            = p.value_logical("use_jeans_mass", false);
-  number_density_threshold_  = p.value_float("number_density_threshold",0.0);
-  efficiency_                = p.value_float("efficiency",0.01);
-  maximum_star_fraction_     = p.value_float("maximum_mass_fraction",0.05);
-  star_particle_min_mass_    = p.value_float("minimum_star_mass",0.0);
-  star_particle_max_mass_    = p.value_float("maximum_star_mass",-1.0);
-  use_dynamical_time_        = p.value_logical("use_dynamical_time",false);
+  use_density_threshold_     = p.value<bool>("use_density_threshold",false);
+  use_velocity_divergence_   = p.value<bool>("use_velocity_divergence",false);
+  use_self_gravitating_      = p.value<bool>("use_self_gravitating", false);
+  use_altAlpha_              = p.value<bool>("use_altAlpha",false);
+  use_h2_self_shielding_     = p.value<bool>("use_h2_self_shielding", false);
+  use_jeans_mass_            = p.value<bool>("use_jeans_mass", false);
+  number_density_threshold_  = p.value<double>("number_density_threshold",0.0);
+  efficiency_                = p.value<double>("efficiency",0.01);
+  maximum_star_fraction_     = p.value<double>("maximum_mass_fraction",0.05);
+  star_particle_min_mass_    = p.value<double>("minimum_star_mass",0.0);
+  star_particle_max_mass_    = p.value<double>("maximum_star_mass",-1.0);
+  use_dynamical_time_        = p.value<bool>("use_dynamical_time",false);
 
-  use_overdensity_threshold_ = p.value_logical("use_overdensity_threshold",
+  use_overdensity_threshold_ = p.value<bool>("use_overdensity_threshold",
                                                false);
-  overdensity_threshold_     = p.value_float("overdensity_threshold",0.0);
-  use_critical_metallicity_  = p.value_logical("use_critical_metallicity",
+  overdensity_threshold_     = p.value<double>("overdensity_threshold",0.0);
+  use_critical_metallicity_  = p.value<bool>("use_critical_metallicity",
                                                false);
-  critical_metallicity_      = p.value_float("critical_metallicity",0.0);
-  use_cooling_time_          = p.value_logical("use_cooling_time",false);
-  use_temperature_threshold_ = p.value_logical("use_temperature_threshold",
+  critical_metallicity_      = p.value<double>("critical_metallicity",0.0);
+  use_cooling_time_          = p.value<bool>("use_cooling_time",false);
+  use_temperature_threshold_ = p.value<bool>("use_temperature_threshold",
                                                false);
-  temperature_threshold_     = p.value_float("temperature_threshold",1.0E4);
+  temperature_threshold_     = p.value<double>("temperature_threshold",1.0E4);
 }
 
 //-------------------------------------------------------------------

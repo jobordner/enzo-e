@@ -19,15 +19,18 @@ Monitor Monitor::instance_[CONFIG_NODE_SIZE]; // singleton design pattern)
 Monitor::Monitor()
   : timer_(new Timer),
     mode_(monitor_mode_root),
-    verbose_(false),
     group_default_(monitor_mode_all),
     include_proc_(true),
-    include_time_(true)
+    include_time_(true),
+    level_(2),
+    schedule_(nullptr),
+    cycle_(0),
+    time_(0.0),
+    mute_set_(),
+    only_set_()
+
 {
   timer_->start();
-
-  // turn off debugging
-  group_mode_["DEBUG"] = monitor_mode_none;
 }
 
 //----------------------------------------------------------------------
@@ -42,6 +45,7 @@ Monitor::~Monitor()
 
 void Monitor::header () const
 {
+  if (level_ == 0) return;
   print ("","==============================================");
   print (""," ");
   print ("","  .oooooo.             oooo  oooo");
@@ -76,7 +80,7 @@ void Monitor::header () const
 	 t->tm_hour,
 	 t->tm_min,
 	 t->tm_sec);
-  print ("Input","File name            %s", g_parameters.file_name().c_str());
+  print ("Input","File name            %s", cello::parameters()->file_name().c_str());
   // Print all recognized configuration settings
 
   print ("Define","Simulation processors %d",CkNumPes());
@@ -115,23 +119,34 @@ void Monitor::header () const
 #endif
   print ("CHARM","CkNumPes()           %d",CkNumPes());
   print ("CHARM","CkNumNodes()         %d",CkNumNodes());
+  print ("CHARM","CkNumHosts()         %d",CmiNumPhysicalNodes());
 }
 
 //----------------------------------------------------------------------
 
 int Monitor::is_active(const char * component) const throw ()
 {
-  if (mode_ == monitor_mode_none)
-    return false;
+  // Return false if component is inactive
+
+  int component_active = mute_set_.find(std::string(component)) == mute_set_.end();
+  if (!only_set_.empty())
+    component_active = only_set_.find(std::string(component)) != only_set_.end();
+
+  if (! component_active) return false;
+
+  // Return false if not scheduled
+
+  bool is_scheduled = (schedule_ && 
+		     schedule_->write_this_cycle(cycle_,time_));
+
+  if (schedule_ && !is_scheduled) return false;
+
+  // Return false if only writing from ip 0
 
   if (mode_ == monitor_mode_root && CkMyPe() != 0)
     return false;
 
-  auto it_active = group_mode_.find(component);
-
-  bool in_list = (it_active != group_mode_.end());
-
-  return in_list ? it_active->second : group_default_;
+  return true;
 }
 
 //----------------------------------------------------------------------
@@ -148,27 +163,6 @@ void Monitor::write
 
     char message[MONITOR_LENGTH+1];
 
-    va_start(fargs,format);
-    vsnprintf (message,MONITOR_LENGTH, format,fargs);
-    va_end(fargs);
-
-    write_ (fp, component,message);
-  }
-}
-
-//----------------------------------------------------------------------
-
-void Monitor::verbose
-( FILE * fp, const char * component, const char * format,  ... ) const
-{
-
-  if (verbose_ && is_active(component)) {
-
-    va_list fargs;
-
-    // Process any input arguments
-
-    char message[MONITOR_LENGTH+1];
     va_start(fargs,format);
     vsnprintf (message,MONITOR_LENGTH, format,fargs);
     va_end(fargs);
