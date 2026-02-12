@@ -40,9 +40,10 @@ def plot_list(plt,file_list,type='total',scale=1e-6,sort=True):
         for file in file_list:
             if (os.path.exists(file) and (not file.endswith(('_post.data')))):
                 data =  loadtxt(file,dtype=float)
-                glob_x = data[:,0]
-                glob_y = data[:,1]
-                file_times.append([glob_y[len(glob_y)-1],file])
+                if (len(data) > 2):
+                    glob_x = data[:,0]
+                    glob_y = data[:,1]
+                    file_times.append([glob_y[len(glob_y)-1],file])
         i=1
         # plot by revert end time
         for row in sorted(file_times,reverse=True):
@@ -162,7 +163,17 @@ html_table_start(html)
 html_table_row_start(html)
 
 # ----------------------------------------------------------------------
-region_list = ['method.data', 'solver.data', 'refresh.data', 'adapt.data', 'reduce.data']
+region_list = []
+if os.path.exists('method.data'):
+    region_list.append('method.data')
+if os.path.exists('solver.data'):
+    region_list.append('solver.data')
+if os.path.exists('refresh.data'):
+    region_list.append('refresh.data')
+if os.path.exists('adapt.data'):
+    region_list.append('adapt.data')
+if os.path.exists('reduce.data'):
+    region_list.append('reduce.data')
 if os.path.exists('smp.data'):
     region_list.append('smp.data')
 
@@ -184,18 +195,19 @@ html_table_start(html)
 html_table_row_start(html)
 
 # ----------------------------------------------------------------------
-plot_open(plt,'Enzo-E: memory usage','cycle','bytes');
+plot_open(plt,'Enzo-E: memory usage','cycle','Mbytes');
 plot_list(plt,glob.glob('memory_*data'))
 plt.legend(loc='upper left',ncols=3)
 ym,yp = plt.ylim()
 plt.ylim(0,yp)
 plot_write('plot_memory',html)
 # ----------------------------------------------------------------------
-plot_open(plt,'Enzo-E: blocks per level','cycle','blocks');
-plot_total(plt,'mesh_total-blocks.data','mesh_blocks-total',scale=1.0)
-plot_list(plt,glob.glob('mesh_blocks*.data'),scale=1.0,sort=False)
-plt.legend(loc='upper left',ncols=1)
-plot_write('plot_mesh',html)
+if os.path.exists('mesh_total-blocks.data'):
+    plot_open(plt,'Enzo-E: blocks per level','cycle','blocks');
+    plot_total(plt,'mesh_total-blocks.data','mesh_blocks-total',scale=1.0)
+    plot_list(plt,glob.glob('mesh_blocks*.data'),scale=1.0,sort=False)
+    plt.legend(loc='upper left',ncols=1)
+    plot_write('plot_mesh',html)
 # ----------------------------------------------------------------------
 plot_open(plt,'Enzo-E: load-balance efficiency','cycle','efficiency');
 plot_list(plt,glob.glob('balance_eff-*data'),scale=1.0)
@@ -225,33 +237,38 @@ plt.legend(loc='upper left',ncols=3)
 #plt.yscale('log')
 plot_write('plot_method_total',html)
 # ----------------------------------------------------------------------
-plot_open(plt,'Enzo-E: cumulative time in solver','cycle','time (s)');
-[solver_x_total, solver_y_total] = plot_total(plt,'solver.data','solver')
-plot_list(plt,glob.glob('solver_*data'))
-plt.legend(loc='upper left',ncols=3)
-#plt.yscale('log')
-plot_write('plot_solver_total',html)
+if os.path.exists('solver.data'):
+    plot_open(plt,'Enzo-E: cumulative time in solver','cycle','time (s)');
+    [solver_x_total, solver_y_total] = plot_total(plt,'solver.data','solver')
+    print (glob.glob('solver_*data'))
+    plot_list(plt,glob.glob('solver_*data'))
+    plt.legend(loc='upper left',ncols=3)
+    #plt.yscale('log')
+    plot_write('plot_solver_total',html)
 # ----------------------------------------------------------------------
-plot_open(plt,'Enzo-E: cumulative time in adapt','cycle','time (s)');
-[adapt_x_total, adapt_y_total] = plot_total(plt,'adapt.data','adapt')
-plot_list(plt,glob.glob('adapt_*data'))
-plt.legend(loc='upper left',ncols=3)
-#plt.yscale('log')
-plot_write('plot_adapt_total',html)
+if os.path.exists('adapt.data'):
+    plot_open(plt,'Enzo-E: cumulative time in adapt','cycle','time (s)');
+    [adapt_x_total, adapt_y_total] = plot_total(plt,'adapt.data','adapt')
+    plot_list(plt,glob.glob('adapt_*data'))
+    plt.legend(loc='upper left',ncols=3)
+    #plt.yscale('log')
+    plot_write('plot_adapt_total',html)
 # ----------------------------------------------------------------------
-plot_open(plt,'Enzo-E: cumulative time in refresh','cycle','time (s)');
-[refresh_x_total, refresh_y_total] = plot_total(plt,'refresh.data','refresh')
-plot_list(plt,glob.glob('refresh_*data'))
-plt.legend(loc='upper left',ncols=3)
-#plt.yscale('log')
-plot_write('plot_refresh_total',html)
+if os.path.exists('refresh.data'):
+    plot_open(plt,'Enzo-E: cumulative time in refresh','cycle','time (s)');
+    [refresh_x_total, refresh_y_total] = plot_total(plt,'refresh.data','refresh')
+    plot_list(plt,glob.glob('refresh_*data'))
+    plt.legend(loc='upper left',ncols=3)
+    #plt.yscale('log')
+    plot_write('plot_refresh_total',html)
 # ----------------------------------------------------------------------
-plot_open(plt,'Enzo-E: redshift','cycle','redshift');
-[redshift_x_total, redshift_y_total] = plot_total(plt,'redshift.data','redshift',scale=1.0)
-plot_list(plt,glob.glob('redshift_*data'))
-plt.legend(loc='upper left',ncols=3)
-#plt.yscale('log')
-plot_write('plot_redshift_total',html)
+if os.path.exists('redshift.data'):
+    plot_open(plt,'Enzo-E: redshift','cycle','redshift');
+    [redshift_x_total, redshift_y_total] = plot_total(plt,'redshift.data','redshift',scale=1.0)
+    plot_list(plt,glob.glob('redshift_*data'))
+    plt.legend(loc='upper left',ncols=3)
+    #plt.yscale('log')
+    plot_write('plot_redshift_total',html)
 # ----------------------------------------------------------------------
 if os.path.exists('smp.data'):
     plot_open(plt,'Enzo-E: cumulative time in SMP','cycle','time (s)');
@@ -275,29 +292,33 @@ html_table_start(html)
 html_table_row_start(html)
 
 # ----------------------------------------------------------------------
-plot_open(plt,'Enzo-E: per-cycle time in method','cycle','time (s)');
-[method_x_total, method_y_total] = plot_total(plt,'method.data','method',type='cycle')
-plot_list(plt,glob.glob('method_*data'),type='cycle')
-plt.legend(loc='upper left',ncols=3)
-plot_write('plot_method_cycle',html)
+if os.path.exists('method.data'):
+    plot_open(plt,'Enzo-E: per-cycle time in method','cycle','time (s)');
+    [method_x_total, method_y_total] = plot_total(plt,'method.data','method',type='cycle')
+    plot_list(plt,glob.glob('method_*data'),type='cycle')
+    plt.legend(loc='upper left',ncols=3)
+    plot_write('plot_method_cycle',html)
 # ----------------------------------------------------------------------
-plot_open(plt,'Enzo-E: per-cycle time in solver','cycle','time (s)');
-[solver_x_total, solver_y_total] = plot_total(plt,'solver.data','solver',type='cycle')
-plot_list(plt,glob.glob('solver_*data'),type='cycle')
-plt.legend(loc='upper left',ncols=3)
-plot_write('plot_solver_cycle',html)
+if os.path.exists('solver.data'):
+    plot_open(plt,'Enzo-E: per-cycle time in solver','cycle','time (s)');
+    [solver_x_total, solver_y_total] = plot_total(plt,'solver.data','solver',type='cycle')
+    plot_list(plt,glob.glob('solver_*data'),type='cycle')
+    plt.legend(loc='upper left',ncols=3)
+    plot_write('plot_solver_cycle',html)
 # ----------------------------------------------------------------------
-plot_open(plt,'Enzo-E: per-cycle time in adapt','cycle','time (s)');
-[adapt_x_total, adapt_y_total] = plot_total(plt,'adapt.data','adapt',type='cycle')
-plot_list(plt,glob.glob('adapt_*data'),type='cycle')
-plt.legend(loc='upper left',ncols=3)
-plot_write('plot_adapt_cycle',html)
+if os.path.exists('adapt.data'):
+    plot_open(plt,'Enzo-E: per-cycle time in adapt','cycle','time (s)');
+    [adapt_x_total, adapt_y_total] = plot_total(plt,'adapt.data','adapt',type='cycle')
+    plot_list(plt,glob.glob('adapt_*data'),type='cycle')
+    plt.legend(loc='upper left',ncols=3)
+    plot_write('plot_adapt_cycle',html)
 # ----------------------------------------------------------------------
-plot_open(plt,'Enzo-E: per-cycle time in refresh','cycle','time (s)');
-[refresh_x_total, refresh_y_total] = plot_total(plt,'refresh.data','refresh',type='cycle')
-plot_list(plt,glob.glob('refresh_*data'),type='cycle')
-plt.legend(loc='upper left',ncols=3)
-plot_write('plot_refresh_cycle',html)
+if os.path.exists('refresh.data'):
+    plot_open(plt,'Enzo-E: per-cycle time in refresh','cycle','time (s)');
+    [refresh_x_total, refresh_y_total] = plot_total(plt,'refresh.data','refresh',type='cycle')
+    plot_list(plt,glob.glob('refresh_*data'),type='cycle')
+    plt.legend(loc='upper left',ncols=3)
+    plot_write('plot_refresh_cycle',html)
 # ----------------------------------------------------------------------
 if os.path.exists('smp.data'):
     plot_open(plt,'Enzo-E: per-cycle time in smp','cycle','time (s)');
