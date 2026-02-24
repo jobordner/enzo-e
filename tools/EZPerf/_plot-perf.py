@@ -10,6 +10,7 @@ import string
 
 #--------------------------------------------------
 def plot_open(plt,title,label_x,label_y):
+    print ("Plotting",title)
 
     plt.clf()
 
@@ -148,7 +149,6 @@ w=1
 
 figure(figsize=(8,6), dpi=100)
 
-
 html=html_start()
 
 html_section_h2(html,"Simulation Times")
@@ -230,12 +230,13 @@ html_table_start(html)
 html_table_row_start(html)
 
 # ----------------------------------------------------------------------
-plot_open(plt,'Enzo-E: cumulative time in method','cycle','time (s)');
-[method_x_total, method_y_total] = plot_total(plt,'method.data','method')
-plot_list(plt,glob.glob('method_*data'))
-plt.legend(loc='upper left',ncols=3)
-#plt.yscale('log')
-plot_write('plot_method_total',html)
+if os.path.exists('method.data'):
+    plot_open(plt,'Enzo-E: cumulative time in method','cycle','time (s)');
+    [method_x_total, method_y_total] = plot_total(plt,'method.data','method')
+    plot_list(plt,glob.glob('method_*data'))
+    plt.legend(loc='upper left',ncols=3)
+    #plt.yscale('log')
+    plot_write('plot_method_total',html)
 # ----------------------------------------------------------------------
 if os.path.exists('solver.data'):
     plot_open(plt,'Enzo-E: cumulative time in solver','cycle','time (s)');

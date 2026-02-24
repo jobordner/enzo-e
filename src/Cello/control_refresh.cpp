@@ -242,7 +242,7 @@ void Block::refresh_exit (Refresh & refresh)
   PERF_REFRESH_START(perf_rindex_refresh_exit);
   CHECK_ID(refresh.id());
   update_boundary_();
-  
+
   if (refresh.final_sync()) {
     //  if (true) {
 

@@ -1171,164 +1171,162 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
 {
   PERF_REDUCE_STOP(perf_rindex_reduce_simulation);
 
-  if (CkMyPe() == 0) {
-    
-    const Monitor * monitor = this->monitor();
-  
-    long long * counters_reduce = (long long *)msg->getData();
+  const Monitor * monitor = this->monitor();
 
-    int index_region_cycle = performance_->region_index("cycle");
+  long long * counters_reduce = (long long *)msg->getData();
 
-    int m = 0;
-    const int num_sum = counters_reduce[m++];             // 0
-    const int num_max = counters_reduce[m++];             // 1
-    const long long msg_coarsen = counters_reduce[m++];   // 2
-    const long long msg_refine  = counters_reduce[m++];   // 3
-    const long long msg_refresh = counters_reduce[m++];   // 4
-    const long long msg_order = counters_reduce[m++];   // @@@
-    const long long data_msg    = counters_reduce[m++];   // 5
-    const long long field_face  = counters_reduce[m++];   // 6
-    const long long particle_data = counters_reduce[m++]; // 7
-    const long long num_particles = counters_reduce[m++]; // 8
+  int index_region_cycle = performance_->region_index("cycle");
 
-    const int num_solver = problem()->num_solvers();
-    for (int i=0; i<num_solver; i++) {
-      const long long num_solver_iter = counters_reduce[m++]; // 15
-      if (num_solver_iter>0) {
-        monitor->print ("perf:solver","num-%s-iter %lld",
-                        problem()->solver(i)->name().c_str(),
-                        num_solver_iter);
-      }
+  int m = 0;
+  const int num_sum = counters_reduce[m++];             // 0
+  const int num_max = counters_reduce[m++];             // 1
+  const long long msg_coarsen = counters_reduce[m++];   // 2
+  const long long msg_refine  = counters_reduce[m++];   // 3
+  const long long msg_refresh = counters_reduce[m++];   // 4
+  const long long msg_order = counters_reduce[m++];   // @@@
+  const long long data_msg    = counters_reduce[m++];   // 5
+  const long long field_face  = counters_reduce[m++];   // 6
+  const long long particle_data = counters_reduce[m++]; // 7
+  const long long num_particles = counters_reduce[m++]; // 8
+
+  const int num_solver = problem()->num_solvers();
+  for (int i=0; i<num_solver; i++) {
+    const long long num_solver_iter = counters_reduce[m++]; // 15
+    if (num_solver_iter>0) {
+      monitor->print ("perf:solver","num-%s-iter %lld",
+                      problem()->solver(i)->name().c_str(),
+                      num_solver_iter);
     }
-    monitor->print("perf:counter","msg-coarsen %lld", msg_coarsen);
-    monitor->print("perf:counter","msg-refine %lld", msg_refine);
-    monitor->print("perf:counter","msg-refresh %lld", msg_refresh);
-    monitor->print("perf:counter","data-msg %lld", data_msg);
-    monitor->print("perf:counter","field-face %lld", field_face);
-    monitor->print("perf:counter","particle-data %lld", particle_data);
+  }
+  monitor->print("perf:counter","msg-coarsen %lld", msg_coarsen);
+  monitor->print("perf:counter","msg-refine %lld", msg_refine);
+  monitor->print("perf:counter","msg-refresh %lld", msg_refresh);
+  monitor->print("perf:counter","data-msg %lld", data_msg);
+  monitor->print("perf:counter","field-face %lld", field_face);
+  monitor->print("perf:counter","particle-data %lld", particle_data);
 
-    monitor->print("perf:data","num-particles total %lld",
-                   num_particles);
+  monitor->print("perf:data","num-particles total %lld",
+                 num_particles);
 
-    // compute total blocks and leaf blocks
-    long long num_total_blocks = 0;
-    long long num_leaf_blocks = 0;
-    for (int i=hierarchy_->min_level(); i<=hierarchy_->max_level(); i++) {
-      const long long num_blocks_level = counters_reduce[m++]; // NL
+  // compute total blocks and leaf blocks
+  long long num_total_blocks = 0;
+  long long num_leaf_blocks = 0;
+  for (int i=hierarchy_->min_level(); i<=hierarchy_->max_level(); i++) {
+    const long long num_blocks_level = counters_reduce[m++]; // NL
+    hierarchy()->set_blocks_global(i,num_blocks_level);
 
-      if (i>=0) {
-        monitor->print("perf:mesh","blocks-level_%d %lld",
-                       i,num_blocks_level);
-      }
-
-      num_total_blocks += num_blocks_level;
-      // compute leaf blocks given number of blocks per level
-      // (NOTE: num_blocks_level (i>0) is evenly divisible by num_children
-      if (i==0) {
-        num_leaf_blocks = num_blocks_level;
-      } else if (i>0) {
-        num_leaf_blocks +=
-          (num_blocks_level - num_blocks_level/cello::num_children());
-      }
+    if (i>=0) {
+      monitor->print("perf:mesh","blocks-level_%d %lld",
+                     i,num_blocks_level);
     }
 
-    monitor->print ("perf:mesh","leaf-blocks %lld",  num_leaf_blocks);
-    monitor->print ("perf:mesh","total-blocks %lld", num_total_blocks);
-
-    const long long num_blocks_total   = counters_reduce[m++]; // 10
-
-    if (num_total_blocks != num_blocks_total) {
-      WARNING2 ("Simulation::r_monitor_performance_reduce()",
-                "num_blocks_total %lld does not match computed value %lld",
-                num_total_blocks,num_blocks_total);
+    num_total_blocks += num_blocks_level;
+    // compute leaf blocks given number of blocks per level
+    // (NOTE: num_blocks_level (i>0) is evenly divisible by num_children
+    if (i==0) {
+      num_leaf_blocks = num_blocks_level;
+    } else if (i>0) {
+      num_leaf_blocks +=
+        (num_blocks_level - num_blocks_level/cello::num_children());
     }
+  }
 
-    const int num_regions  = performance_->num_regions();
-    const int num_counters =  performance_->num_counters();
+  monitor->print ("perf:mesh","leaf-blocks %lld",  num_leaf_blocks);
+  monitor->print ("perf:mesh","total-blocks %lld", num_total_blocks);
 
-    for (int ir = 0; ir < num_regions; ir++) {
-      for (int ic = 0; ic < num_counters; ic++, m++) {
-        bool do_print =
-          (ir != perf_rindex_unknown) &&
-          ((performance_->counter_type(ic) != PerfCounterType::Absolute) ||
-           (ir == index_region_cycle)) &&
-          (counters_reduce[m] != 0);
-        if (do_print) {
-          monitor->print("perf:region","%s %s %lld",
-                         performance_->region_name(ir).c_str(),
-                         performance_->counter_name(ic).c_str(),
-                         counters_reduce[m]);
-          const int multiplicity = performance_->region_multiplicity(ir);
-          if (! (0 <= multiplicity && multiplicity <= 1)) {
-            CkPrintf ("WARNING: perf:region %s %d multiplicity %d\n",
-                      performance_->region_name(ir).c_str(),ir,multiplicity);
-          }
+  const long long num_blocks_total   = counters_reduce[m++]; // 10
+
+  if (num_total_blocks != num_blocks_total) {
+    WARNING2 ("Simulation::r_monitor_performance_reduce()",
+              "num_blocks_total %lld does not match computed value %lld",
+              num_total_blocks,num_blocks_total);
+  }
+
+  const int num_regions  = performance_->num_regions();
+  const int num_counters =  performance_->num_counters();
+
+  for (int ir = 0; ir < num_regions; ir++) {
+    for (int ic = 0; ic < num_counters; ic++, m++) {
+      bool do_print =
+        (ir != perf_rindex_unknown) &&
+        ((performance_->counter_type(ic) != PerfCounterType::Absolute) ||
+         (ir == index_region_cycle)) &&
+        (counters_reduce[m] != 0);
+      if (do_print) {
+        monitor->print("perf:region","%s %s %lld",
+                       performance_->region_name(ir).c_str(),
+                       performance_->counter_name(ic).c_str(),
+                       counters_reduce[m]);
+        const int multiplicity = performance_->region_multiplicity(ir);
+        if (! (0 <= multiplicity && multiplicity <= 1)) {
+          CkPrintf ("WARNING: perf:region %s %d multiplicity %d\n",
+                    performance_->region_name(ir).c_str(),ir,multiplicity);
         }
       }
     }
-
-    const long long max_proc_blocks    = counters_reduce[m++]; // 11
-    const long long max_proc_particles = counters_reduce[m++]; // 12
-    const long long max_node_blocks    = counters_reduce[m++]; // 13
-    const long long max_node_particles = counters_reduce[m++]; // 14
-
-    // Solver iterations
-
-    for (int i=0; i<num_solver; i++) {
-      const long long max_solver_iters       = counters_reduce[m++]; // 15
-      monitor->print ("perf:solver","max-%s-iter %lld",
-                      problem()->solver(i)->name().c_str(),
-                      max_solver_iters);
-    }
-    cello::simulation()->clear_solver_iter(); // clear it for the next solve
-
-    // Block load balance metrics
-
-    //    block process load-balance
-    const double avg_proc_blocks = 1.0*num_blocks_total/CkNumPes();
-    monitor->print ("perf:balance","max-blocks-proc %lld",  max_proc_blocks);
-    monitor->print ("perf:balance","avg-blocks-proc %f",  avg_proc_blocks);
-    monitor->print ("perf:balance","eff-blocks-core %f",
-                    avg_proc_blocks / max_proc_blocks);
-
-    //    block node load-balance
-    if (CkNumPes() != CkNumNodes()) {
-      const double avg_node_blocks = 1.0*num_blocks_total/CkNumNodes();
-      monitor->print ("perf:balance","max-blocks-node %lld",  max_node_blocks);
-      monitor->print ("perf:balance","avg-blocks-node %f",  avg_node_blocks);
-      monitor->print ("perf:balance","eff-blocks-node %f",
-                      avg_node_blocks / max_node_blocks);
-    }
-
-    // Particle load-balance metrics
-
-    if (num_particles > 0) {
-      //    particle process load-balance
-      const double avg_proc_particles = 1.0*num_particles/CkNumPes();
-      monitor->print ("perf:balance","max-particles-proc %lld",
-                      max_proc_particles);
-      monitor->print ("perf:balance","avg-particles-proc %f",
-                      avg_proc_particles);
-      monitor->print ("perf:balance","eff-particles-core %f",
-                      avg_proc_particles / max_proc_particles );
-
-      //    particle node load-balance
-      if (CkNumPes() != CkNumNodes()) {
-        const double avg_node_particles = 1.0*num_particles/CkNumNodes();
-        monitor->print ("perf:balance","max-particles-node %lld",
-                        max_node_particles);
-        monitor->print ("perf:balance","avg-particles-node %f",
-                        avg_node_particles);
-        monitor->print ("perf:balance","eff-particles-node %f",
-                        avg_node_particles / max_node_particles );
-      }
-    }
-
-    ASSERT3("Simulation::monitor_performance()",
-            "Actual array length %d != expected array length 2 + %d + %d",
-            m,num_sum,num_max,
-            (m == 2+num_sum+num_max) );
   }
+
+  const long long max_proc_blocks    = counters_reduce[m++]; // 11
+  const long long max_proc_particles = counters_reduce[m++]; // 12
+  const long long max_node_blocks    = counters_reduce[m++]; // 13
+  const long long max_node_particles = counters_reduce[m++]; // 14
+
+  // Solver iterations
+
+  for (int i=0; i<num_solver; i++) {
+    const long long max_solver_iters       = counters_reduce[m++]; // 15
+    monitor->print ("perf:solver","max-%s-iter %lld",
+                    problem()->solver(i)->name().c_str(),
+                    max_solver_iters);
+  }
+  cello::simulation()->clear_solver_iter(); // clear it for the next solve
+
+  // Block load balance metrics
+
+  //    block process load-balance
+  const double avg_proc_blocks = 1.0*num_blocks_total/CkNumPes();
+  monitor->print ("perf:balance","max-blocks-proc %lld",  max_proc_blocks);
+  monitor->print ("perf:balance","avg-blocks-proc %f",  avg_proc_blocks);
+  monitor->print ("perf:balance","eff-blocks-core %f",
+                  avg_proc_blocks / max_proc_blocks);
+
+  //    block node load-balance
+  if (CkNumPes() != CkNumNodes()) {
+    const double avg_node_blocks = 1.0*num_blocks_total/CkNumNodes();
+    monitor->print ("perf:balance","max-blocks-node %lld",  max_node_blocks);
+    monitor->print ("perf:balance","avg-blocks-node %f",  avg_node_blocks);
+    monitor->print ("perf:balance","eff-blocks-node %f",
+                    avg_node_blocks / max_node_blocks);
+  }
+
+  // Particle load-balance metrics
+
+  if (num_particles > 0) {
+    //    particle process load-balance
+    const double avg_proc_particles = 1.0*num_particles/CkNumPes();
+    monitor->print ("perf:balance","max-particles-proc %lld",
+                    max_proc_particles);
+    monitor->print ("perf:balance","avg-particles-proc %f",
+                    avg_proc_particles);
+    monitor->print ("perf:balance","eff-particles-core %f",
+                    avg_proc_particles / max_proc_particles );
+
+    //    particle node load-balance
+    if (CkNumPes() != CkNumNodes()) {
+      const double avg_node_particles = 1.0*num_particles/CkNumNodes();
+      monitor->print ("perf:balance","max-particles-node %lld",
+                      max_node_particles);
+      monitor->print ("perf:balance","avg-particles-node %f",
+                      avg_node_particles);
+      monitor->print ("perf:balance","eff-particles-node %f",
+                      avg_node_particles / max_node_particles );
+    }
+  }
+
+  ASSERT3("Simulation::monitor_performance()",
+          "Actual array length %d != expected array length 2 + %d + %d",
+          m,num_sum,num_max,
+          (m == 2+num_sum+num_max) );
 #ifdef TRACE_PROCESS_MEMORY
   Memory * memory = Memory::instance();
   CkPrintf ("TRACE_PERF proc %d cycle %d bytes curr %lld high %lld highest %lld\n",

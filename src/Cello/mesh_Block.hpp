@@ -395,8 +395,6 @@ protected: // methods
   /// Update Method state variables after method completes a step
   void compute_update_method_state_(int index_method);
 
-  void update_global_state_();
-
 public: // methods
 
   /// Prepare to call compute_next_() after computing (used to

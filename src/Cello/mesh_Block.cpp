@@ -121,7 +121,7 @@ Block::Block ( MsgType msg_type )
     order_next_()
 {
 #ifdef TRACE_BLOCK
-  CkPrintf ("%d TRACE_BLOCK %s Block::Block(ip %d)\n",  CkMyPe(),name(thisIndex).c_str(),ip_source);
+  CkPrintf ("%d TRACE_BLOCK %s Block::Block(MsgType)\n",  CkMyPe(),name(thisIndex).c_str());
 #endif
 
   PERF_START(perf_rindex_block);

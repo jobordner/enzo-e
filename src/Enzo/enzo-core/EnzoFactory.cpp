@@ -97,7 +97,6 @@ void EnzoFactory::create_block_array
 
           msg->set_data_msg(data_msg);
 
-          // Use MappingArray initial mapping
           //  proxy_enzo_simulation[ip].p_refine_create_block (msg);
           enzo::simulation()->refine_create_block(msg);
         }
@@ -235,9 +234,13 @@ void EnzoFactory::create_block
 
   msg->set_data_msg(data_msg);
 
-  if (ip == -1) ip = CkMyPe();
+ int ix,iy,iz;
+  index.array(&ix,&iy,&iz);
+  int bx,by,bz;
+  cello::hierarchy()->blocking(&bx,&by,&bz);
+  int ip_map =  ((long long ) CkNumPes())*(ix + bx*(iy + by*iz)) / (bx*by*bz);
 
-  proxy_enzo_simulation[ip].p_refine_create_block (msg);
+  proxy_enzo_simulation[ip_map].p_refine_create_block (msg);
 }
 
 //======================================================================

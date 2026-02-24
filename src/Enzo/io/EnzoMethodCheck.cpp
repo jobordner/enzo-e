@@ -76,10 +76,10 @@ void EnzoMethodCheck::pup (PUP::er &p)
 void EnzoMethodCheck::compute ( Block * block) throw()
 {
   if (!cello::is_initial_cycle(InitCycleKind::fresh_or_noncharm_restart)) {
-    CkCallback callback(CkIndex_EnzoSimulation::r_method_check_enter(NULL),0,
-                        proxy_enzo_simulation);
-    PERF_REDUCE_START(perf_rindex_reduce_method_check);
-    block->contribute(callback);
+     CkCallback callback(CkIndex_EnzoSimulation::r_method_check_enter(NULL),0,
+                         proxy_enzo_simulation);
+     PERF_REDUCE_START(perf_rindex_reduce_method_check);
+     block->contribute(callback);
   } else { // Don't checkpoint if it's the initial cycle
     block->compute_done();
   }

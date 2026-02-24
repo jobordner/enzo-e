@@ -89,6 +89,8 @@
 #   define PERF_ADAPT_START(INDEX) /* ... */
 #   define PERF_ADAPT_STOP(INDEX) /* ... */
 #   define PERF_ADAPT_POST(INDEX) /* ... */
+#   define PERF_REDUCE_START(INDEX) /* ... */
+#   define PERF_REDUCE_STOP(INDEX) /* ... */
 #   define PERF_REFRESH_START(INDEX) /* ... */
 #   define PERF_REFRESH_STOP(INDEX)  /* ... */
 #   define PERF_REFRESH_POST(INDEX)  /* ... */

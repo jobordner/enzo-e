@@ -14,7 +14,7 @@
 #include "charm_mesh.hpp"
 
 // #define DEBUG_COMPUTE
-
+#define CYCLE 0
 //======================================================================
 
 void Block::compute_enter_ ()
@@ -69,7 +69,8 @@ void Block::compute_next_ ()
 
 #ifdef DEBUG_COMPUTE
   if (state()->cycle() >= CYCLE)
-      CkPrintf ("DEBUG_REFRESH %s:%d calling refresh_[enter|start]\n",__FILE__,__LINE__);
+    CkPrintf ("%d %d %s DEBUG_COMPUTE 01 Block::compute_next_()\n",
+              CkMyPe(),state()->cycle(),name().c_str());
 #endif
 
       int ir_post = method->refresh_id_post();
@@ -105,7 +106,8 @@ void Block::compute_continue_ ()
 {
 #ifdef DEBUG_COMPUTE
   if (state()->cycle() >= CYCLE)
-    CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_continue_()\n", CkMyPe(),name().c_str());
+    CkPrintf ("%d %d %s DEBUG_COMPUTE 02 Block::compute_continue_()\n",
+              CkMyPe(),state()->cycle(),name().c_str());
 #endif
 
 #ifdef CONFIG_USE_PROJECTIONS
@@ -125,9 +127,8 @@ void Block::compute_continue_ ()
 
 #ifdef DEBUG_COMPUTE
     if (state()->cycle() >= CYCLE)
-      CkPrintf ("%d %s DEBUG_COMPUTE applying Method %s\n",
-                CkMyPe(),name().c_str(),method->name().c_str());
-    CkPrintf ("DEBUG_TRACE_REFRESH Method %s compute()\n",method->name().c_str());
+      CkPrintf ("%d %d %s DEBUG_COMPUTE 03 applying Method %s\n",
+                CkMyPe(),state()->cycle(),name().c_str(),method->name().c_str());
 #endif
 
     method->compute (this);
@@ -145,7 +146,8 @@ void Block::compute_done ()
 {
 #ifdef DEBUG_COMPUTE
   if (state()->cycle() >= CYCLE)
-    CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_done_()\n", CkMyPe(),name().c_str());
+    CkPrintf ("%d %d %s DEBUG_COMPUTE 04 Block::compute_done_()\n",
+              CkMyPe(),state()->cycle(),name().c_str());
 #endif
 
   PERF_METHOD_STOP(method());
@@ -171,7 +173,8 @@ void Block::compute_end_ ()
 {
 #ifdef DEBUG_COMPUTE
   if (state()->cycle() >= CYCLE)
-    CkPrintf ("%d %s DEBUG_COMPUTE Block::compute_end_()\n", CkMyPe(),name().c_str());
+    CkPrintf ("%d %d %s DEBUG_COMPUTE 05 Block::compute_end_()\n",
+              CkMyPe(),state()->cycle(),name().c_str());
 #endif
 
   // Save level range for global state update later
@@ -182,6 +185,7 @@ void Block::compute_end_ ()
   // Update block cycle and time
 
   const int level_top = cello::hierarchy()->finest_level();
+
   state()->advance(level_top);
 
   // delete fluxes

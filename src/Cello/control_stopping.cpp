@@ -234,10 +234,19 @@ std::vector<double> Block::stopping_dt_level_
 {
   std::vector<double> dt_level;
   dt_level.resize(nl);
+
   // compute minimum timestep dt_level[] for each level over all methods
 
   double max = std::numeric_limits<double>::max();
   for (auto & dt : dt_level) dt = max;
+
+  // Initialize level timesteps
+  for (int il=0; il<nl; il++) {
+    for (int im=0; im<nm; im++) {
+      const int k = 1+im+nm*(il);
+      dt_level[il] = std::min(dt_level[il],min_reduce[k]);
+    }
+  }
 
   // Adjust level timesteps for global courant condition
   for (auto & dt : dt_level) dt *= Method::courant_global;

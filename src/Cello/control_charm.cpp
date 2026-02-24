@@ -146,35 +146,6 @@ void Block::compute_exit_continue_ ()
 
 //----------------------------------------------------------------------
 
-void Block::update_global_state_()
-{
-
-  auto & state_global = cello::simulation()->state();
-  // update simulation global state
-  state_global->set_cycle(state()->cycle());
-  state_global->set_time (state()->time());
-
-  if ( (state()->state_type() == State::Type::Level) &&
-       (level_lower_ <= level() && level() < level_upper_)) {
-
-    state_global->set_level_range(level_lower_,level_upper_);
-    // update simulation level states using saved level range
-    for (int level=level_lower_; level < level_upper_; level++) {
-      state_global->set_cycle(state()->cycle(level),level);
-      state_global->set_time (state()->time (level),level);
-    }
-    // extend to finer levels if finest level < max_level
-    const int level_top = cello::hierarchy()->finest_level();
-    const int level_max = cello::hierarchy()->max_level();
-    for (int level=level_top+1; level<=level_max; level++) {
-      state_global->set_cycle(state()->cycle(level_top),level);
-      state_global->set_time(state()->time(level_top),level);
-    }
-  }
-}
-
-//----------------------------------------------------------------------
-
 void Block::control_sync (int entry_point, int sync_type, int id_sync,
 			  int min_face_rank, int neighbor_type, int root_level,
                           int level_lower, int level_upper,

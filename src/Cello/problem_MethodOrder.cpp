@@ -54,6 +54,9 @@ MethodOrder::MethodOrder
           "Unsupported MethodOrder type %s",
            ordering.c_str());
   }
+
+  set_call_on_all_levels();
+
   Refresh * refresh = cello::refresh(ir_post_);
   cello::simulation()->refresh_set_name(ir_post_,ordering);
   refresh->add_field("density");
