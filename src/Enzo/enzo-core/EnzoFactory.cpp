@@ -234,7 +234,7 @@ void EnzoFactory::create_block
 
   msg->set_data_msg(data_msg);
 
- int ix,iy,iz;
+  int ix,iy,iz;
   index.array(&ix,&iy,&iz);
   int bx,by,bz;
   cello::hierarchy()->blocking(&bx,&by,&bz);

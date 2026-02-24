@@ -65,6 +65,12 @@ public: // interface
 
   //----------------------------------------------------------------------
 
+  void blocking ( int * ax, int * ay, int * az)
+  {
+    *ax = blocking_[0];
+    *ay = blocking_[1];
+    *az = blocking_[2];
+  }
   /// Set domain lower extent
   void set_lower(double x, double y, double z) throw ();
 
