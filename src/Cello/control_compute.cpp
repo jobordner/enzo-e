@@ -118,7 +118,7 @@ void Block::compute_continue_ ()
 
   PERF_METHOD_START(method);
   const bool is_scheduled = method->is_scheduled(this);
-  const bool is_active = state()->is_active(level()) || method->call_on_all_levels();
+  const bool is_active = method->is_active(state(),level());
 
   if (is_scheduled && is_active) {
 

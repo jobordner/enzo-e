@@ -248,7 +248,6 @@ void EnzoMethodGravity::compute(Block * block) throw()
         field.scale(ib, scale, idt);
 
       }
-
     }
 
     Solver * solver = enzo::problem()->solver(index_solver_);

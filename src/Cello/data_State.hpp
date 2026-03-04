@@ -36,7 +36,9 @@ public: // interface
       stopping_(false),
       method_state_(),
       level_lower_(0),
-      level_upper_(std::numeric_limits<int>::max())
+      level_upper_(std::numeric_limits<int>::max()),
+      state_type_(Type::Global),
+      state_next_(Next::Sequential)
   {
   }
 

@@ -38,7 +38,8 @@ public: // interface
       super_field_prev_(),
       is_time_curr_(false),
       is_time_prev_(false),
-      call_on_all_levels_(false)
+      use_level_lower_(true),
+      use_level_upper_(true)
   { }
 
   /// Destructor
@@ -126,8 +127,12 @@ public: // methods
   int index() const
   { return index_method_; }
 
-  int call_on_all_levels() const
-  { return call_on_all_levels_; }
+  bool use_level_lower() const
+  { return use_level_lower_; }
+  bool use_level_upper() const
+  { return use_level_upper_; }
+
+  bool is_active(std::shared_ptr<State> state, int level);
 
 protected: // functions
 
@@ -149,7 +154,10 @@ protected: // functions
   }
 
   void set_call_on_all_levels(bool value = true)
-  { call_on_all_levels_ = value; }
+  {
+    use_level_lower_ = (! value);
+    use_level_upper_ = (! value);
+  }
 
   /// Define a field and its two previously saved values for use
   /// in super-cycling, and return id_super identifying the values
@@ -203,7 +211,8 @@ protected: // attributes
   int is_time_prev_;
 
   /// Whether must be called at all levels even when adaptive time-stepping
-  bool call_on_all_levels_;
+  bool use_level_lower_;
+  bool use_level_upper_;
 
   /// Performance index
   int index_perf_;
