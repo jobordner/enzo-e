@@ -44,6 +44,7 @@ Hierarchy::Hierarchy
   num_blocks_global_(0),
   num_blocks_level_(),
   num_blocks_level_global_(),
+  num_blocks_changed_(0),
   num_particles_(0),
   num_zones_total_(0),
   num_zones_real_(0),
@@ -93,6 +94,8 @@ void Hierarchy::pup (PUP::er &p)
   p | num_blocks_global_;
   p | num_blocks_level_;
   p | num_blocks_level_global_;
+  p |  num_blocks_changed_;
+
   p | num_particles_;
   p | num_zones_total_;
   p | num_zones_real_;

@@ -35,11 +35,11 @@ public: // interface
     num_blocks_global_(0),
     num_blocks_level_(),
     num_blocks_level_global_(),
+    num_blocks_changed_(0),
     block_vec_(),
     num_particles_(0), 
     num_zones_total_(0), 
     num_zones_real_(0),
-    num_blocks_changed_(0),
     block_array_()
   {
     for (int axis=0; axis<3; axis++) {
@@ -157,7 +157,7 @@ public: // interface
   {
     block_vec_.push_back(block);
   }
-  
+
   /// Remove Block from the list of blocks (block_vec_) and return
   /// true iff Block is found in the list
   bool delete_block (Block * block)

@@ -21,6 +21,13 @@ void Block::compute_enter_ ()
 {
   int ir_cycle_begin = cello::simulation()->ir_cycle_begin();
 
+#ifdef DEBUG_COMPUTE
+  if (state()->cycle() >= CYCLE)
+    CkPrintf ("%d %d %s DEBUG_COMPUTE 00 Block::compute_enter_() changed %d\n",
+              CkMyPe(),state()->cycle(),name().c_str(),
+              cello::simulation()->hierarchy()->num_blocks_changed());
+#endif
+
   if (cello::simulation()->hierarchy()->num_blocks_changed() > 0) {
     Refresh * refresh = cello::refresh(ir_cycle_begin);
 
