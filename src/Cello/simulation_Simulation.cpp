@@ -70,7 +70,8 @@ Simulation::Simulation
   restart_num_files_(),
   restart_stream_file_list_(),
   ir_cycle_begin_(-1),
-  ir_cycle_end_(-1)
+  ir_cycle_end_(-1),
+  monitor_flag_(true)
 {
   for (int i=0; i<256; i++) dir_checkpoint_[i] = '\0';
 #ifdef DEBUG_SIMULATION
@@ -138,7 +139,8 @@ Simulation::Simulation()
   restart_num_files_(),
   restart_stream_file_list_(),
   ir_cycle_begin_(-1),
-  ir_cycle_end_(-1)
+  ir_cycle_end_(-1),
+  monitor_flag_(true)
 {
   for (int i=0; i<256; i++) dir_checkpoint_[i] = '\0';
 #ifdef DEBUG_SIMULATION
@@ -194,7 +196,8 @@ Simulation::Simulation (CkMigrateMessage *m)
     restart_num_files_(),
     restart_stream_file_list_(),
     ir_cycle_begin_(-1),
-    ir_cycle_end_(-1)
+    ir_cycle_end_(-1),
+    monitor_flag_(true)
 {
   for (int i=0; i<256; i++) dir_checkpoint_[i] = '\0';
 #ifdef DEBUG_SIMULATION
@@ -310,6 +313,7 @@ void Simulation::pup (PUP::er &p)
   p | restart_num_files_;
   p | ir_cycle_begin_;
   p | ir_cycle_end_;
+  p | monitor_flag_;
 }
 
 //----------------------------------------------------------------------
@@ -1026,6 +1030,13 @@ void Simulation::data_delete_particles(int64_t count)
 
 void Simulation::monitor_output()
 {
+  // Only run if called by first block on pe 0
+  // monitor_flag_ reset for next cycle in stopping_exit_()
+
+  if (monitor_flag_ && (CkMyPe() == 0)) {
+    monitor_flag_ = false;
+  } else return;
+
   Monitor * monitor = this->monitor();
 
   monitor-> print("", "-------------------------------------");
@@ -1259,8 +1270,9 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
                        counters_reduce[m]);
         const int multiplicity = performance_->region_multiplicity(ir);
         if (! (0 <= multiplicity && multiplicity <= 1)) {
-          CkPrintf ("WARNING: perf:region %s %d multiplicity %d\n",
-                    performance_->region_name(ir).c_str(),ir,multiplicity);
+          CkPrintf ("%d WARNING: perf:region %s %d multiplicity %d\n",
+                    CkMyPe(),performance_->region_name(ir).c_str(),ir,
+                    multiplicity);
         }
       }
     }

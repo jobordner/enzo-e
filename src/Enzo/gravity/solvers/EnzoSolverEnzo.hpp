@@ -64,6 +64,16 @@ public: // interface
     p | index_solve_root_;
     p | index_solve_block_;
     p | index_solve_smooth_;
+
+    p | i_sync_restrict_;
+    p | i_sync_prolong_;
+
+    p | i_msg_restrict_[8];
+    p | i_msg_prolong_;
+
+    p | ir_level_list_;
+
+    p | i_level_refresh_;
   }
 
 public:  // virtual methods

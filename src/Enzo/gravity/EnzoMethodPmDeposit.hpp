@@ -37,14 +37,47 @@ public: // interface
   virtual std::string name () throw () 
   { return "pm_deposit"; }
 
-  /// Compute maximum timestep for this method
-  virtual double timestep ( Block * block) throw();
+  void restrict_send(EnzoBlock * enzo_block);
+  void restrict_recv(EnzoBlock * enzo_block, FieldMsg * field_message);
+
+protected: // methods
+
+  /// Access the Field message for buffering restriction data
+  FieldMsg ** pmsg_restrict_(Block * block, int ic)
+  {
+    ScalarData<void *> * scalar_data = block->data()->scalar_data_void();
+    ScalarDescr *        scalar_descr = cello::scalar_descr_void();
+    return (FieldMsg **)scalar_data->value(scalar_descr,i_msg_restrict_[ic]);
+  }
+
+  /// Access the restrict Sync Scalar value for the Block
+  Sync * psync_restrict_(Block * block)
+  {
+    ScalarData<Sync> * scalar_data = block->data()->scalar_data_sync();
+    ScalarDescr *      scalar_descr = cello::scalar_descr_sync();
+    return scalar_data->value(scalar_descr,i_sync_restrict_);
+  }
+
+  void continue_after_restrict_(Block * block);
+
+  FieldMsg * pack_field_
+  (EnzoBlock *, int index_field, int refresh_type, int ic3[3]);
+
+  void unpack_field_
+  (EnzoBlock *, FieldMsg *, int index_field, int refresh_type);
+
 
 protected: // attributes
 
   /// Deposit at time + alpha*dt
   double alpha_;
 
+  /// Total density field id
+  int idt_;
+
+  /// Restrict messages
+  int i_msg_restrict_[8];
+  int i_sync_restrict_;
 };
 
 #endif /* ENZO_ENZO_METHOD_PM_DEPOSIT_HPP */

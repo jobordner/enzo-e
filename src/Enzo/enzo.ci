@@ -204,6 +204,9 @@ module enzo {
     entry void p_method_infer_update (int n, char buffer[n], int il3[3]);
     entry void p_method_infer_exit();
 
+    // EnzoMethodPmDeposit
+    entry void p_method_pm_deposit_restrict_recv(FieldMsg * msg);
+
     // checkpoint
     entry void p_check_write_first
       (int num_files, std::string name_dir);

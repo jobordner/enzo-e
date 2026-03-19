@@ -22,8 +22,8 @@ Method::Method (double courant) throw()
     super_field_prev_(),
     is_time_curr_(-1),
     is_time_prev_(-1),
-    use_level_lower_(true),
-    use_level_upper_(true),
+    ignore_lower_level_limit_(false),
+    ignore_upper_level_limit_(false),
     index_perf_(-1)
 {
   ir_post_ = add_refresh_();
@@ -57,8 +57,8 @@ void Method::pup (PUP::er &p)
   p | super_field_prev_;
   p | is_time_curr_;
   p | is_time_prev_;
-  p | use_level_lower_;
-  p | use_level_upper_;
+  p | ignore_lower_level_limit_;
+  p | ignore_upper_level_limit_;
   p | index_perf_;
 }
 
@@ -103,8 +103,8 @@ bool Method::is_active(std::shared_ptr<State> state, int level)
   const int level_lower = state->level_lower();
   const int level_upper = state->level_upper();
   return (state->state_type() == State::Type::Global)
-    || ( (    ! use_level_lower() || (level_lower <= level))
-         && ( ! use_level_upper() || (level < level_upper)));
+    || ( (    ignore_lower_level_limit() || (level_lower <= level))
+         && ( ignore_upper_level_limit() || (level < level_upper)));
 }
 
 //======================================================================

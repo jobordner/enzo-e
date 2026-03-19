@@ -36,16 +36,23 @@ extern "C" void  FORTRAN_NAME(dep_grid_cic)
 EnzoMethodPmDeposit::EnzoMethodPmDeposit (ParameterGroup p)
   : Method(),
     // read value from "Method:pm_deposit:alpha"
-    alpha_(p.value<double> ("alpha",0.5))
+    alpha_(p.value<double> ("alpha",0.5)),
+    idt_(-1),
+    i_msg_restrict_(),
+    i_sync_restrict_(-1)
 {
-  // Check if particle types in "is_gravitating" group have either a constant
-  // or an attribute called "mass" (but not both).
+
+  // Ignore upper-level limit since need to deposit mass from leaf
+  // blocks down to lowest active level
+  set_ignore_upper_level_limit_();
+
+  // Check if particle types in "is_gravitating" group have either a
+  // constant or an attribute called "mass" (but not both).
   ParticleDescr * particle_descr = cello::particle_descr();
   Grouping * particle_groups = particle_descr->groups();
   const int num_is_grav = particle_groups->size("is_gravitating");
   for (int ipt = 0; ipt < num_is_grav; ipt++) {
     const int it = particle_descr->type_index(particle_groups->item("is_gravitating",ipt));
-    
     // Count number of attributes or constants called "mass",
     // which should be equal to 1
     int num_mass = 0;
@@ -82,6 +89,14 @@ EnzoMethodPmDeposit::EnzoMethodPmDeposit (ParameterGroup p)
   refresh->add_field("velocity_z");
 
   refresh->set_final_sync();
+
+  // Create restrict sync counter
+  i_sync_restrict_ = cello::scalar_descr_sync()
+    -> new_value(name() + ":restrict");
+  for (int ic=0; ic<cello::num_children(); ic++) {
+    i_msg_restrict_[ic] = cello::scalar_descr_void()
+      -> new_value(name() + ":msg_restrict");
+  }
 }
 
 //----------------------------------------------------------------------
@@ -95,6 +110,10 @@ void EnzoMethodPmDeposit::pup (PUP::er &p)
   Method::pup(p);
 
   p | alpha_;
+  p | idt_;
+  PUParray(p,i_msg_restrict_,8);
+  p | i_sync_restrict_;
+
 }
 
 //----------------------------------------------------------------------
@@ -535,6 +554,9 @@ namespace { // define local helper functions in anonymous namespace
 
 void EnzoMethodPmDeposit::compute ( Block * block) throw()
 {
+  // Initialize restrict syncronization counters
+  Sync * sync_restrict = psync_restrict_(block);
+  sync_restrict->set_stop ( 1 + cello::num_children() );
 
   auto cycle = enzo::simulation()->state()->cycle();
   auto cycle_initial = enzo::config()->initial_cycle;
@@ -550,13 +572,14 @@ void EnzoMethodPmDeposit::compute ( Block * block) throw()
   if (block->is_leaf()) {
 
     Field    field    (block->data()->field());
-
     CelloView<enzo_float,3> density_tot_arr =
       field.view<enzo_float>("density_total");
     CelloView<enzo_float,3> density_particle_arr =
       field.view<enzo_float>("density_particle");
     CelloView<enzo_float,3> density_particle_accum_arr =
       field.view<enzo_float>("density_particle_accumulate");
+
+    idt_ = field.field_id("density_total");
 
     int mx,my,mz;
     field.dimensions(0,&mx,&my,&mz);
@@ -634,9 +657,140 @@ void EnzoMethodPmDeposit::compute ( Block * block) throw()
 
 //----------------------------------------------------------------------
 
-double EnzoMethodPmDeposit::timestep ( Block * block ) throw()
+void EnzoMethodPmDeposit::restrict_send(EnzoBlock * enzo_block)
 {
-  double dt = std::numeric_limits<double>::max();
+  // Pack field
+  const Index index = enzo_block->index();
+  const int level       = enzo_block->level();
+  const int level_lower = enzo_block->state()->level_lower();
+  int ic3[3];
+  index.child(level,&ic3[0],&ic3[1],&ic3[2],level_lower);
 
-  return dt;
+  FieldMsg * msg = pack_field_(enzo_block,idt_,-1,ic3);
+
+  // Send packed field to parent
+  const Index index_parent = enzo_block->index().index_parent(level_lower);
+  enzo::block_array()[index_parent].p_method_pm_deposit_restrict_recv(msg);
 }
+
+//----------------------------------------------------------------------
+
+void EnzoBlock::p_method_pm_deposit_restrict_recv(FieldMsg * msg)
+{
+  static_cast<EnzoMethodPmDeposit*> (method())->restrict_recv(this,msg);
+}
+
+//----------------------------------------------------------------------
+
+void EnzoMethodPmDeposit::restrict_recv(EnzoBlock * enzo_block,
+                                   FieldMsg * msg)
+{
+  // Unpack "B" vector data from children
+
+  // Save field message from child
+  if (msg != nullptr) *pmsg_restrict_(enzo_block,msg->child_index()) = msg;
+
+  // Continue if all expected messages received
+  if (psync_restrict_(enzo_block)->next() ) {
+
+    Field field = enzo_block->data()->field();
+
+    // Restore saved messages
+    for (int i=0; i<cello::num_children(); i++) {
+      msg = *pmsg_restrict_(enzo_block,i);
+      *pmsg_restrict_(enzo_block,i) = nullptr;
+      // Unpack field from message then delete message
+      unpack_field_(enzo_block,msg,idt_,-1);
+    }
+
+    const int level       = enzo_block->level();
+    const int level_lower = enzo_block->state()->level_lower();
+
+    if (level > level_lower) {
+
+      // If not at level_lower yet, restrict again
+      restrict_send(enzo_block);
+
+    }
+
+    continue_after_restrict_(enzo_block);
+  }
+}
+
+//----------------------------------------------------------------------
+
+void EnzoMethodPmDeposit::continue_after_restrict_(Block *block)
+{
+}
+
+//======================================================================
+
+FieldMsg * EnzoMethodPmDeposit::pack_field_(EnzoBlock * enzo_block,
+				     int index_field,
+				     int refresh_type,
+				     int * ic3)
+{
+  int  if3[3] = {0,0,0};
+  int g3[3];
+  cello::field_descr()->ghost_depth(index_field,g3,g3+1,g3+2);
+  if (refresh_type != +1)
+    for (int i=0; i<3; i++) g3[i]=0;
+
+  Refresh * refresh = new Refresh;
+  refresh->add_field(index_field);
+
+  FieldFace * field_face = enzo_block->create_face
+    (if3, ic3, g3, refresh_type, refresh);
+
+  Field field = enzo_block->data()->field();
+  int narray;
+  char * array;
+  field_face->face_to_array(field,&narray,&array);
+
+  delete field_face;
+
+  FieldMsg * msg  = new (narray) FieldMsg;
+
+  msg->n = narray;
+  memcpy (msg->a, array, narray);
+  delete [] array;
+
+  msg->ic3[0] = ic3[0];
+  msg->ic3[1] = ic3[1];
+  msg->ic3[2] = ic3[2];
+
+  return msg;
+
+}
+
+//----------------------------------------------------------------------
+
+void EnzoMethodPmDeposit::unpack_field_
+(EnzoBlock * enzo_block,
+ FieldMsg * msg,
+ int index_field,
+ int refresh_type)
+{
+  int if3[3] = {0,0,0};
+  int g3[3];
+  cello::field_descr()->ghost_depth(index_field,g3,g3+1,g3+2);
+  if (refresh_type != +1)
+    for (int i=0; i<3; i++) g3[i]=0;
+  Refresh * refresh = new Refresh;
+  refresh->add_field(index_field);
+
+  int * ic3 = msg->ic3;
+
+  FieldFace * field_face = enzo_block->create_face
+    (if3, ic3, g3, refresh_type, refresh);
+
+  Field field = enzo_block->data()->field();
+
+  char * a = msg->a;
+  field_face->array_to_face(a, field);
+  delete field_face;
+
+  delete msg;
+}
+
+

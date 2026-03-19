@@ -127,6 +127,7 @@ public: // interface
   /// Return the monitor object
   Monitor * monitor() const throw()
   { return monitor_; }
+  void monitor_clear() { monitor_flag_ = true; }
 
   /// Get Simulation state (cycle, time, etc.)
   auto & state ()  { return state_; }
@@ -576,6 +577,10 @@ protected: // attributes
   /// id for refresh operation at the beginning and end of a cycle
   int ir_cycle_begin_;
   int ir_cycle_end_;
+
+  /// Flag to synchronize monitor output only on first call by a
+  /// root-process block per cycle
+  bool monitor_flag_;
 };
 
 #endif /* SIMULATION_SIMULATION_HPP */

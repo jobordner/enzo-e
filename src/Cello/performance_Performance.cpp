@@ -298,9 +298,11 @@ Performance::stop_region(int id_region, std::string file, int line) throw()
   --region_multiplicity_[index_region];
 
   if (region_multiplicity_[index_region] < 0) {
-    WARNING2 ("Performance::stop_region",
+    WARNING3 ("%d Performance::stop_region",
               "region_multiplicity for region %s is negative %d",
-              region_name(id_region).c_str(),region_multiplicity_[index_region]);
+              CkMyPe(),
+              region_name(id_region).c_str(),
+              region_multiplicity_[index_region]);
   }
 
   // Update region counters if final stop

@@ -30,7 +30,7 @@ EnzoMethodPmUpdate::EnzoMethodPmUpdate
   TRACE_PM("EnzoMethodPmUpdate()");
 
   const int rank = cello::rank();
- 
+
   if (rank >= 1) cello::define_field("acceleration_x");
   if (rank >= 2) cello::define_field("acceleration_y");
   if (rank >= 3) cello::define_field("acceleration_z");
@@ -38,7 +38,7 @@ EnzoMethodPmUpdate::EnzoMethodPmUpdate
    // Initialize default Refresh object
 
   cello::simulation()->refresh_set_name(ir_post_,name());
-  
+
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_field("acceleration_x");
   refresh->add_field("acceleration_y");
@@ -53,7 +53,6 @@ EnzoMethodPmUpdate::EnzoMethodPmUpdate
     refresh->add_particle
       (particle_descr->type_index(particle_groups->item("is_gravitating",ipt)));
 
-  // PM parameters initialized in EnzoBlock::initialize()
 }
 
 //----------------------------------------------------------------------
