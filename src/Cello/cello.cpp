@@ -728,5 +728,13 @@ namespace cello {
       }
     }
   }
+  bool is_ats() {
+    return (simulation()->state()->state_type() == State::Type::Level);
+  }
+  bool is_gts() {
+    return (simulation()->state()->state_type() == State::Type::Global);
+  }
+
+
 
 }

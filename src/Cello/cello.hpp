@@ -1214,6 +1214,10 @@ namespace cello {
   bool is_initial_cycle(InitCycleKind kind) noexcept;
   bool is_initial_cycle(int cycle, InitCycleKind kind) noexcept;
 
-}
+  /// Returns whether simulation uses adaptive time-stepping (ats) or
+  /// global time-stepping (gts)
+  bool is_ats();
+  bool is_gts();
+  }
 
 #endif /* CELLO_HPP */

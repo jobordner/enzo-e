@@ -31,7 +31,7 @@ EnzoInitialCosmology::EnzoInitialCosmology
   cosmology->set_current_redshift(r0);
 
   // set initial time based on redshift
-  enzo::simulation()->state()->set_time(cosmology->time_from_redshift(r0));
+  enzo::simulation()->state()->init_time(cosmology->time_from_redshift(r0));
 }
 
 //----------------------------------------------------------------------

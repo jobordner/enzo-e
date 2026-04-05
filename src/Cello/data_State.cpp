@@ -10,14 +10,83 @@
 #include "data.hpp"
 
 //----------------------------------------------------------------------
+
 void State::set_time (double time, int level)
 {
   double time_curr = time_level_curr_[level];
   if (time > time_curr) {
-    set_(time_level_prev_,level,time_curr);
     set_(time_level_curr_,level,time);
   }
 }
+
+//----------------------------------------------------------------------
+
+void State::init_time (double time, int level)
+{
+  set_(time_level_prev_,level,time);
+  set_(time_level_curr_,level,time);
+}
+
+//----------------------------------------------------------------------
+
+void State::set_cycle(int cycle)
+{
+  cycle_ = cycle;
+  if (state_type_ == Type::Level) {
+    for (int level = 0; level<cycle_level_.size(); level++) {
+      set_cycle(cycle,level);
+    }
+  }
+}
+
+double State::time(int level) const
+{
+  double t=time_;
+  if (state_type_ == Type::Global) {
+    t = time_;
+  } else {
+    t = time_level_curr_[level];
+  }
+  return t;
+}
+
+//----------------------------------------------------------------------
+
+void State::set_time (double time)
+{
+  time_ = time;
+  if (state_type_ == Type::Level) {
+    for (int level = 0; level<time_level_curr_.size(); level++) {
+      set_time (time,level);
+    }
+  }
+}
+
+//----------------------------------------------------------------------
+
+void State::init_time (double time)
+{
+  time_ = time;
+  if (state_type_ == Type::Level) {
+    for (int level = 0; level<time_level_curr_.size(); level++) {
+      init_time (time,level);
+    }
+  }
+}
+
+//----------------------------------------------------------------------
+
+void State::set_dt (double dt)
+{
+  dt_ = dt;
+  if (state_type_ == Type::Level) {
+    for (int level = 0; level<dt_level_.size(); level++) {
+      set_dt (dt,level);
+    }
+  }
+}
+
+//----------------------------------------------------------------------
 
 void State::advance(int level_top)
 {

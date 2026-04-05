@@ -53,6 +53,8 @@ public: // interface
   void advance(int level_top) override;
   void set_time (double time) override;
   void set_time (double time, int level) override;
+  void init_time (double time) override;
+  void init_time (double time, int level) override;
 
   /// Write attributes to stdout for debugging
   void print(std::string msg) override

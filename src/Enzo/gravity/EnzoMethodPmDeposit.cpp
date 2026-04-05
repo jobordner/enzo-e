@@ -44,7 +44,7 @@ EnzoMethodPmDeposit::EnzoMethodPmDeposit (ParameterGroup p)
 
   // Ignore upper-level limit since need to deposit mass from leaf
   // blocks down to lowest active level
-  set_ignore_upper_level_limit_();
+  set_call_on_all_levels();
 
   // Check if particle types in "is_gravitating" group have either a
   // constant or an attribute called "mass" (but not both).
@@ -601,8 +601,12 @@ void EnzoMethodPmDeposit::compute ( Block * block) throw()
     enzo_float cosmo_a=1.0;
     enzo_float cosmo_dadt=0.0;
     EnzoPhysicsCosmology * cosmology = enzo::cosmology();
-    const double time = block->state()->time();
-    const double dt   = block->state()->dt();
+    double time = block->state()->time();
+    double dt   = block->state()->dt();
+    if (cello::is_ats()) {
+      time = block->state()->time(block->level());
+      dt = block->state()->dt(block->level());
+    }
     if (cosmology) {
       cosmology->compute_expansion_factor
         (&cosmo_a,&cosmo_dadt,time + alpha_*dt);
@@ -652,24 +656,49 @@ void EnzoMethodPmDeposit::compute ( Block * block) throw()
     }
   }
 
-  block->compute_done();
+  const int level       = block->level();
+  const int level_lower = block->state()->level_lower();
+
+  if (cello::is_gts()) {
+
+    // if global time-stepping then we're done
+    block->compute_done();
+
+  } else {
+
+    // else restrict solution down to level_lower
+
+    if (block->is_leaf() && (level > level_lower)) {
+      // restrict send
+      restrict_send(block);
+    }
+
+    if (block->is_leaf() || level < level_lower) {
+      // no restrict recv expected: exit
+      block->compute_done();
+
+    } else {
+      // restrict recv expected: call to self-sync
+      restrict_recv(block,nullptr);
+    }
+  }
 }
 
 //----------------------------------------------------------------------
 
-void EnzoMethodPmDeposit::restrict_send(EnzoBlock * enzo_block)
+void EnzoMethodPmDeposit::restrict_send(Block * block)
 {
   // Pack field
-  const Index index = enzo_block->index();
-  const int level       = enzo_block->level();
-  const int level_lower = enzo_block->state()->level_lower();
+  const Index index = block->index();
+  const int level       = block->level();
+  const int level_lower = block->state()->level_lower();
   int ic3[3];
   index.child(level,&ic3[0],&ic3[1],&ic3[2],level_lower);
 
-  FieldMsg * msg = pack_field_(enzo_block,idt_,-1,ic3);
+  FieldMsg * msg = pack_field_(block,idt_,-1,ic3);
 
   // Send packed field to parent
-  const Index index_parent = enzo_block->index().index_parent(level_lower);
+  const Index index_parent = block->index().index_parent(level_lower);
   enzo::block_array()[index_parent].p_method_pm_deposit_restrict_recv(msg);
 }
 
@@ -682,50 +711,44 @@ void EnzoBlock::p_method_pm_deposit_restrict_recv(FieldMsg * msg)
 
 //----------------------------------------------------------------------
 
-void EnzoMethodPmDeposit::restrict_recv(EnzoBlock * enzo_block,
+void EnzoMethodPmDeposit::restrict_recv(Block * block,
                                    FieldMsg * msg)
 {
-  // Unpack "B" vector data from children
+  // Unpack vector data from children
 
   // Save field message from child
-  if (msg != nullptr) *pmsg_restrict_(enzo_block,msg->child_index()) = msg;
+  if (msg != nullptr) *pmsg_restrict_(block,msg->child_index()) = msg;
 
   // Continue if all expected messages received
-  if (psync_restrict_(enzo_block)->next() ) {
+  if (psync_restrict_(block)->next() ) {
 
-    Field field = enzo_block->data()->field();
+    Field field = block->data()->field();
 
     // Restore saved messages
     for (int i=0; i<cello::num_children(); i++) {
-      msg = *pmsg_restrict_(enzo_block,i);
-      *pmsg_restrict_(enzo_block,i) = nullptr;
+      msg = *pmsg_restrict_(block,i);
+      *pmsg_restrict_(block,i) = nullptr;
       // Unpack field from message then delete message
-      unpack_field_(enzo_block,msg,idt_,-1);
+      unpack_field_(block,msg,idt_,-1);
     }
 
-    const int level       = enzo_block->level();
-    const int level_lower = enzo_block->state()->level_lower();
+    const int level       = block->level();
+    const int level_lower = block->state()->level_lower();
 
     if (level > level_lower) {
 
       // If not at level_lower yet, restrict again
-      restrict_send(enzo_block);
+      restrict_send(block);
 
     }
 
-    continue_after_restrict_(enzo_block);
+    block->compute_done();
   }
-}
-
-//----------------------------------------------------------------------
-
-void EnzoMethodPmDeposit::continue_after_restrict_(Block *block)
-{
 }
 
 //======================================================================
 
-FieldMsg * EnzoMethodPmDeposit::pack_field_(EnzoBlock * enzo_block,
+FieldMsg * EnzoMethodPmDeposit::pack_field_(Block * block,
 				     int index_field,
 				     int refresh_type,
 				     int * ic3)
@@ -739,10 +762,10 @@ FieldMsg * EnzoMethodPmDeposit::pack_field_(EnzoBlock * enzo_block,
   Refresh * refresh = new Refresh;
   refresh->add_field(index_field);
 
-  FieldFace * field_face = enzo_block->create_face
+  FieldFace * field_face = block->create_face
     (if3, ic3, g3, refresh_type, refresh);
 
-  Field field = enzo_block->data()->field();
+  Field field = block->data()->field();
   int narray;
   char * array;
   field_face->face_to_array(field,&narray,&array);
@@ -766,7 +789,7 @@ FieldMsg * EnzoMethodPmDeposit::pack_field_(EnzoBlock * enzo_block,
 //----------------------------------------------------------------------
 
 void EnzoMethodPmDeposit::unpack_field_
-(EnzoBlock * enzo_block,
+(Block * block,
  FieldMsg * msg,
  int index_field,
  int refresh_type)
@@ -781,10 +804,10 @@ void EnzoMethodPmDeposit::unpack_field_
 
   int * ic3 = msg->ic3;
 
-  FieldFace * field_face = enzo_block->create_face
+  FieldFace * field_face = block->create_face
     (if3, ic3, g3, refresh_type, refresh);
 
-  Field field = enzo_block->data()->field();
+  Field field = block->data()->field();
 
   char * a = msg->a;
   field_face->array_to_face(a, field);

@@ -13,20 +13,28 @@
 #include "charm_simulation.hpp"
 #include "charm_mesh.hpp"
 
-// #define DEBUG_COMPUTE
+//#define DEBUG_COMPUTE
 #define CYCLE 0
+
+#ifdef DEBUG_COMPUTE
+#define TRACE_COMPUTE(FUN,NUM) \
+  if (state()->cycle() >= CYCLE)                                        \
+    CkPrintf ("%d %d %02d %s %s DEBUG_COMPUTE %s()\n",                  \
+              CkMyPe(),state()->cycle(),NUM,                            \
+              name().c_str(),                                           \
+              this->method()?this->method()->name().c_str():"null",     \
+              FUN);
+#else
+#define TRACE_COMPUTE(FUN,NUM) /* ... */
+#endif
+
 //======================================================================
 
 void Block::compute_enter_ ()
 {
   int ir_cycle_begin = cello::simulation()->ir_cycle_begin();
 
-#ifdef DEBUG_COMPUTE
-  if (state()->cycle() >= CYCLE)
-    CkPrintf ("%d %d %s DEBUG_COMPUTE 00 Block::compute_enter_() changed %d\n",
-              CkMyPe(),state()->cycle(),name().c_str(),
-              cello::simulation()->hierarchy()->num_blocks_changed());
-#endif
+  TRACE_COMPUTE("compute_enter",0);
 
   if (cello::simulation()->hierarchy()->num_blocks_changed() > 0) {
     Refresh * refresh = cello::refresh(ir_cycle_begin);
@@ -74,11 +82,7 @@ void Block::compute_next_ ()
 
     if (is_scheduled) {
 
-#ifdef DEBUG_COMPUTE
-  if (state()->cycle() >= CYCLE)
-    CkPrintf ("%d %d %s DEBUG_COMPUTE 01 Block::compute_next_()\n",
-              CkMyPe(),state()->cycle(),name().c_str());
-#endif
+      TRACE_COMPUTE("compute_next",1);
 
       int ir_post = method->refresh_id_post();
 
@@ -111,11 +115,7 @@ void Block::compute_next_ ()
 
 void Block::compute_continue_ ()
 {
-#ifdef DEBUG_COMPUTE
-  if (state()->cycle() >= CYCLE)
-    CkPrintf ("%d %d %s DEBUG_COMPUTE 02 Block::compute_continue_()\n",
-              CkMyPe(),state()->cycle(),name().c_str());
-#endif
+  TRACE_COMPUTE("Block::compute_continue",2);
 
 #ifdef CONFIG_USE_PROJECTIONS
   //  double time_start = CmiWallTimer();
@@ -132,11 +132,7 @@ void Block::compute_continue_ ()
     TRACE2 ("Block::compute_continue() method = %d %p\n",
 	    index_method_,method); fflush(stdout);
 
-#ifdef DEBUG_COMPUTE
-    if (state()->cycle() >= CYCLE)
-      CkPrintf ("%d %d %s DEBUG_COMPUTE 03 applying Method %s\n",
-                CkMyPe(),state()->cycle(),name().c_str(),method->name().c_str());
-#endif
+    TRACE_COMPUTE("applying method",3);
 
     method->compute (this);
 
@@ -151,11 +147,7 @@ void Block::compute_continue_ ()
 
 void Block::compute_done ()
 {
-#ifdef DEBUG_COMPUTE
-  if (state()->cycle() >= CYCLE)
-    CkPrintf ("%d %d %s DEBUG_COMPUTE 04 Block::compute_done_()\n",
-              CkMyPe(),state()->cycle(),name().c_str());
-#endif
+  TRACE_COMPUTE("Block::compute_done",4);
 
   PERF_METHOD_STOP(method());
   compute_update_method_state_(index_method_);
@@ -178,11 +170,7 @@ void Block::compute_update_method_state_(int index_method)
 
 void Block::compute_end_ ()
 {
-#ifdef DEBUG_COMPUTE
-  if (state()->cycle() >= CYCLE)
-    CkPrintf ("%d %d %s DEBUG_COMPUTE 05 Block::compute_end_()\n",
-              CkMyPe(),state()->cycle(),name().c_str());
-#endif
+  TRACE_COMPUTE("Block::compute_end",5);
 
   // Save level range for global state update later
 

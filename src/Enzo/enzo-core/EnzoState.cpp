@@ -44,9 +44,31 @@ void EnzoState::set_time (double time)
 
 //----------------------------------------------------------------------
 
+void EnzoState::init_time (double time)
+{
+  State::init_time(time);
+  auto * cosmology = enzo::cosmology();
+  if (cosmology) {
+    redshift_ = cosmology->redshift_from_time(time);
+  }
+}
+
+//----------------------------------------------------------------------
+
 void EnzoState::set_time (double time, int level)
 {
   State::set_time(time, level);
+  auto * cosmology = enzo::cosmology();
+  if (cosmology) {
+    set_redshift(level,cosmology->redshift_from_time(time));
+  }
+}
+
+//----------------------------------------------------------------------
+
+void EnzoState::init_time (double time, int level)
+{
+  State::init_time(time, level);
   auto * cosmology = enzo::cosmology();
   if (cosmology) {
     set_redshift(level,cosmology->redshift_from_time(time));

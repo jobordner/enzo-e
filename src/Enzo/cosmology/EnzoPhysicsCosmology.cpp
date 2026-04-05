@@ -155,7 +155,7 @@ void EnzoPhysicsCosmology::compute_expansion_factor
   ASSERT ("EnzoPhysicsCosmology::compute_expansion_factor()",
 	  "expansion factor a was not initialized correctly",
 	  (*cosmo_a != -1.0) );
-  
+
   /* Someday, we'll implement the general case... */
  
 }

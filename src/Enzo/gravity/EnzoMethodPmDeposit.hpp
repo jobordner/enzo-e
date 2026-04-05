@@ -37,8 +37,8 @@ public: // interface
   virtual std::string name () throw () 
   { return "pm_deposit"; }
 
-  void restrict_send(EnzoBlock * enzo_block);
-  void restrict_recv(EnzoBlock * enzo_block, FieldMsg * field_message);
+  void restrict_send(Block * block);
+  void restrict_recv(Block * block, FieldMsg * field_message);
 
 protected: // methods
 
@@ -58,13 +58,11 @@ protected: // methods
     return scalar_data->value(scalar_descr,i_sync_restrict_);
   }
 
-  void continue_after_restrict_(Block * block);
-
   FieldMsg * pack_field_
-  (EnzoBlock *, int index_field, int refresh_type, int ic3[3]);
+  (Block *, int index_field, int refresh_type, int ic3[3]);
 
   void unpack_field_
-  (EnzoBlock *, FieldMsg *, int index_field, int refresh_type);
+  (Block *, FieldMsg *, int index_field, int refresh_type);
 
 
 protected: // attributes

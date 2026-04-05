@@ -323,6 +323,7 @@ std::vector<double> Block::stopping_dt_level_
       }
     }
   }
+
   // Reduce level timesteps to not overshoot time stopping criteria
   double time_stop = cello::stopping()->stop_time();
   level = 0;
@@ -330,6 +331,7 @@ std::vector<double> Block::stopping_dt_level_
     double time_curr = state_->time(level++);
     dt = std::min (dt, (time_stop - time_curr));
   }
+
   return dt_level;
 }
 

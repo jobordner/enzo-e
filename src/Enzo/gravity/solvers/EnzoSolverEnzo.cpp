@@ -182,6 +182,9 @@ void EnzoBlock::p_solver_enzo_restrict_recv(FieldMsg * msg)
 {
   static_cast<EnzoSolverEnzo*> (solver())->restrict_recv(this,msg);
 }
+
+//----------------------------------------------------------------------
+
 void EnzoSolverEnzo::restrict_recv(EnzoBlock * enzo_block,
                                    FieldMsg * msg)
 {

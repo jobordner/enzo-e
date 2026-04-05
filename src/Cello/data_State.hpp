@@ -16,7 +16,7 @@ class State : public PUP::able {
 
 public: // component classes
 
-  #include "data_MethodState.hpp"
+#include "data_MethodState.hpp"
 
   enum class Type { Global, Level };
   enum class Next { Sequential, Concurrent };
@@ -92,19 +92,20 @@ public: // interface
   /// Initializers
   //----------------------------------------------------------------------
 
-  void set_cycle(int cycle)
-  { cycle_ = cycle; }
+  void set_cycle(int cycle);
   void set_cycle(int cycle, int level)
   { set_(cycle_level_,level,cycle); }
 
-  virtual void set_time (double time)
-  { time_ = time; }
+  virtual void set_time (double time);
   virtual void set_time (double time, int level);
+  /// Sets prev as well as curr
+  virtual void init_time (double time);
+  virtual void init_time (double time, int level);
 
-  void set_dt (double dt)
-  { dt_ = dt; }
+  void set_dt (double dt);
   void set_dt (double dt, int level)
   { set_(dt_level_,level,dt); }
+
   void update_dt (std::vector<double> & dt_level);
 
   void set_stopping (bool stopping)
@@ -116,12 +117,13 @@ public: // interface
     set_time  (time);
     set_dt    (dt);
     set_stopping (stopping);
+    init_level ();
   }
 
   void init (int cycle, double time, double dt, bool stopping, int level)
   {
     set_cycle (cycle,level);
-    set_time  (time, level);
+    init_time  (time, level);
     set_dt    (dt,   level);
     set_stopping (stopping);
   }
@@ -157,16 +159,8 @@ public: // interface
       state_type_ = Type::Level;
 
       // allocate level states and initialize from global 
-      cycle_level_.resize(max_level+1);
-      time_level_curr_.resize(max_level+1);
-      time_level_prev_.resize(max_level+1);
-      dt_level_.resize(max_level+1);
-      for (int i=0; i<=max_level; i++) {
-        cycle_level_[i]  = cycle_;
-        dt_level_[i]  = dt_;
-        time_level_curr_[i]  = time_;
-        time_level_prev_[i]  = time_;
-      }
+      alloc_level(max_level);
+      init_level();
 
     } else {
 
@@ -175,6 +169,24 @@ public: // interface
               type.c_str());
 
     }
+  }
+
+  void alloc_level(int max_level) {
+    if (state_type_ == Type::Level) {
+
+      // allocate level states and initialize from global
+      cycle_level_.resize(max_level+1);
+      time_level_curr_.resize(max_level+1);
+      time_level_prev_.resize(max_level+1);
+      dt_level_.resize(max_level+1);
+    }
+  }
+
+  void init_level() {
+    for (int & cycle : cycle_level_)            cycle = cycle_;
+    for (double & dt : dt_level_)               dt = dt_;
+    for (double & time_curr : time_level_curr_) time_curr = time_;
+    for (double & time_prev : time_level_prev_) time_prev = time_;
   }
 
   Type state_type() const { return state_type_; }
@@ -222,13 +234,7 @@ public: // interface
     return time;
   }
 
-  double time(int level) const
-  {
-    if (state_type_ == Type::Global) return time_;
-    alloc_(time_level_curr_,level);
-    return time_level_curr_[level];
-  }
-
+  double time(int level) const;
   double time_curr(int level) const { return time(level); }
 
   /// Return the time for the previous cycle in the given level
