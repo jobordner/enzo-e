@@ -33,9 +33,9 @@ public: // interface
     refined_regions_upper_(),
     num_blocks_(0),
     num_blocks_global_(0),
+    num_blocks_changed_(0),
     num_blocks_level_(),
     num_blocks_level_global_(),
-    num_blocks_changed_(0),
     block_vec_(),
     num_particles_(0), 
     num_zones_total_(0), 
@@ -199,6 +199,11 @@ public: // interface
   size_t num_blocks_global(int level) const throw()
   {  return num_blocks_level_global_.at(level-min_level_);  }
 
+  int num_blocks_changed() const
+  { return num_blocks_changed_; }
+  void set_num_blocks_changed(int num_blocks_changed)
+  { num_blocks_changed_ = num_blocks_changed; }
+
   void set_blocks_global(int level, int num_blocks) throw()
   { num_blocks_level_global_[level-min_level_] = num_blocks; }
 
@@ -225,11 +230,6 @@ public: // interface
   /// Return the number of total zones on this process
   int64_t num_zones_total() const throw()
   {  return num_zones_total_;  }
-
-  int num_blocks_changed() const
-  { return num_blocks_changed_; }
-  void set_num_blocks_changed(int num_blocks_changed)
-  { num_blocks_changed_ = num_blocks_changed; }
 
   CProxy_Block new_block_proxy (bool allocate_data) throw();
 
@@ -287,6 +287,9 @@ protected: // attributes
   /// Current number of blocks total
   int num_blocks_global_;
 
+  /// Count of number of blocks refined or deleted
+  int num_blocks_changed_;
+
   /// Current number of blocks on this process per refinement level
   std::vector<int> num_blocks_level_;
 
@@ -305,9 +308,6 @@ protected: // attributes
   /// Current number of real_zones on this process
   int64_t num_zones_real_; 
   
-  /// Count of number of blocks refined or deleted
-  int num_blocks_changed_;
-
   /// Array of Blocks 
   CProxy_Block block_array_;
 

@@ -55,8 +55,8 @@ Simulation::Simulation
   scalar_descr_index_(NULL),
   field_descr_(NULL),
   particle_descr_(NULL),
-  sync_advance_state_(),
   sync_init_block_count_(),
+  sync_advance_state_(),
   sync_output_begin_(),
   sync_output_write_(),
   sync_restart_created_(),
@@ -124,8 +124,8 @@ Simulation::Simulation()
   scalar_descr_index_(NULL),
   field_descr_(NULL),
   particle_descr_(NULL),
-  sync_advance_state_(),
   sync_init_block_count_(),
+  sync_advance_state_(),
   sync_output_begin_(),
   sync_output_write_(),
   sync_restart_created_(),
@@ -181,8 +181,8 @@ Simulation::Simulation (CkMigrateMessage *m)
     scalar_descr_index_(NULL),
     field_descr_(NULL),
     particle_descr_(NULL),
-    sync_advance_state_(),
     sync_init_block_count_(),
+    sync_advance_state_(),
     sync_output_begin_(),
     sync_output_write_(),
     sync_restart_created_(),
@@ -281,8 +281,8 @@ void Simulation::pup (PUP::er &p)
     monitor_->print ("Simulation","restarting");
   }
 
-  p | sync_advance_state_;
   p | sync_init_block_count_;
+  p | sync_advance_state_;
   p | sync_output_begin_;
   p | sync_output_write_;
   p | sync_restart_created_;
@@ -547,17 +547,20 @@ void Simulation::initialize_config_() throw()
 void Simulation::initialize_monitor_() throw()
 {
 
-  bool debug = config_->monitor_debug;
-  int debug_mode = debug ? monitor_mode_all : monitor_mode_none;
   monitor_->set_include_proc(config_->monitor_proc);
   monitor_->set_include_time(config_->monitor_time);
 
-  std::string level = config_->monitor_level;
-
-  if (level == "none")   monitor_->set_level_(0);
-  if (level == "low")    monitor_->set_level_(1);
-  if (level == "medium") monitor_->set_level_(2);
-  if (level == "high")   monitor_->set_level_(3);
+  // Set Monitor verbosity (default Unknown)
+  monitor_->set_verbosity_(Monitor::Verbosity::Unknown);
+  std::string verbosity = config_->monitor_level;
+  if (verbosity == "none")
+    monitor_->set_verbosity_(Monitor::Verbosity::None);
+  if (verbosity == "low")
+    monitor_->set_verbosity_(Monitor::Verbosity::Low);
+  if (verbosity == "medium")
+    monitor_->set_verbosity_(Monitor::Verbosity::Medium);
+  if (verbosity == "high")
+    monitor_->set_verbosity_(Monitor::Verbosity::High);
 
   int index = config_->monitor_schedule_index;
 
@@ -861,7 +864,6 @@ void Simulation::initialize_refresh_() throw()
 {
   const int ghost_depth = 4;
   const int min_face_rank = 0;
-  const bool active = false;
   ir_cycle_begin_ = cello::simulation()->new_register_refresh
     (Refresh::create
      (ghost_depth,min_face_rank, neighbor_leaf, sync_neighbor, 0));
@@ -1212,6 +1214,7 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   monitor->print("perf:counter","msg-coarsen %lld", msg_coarsen);
   monitor->print("perf:counter","msg-refine %lld", msg_refine);
   monitor->print("perf:counter","msg-refresh %lld", msg_refresh);
+  monitor->print("perf:counter","msg-order %lld", msg_order);
   monitor->print("perf:counter","data-msg %lld", data_msg);
   monitor->print("perf:counter","field-face %lld", field_face);
   monitor->print("perf:counter","particle-data %lld", particle_data);

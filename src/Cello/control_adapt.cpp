@@ -292,8 +292,6 @@ int Block::adapt_compute_desired_level_(int level_maximum)
 
 void Block::adapt_refine_()
 {
-  Monitor * monitor = cello::monitor();
-
   int nx,ny,nz;
   data()->field_data()->size(&nx,&ny,&nz);
 
@@ -363,7 +361,7 @@ void Block::adapt_refine_()
       std::vector<int> face_level;
       face_level.resize(27);
       const int o = 27*IC3(ic3);
-      for (int i=0; i<face_level.size(); i++) {
+      for (size_t i=0; i<face_level.size(); i++) {
         face_level[i] = child_face_level_curr_[o+i];
       }
       factory->create_block
@@ -860,8 +858,6 @@ void Block::adapt_coarsen_()
 	   is_leaf()?"true":"false", level,
 	   is_leaf() && level > 0);
 
-  Monitor * monitor = cello::monitor();
-
   // Create FieldFace for coarsening field data to parent
 
   int ic3[3];
@@ -955,7 +951,6 @@ void Block::p_adapt_recv_child (MsgCoarsen * msg)
 void Block::p_adapt_delete()
 {
   if (CkMyPe() != ip_home()) {
-    const int ip = ip_home();
     coarsened_ = true;
     migrateMe(ip_home());
   } else {

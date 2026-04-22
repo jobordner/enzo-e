@@ -104,6 +104,11 @@ public: // interface
       //       are they overwritten by the read-in (even when not found in param file)?
       // EnzoInitialIsolatedGalaxy
       initial_IG_analytic_velocity(false),
+      initial_IG_include_recent_SF(false),
+      initial_IG_live_dm_halo(false),
+      initial_IG_stellar_bulge(false),
+      initial_IG_stellar_disk(false),
+      initial_IG_use_gas_particles(false),       //
       initial_IG_disk_mass(42.9661),            // Gas disk mass in code units
       initial_IG_disk_metal_fraction(1.0E-10),         // Gas disk metal fraction
       initial_IG_disk_temperature(1e4),         // Gas disk temperature in K
@@ -113,8 +118,6 @@ public: // interface
       initial_IG_gas_halo_metal_fraction(1.0E-10),      // Gas halo metal fraction
       initial_IG_gas_halo_radius(1.0),           // Gas halo maximum radius in code units
       initial_IG_gas_halo_temperature(1e4),      // Gas halo initial temperature
-      initial_IG_include_recent_SF(false),
-      initial_IG_live_dm_halo(false),
       initial_IG_recent_SF_bin_size(5.0),
       initial_IG_recent_SF_end(0.0),
       initial_IG_recent_SF_seed(12345),
@@ -122,9 +125,6 @@ public: // interface
       initial_IG_recent_SF_start(-100.0),
       initial_IG_scale_height(0.00343218),      // Gas disk scale height in code units
       initial_IG_scale_length(0.0343218),       // Gas disk scale length in code units
-      initial_IG_stellar_bulge(false),
-      initial_IG_stellar_disk(false),
-      initial_IG_use_gas_particles(false),       //
       // EnzoInitialMergeSinksTest
       initial_merge_sinks_test_particle_data_filename(""),
       // EnzoInitialMusic

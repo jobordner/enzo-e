@@ -55,7 +55,7 @@ void EnzoProblem::pup (PUP::er &p)
 //======================================================================
 
 Boundary * EnzoProblem::create_boundary_
-(std::string type,
+(std::string_view type,
  int index,
  Config * config,
  Parameters * parameters
@@ -92,7 +92,7 @@ Boundary * EnzoProblem::create_boundary_
 
 Initial * EnzoProblem::create_initial_
 (
- std::string  type,
+ std::string_view  type,
  int index,
  Config * config,
  Parameters * parameters
@@ -163,7 +163,7 @@ Initial * EnzoProblem::create_initial_
     const int rank = enzo_config->initial_sedov_rank;
 
     ASSERT1 ("EnzoConfig::read()",
-	     "Parameter 'Initial:sedov:rank' is %d, but must be set to 2 or 3",
+	     "Parameter 'Initial:sedov:rank' %d must be set to 2 or 3",
 	     rank,  (rank == 2 || rank == 3) );
 
     if (rank == 2) initial = new EnzoInitialSedovArray2(enzo_config);
@@ -269,7 +269,7 @@ Initial * EnzoProblem::create_initial_
 //----------------------------------------------------------------------
 
 Stopping * EnzoProblem::create_stopping_
-( std::string  type, Config * config ) throw ()
+( std::string_view  type, Config * config ) throw ()
 /// @param type   Type of the stopping criterion to create (ignored)
 /// @param config  Configuration parameter class
 {
@@ -284,7 +284,7 @@ Stopping * EnzoProblem::create_stopping_
 
 Refine * EnzoProblem::create_refine_
 (
- std::string        type,
+ std::string_view        type,
  int                index,
  Config *           config,
  Parameters *       parameters
@@ -336,7 +336,7 @@ Refine * EnzoProblem::create_refine_
 //----------------------------------------------------------------------
 
 Solver * EnzoProblem::create_solver_
-( std::string  solver_type,
+( std::string_view  solver_type,
   int index_solver,
   Config * config) throw ()
 /// @param solver_type   Name of the solver to create
@@ -512,7 +512,7 @@ Solver * EnzoProblem::create_solver_
 
   ASSERT1 ("EnzoProblem::create_solver()",
 	   "Unknown solver %s",
-	   solver_type.c_str(),
+	   std::basic_string(solver_type).c_str(),
 	   solver != NULL);
 
   solver->set_index(index_solver);
@@ -523,7 +523,7 @@ Solver * EnzoProblem::create_solver_
 //----------------------------------------------------------------------
 
 Compute * EnzoProblem::create_compute
-( std::string name,
+( std::string_view name,
   Config * config ) throw()
 /// @param name  Name of the compute to create
 {
@@ -556,7 +556,7 @@ Compute * EnzoProblem::create_compute
 
     ASSERT2("EnzoProblem::create_compute",
             "Compute created %s does not match compute requested %s",
-            compute->name().c_str(),name.c_str(),
+            compute->name().c_str(),std::basic_string(name).c_str(),
             compute->name() == name);
   }
   return compute;
@@ -566,7 +566,7 @@ Compute * EnzoProblem::create_compute
 //----------------------------------------------------------------------
 
 Method * EnzoProblem::create_method_
-( std::string  name,
+( std::string_view  name,
   int index_method,
   Config * config,
   const Factory * factory) throw ()
@@ -792,7 +792,7 @@ Method * EnzoProblem::create_method_
 
     ASSERT2("EnzoProblem::create_method",
 	    "Method created %s does not match method requested %s",
-	    method->name().c_str(),name.c_str(),
+	    method->name().c_str(),std::basic_string(name).c_str(),
 	    method->name() == name);
   }
 
@@ -802,7 +802,7 @@ Method * EnzoProblem::create_method_
 //----------------------------------------------------------------------
 
 Prolong * EnzoProblem::create_prolong_
-( std::string  type,
+( std::string_view  type,
   Config *     config ) throw ()
 {
 
@@ -826,7 +826,7 @@ Prolong * EnzoProblem::create_prolong_
 //----------------------------------------------------------------------
 
 Physics * EnzoProblem::create_physics_
-( std::string  type,
+( std::string_view  type,
    int index,
    Config * config,
    Parameters * parameters) throw ()
@@ -836,7 +836,7 @@ Physics * EnzoProblem::create_physics_
 
   parameter_path_type path;
   path.push_back("Physics");
-  path.push_back(type);
+  path.push_back(std::basic_string(type));
   ParameterGroup p_group(*parameters, path);
 
   if (type == "cosmology") {
@@ -938,7 +938,7 @@ Units * EnzoProblem::create_units_ (  Config * config  ) throw ()
 
 Restrict * EnzoProblem::create_restrict_
 (
- std::string  type,
+ std::string_view  type,
  Config * config ) throw ()
 {
   return Problem::create_restrict_(type,config);

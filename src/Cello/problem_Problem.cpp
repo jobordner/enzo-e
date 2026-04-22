@@ -24,7 +24,6 @@ Problem::Problem() throw()
     units_(nullptr),
     index_refine_(0),
     index_output_(0),
-    index_boundary_(0),
     id_refresh_initial_(0)
 {
 
@@ -130,7 +129,6 @@ void Problem::pup (PUP::er &p)
 
   p | index_refine_;
   p | index_output_;
-  p | index_boundary_;
   p | id_refresh_initial_;
 }
 
@@ -579,7 +577,7 @@ void Problem::deallocate_() throw()
 
 Boundary * Problem::create_boundary_
 (
- std::string type,
+ std::string_view type,
  int index,
  Config * config,
  Parameters * parameters
@@ -616,7 +614,7 @@ Boundary * Problem::create_boundary_
 
 Initial * Problem::create_initial_
 (
- std::string  type,
+ std::string_view type,
  int index,
  Config * config,
  Parameters * parameters
@@ -649,10 +647,10 @@ Initial * Problem::create_initial_
 
 Refine * Problem::create_refine_
 (
- std::string        type,
- int                index,
- Config *           config,
- Parameters *       parameters
+ std::string_view type,
+ int                 index,
+ Config *            config,
+ Parameters *        parameters
  ) throw ()
 {
 
@@ -713,7 +711,7 @@ Refine * Problem::create_refine_
 
 Stopping * Problem::create_stopping_
 (
- std::string  type,
+ std::string_view type,
  Config * config
  ) throw ()
 /// @param type   Type of the stopping criterion to create (ignored)
@@ -758,7 +756,7 @@ Units * Problem::create_units_
 //----------------------------------------------------------------------
 
 Solver * Problem::create_solver_
-( std::string  type,
+( std::string_view type,
   int index_solver,
   Config * config
   ) throw ()
@@ -799,7 +797,7 @@ Solver * Problem::create_solver_
 //----------------------------------------------------------------------
 
 Physics * Problem::create_physics_
-( std::string type,
+( std::string_view type,
   int index,
   Config * config,
   Parameters * parameters) throw ()
@@ -814,72 +812,60 @@ Physics * Problem::create_physics_
 
 //----------------------------------------------------------------------
 
-Physics * Problem::physics (std::string type) const throw()
+Physics * Problem::physics (std::string_view type) const throw()
 {
-  for (size_t i=0; i<physics_list_.size(); i++) {
-    if (physics_list_[i]->type() == type) return physics_list_[i];
+  for (auto physics : physics_list_) {
+    if (physics->type() == type) return physics;
   }
   return nullptr;
 }
 
 //----------------------------------------------------------------------
 
-Method * Problem::method (std::string name) const throw()
+Method * Problem::method (std::string_view name) const throw()
 {
-  for (size_t i=0; i<method_list_.size(); i++) {
-    if (method_list_[i]->name() == name) return method_list_[i];
+  for (auto & method : method_list_) {
+    if (method->name() == name) return method;
   }
   return nullptr;
 }
 
 //----------------------------------------------------------------------
 
-bool Problem::method_exists(const std::string& name) const throw() {
-  for (size_t i = 0; i < method_list_.size(); i++) {
-    if (method_list_[i]->name() == name) return true;
-  }
-  return false;
+bool Problem::method_exists(std::string_view name) const throw()
+{
+  return (method_count(name) >= 1);
 }
 
 //----------------------------------------------------------------------
 
-bool Problem::method_precedes(const std::string& name1,
-                              const std::string& name2) const throw() {
-  size_t ind_1 = 0;
-  size_t ind_2 = 0;
-
-  bool method_1_found = false;
-  bool method_2_found = false;
-
-  bool no_repeats = true;
-  for (size_t i = 0; i < method_list_.size(); i++) {
-    if (method_list_[i]->name() == name1) {
-      if (method_1_found) {
-        no_repeats = false;
-        break;
-      } else {
-        method_1_found = true;
-        ind_1 = i;
-      }
-    }
-    if (method_list_[i]->name() == name2) {
-      if (method_2_found) {
-        no_repeats = false;
-        break;
-      } else {
-        method_2_found = true;
-        ind_2 = i;
-      }
-    }
+int Problem::method_count(std::string_view name) const throw()
+{
+  int count = 0;
+  for (const auto & method : method_list_) {
+    if (method -> name() == name) count++;
   }
+  return count;
+}
 
-  return no_repeats && method_1_found && method_2_found && (ind_1 < ind_2);
+//----------------------------------------------------------------------
+
+int Problem::method_index(std::string_view name) const throw()
+{
+  int index = 0;
+  for (const auto & method : method_list_) {
+    if (method -> name() == name)
+      return index;
+    else
+      index++;
+  }
+  return -1;
 }
 
 //----------------------------------------------------------------------
 
 Compute * Problem::create_compute
-  ( std::string name,
+  ( std::string_view name,
     Config * config ) throw ()
 {
   TRACE1("Problem::create_compute %s", name.c_str());
@@ -892,7 +878,7 @@ Compute * Problem::create_compute
 //----------------------------------------------------------------------
 
 Method * Problem::create_method_
-( std::string  name,
+( std::string_view name,
   int index_method,
   Config * config,
   const Factory * factory
@@ -953,7 +939,7 @@ Method * Problem::create_method_
 
 Output * Problem::create_output_
 (
- std::string    name,
+ std::string_view name,
  int index,
  Config *  config,
  const Factory * factory
@@ -1047,7 +1033,7 @@ Output * Problem::create_output_
 
 //----------------------------------------------------------------------
 
-Prolong * Problem::create_prolong_ ( std::string  name ,
+Prolong * Problem::create_prolong_ ( std::string_view name ,
                                      Config * config) throw ()
 {
   Prolong * prolong_ptr = nullptr;
@@ -1063,7 +1049,8 @@ Prolong * Problem::create_prolong_ ( std::string  name ,
   } else {
 
     ERROR1("Problem::create_prolong_",
-           "Unrecognized Field:prolong parameter %s",name.c_str());
+           "Unrecognized Field:prolong parameter %s",
+           std::basic_string(name).c_str());
 
   }
 
@@ -1073,7 +1060,7 @@ Prolong * Problem::create_prolong_ ( std::string  name ,
 
 //----------------------------------------------------------------------
 
-Restrict * Problem::create_restrict_ ( std::string  name ,
+Restrict * Problem::create_restrict_ ( std::string_view name ,
                                        Config * config) throw ()
 {
   Restrict * restrict_ptr = nullptr;
@@ -1085,7 +1072,8 @@ Restrict * Problem::create_restrict_ ( std::string  name ,
   } else {
 
     ERROR1("Problem::create_restrict_",
-           "Unrecognized Field:restrict parameter %s",name.c_str());
+           "Unrecognized Field:restrict parameter %s",
+           std::basic_string(name).c_str());
 
   }
 

@@ -47,7 +47,7 @@ class Problem : public PUP::able
 
   /// @class    Problem
   /// @ingroup  Problem
-  /// @brief    [\ref Problem] 
+  /// @brief    [\ref Problem]
 
 public: // interface
 
@@ -78,7 +78,6 @@ public: // interface
       units_(nullptr),
       index_refine_(0),
       index_output_(0),
-      index_boundary_(0),
       id_refresh_initial_(0)
   {}
 
@@ -86,77 +85,103 @@ public: // interface
   void pup (PUP::er &p);
 
   /// Return the boundary object
-  Boundary * boundary(int i) const throw()
-  { if (i==-1) i = index_boundary_;
-    return (0 <= i && i < (int)boundary_list_.size()) ? boundary_list_[i] : nullptr; 
+  Boundary * boundary(size_t i) const throw()
+  {
+    return (i < boundary_list_.size()) ?
+      boundary_list_[i] : nullptr;
   }
 
   /// Return whether the problem is periodic
-  bool is_periodic () const throw() 
+  bool is_periodic () const throw()
   { return is_periodic_; }
 
   /// Return the ith initialization object
-  Initial *  initial(size_t i) const throw()
+  Initial * initial(size_t i) const throw()
   {
-    return (i < initial_list_.size()) ? initial_list_[i] : nullptr; 
+    return (i < initial_list_.size()) ?
+      initial_list_[i] : nullptr;
   }
 
   /// Return the ith physics object
   Physics * physics(size_t i) const throw()
   {
-    return (i < physics_list_.size()) ? physics_list_[i] : nullptr; 
+    return (i < physics_list_.size()) ?
+      physics_list_[i] : nullptr;
   }
 
   /// Return the named physics object if present
-  Physics * physics (std::string type) const throw();
+  Physics * physics (std::string_view type) const throw();
 
   /// Return the ith refine object
-  Refine *  refine(int i) const throw()
+  Refine * refine(size_t i) const throw()
   {
-    if (i == -1) i = index_refine_;
-    return (0 <= i && i < (int)refine_list_.size()) ? refine_list_[i] : nullptr; 
+    return (i < refine_list_.size()) ?
+      refine_list_[i] : nullptr;
   }
 
   /// Return the ith output object
-  Output * output(int i) const throw()
-  { 
-    if (i == -1) i = index_output_;
-    return (0 <= i && i < (int)output_list_.size()) ? output_list_[i] : nullptr; 
+  Output * output(size_t i) const throw()
+  {
+    return (i < output_list_.size()) ?
+      output_list_[i] : nullptr;
   }
 
   /// Return the ith solver object
   Solver * solver(size_t i) const throw()
-  { return (i < solver_list_.size()) ? solver_list_[i] : nullptr; }
+  {
+    return (i < solver_list_.size()) ?
+      solver_list_[i] : nullptr;
+  }
 
   int num_solvers () const throw()
   { return solver_list_.size(); }
 
   /// Return the ith method object
-  Method * method(size_t i) const throw() 
-  { return (i < method_list_.size()) ? method_list_[i] : nullptr; }
+  Method * method(size_t i) const throw()
+  {
+    return (i < method_list_.size()) ?
+      method_list_[i] : nullptr;
+  }
 
   int num_methods () const throw()
   { return method_list_.size(); }
 
   /// Return the named method object if present
-  Method * method (std::string name) const throw();
+  Method * method (std::string_view name) const throw();
 
   // Return whether a method object with given name exists for this problem
-  bool method_exists(const std::string &name) const throw();
+  bool method_exists(std::string_view name) const throw();
 
-  // Returns true if method objects with both given names appear once (and
-  // only once) in the method list, and method called "name1" precedes the
-  // method called "name2". Returns false otherwise.
-  bool method_precedes(const std::string &name1, const std::string &name2) const
-      throw();
-  
+  /// Return the index of the method in the method list, or -1 if
+  /// it's absent
+  int method_index(std::string_view name) const throw();
+
+  /// Return the number of times the given name is in the method list
+  int method_count(std::string_view name) const throw();
+
+  // Returns true iff named methods appear exactly once in the method
+  // list and are in the specified order
+  bool methods_in_order
+  (std::string_view name1, std::string_view name2) const throw()
+  {
+    return ( (method_count(name1) == 1) &&
+             (method_count(name2) == 1) &&
+             (method_index(name1) < method_index(name2)) );
+  }
+
   /// Return the ith prolong object
   Prolong * get_prolong(size_t i = 0) const throw()
-  { return (i < prolong_list_.size()) ? prolong_list_[i] : nullptr; }
+  {
+    return (i < prolong_list_.size()) ?
+      prolong_list_[i] : nullptr;
+  }
 
   /// Return the ith restrict object
   Restrict * get_restrict(size_t i = 0) const throw()
-  { return (i < restrict_list_.size()) ? restrict_list_[i] : nullptr; }
+  {
+    return (i < restrict_list_.size()) ?
+      restrict_list_[i] : nullptr;
+  }
 
   //--------------------------------------------------
   // OUTPUT
@@ -171,7 +196,7 @@ public: // interface
 
   /// Reduce output, using p_output_write to send data to writing processes
   void output_wait(Simulation * simulation) throw();
-  
+
   /// Receive data from non-writing process, write to disk, close, and
   /// proceed with next output
   void output_write (Simulation * simulation, int n, char * buffer) throw();
@@ -181,9 +206,9 @@ public: // interface
 
   /// Return the Units object
   Units * units() const throw() { return units_; }
-  
+
   /// Initialize the boundary conditions object
-  void initialize_boundary(Config * config, 
+  void initialize_boundary(Config * config,
 			   Parameters * parameters) throw();
 
   /// Initialize the initial conditions object
@@ -211,7 +236,7 @@ public: // interface
 
   /// Initialize Solver objects
   void initialize_solver(Config * config) throw();
-  
+
   /// Initialize the prolong objects
   void initialize_prolong(Config * config) throw();
 
@@ -223,7 +248,7 @@ public: // interface
 
   /// Create named compute object
   virtual Compute *  create_compute
-  (std::string type,
+  (std::string_view type,
    Config * config) throw();
 
   int id_refresh_initial () const
@@ -236,64 +261,64 @@ protected: // functions
 
   /// Create named boundary object
   virtual Boundary * create_boundary_
-  (std::string type,
+  (std::string_view type,
    int index,
    Config * config,
    Parameters * parameters
    ) throw ();
 
   /// Create named initialization object
-  virtual Initial *  create_initial_ 
-  (std::string type, 
+  virtual Initial *  create_initial_
+  (std::string_view type,
    int index,
    Config * config,
    Parameters * parameters) throw ();
 
   /// Create named physics object
-  virtual Physics *  create_physics_ 
-  (std::string type, 
+  virtual Physics *  create_physics_
+  (std::string_view type,
    int index,
    Config * config,
    Parameters * parameters) throw ();
 
   /// Create named stopping object
-  virtual Stopping * create_stopping_ 
-  (std::string type, Config * config) throw ();
+  virtual Stopping * create_stopping_
+  (std::string_view type, Config * config) throw ();
 
   /// Create named refine object
-  virtual Refine * create_refine_ 
-  (std::string type,
+  virtual Refine * create_refine_
+  (std::string_view type,
    int index,
-   Config * config, 
+   Config * config,
    Parameters * parameters) throw ();
 
   /// Create named solver object
   virtual Solver *   create_solver_
-  (std::string type,
+  (std::string_view type,
    int index_solver,
    Config * config) throw ();
 
   /// Create named method object
   virtual Method *   create_method_
-  (std::string type,
+  (std::string_view type,
    int index_method,
    Config * config,
    const Factory * factory) throw ();
 
   /// Create named output object
-  virtual Output *   create_output_  
-  (std::string type,
+  virtual Output *   create_output_
+  (std::string_view type,
    int index,
    Config * config,
    const Factory * ) throw ();
 
   /// Create named prolongation object
-  virtual Prolong * create_prolong_ 
-  (std::string type, Config * config) throw ();
+  virtual Prolong * create_prolong_
+  (std::string_view type, Config * config) throw ();
 
   /// Create named restrictation object
-  virtual Restrict * create_restrict_ 
-  (std::string type, Config * config) throw ();
+  virtual Restrict * create_restrict_
+  (std::string_view type, Config * config) throw ();
 
   /// Create named units object
   virtual Units * create_units_ (Config * config) throw ();
@@ -340,15 +365,12 @@ protected: // attributes
 
   /// Units
   Units * units_;
-  
+
   /// Index of currently active Refine object
   int index_refine_;
 
-  /// Index of currently active Output object
+  /// Index of currently active Output object (may be -1)
   int index_output_;
-
-  /// Index of currently active Boundary object
-  int index_boundary_;
 
   /// Id of initial refresh
   int id_refresh_initial_;

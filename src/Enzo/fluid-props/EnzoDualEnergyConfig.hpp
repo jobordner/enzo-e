@@ -52,7 +52,7 @@ public:
   (enzo_float eta1, enzo_float eta2) noexcept
   {
     ASSERT("EnzoDualEnergyConfig::build_bryan95_formulation",
-           "eta1 and eta2 must be non-negative", (eta1 >= 0) & (eta2 >= 0));
+           "eta1 and eta2 must be non-negative", (eta1 >= 0) && (eta2 >= 0));
     return {eta1, eta2};
   }
 
@@ -72,7 +72,7 @@ public:
   ///    the parameter is a nullptr).
   bool modern_formulation(enzo_float* eta = nullptr) const noexcept
   {
-    if ((primary_eta_ >= 0) & (other_eta_ < 0)){
+    if ((primary_eta_ >= 0) && (other_eta_ < 0)){
       if (eta != nullptr) { *eta = primary_eta_; }
       return true;
     } else {
@@ -91,7 +91,7 @@ public:
   bool bryan95_formulation(enzo_float* eta1 = nullptr,
                            enzo_float* eta2 = nullptr) const noexcept
   {
-    if ((primary_eta_ >= 0) & (other_eta_ >= 0)){
+    if ((primary_eta_ >= 0) && (other_eta_ >= 0)){
       if (eta1 != nullptr) { *eta1 = primary_eta_; }
       if (eta2 != nullptr) { *eta2 = other_eta_; }
       return true;
@@ -114,7 +114,7 @@ private:
     : primary_eta_(primary_eta),
       other_eta_(other_eta)
   {
-    if ((primary_eta < 0) & (other_eta >= 0)){
+    if ((primary_eta < 0) && (other_eta >= 0)){
       ERROR("EnzoDualEnergyConfig::EnzoDualEnergyConfig", "invalid arguments");
     }
   }

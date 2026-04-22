@@ -562,8 +562,8 @@ void EnzoMethodSinkMaker::do_checks_(Block *block) throw()
   // Check if merge_sinks method precedes pm_update method
   ASSERT("EnzoMethodSinkMaker",
 	 "sink_maker must precede pm_update",
-	 enzo::problem()->method_precedes("sink_maker",
-					  "pm_update"));
+	 (enzo::problem()->methods_in_order
+          ("sink_maker", "pm_update")));
 
   // Check if either PPM or VL+CT method is being used.
   ASSERT("EnzoMethodSinkMaker",

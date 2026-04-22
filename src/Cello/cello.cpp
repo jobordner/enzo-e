@@ -726,7 +726,10 @@ namespace cello {
                "cello::simulation() returned nullptr", sim != nullptr);
         return cycle == sim->initial_cycle();
       }
+    default:
+      return false;
     }
+
   }
   bool is_ats() {
     return (simulation()->state()->state_type() == State::Type::Level);

@@ -23,6 +23,8 @@ class Timer;
 class Schedule;
 class Monitor {
 
+  enum class Verbosity { Unknown, None, Low, Medium, High };
+
   /// @class    Monitor
   /// @ingroup  Monitor
   /// @brief    [\ref Monitor] User monitoring of simulation execution status
@@ -65,15 +67,15 @@ public: // interface
     // p |  *timer_;
 
     p | mode_;
+    p | group_default_;
+    p | verbosity_;
     p | include_proc_;
     p | include_time_;
-    p | level_;
-    p | mode_;
     p | schedule_;
-    p | mute_set_;
-    p | only_set_;
     p | cycle_;
     p | time_;
+    p | mute_set_;
+    p | only_set_;
   }
 
   /// Return an instance of a Monitor object
@@ -126,8 +128,8 @@ public: // interface
 
 private: // functions
 
-  void set_level_ (int level)
-  { level_ = level; }
+  void set_verbosity_ (Verbosity verbosity)
+  { verbosity_ = verbosity; }
 
   void update_state_ (int cycle, double time)
   { cycle_ = cycle;
@@ -160,8 +162,8 @@ private: // attributes
   /// Whether default is to output all groups or output no groups
   int group_default_;
 
-  /// Level of output 0:none 1:low 2:medium [default] 3:high
-  int level_;
+  /// Verbosity of output 0:none 1:low 2:medium [default] 3:high
+  Verbosity verbosity_;
 
   /// Whether to include process in output
   bool include_proc_;

@@ -362,7 +362,7 @@ void EnzoMethodGrackle::compute_ ( Block * block) throw()
     ASSERT("EnzoMethodGrackle::compute_",
            "The current implementation requires the dual-energy formalism to "
            "be in use, when EnzoMethodGrackle is used with a (M)HD-solver",
-           nohydro | !enzo::fluid_props()->dual_energy_config().is_disabled());
+           nohydro || !enzo::fluid_props()->dual_energy_config().is_disabled());
   }
 
   // Solve chemistry

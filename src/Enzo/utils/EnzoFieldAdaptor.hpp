@@ -41,7 +41,7 @@
 ///
 /// The unorthodox implementation strategy was selected to try to minimize the
 /// cost of using this wrapper. A particular goal was to facillitate the
-/// `view` & `ptr_grackle` methods of `ArrayWrapper` & `BlockWrapper`
+/// `view` && `ptr_grackle` methods of `ArrayWrapper` && `BlockWrapper`
 /// to be inlined. (This would not be possible if the methods were implemented
 /// and called as virtual methods).
 
@@ -123,7 +123,7 @@ namespace enzo_field_adaptor_detail {
           correct_prec = false;
       }
 
-      if ((id_field >= 0) & !correct_prec){
+      if ((id_field >= 0) && !correct_prec){
         ERROR1("BlockWrapper::ptr_grackle",
                "%s doesn't have default precision", name.c_str());
       }
@@ -276,7 +276,7 @@ public:
       ptr = reinterpret_cast<ArrayMapWrapper*>(wrapper_)->ptr_grackle(name);
     }
 
-    if ((ptr == nullptr) & (require_exists)){
+    if ((ptr == nullptr) && (require_exists)){
       ERROR1("EnzoFieldAdaptor::ptr_for_grackle",
              "there is no array called \"%s\"", name.c_str());
     }

@@ -63,10 +63,6 @@ public: // functions
 
     TRACEPUP;
 
-    bool pk = p.isPacking();
-    bool up = p.isUnpacking();
-    int n;
-
     // NOTE: change this function whenever attributes change
     p | name_;
     p | num_permanent_;
@@ -156,7 +152,7 @@ public: // functions
   int curr_id (int id) const throw()
   {
     if (history_age(id) == 0) return id;
-    int i=0;
+    size_t i=0;
     for (i=0; i<history_id_.size(); i++)
       if (history_id_[i] == id) break;
     return i % num_permanent();
@@ -170,7 +166,7 @@ public: // functions
       return 0;
     } else {
       // (age > 0) or temporary
-      int i=0;
+      size_t i=0;
       //    find inverse map i of history_id_[i] = ip
       for (i=0; i<history_id_.size(); i++)
         if (history_id_[i]==ip) break;

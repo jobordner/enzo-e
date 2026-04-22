@@ -997,7 +997,7 @@ namespace{
       for (const std::string& name : names){
         ASSERT1("parse_de_config_",
                 "Unexpected parameter: \"Physics:fluid_props:dual_energy:%s\"",
-                name.c_str(), (name == "type") | (name == "eta"));
+                name.c_str(), (name == "type") || (name == "eta"));
       }
 
       // now actually construct the output object
@@ -1011,7 +1011,7 @@ namespace{
                 "\"%s\" was used to specify %d values. When specified for the "
                 "\"%s\" dual energy formalism, it must provide 1 value.",
                 "Physics:fluid_props:dual_energy:eta", (int)names.size(), type.c_str(),
-                (eta_list.size() == 1) | !eta_exists);
+                (eta_list.size() == 1) || !eta_exists);
         double eta = eta_exists ? eta_list[0] : 0.001;
         out = EnzoDualEnergyConfig::build_modern_formulation(eta);
       } else if (type == "bryan95"){
@@ -1019,7 +1019,7 @@ namespace{
                 "\"%s\" was used to specify %d value(s). When specified for "
                 "the \"%s\" dual energy formalism, it must provide 2 value.",
                 "Physics:fluid_props:dual_energy:eta", (int)names.size(), type.c_str(),
-                (eta_list.size() == 2) | !eta_exists);
+                (eta_list.size() == 2) || !eta_exists);
         double eta_1 = eta_exists ? eta_list[0] : 0.001;
         double eta_2 = eta_exists ? eta_list[1] : 0.1;
         out = EnzoDualEnergyConfig::build_bryan95_formulation(eta_1, eta_2);

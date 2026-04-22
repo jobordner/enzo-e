@@ -50,11 +50,11 @@ public: // interface
   }
 
   /// Update redshift whenever time is updated
-  void advance(int level_top) override;
-  void set_time (double time) override;
-  void set_time (double time, int level) override;
-  void init_time (double time) override;
-  void init_time (double time, int level) override;
+  virtual void advance(int level_top) override;
+  virtual void init_time (double time) override;
+  virtual void init_time (double time, int level) override;
+  virtual void set_time (double time) override;
+  virtual void set_time (double time, int level) override;
 
   /// Write attributes to stdout for debugging
   void print(std::string msg) override

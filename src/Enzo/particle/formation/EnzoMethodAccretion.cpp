@@ -226,9 +226,8 @@ void EnzoMethodAccretion::do_checks_(const Block *block) throw()
 {
     // Check if merge_sinks method precedes accretion method
     ASSERT("EnzoMethodAccretion",
-	   "merge_sinks must precede accretion_compute",
-	   enzo::problem()->method_precedes("merge_sinks",
-					    "accretion"));
+           "merge_sinks must precede accretion_compute",
+           (enzo::problem()->methods_in_order("merge_sinks","accretion")));
 
     // Check if merging radius is at least twice that of the accretion
     // radius

@@ -461,14 +461,14 @@ void GrackleFacade::compute_property
     int ax_dim = grackle_fields->grid_dimension[i-1];
 
     // previously Grackle's local_calculate_pressure, local_calculate_gamma,
-    // & local_calculate_temperature functions ignored grid_start & grid_end.
+    // && local_calculate_temperature functions ignored grid_start && grid_end.
     // This should no longer be a problem (it was fixed in PR #106 and we
     // require a more recent version of grackle), but currently this is
     // untested
     ASSERT("GrackleFacade::compute_local_property_",
-           ("this method is untested when grackle_fields->grid_start & "
+           ("this method is untested when grackle_fields->grid_start && "
             "grackle_fields->grid_end don't include all data."),
-           (ax_start == 0) & ((ax_end+1) == ax_dim));
+           (ax_start == 0) && ((ax_end+1) == ax_dim));
   }
 
   // because this function is const-qualified, my_chemistry_.get_ptr() and

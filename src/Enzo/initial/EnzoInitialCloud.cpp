@@ -46,7 +46,7 @@ double uniform_dist_transform_(std::minstd_rand &generator,
 // draw samples from a prng and transform it to a gaussian distribution
 // For simplicity, using the standard Box-muller (truncates at ~6.6*sigma)
 //
-// std::normal_distribution isn't portable across library versions & platforms
+// std::normal_distribution isn't portable across library versions && platforms
 std::pair<double, double> normal_dist_transform_(std::minstd_rand &generator){
 
   double x1 = uniform_dist_transform_(generator, false, false);
@@ -650,7 +650,7 @@ void EnzoInitialCloud::enforce_block
   MHDHandler mhd_handler = MHDHandler::construct_MHDHandler
     (block, initialize_uniform_bfield_, uniform_bfield_);
 
-  // Handle internal_energy & compute eint_density
+  // Handle internal_energy && compute eint_density
   // dual_energy indicates if there is an internal_energy to initialize
   const bool dual_energy = field.is_field("internal_energy");
   EFlt3DArray internal_energy; // internal_energy field
@@ -664,7 +664,7 @@ void EnzoInitialCloud::enforce_block
 		   mhd_handler.magnetic_edens_wind() / density_wind_);
     ASSERT2("EnzoInitialCloud::enforce_block",
 	    ("Relative error of the wind's specific etot computed from "
-	     "specified eint, velocity, density & preinitialized B-fields, "
+	     "specified eint, velocity, density && preinitialized B-fields, "
 	     "w.r.t. the specified etot, has a magnitude of %e (exceeding %e)"),
 	    fabs((temp - etot_wind_)/etot_wind_), INIT_CLOUD_TOLERANCE,
 	    fabs((temp - etot_wind_)/etot_wind_) <= INIT_CLOUD_TOLERANCE);

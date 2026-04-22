@@ -27,12 +27,8 @@ void MethodCheckATS::compute( Block * block) throw()
     cello_float * array_prev = (cello_float *) field.values(it,1);
     cello_float * error = (cello_float *) field.values(ie);
 
-    const int m = mx*my*mz;
-
     // Set field = (time + dt)
     const double time_curr = block->state()->time(level);
-    const double time_prev = block->state()->time_prev(level);
-    const double dt   = block->state()->dt(level);
 
     test_curr_(block,array_curr,error,mx,my,mz,gx,gy,gz,time_curr);
     test_prev_(block,array_prev,error,mx,my,mz,gx,gy,gz,time_curr);
@@ -153,23 +149,15 @@ void MethodCheckATS::test_ghosts_(Block * block,
   const int iy0 = my/2;
   const int iz0 = mz/2;
 
-  const int i0 = ix0 + mx * (iy0 + my*iz0);
-
-  int i = 0;
-  cello_float txm,tym,tzm;
-  cello_float txp,typ,tzp;
-
   int g3[3] = {gx,gy,gz};
   int m3[3] = {mx,my,mz};
 
   const double mach = cello::machine_epsilon(precision_default);
 
-  bool err = false;
-
   const double time = cello::simulation()->state()->time();
   int num_err_face[3][2] = {0};
   int num_err_total = 0;
-  double value;
+  double value = 0.0;
   int i3[3];
   for (int iz=0; iz<mz; iz++) {
     i3[2]=iz;
@@ -198,7 +186,6 @@ void MethodCheckATS::test_ghosts_(Block * block,
   const int max_count=1000;
   static int count = 0;
 
-  const char * name = block->name().data();
   const int level = block->level();
 
   for (int axis=0; axis<cello::rank(); axis++) {

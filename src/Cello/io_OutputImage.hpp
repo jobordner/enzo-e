@@ -71,8 +71,8 @@ public: // functions
       mesh_color_type_(mesh_color_unknown),
       image_color_scalar_(),
       color_particle_attribute_(""),
-      image_history_(0),
       axis_(axis_all),
+      use_min_max_(false),
       min_value_(std::numeric_limits<double>::max()),
       max_value_(-std::numeric_limits<double>::max()),
       image_type_(""),
@@ -82,7 +82,8 @@ public: // functions
       include_ghost_(false),
       min_level_(0),
       max_level_(0),
-      leaf_only_(false)
+      leaf_only_(false),
+      image_history_(0)
   {
     colormap_[0].clear();
     colormap_[1].clear();

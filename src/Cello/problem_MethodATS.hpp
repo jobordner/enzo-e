@@ -28,7 +28,8 @@ public: // interface
       dt_level_.resize(n);
       int k=0;
       for (auto & dt: dt_level_) {
-        dt = p.value(k++,"dt_level",pow(0.5,k));
+        dt = p.value(k,"dt_level",pow(0.5,k));
+        k++;
       }
     }
     init_refresh_();

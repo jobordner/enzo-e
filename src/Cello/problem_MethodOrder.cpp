@@ -64,7 +64,6 @@ MethodOrder::MethodOrder
   /// Create Scalar data for ordering index
   const int n = cello::num_children();
   auto sd_ll  = cello::scalar_descr_long_long();
-  auto sd_ind = cello::scalar_descr_index();
   auto sd_sync = cello::scalar_descr_sync();
   auto sd_d    = cello::scalar_descr_double();
   // output scalars

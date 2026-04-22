@@ -840,13 +840,15 @@ void Config::read_mesh_ (Parameters * p) throw()
 
   // Ensure the number of regions to refine during initialization
   // matches the max initial level specified in the Adapt group
-  if (refined_regions_lower.size() > 0 && refined_regions_lower.size() != mesh_max_initial_level) {
+  if (refined_regions_lower.size() > 0 &&
+      (int)refined_regions_lower.size() != mesh_max_initial_level) {
     ERROR2("Config::read_mesh_()",
     "The number of lower coordinates defining regions to refine (%d) should equal Adapt:max_initial_level (%d)",
     refined_regions_lower.size(),
     mesh_max_initial_level);
   }
-  if (refined_regions_upper.size() > 0 && refined_regions_upper.size() != mesh_max_initial_level) {
+  if (refined_regions_upper.size() > 0 &&
+      (int)refined_regions_upper.size() != mesh_max_initial_level) {
     ERROR2("Config::read_mesh_()",
     "The number of upper coordinates defining regions to refine (%d) should equal Adapt:max_initial_level (%d)",
     refined_regions_upper.size(),

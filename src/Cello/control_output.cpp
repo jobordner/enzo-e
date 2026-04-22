@@ -81,7 +81,7 @@ void Problem::output_next(Simulation * simulation) throw()
   if (output != NULL) {
 
     output->next();  // update Output's schedule
-    
+
     // Perform output if any...
 
     const int stride = output->stride_wait();
@@ -185,7 +185,7 @@ void Simulation::r_write_checkpoint_output()
 void Problem::output_wait(Simulation * simulation) throw()
 {
   TRACE_OUTPUT("Problem::output_wait()");
-  
+
   Output * output = this->output(index_output_);
 
   const int ip = CkMyPe();

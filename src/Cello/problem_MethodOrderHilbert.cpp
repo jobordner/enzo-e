@@ -427,7 +427,7 @@ bool MethodOrderHilbert::is_last_child(int T, int coord) {
 
 int MethodOrderHilbert::coord_to_hilbert_ind(int state, int coord) {
     int rank = cello::rank();
-    int hilbert_ind;
+    int hilbert_ind = 0;
 
     if (rank == 3) {
         hilbert_ind = PHM[state][coord & 7];
@@ -442,7 +442,7 @@ int MethodOrderHilbert::coord_to_hilbert_ind(int state, int coord) {
 
 int MethodOrderHilbert::coord_to_next_state(int state, int coord) {
     int rank = cello::rank();
-    int next_state;
+    int next_state = 0;
 
     if (rank == 3) {
         next_state = PNM[state][coord & 7];
@@ -457,7 +457,7 @@ int MethodOrderHilbert::coord_to_next_state(int state, int coord) {
 
 int MethodOrderHilbert::hilbert_ind_to_coord(int state, int hilbert_ind) {
     int rank = cello::rank();
-    int coord;
+    int coord = 0;
 
     if (rank == 3) {
         coord = HPM[state][hilbert_ind & 7];

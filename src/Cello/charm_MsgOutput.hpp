@@ -112,7 +112,7 @@ protected: // methods
     }
     // this looks a little funny, but it's correct. The last arg needs to be
     // TAG_LEN+1 because this->tag is an array of TAG_LEN+1 characters
-    strncpy(tag_,msg_output.tag_,TAG_LEN+1);
+    strncpy(tag_,msg_output.tag_,(TAG_LEN+1));
     tag_[TAG_LEN] = '\0'; // for extra safety
   }
 

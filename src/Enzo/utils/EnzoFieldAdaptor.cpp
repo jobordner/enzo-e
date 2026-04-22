@@ -136,13 +136,13 @@ namespace enzo_field_adaptor_detail {
     int ndz = nz; // ndz is unimportant
 
     ASSERT("ArrayMapWrapper::grackle_field_grid_props", "sanity check",
-           ( (ndx >= nx) & (ndy >= ny) & (ndz >= nz) ));
+           ( (ndx >= nx) && (ndy >= ny) && (ndz >= nz) ));
 
     grid_start = {0,0,0};
     grid_end = {nx - 1, ny - 1, nz - 1};
     grid_dimension = {ndx, ndy, ndz}; // if anything is wrong, it's this line
 
-    if ((ndx != nx) | (ndy != ny)){
+    if ((ndx != nx) || (ndy != ny)){
       ERROR("ArrayMapWrapper::try_get_ptr_grackle", "untested case");
     }
   }

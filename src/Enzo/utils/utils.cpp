@@ -15,17 +15,7 @@
 
 static enzo_float median(enzo_float x, enzo_float y, enzo_float z) noexcept
 {
-  // we intentionally use bitwise-and rather than logical-and for speed
-  if ((x >= y) & (x <= z)) {
-    return x;
-  } else if ((x >= z) & (x <= y)) {
-    return x;
-  } else if ((y >= x) & (y <= z)) {
-    return y;
-  } else if ((y >= z) & (y <= x)) {
-    return y;
-  }
-  return z;
+  return std::max(std::min(x,y),std::min(std::max(x,y),z));
 }
 
 bool enzo_utils::consistent_cube_cellwidths(enzo_float dx, enzo_float dy,
@@ -84,7 +74,7 @@ bool enzo_utils::consistent_cube_cellwidths(enzo_float dx, enzo_float dy,
   // - in other words, we return `true` if all 3 values are within `N_ULP` ULPs
   //   of each other. Otherwise, we return `false`.
   // - we intentionally use bitwise-and rather than logical-and for speed
-  return ((min_val <= dx) & (dx <= max_val) &
-          (min_val <= dy) & (dy <= max_val) &
-          (min_val <= dz) & (dz <= max_val));
+  return ((min_val <= dx) && (dx <= max_val) &&
+          (min_val <= dy) && (dy <= max_val) &&
+          (min_val <= dz) && (dz <= max_val));
 }

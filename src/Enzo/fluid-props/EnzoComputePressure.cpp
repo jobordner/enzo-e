@@ -92,7 +92,7 @@ void EnzoComputePressure::compute_pressure
 
   const EnzoMethodGrackle* grackle_method = enzo::grackle_method();
 
-  if ((grackle_method != nullptr) & !ignore_grackle){
+  if ((grackle_method != nullptr) && !ignore_grackle){
 
     // ToDo: earlier versions of grackle didn't work right when stale_depth >
     //       0. We should probably test it in Enzo-E.
@@ -122,7 +122,7 @@ void EnzoComputePressure::compute_pressure
 
     ASSERT("EnzoComputePressure::compute_pressure",
            "Shapes must be the same",
-           ((mz == p.shape(0)) & (my == p.shape(1)) & (mx == p.shape(2))));
+           ((mz == p.shape(0)) && (my == p.shape(1)) && (mx == p.shape(2))));
 
     if (dual_energy) {
 
@@ -147,9 +147,9 @@ void EnzoComputePressure::compute_pressure
       // fetch bfield arrays
       const RdOnlyEFltArr bx = (mhd)
         ? fadaptor.view("bfield_x") : RdOnlyEFltArr();
-      const RdOnlyEFltArr by = (mhd & (rank >= 2))
+      const RdOnlyEFltArr by = (mhd && (rank >= 2))
         ? fadaptor.view("bfield_y") : RdOnlyEFltArr();
-      const RdOnlyEFltArr bz = (mhd & (rank >= 3))
+      const RdOnlyEFltArr bz = (mhd && (rank >= 3))
         ? fadaptor.view("bfield_z") : RdOnlyEFltArr();
 
       if (rank == 1) {

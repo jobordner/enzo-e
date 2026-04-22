@@ -276,16 +276,16 @@ void EnzoMHDIntegratorStageCommands::compute_source_terms_
   // (there aren't any right now...)
 
   // add any source-terms that are only included for full-timestep
-  if (full_timestep & (accel_map.size() != 0)){
+  if (full_timestep && (accel_map.size() != 0)){
     // include gravity source terms.
     //
     // The inclusion of these terms are not based on any external paper. Thus,
     // we include the following bullets to explain our thought process:
-    // - to be safe, we will use the density & velocity values from the start
+    // - to be safe, we will use the density && velocity values from the start
     //   of the timestep to compute the source terms.
     // - we should reconsider this choice if we later decide to include the
-    //   source term for both the partial & full timesteps.
-    // - to include the source term during the partial & full timesteps, we
+    //   source term for both the partial && full timesteps.
+    // - to include the source term during the partial && full timesteps, we
     //   would probably want to recompute the gravitational potential and
     //   acceleration fields at the partial timestep
     EnzoSourceGravity gravity_source;

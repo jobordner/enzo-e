@@ -27,6 +27,7 @@ EnzoMethodGravity::EnzoMethodGravity(ParameterGroup p, int index_solver,
     type_super_(),
     dt_max_(p.value<double>("dt_max",1.0e10))
 {
+  set_call_on_all_levels();
   max_supercycle_ = max_super;
   // Initialize type_super_ super-cycling type
   if (type_super == "potential") {
@@ -174,7 +175,7 @@ void EnzoMethodGravity::compute(Block * block) throw()
   if (cello::is_initial_cycle(InitCycleKind::fresh_or_noncharm_restart)) {
     ASSERT("EnzoMethodGravity",
            "Error: pm_deposit method must precede gravity method.",
-           enzo::problem()->method_precedes("pm_deposit", "gravity"));
+           enzo::problem()->methods_in_order("pm_deposit", "gravity"));
   }
   // Initialize the linear system
 
@@ -414,6 +415,8 @@ void EnzoMethodGravity::compute_accelerations (EnzoBlock * enzo_block) throw()
   for (int i=0; i<m; i++) B[i] = 0.0;
 
   enzo_float * de_t = (enzo_float*) field.values("density_total");
+  enzo_float * de_t_copy = (enzo_float*) field.values("density_total_copy");
+  if (de_t && de_t_copy) for (int i=0; i<m; i++) de_t_copy[i] = de_t[i];
   if (de_t) for (int i=0; i<m; i++) de_t[i] = 0.0;
 
 }

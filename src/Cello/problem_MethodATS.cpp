@@ -26,9 +26,6 @@ void MethodATS::compute( Block * block) throw()
     field.ghost_depth (it,&gx,&gy,&gz);
 
     const double dt_level   = block->state()->dt(level);
-    const double time_level = block->state()->time(level);
-    const double dt   = block->state()->dt();
-    const double time = block->state()->time();
 
     advance_field_(array_curr,mx,my,mz,gx,gy,gz,dt_level);
 
@@ -42,8 +39,8 @@ void MethodATS::compute( Block * block) throw()
 double MethodATS::timestep ( Block * block) throw()
 {
   double retval=1e10;
-  const int level = block->level();
-  if (0 <= level && level < dt_level_.size())
+  const size_t level = block->level();
+  if (level < dt_level_.size())
     retval = dt_level_[level];
   return retval;
 }

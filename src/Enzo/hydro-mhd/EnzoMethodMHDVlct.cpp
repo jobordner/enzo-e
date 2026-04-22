@@ -42,7 +42,7 @@ parse_mhdchoice_pack_pair_(ParameterGroup p)
   auto is_defined = [&](const std::string& param_name) -> bool
   { return p.param(param_name) != nullptr; };
 
-  // parse time-scheme & reconstruct-method (they affect backwards compat.)
+  // parse time-scheme && reconstruct-method (they affect backwards compat.)
   const std::string time_scheme = p.value<std::string>("time_scheme", "vl");
   std::vector<std::string> recon_names;
   if (time_scheme == "euler") {
@@ -62,7 +62,7 @@ parse_mhdchoice_pack_pair_(ParameterGroup p)
   if (is_defined("half_dt_reconstruct_method") ||
       is_defined("full_dt_reconstruct_method")) {
     ERROR1("parse_mhdchoice_pack_pair_",
-           "In the \"%s\" parameter-group, \"half_dt_reconstruct_method\" & "
+           "In the \"%s\" parameter-group, \"half_dt_reconstruct_method\" && "
            "\"full_dt_reconstruct_method\" have been removed. The former was "
            "only allowed to have a value of \"nn\" and the latter was "
            "replaced with \"reconstruct_method\".",
@@ -525,21 +525,22 @@ void EnzoMethodMHDVlct::post_init_checks_() const noexcept
   // particle drift before deposition) and in cosmological simulations if the
   // the VL+CT method were to precede the gravity method.
   ASSERT("EnzoMethodMHDVlct::post_init_checks_",
-         "when the gravity method exists, it must precede this method.",
-         problem->method_precedes("gravity", "mhd_vlct") |
-         (!problem->method_exists("gravity")) );
+         "when both gravity and mhd_vlct methods are used, "
+         "gravity must be first",
+         (! problem->method_exists("gravity")) ||
+         problem->methods_in_order("gravity", "mhd_vlct"));
 
   // the following checks address some problems I've encountered in the past
   // (they probably need to be revisited when we add Bfield flux corrections)
   bool fc_exists = problem->method_exists("flux_correct");
-  if (fc_exists & !problem->method_precedes("mhd_vlct", "flux_correct")) {
+  if (fc_exists && !problem->methods_in_order("mhd_vlct", "flux_correct")) {
     ERROR("EnzoMethodMHDVlct::post_init_checks_",
           "this method can't precede the flux_correct method");
-  } else if (fc_exists & !store_fluxes_for_corrections_) {
+  } else if (fc_exists && !store_fluxes_for_corrections_) {
     ERROR("EnzoMethodMHDVlct::post_init_checks_",
           "the flux_correct method exists, but this method isn't saving "
           "fluxes to be used for corrections.");
-  } else if (store_fluxes_for_corrections_ & !fc_exists) {
+  } else if (store_fluxes_for_corrections_ && !fc_exists) {
     ERROR("EnzoMethodMHDVlct::post_init_checks_",
           "this method is saving fluxes for corrections, but the flux_correct "
           "method doesn't exist");

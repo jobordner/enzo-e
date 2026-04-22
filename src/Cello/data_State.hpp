@@ -96,11 +96,13 @@ public: // interface
   void set_cycle(int cycle, int level)
   { set_(cycle_level_,level,cycle); }
 
-  virtual void set_time (double time);
-  virtual void set_time (double time, int level);
-  /// Sets prev as well as curr
+  /// Initialize previous and current time
   virtual void init_time (double time);
   virtual void init_time (double time, int level);
+
+  /// Set current time
+  virtual void set_time (double time);
+  virtual void set_time (double time, int level);
 
   void set_dt (double dt);
   void set_dt (double dt, int level)
@@ -144,7 +146,7 @@ public: // interface
     }
   }
 
-  bool method_solve_step(int index) const {
+  bool method_solve_step(size_t index) const {
     return (method_state_.size() == 0) ?
       true : (method_state_[index].step() == 0);
   }
@@ -264,11 +266,11 @@ public: // interface
   bool stopping () const { return stopping_; }
 
   /// Get ith MethodState
-  MethodState & method(int index_method) {
+  MethodState & method(size_t index_method) {
     ASSERT2("State::method()",
-            "array length %d is too small for index %d",
+            "array length %lu is too small for index %lu",
             method_state_.size(),index_method,
-            ((0 <= index_method) && (index_method < method_state_.size())));
+            (index_method < method_state_.size()));
     return method_state_[index_method];
   }
 
@@ -433,29 +435,25 @@ protected: // functions
 
   /// Ensure vector is long enough for the given index; resize if needed
   template <typename T>
-  void set_ (std::vector<T> & vector, int index, T value)
+  void set_ (std::vector<T> & vector, size_t index, T value)
   {
     alloc_<T>(vector,index);
     vector[index] = value;
   }
 
   template <typename T>
-  void alloc_ (std::vector<T> & vector, int index)
+  void alloc_ (std::vector<T> & vector, size_t index)
   {
-    if (index >= 0) {
-      if ( ! (index < vector.size()) ) {
-        vector.resize(index+1);
-      }
+    if ( ! (index < vector.size()) ) {
+      vector.resize(index+1);
     }
   }
 
   template <typename T>
-  void alloc_ (std::vector<T> & vector, int index) const
+  void alloc_ (std::vector<T> & vector, size_t index) const
   {
-    if (index >= 0) {
-      if ( ! (index < vector.size()) ) {
-        vector.resize(index+1);
-      }
+    if ( ! (index < vector.size()) ) {
+      vector.resize(index+1);
     }
   }
 
