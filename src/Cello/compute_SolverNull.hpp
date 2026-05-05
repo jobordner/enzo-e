@@ -27,6 +27,7 @@ public: // interface
               int solve_type,
               int index_prolong,
               int index_restrict,
+              int force_global_timestep = false,
               int min_level = -std::numeric_limits<int>::max(),
               int max_level = std::numeric_limits<int>::max()) throw();
 

@@ -37,9 +37,7 @@ public: // interface
       super_field_curr_(),
       super_field_prev_(),
       is_time_curr_(false),
-      is_time_prev_(false),
-      ignore_lower_level_limit_(false),
-      ignore_upper_level_limit_(false)
+      is_time_prev_(false)
   { }
 
   /// Destructor
@@ -80,6 +78,8 @@ public: // virtual functions
   {
     /* This function intentionally empty */
   }
+
+  virtual bool is_active(std::shared_ptr<State> state, int level);
 
 public: // methods
 
@@ -127,17 +127,6 @@ public: // methods
   int index() const
   { return index_method_; }
 
-  /// Whether to ignore lower active level when adaptive
-  /// time-stepping is used
-  bool ignore_lower_level_limit() const
-  { return ignore_lower_level_limit_; }
-  /// Whether to ignore upper active level when adaptive
-  /// time-stepping is used
-  bool ignore_upper_level_limit() const
-  { return ignore_upper_level_limit_; }
-
-  bool is_active(std::shared_ptr<State> state, int level);
-
 protected: // functions
 
   /// Add a new refresh object
@@ -155,24 +144,6 @@ protected: // functions
     if (! active ) return;
     const int m = mx*my*mz;
     for (int i=0; i<m; i++) X[i] = Y[i];
-  }
-
-  /// Set whether to ignore lower active level when adaptive
-  /// time-stepping is used
-  void set_ignore_lower_level_limit_(bool value = true)
-  { ignore_lower_level_limit_ = value; }
-
-  /// Set whether to ignore upper active level when adaptive
-  /// time-stepping is used
-  void set_ignore_upper_level_limit_(bool value = true)
-  { ignore_upper_level_limit_ = value; }
-
-  /// Set whether to ignore active levels or not when adaptive
-  /// time-stepping is used
-  void set_call_on_all_levels(bool value = true)
-  {
-    ignore_lower_level_limit_ = value;
-    ignore_upper_level_limit_ = value;
   }
 
   /// Define a field and its two previously saved values for use
@@ -225,12 +196,6 @@ protected: // attributes
   /// Scalars for times of saved fields
   int is_time_curr_;
   int is_time_prev_;
-
-  /// For adaptive time-stepping, whether to call only on "active"
-  /// level blocks in a step, or selectively ignore block lower or
-  /// upper limits (e.g. for communication)
-  bool ignore_lower_level_limit_;
-  bool ignore_upper_level_limit_;
 
   /// Performance index
   int index_perf_;

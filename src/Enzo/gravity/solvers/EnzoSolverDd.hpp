@@ -32,6 +32,7 @@ public: // interface
    int solve_type,
    int index_prolong,
    int index_restrict,
+   int force_global_timestep,
    int min_level,
    int max_level,
    int index_solve_coarse,
@@ -79,8 +80,6 @@ public: // interface
     p | index_solve_coarse_;
     p | index_solve_domain_;
     p | index_solve_smooth_;
-    p | index_prolong_;
-    p | index_restrict_;
 
     p | i_sync_restrict_;
     p | i_sync_prolong_;

@@ -111,7 +111,7 @@ ENZO and Enzo-E, the extrapolation is done before the gravity solve.
 
 .. math::
    \rho_{i+1/2} &\leftarrow \mbox{extrapolate}(\rho_{i-1},\rho_{i}) \\
-   \bar\rho_{i+1/2} &\leftarrow \mbox{shift_and_scale}(\rho_{i+1/2}) \\
+   \bar\rho_{i+1/2} &\leftarrow \mbox{shift\_and\_scale}(\rho_{i+1/2}) \\
    \mbox{solve } \nabla^2 \phi_{i+1/2} &= \bar\rho_{i+1/2} \\
    \vec{a}_{i+1/2} &\leftarrow \nabla \phi_{i+1/2}
 

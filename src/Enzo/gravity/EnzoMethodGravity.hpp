@@ -99,12 +99,17 @@ public: // interface
   /// Compute maximum timestep for this method
   virtual double timestep (Block * block) throw() ;
 
+  virtual bool is_active(std::shared_ptr<State> state, int level) override
+  { return true; }
+
+public: // methods
+
   /// Compute accelerations from potential and exit solver
   void compute_accelerations (EnzoBlock * enzo_block) throw();
 
   void refresh_potential (EnzoBlock * enzo_block) throw();
 
-  protected: // methods
+protected: // methods
 
   void compute_ (EnzoBlock * enzo_block) throw();
 
@@ -123,7 +128,7 @@ public: // interface
   { return (is_supercycle() && type_super_ == super_type_potential); }
   bool is_supercycle_accelerations()
   { return (is_supercycle() && type_super_ == super_type_accelerations); }
-    
+
 protected: // attributes
 
   /// Solver index for the linear solver used to compute the potential

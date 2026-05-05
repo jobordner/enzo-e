@@ -12,6 +12,17 @@
 
 // #define TRACE_SUPERCYCLE
 
+// #define TRACE_GRAVITY
+
+#ifdef TRACE_GRAVITY
+#  undef TRACE_GRAVITY
+#  define TRACE_GRAVITY(BLOCK,NAME)                               \
+  CkPrintf ("TRACE_GRAVITY %s %s\n",                              \
+            BLOCK->name().c_str(),std::string(NAME).c_str());
+#else
+#  define TRACE_GRAVITY(BLOCK,NAME) /* ... */
+#endif
+
 //----------------------------------------------------------------------
 
 EnzoMethodGravity::EnzoMethodGravity(ParameterGroup p, int index_solver,
@@ -27,7 +38,6 @@ EnzoMethodGravity::EnzoMethodGravity(ParameterGroup p, int index_solver,
     type_super_(),
     dt_max_(p.value<double>("dt_max",1.0e10))
 {
-  set_call_on_all_levels();
   max_supercycle_ = max_super;
   // Initialize type_super_ super-cycling type
   if (type_super == "potential") {
@@ -170,6 +180,7 @@ void EnzoMethodGravity::refresh_add_accelerations_(Refresh * refresh)
 
 void EnzoMethodGravity::compute(Block * block) throw()
 {
+  TRACE_GRAVITY(block,"01 apply");
   EnzoBlock * enzo_block = static_cast<EnzoBlock*>(block);
 
   if (cello::is_initial_cycle(InitCycleKind::fresh_or_noncharm_restart)) {
@@ -317,6 +328,7 @@ void EnzoBlock::p_method_gravity_continue()
 
 void EnzoMethodGravity::refresh_potential (EnzoBlock * enzo_block) throw()
 {
+  TRACE_GRAVITY(enzo_block,"02 refresh_potential");
   cello::refresh(ir_exit_)->set_active(enzo_block->is_leaf());
   enzo_block->refresh_start
     (ir_exit_, CkIndex_EnzoBlock::p_method_gravity_end());
@@ -326,6 +338,7 @@ void EnzoMethodGravity::refresh_potential (EnzoBlock * enzo_block) throw()
 
 void EnzoBlock::p_method_gravity_end()
 {
+  TRACE_GRAVITY(this,"03 p_gravity_end");
   EnzoMethodGravity * method = static_cast<EnzoMethodGravity*> (this->method());
   method->compute_accelerations(this);
   // wait for all Blocks before continuing
@@ -336,6 +349,7 @@ void EnzoBlock::p_method_gravity_end()
 
 void EnzoMethodGravity::compute_accelerations (EnzoBlock * enzo_block) throw()
 {
+  TRACE_GRAVITY(enzo_block,"04 compute_accelerations");
 
   // Extrapolate potential from "potential_curr" and "potential_prev"
   // if supercycling and not a solve step

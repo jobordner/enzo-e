@@ -28,6 +28,7 @@ public: // interface
           int solve_type,
           int index_prolong,
           int index_restrict,
+          int force_global_timestep = false,
           int min_level = 0,
           int max_level = std::numeric_limits<int>::max()) throw();
 
@@ -52,6 +53,7 @@ public: // interface
       solve_type_(solve_leaf),
       index_prolong_(0),
       index_restrict_(0),
+      force_global_timestep_(false),
       ir_post_(-1),
       include_ghosts_(false)
   { }
@@ -81,6 +83,7 @@ public: // interface
     p | solve_type_;
     p | index_prolong_;
     p | index_restrict_;
+    p | force_global_timestep_;
     p | ir_post_;
     p | include_ghosts_;
   }
@@ -229,6 +232,9 @@ protected: // functions
 
   bool reuse_solution_ (int cycle) const throw();
 
+  /// Return lower active level for adaptive time-stepping
+  int level_lower_(Block * block) const throw();
+
 protected: // attributes
 
   /// Name of the solver
@@ -272,6 +278,9 @@ protected: // attributes
 
   /// Restriction index
   int index_restrict_;
+
+  /// Whether to respect adaptive time-stepping or force global time-stepping
+  int force_global_timestep_;
 
   /// New Refresh id for after the solver
   int ir_post_;

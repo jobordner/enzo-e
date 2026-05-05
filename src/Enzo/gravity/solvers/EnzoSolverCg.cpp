@@ -19,6 +19,7 @@ EnzoSolverCg::EnzoSolverCg
  int solve_type,
  int index_prolong,
  int index_restrict,
+ int force_global_timestep,
  int min_level, int max_level,
  int iter_max, double res_tol,
  int index_precon
@@ -31,6 +32,7 @@ EnzoSolverCg::EnzoSolverCg
 	   solve_type,
            index_prolong,
            index_restrict,
+           force_global_timestep,
 	   min_level,
 	   max_level),
     A_(nullptr),

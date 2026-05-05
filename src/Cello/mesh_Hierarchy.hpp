@@ -85,14 +85,20 @@ public: // interface
 
   //----------------------------------------------------------------------
 
-  /// Return the minimum refinement level (0 for unigrid)
+  /// Return the minimum refinement level (may be negative)
   int min_level() const
   { return min_level_; }
 
   /// Return the maximum refinement level (0 for unigrid)
   int max_level() const
   { return max_level_; }
-  
+
+  /// Return the lower refinement level of leaf blocks
+  int min_leaf_level() const;
+
+  /// Return the maximum refinement level of leaf blocks
+  int max_leaf_level() const;
+
   /// Return domain lower extent
   void lower(double * x, double * y = 0, double * z = 0) const throw ();
 
@@ -251,7 +257,8 @@ public: // interface
 
   /// Return the number of root-level Blocks along each rank
   /// in the given level (default level is root)
-  void root_blocks (int * nbx, int * nby=0, int * nbz=0, int level=0) const throw();
+  long long root_blocks
+  (int * nbx, int * nby=0, int * nbz=0, int level=0) const throw();
 
   /// Return the factory object associated with the Hierarchy
   const Factory * factory () const throw()

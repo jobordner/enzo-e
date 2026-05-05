@@ -13,9 +13,6 @@
 EnzoMethodBalance::EnzoMethodBalance()
   : Method()
 {
-  // All blocks at all levels must call this Method
-  set_call_on_all_levels();
-
   cello::define_field("density");
 
   cello::simulation()->refresh_set_name(ir_post_,name());

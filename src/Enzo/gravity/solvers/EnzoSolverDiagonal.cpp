@@ -27,7 +27,8 @@ EnzoSolverDiagonal::EnzoSolverDiagonal
  int restart_cycle,
  int solve_type,
  int index_prolong,
- int index_restrict) throw()
+ int index_restrict,
+ int force_global_timestep) throw()
   : Solver
     (name,
      field_x,
@@ -36,7 +37,8 @@ EnzoSolverDiagonal::EnzoSolverDiagonal
      restart_cycle,
      solve_type,
      index_prolong,
-     index_restrict)
+     index_restrict,
+     force_global_timestep)
 {
   id_ = cello::field_descr()->insert_temporary();
 }

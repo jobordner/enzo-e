@@ -127,10 +127,6 @@ public: /// entry methods
   /// Exit EnzoMethodInference
   void p_method_infer_exit();
 
-  /// Restriction of deposited mass through active levels in adaptive
-  /// time-stepping
-  void p_method_pm_deposit_restrict_recv(FieldMsg * msg);
-
   //--------------------------------------------------
   /// Checkpoint
   //--------------------------------------------------

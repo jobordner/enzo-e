@@ -385,6 +385,7 @@ Solver * EnzoProblem::create_solver_
        solve_type,
        index_prolong,
        index_restrict,
+       enzo_config->solver_force_global_timestep[index_solver],
        enzo_config->solver_min_level[index_solver],
        enzo_config->solver_max_level[index_solver],
        enzo_config->solver_iter_max[index_solver],
@@ -402,6 +403,7 @@ Solver * EnzoProblem::create_solver_
        solve_type,
        index_prolong,
        index_restrict,
+       enzo_config->solver_force_global_timestep[index_solver],
        enzo_config->solver_min_level[index_solver],
        enzo_config->solver_max_level[index_solver],
        enzo_config->solver_coarse_solve[index_solver],
@@ -420,6 +422,7 @@ Solver * EnzoProblem::create_solver_
        solve_type,
        index_prolong,
        index_restrict,
+       enzo_config->solver_force_global_timestep[index_solver],
        enzo_config->solver_min_level[index_solver],
        enzo_config->solver_max_level[index_solver],
        enzo_config->solver_root_solve[index_solver],
@@ -437,6 +440,7 @@ Solver * EnzoProblem::create_solver_
        solve_type,
        index_prolong,
        index_restrict,
+       enzo_config->solver_force_global_timestep[index_solver],
        enzo_config->solver_min_level[index_solver],
        enzo_config->solver_max_level[index_solver],
        enzo_config->solver_iter_max[index_solver],
@@ -454,7 +458,9 @@ Solver * EnzoProblem::create_solver_
        enzo_config->solver_restart_cycle[index_solver],
        solve_type,
        index_prolong,
-       index_restrict);
+       index_restrict,
+       enzo_config->solver_force_global_timestep[index_solver]
+       );
 
   } else if (solver_type == "jacobi") {
 
@@ -481,6 +487,7 @@ Solver * EnzoProblem::create_solver_
        solve_type,
        index_prolong,
        index_restrict,
+       enzo_config->solver_force_global_timestep[index_solver],
        enzo_config->solver_min_level[index_solver],
        enzo_config->solver_max_level[index_solver],
        enzo_config->solver_iter_max[index_solver],

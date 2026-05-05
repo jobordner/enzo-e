@@ -24,7 +24,8 @@ public: // interface
                      int restart_cycle,
                      int solve_type,
                      int index_prolong,
-                     int index_restrict) throw();
+                     int index_restrict,
+                     int force_global_timestep) throw();
 
   /// Charm++ PUP::able declarations
   PUPable_decl(EnzoSolverDiagonal);

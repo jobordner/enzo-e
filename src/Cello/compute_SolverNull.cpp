@@ -15,6 +15,7 @@ SolverNull::SolverNull (std::string name,
                         int solve_type,
                         int index_prolong,
                         int index_restrict,
+                        int force_global_timestep,
                         int min_level,
                         int max_level) throw()
   : Solver(name,
@@ -25,6 +26,7 @@ SolverNull::SolverNull (std::string name,
            solve_type,
            index_prolong,
            index_restrict,
+           force_global_timestep,
            min_level,
            max_level)
 {

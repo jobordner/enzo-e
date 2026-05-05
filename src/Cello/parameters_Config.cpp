@@ -225,6 +225,7 @@ void Config::pup (PUP::er &p)
   p | solver_prolong;
   p | solver_min_level;
   p | solver_max_level;
+  p | solver_force_global_timestep;
   p | solver_field_x;
   p | solver_field_b;
 
@@ -1500,6 +1501,7 @@ void Config::read_solver_ (Parameters * p) throw()
   solver_prolong      .resize(num_solvers);
   solver_min_level    .resize(num_solvers);
   solver_max_level    .resize(num_solvers);
+  solver_force_global_timestep.resize(num_solvers);
   solver_field_x      .resize(num_solvers);
   solver_field_b      .resize(num_solvers);
 
@@ -1543,6 +1545,9 @@ void Config::read_solver_ (Parameters * p) throw()
 
     solver_max_level[index_solver] = p->value_integer
       (full_name + ":max_level",mesh_max_level);
+
+    solver_force_global_timestep[index_solver] = p->value_logical
+      (full_name + ":force_global_timestep",false);
 
     solver_field_x[index_solver] = p->value_string
       (full_name + ":field_x","unknown");

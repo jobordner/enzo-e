@@ -41,6 +41,9 @@ public: // virtual methods
   virtual std::string name () throw () 
   { return "balance"; }
 
+  virtual bool is_active(std::shared_ptr<State> state, int level) override
+  { return true; }
+
 protected: // attributes
 };
 

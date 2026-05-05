@@ -25,7 +25,9 @@
 // #define DEBUG_ATS
 // #define DEBUG_STATE
 // #define DEBUG_STOPPING
+
 // #define TRACE_DT
+#define CYCLE_TRACE_DT 50
 
 #ifdef DEBUG_STOPPING
 #   define TRACE_STOPPING(A)					\
@@ -46,6 +48,11 @@ void Block::stopping_enter_()
 
 void Block::stopping_begin_()
 {
+  if (index_.is_root()) {
+    CkPrintf ("TRACE_MESH leaf level range %d %d\n",
+              cello::hierarchy()->min_leaf_level(),
+              cello::hierarchy()->max_leaf_level());
+  }
   PERF_START(perf_rindex_stopping);
   TRACE_STOPPING("Block::stopping_begin_");
 
@@ -73,6 +80,12 @@ void Block::stopping_begin_()
     for (int im=0; im<nm; im++) {
       const int k = 1+im+nm*(il);
       min_reduce[k] = cello::method(im)->timestep(this);
+#ifdef TRACE_DT
+      if (state()->cycle() >= CYCLE_TRACE_DT) {
+        CkPrintf ("TRACE_DT %s L%d %d %s %g\n",
+                  name().c_str(),il,im,cello::method(im)->name().c_str(),min_reduce[k]);
+      }
+#endif
     }
   }
 

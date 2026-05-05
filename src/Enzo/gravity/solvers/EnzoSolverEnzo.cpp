@@ -20,6 +20,20 @@
 #include "Enzo/enzo.hpp"
 #include "Enzo/gravity/gravity.hpp"
 
+// #define TRACE_SOLVE
+#define CYCLE_TRACE 135
+
+#ifdef TRACE_SOLVE
+#  undef TRACE_SOLVE
+#  define TRACE_SOLVE(BLOCK,NAME)                                       \
+  if (BLOCK->state()->cycle() >= CYCLE_TRACE) {                         \
+    CkPrintf ("TRACE_SOLVE %s %d %s\n",                                 \
+              BLOCK->name().c_str(),BLOCK->state()->cycle(),std::string(NAME).c_str()); \
+  }
+#else
+#  define TRACE_SOLVE(BLOCK,NAME) /* ... */
+#endif
+
 //======================================================================
 
 EnzoSolverEnzo::EnzoSolverEnzo
@@ -31,6 +45,7 @@ EnzoSolverEnzo::EnzoSolverEnzo
    int solve_type,
    int index_prolong,
    int index_restrict,
+   int force_global_timestep,
    int min_level,
    int max_level,
    int index_solve_root,
@@ -44,6 +59,7 @@ EnzoSolverEnzo::EnzoSolverEnzo
          solve_type,
          index_prolong,
          index_restrict,
+         force_global_timestep,
          min_level,
          max_level),
   index_solve_root_(index_solve_root),
@@ -92,16 +108,18 @@ EnzoSolverEnzo::EnzoSolverEnzo
     refresh_level->set_final_sync(false);
 
     ir_level = cello::simulation()->new_register_refresh(refresh_level);
-    cello::simulation()->refresh_set_name(ir_level,
-                                          name+":level:"+std::to_string(level));
+    cello::simulation()->refresh_set_name
+      (ir_level, name+":level:"+std::to_string(level));
     ++level;
   }
 }
 
 //----------------------------------------------------------------------
 
-void EnzoSolverEnzo::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
+void EnzoSolverEnzo::apply
+( std::shared_ptr<Matrix> A, Block * block) throw()
 {
+  TRACE_SOLVE(block,"01 apply");
   Solver::begin_(block);
 
   EnzoBlock * enzo_block = enzo::block(block);
@@ -111,16 +129,6 @@ void EnzoSolverEnzo::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
   A_ = A;
   int m = field.dimensions (ib_);
   cello::refresh(ir_post_)->add_field(ix_);
-  if ( ! enzo_block->is_leaf() ) {
-    std::fill_n ((enzo_float*) field.values(ib_), m, 0.0);
-  }
-  // if ( enzo_block->is_leaf() ) {
-  //   enzo_float * B = (enzo_float *) field.values(ib_);
-  //   enzo_float * B_copy = (enzo_float *) field.values("B_copy");
-  //   m = field.dimensions (ib_);
-  //   for (int i=0; i<m; i++) B_copy[i] = B[i];
-  // }
-  std::fill_n ((enzo_float*) field.values(ix_),  m, 0.0);
 
   // Initialize synchronization counters
 
@@ -131,31 +139,43 @@ void EnzoSolverEnzo::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
   sync_prolong->set_stop (1 + 1); // self and parent
 
   const int level = enzo_block->level();
+  const int level_lower = level_lower_(block);
 
-  if (enzo_block->is_leaf()) {
+  std::fill_n ((enzo_float*) field.values(ix_),  m, 0.0);
 
-    // If this is a leaf block, call the root solver if level == 0,
-    // else restrict ix down to level == 0
+  if ( ! enzo_block->is_leaf() )
+    std::fill_n ((enzo_float*) field.values(ib_), m, 0.0);
 
+  // Copy B field at all levels
+  enzo_float * B = (enzo_float *) field.values(ib_);
+  enzo_float * B_copy = (enzo_float *) field.values("B_copy");
+  m = field.dimensions (ib_);
+  if (B_copy) for (int i=0; i<m; i++) B_copy[i] = B[i];
+
+  if (level < level_lower) {
     root_solve_begin(enzo_block);
-
-    if (level > 0) {
-
-      // Initialize restrict on leaf blocks to get root level b
-      restrict_send(enzo_block);
-
-    }
-
   } else {
+    if (enzo_block->is_leaf()) {
 
-    if (level >= 0 ) {
-      // Non-negative level non-leaves call restrict_recv for self-counter
-      restrict_recv(enzo_block,nullptr);
+      // If this is a leaf block, call the root solver,
+      // else restrict ix down to level == level_lower
+
+      root_solve_begin(enzo_block);
+
+      if (level > level_lower) {
+
+        // Initialize restrict on leaf blocks to get root level b
+        restrict_send(enzo_block);
+
+      }
+
+    } else {
+
+      if (level >= level_lower ) {
+        // Non-negative level non-leaves call restrict_recv for self-counter
+        restrict_recv(enzo_block,nullptr);
+      }
     }
-  }
-
-  if (level < 0) {
-    root_solve_begin(enzo_block);
   }
 }
 
@@ -163,9 +183,10 @@ void EnzoSolverEnzo::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
 
 void EnzoSolverEnzo::restrict_send(EnzoBlock * enzo_block)
 {
+  TRACE_SOLVE(enzo_block,"02 restrict_send");
   // Pack field
   Index index = enzo_block->index();
-  int level   = index.level();
+  const int level = index.level();
   int ic3[3];
   index.child(level,&ic3[0],&ic3[1],&ic3[2],min_level_);
 
@@ -188,23 +209,27 @@ void EnzoBlock::p_solver_enzo_restrict_recv(FieldMsg * msg)
 void EnzoSolverEnzo::restrict_recv(EnzoBlock * enzo_block,
                                    FieldMsg * msg)
 {
-  // Unpack "B" vector data from children
-
+  TRACE_SOLVE(enzo_block,"03 restrict_recv");
   // Save field message from child
-  if (msg != nullptr) *pmsg_restrict_(enzo_block,msg->child_index()) = msg;
+  if (msg != nullptr) {
+    const int ic = msg->child_index();
+    *pmsg_restrict_(enzo_block,ic) = msg;
+  }
 
   // Continue if all expected messages received
   if (psync_restrict_(enzo_block)->next() ) {
 
     // Restore saved messages
     for (int i=0; i<cello::num_children(); i++) {
+
       msg = *pmsg_restrict_(enzo_block,i);
       *pmsg_restrict_(enzo_block,i) = nullptr;
+
       // Unpack field from message then delete message
       unpack_field_(enzo_block,msg,ib_,-1);
     }
 
-    if (enzo_block->level() > 0) {
+    if (enzo_block->level() > level_lower_(enzo_block)) {
 
       // If level > root, restrict again
       restrict_send(enzo_block);
@@ -219,15 +244,28 @@ void EnzoSolverEnzo::restrict_recv(EnzoBlock * enzo_block,
 
 void EnzoSolverEnzo::root_solve_begin(EnzoBlock * enzo_block)
 {
-  Solver * solve_root = cello::solver(index_solve_root_);
+  TRACE_SOLVE(enzo_block,"04 root_solve_begin");
+  if (level_lower_(enzo_block) == 0) {
 
-  solve_root->set_sync_id (enzo_sync_id_solver_enzo_root);
-  solve_root->set_callback(CkIndex_EnzoBlock::p_solver_enzo_root_solve_end());
+    // If level_lower == 0, perform root-level solve
 
-  solve_root->set_field_x (ix_);
-  solve_root->set_field_b (ib_);
+    Solver * solve_root = cello::solver(index_solve_root_);
 
-  solve_root->apply(A_,enzo_block);
+    solve_root->set_sync_id (enzo_sync_id_solver_enzo_root);
+    solve_root->set_callback
+      (CkIndex_EnzoBlock::p_solver_enzo_root_solve_end());
+
+    solve_root->set_field_x (ix_);
+    solve_root->set_field_b (ib_);
+
+    solve_root->apply(A_,enzo_block);
+
+  } else {
+
+    // bypass root solve if lower active level > 0
+    root_solve_end(enzo_block);
+
+  }
 }
 
 //----------------------------------------------------------------------
@@ -238,20 +276,30 @@ void EnzoBlock::p_solver_enzo_root_solve_end()
 }
 void EnzoSolverEnzo::root_solve_end(EnzoBlock * enzo_block)
 {
+  TRACE_SOLVE(enzo_block,"05 root_solve_end");
   const int level = enzo_block->level();
-  if (level < 0) {
+  const int level_lower = level_lower_(enzo_block);
+
+  if (level < level_lower) {
+
     wait_at_end(enzo_block);
-  } else if (level == 0) {
+
+  } else if (level == level_lower) {
+
     if (enzo_block->is_leaf()) {
       wait_at_end(enzo_block);
     } else {
       prolong_send(enzo_block);
     }
-  } else if (level > 0) {
+
+  } else if (level > level_lower) {
+
     // call prolong_recv for self-counter for prolong after block solve
     prolong_recv(enzo_block,nullptr);
+
   }
-  if (enzo_block->is_leaf() && level == 0) {
+
+  if (enzo_block->is_leaf() && level == level_lower && level < max_level_) {
     refresh_level_begin(enzo_block,level+1);
   }
 }
@@ -260,6 +308,7 @@ void EnzoSolverEnzo::root_solve_end(EnzoBlock * enzo_block)
 
 void EnzoSolverEnzo::prolong_send(EnzoBlock * enzo_block)
 {
+  TRACE_SOLVE(enzo_block,"06 prolong_send");
   ItChild it_child(cello::rank());
   int ic3[3];
 
@@ -272,7 +321,7 @@ void EnzoSolverEnzo::prolong_send(EnzoBlock * enzo_block)
     enzo::block_array()[index_child].p_solver_enzo_prolong_recv(msg);
 
   }
-  if (enzo_block->level() == 0) {
+  if (enzo_block->level() == level_lower_(enzo_block)) {
     wait_at_end(enzo_block);
   }
 }
@@ -284,17 +333,16 @@ void EnzoBlock::p_solver_enzo_prolong_recv(FieldMsg * msg)
 void EnzoSolverEnzo::prolong_recv(EnzoBlock * enzo_block,
                                   FieldMsg * msg)
 {
-  int retval = (msg==nullptr ? 0:1);
-
+  TRACE_SOLVE(enzo_block,"07 prolong_recv");
   // Save field message from parent
-  if (msg != NULL) *pmsg_prolong_(enzo_block) = msg;
+  if (msg != nullptr) *pmsg_prolong_(enzo_block) = msg;
 
   // Continue if all expected messages received
   if (psync_prolong_(enzo_block)->next() ) {
 
     // Restore saved message then clear
     msg = *pmsg_prolong_(enzo_block);
-    *pmsg_prolong_(enzo_block) = NULL;
+    *pmsg_prolong_(enzo_block) = nullptr;
 
     // Unpack field from message then delete message
     unpack_field_(enzo_block,msg,ix_,+1);
@@ -305,8 +353,10 @@ void EnzoSolverEnzo::prolong_recv(EnzoBlock * enzo_block,
 
 //----------------------------------------------------------------------
 
-void EnzoSolverEnzo::refresh_level_begin(EnzoBlock * enzo_block, int level_refresh)
+void EnzoSolverEnzo::refresh_level_begin
+(EnzoBlock * enzo_block, int level_refresh)
 {
+  TRACE_SOLVE(enzo_block,std::string("08 refresh_level_begin level ")+std::to_string(level_refresh));
   *plevel_refresh_(enzo_block) = level_refresh;
   Refresh * refresh { cello::refresh(ir_level_list_[level_refresh]) };
   refresh -> set_active (true);
@@ -315,13 +365,18 @@ void EnzoSolverEnzo::refresh_level_begin(EnzoBlock * enzo_block, int level_refre
 
   bool call_refresh = false;
   const int level_block = enzo_block->level();
+
   if (level_block == level_refresh) {
+
     call_refresh = true;
+
   } else if (level_block == level_refresh - 1) {
+
     ASSERT1 ("refresh_level_begin",
              "block %s must be leaf",
              enzo_block->name().c_str(),
              enzo_block->is_leaf());
+
     ItNeighbor it_neighbor =
       enzo_block->it_neighbor
       (enzo_block->index(),
@@ -335,11 +390,15 @@ void EnzoSolverEnzo::refresh_level_begin(EnzoBlock * enzo_block, int level_refre
         call_refresh = true;
       }
     }
+
   }
+
   if (call_refresh) {
+
+    auto index_refresh = ir_level_list_[level_refresh];
     enzo_block->refresh_start
-      (ir_level_list_[level_refresh],
-       CkIndex_EnzoBlock::p_solver_enzo_refresh_level_end());
+      (index_refresh,  CkIndex_EnzoBlock::p_solver_enzo_refresh_level_end());
+
   }
 }
 
@@ -351,6 +410,7 @@ void EnzoBlock::p_solver_enzo_refresh_level_end()
 }
 void EnzoSolverEnzo::refresh_level_end(EnzoBlock * enzo_block)
 {
+  TRACE_SOLVE(enzo_block,"09 refresh_level_end");
   if (enzo_block->level() == *plevel_refresh_(enzo_block)) {
     block_solve_begin(enzo_block);
   }
@@ -360,6 +420,7 @@ void EnzoSolverEnzo::refresh_level_end(EnzoBlock * enzo_block)
 
 void EnzoSolverEnzo::block_solve_begin(EnzoBlock * enzo_block)
 {
+  TRACE_SOLVE(enzo_block,"10 block_solve_begin");
   Solver * solve_block = cello::solver(index_solve_block_);
 
   solve_block->set_min_level(enzo_block->level());
@@ -385,6 +446,7 @@ void EnzoBlock::p_solver_enzo_block_solve_end()
 
 void EnzoSolverEnzo::block_solve_end (EnzoBlock * enzo_block)
 {
+  TRACE_SOLVE(enzo_block,"11 block_solve_end");
   const int level = enzo_block->level();
   if (!enzo_block->is_leaf()) {
     prolong_send(enzo_block);
@@ -398,6 +460,7 @@ void EnzoSolverEnzo::block_solve_end (EnzoBlock * enzo_block)
 
 void EnzoSolverEnzo::wait_at_end(EnzoBlock * enzo_block)
 {
+  TRACE_SOLVE(enzo_block,"12 wait_at_end");
   CkCallback callback (CkIndex_EnzoBlock::r_solver_enzo_wait_at_end(nullptr),
                        enzo_block->proxy_array());
   enzo_block->contribute (callback);
@@ -414,6 +477,7 @@ void EnzoBlock::r_solver_enzo_wait_at_end(CkReductionMsg *msg)
 
 void EnzoSolverEnzo::last_smooth(EnzoBlock * enzo_block)
 {
+  TRACE_SOLVE(enzo_block,"13 last_smooth");
   Solver * smooth_last = cello::solver(index_solve_smooth_);
 
   if (smooth_last != nullptr) {
@@ -441,13 +505,12 @@ void EnzoBlock::p_solver_enzo_last_smooth_end()
 
 void EnzoSolverEnzo::end (Block* block)
 {
-  if ( block->is_leaf() ) {
-    Field field = block->data()->field();
-    const int m = field.dimensions(ix_);
-    enzo_float * X = (enzo_float *) field.values(ix_);
-    // enzo_float * X_copy = (enzo_float *) field.values("X_copy");
-    // for (int i=0; i<m; i++) X_copy[i] = X[i];
-  }
+  TRACE_SOLVE(block,"14 end");
+  Field field = block->data()->field();
+  const int m = field.dimensions(ix_);
+  enzo_float * X = (enzo_float *) field.values(ix_);
+  enzo_float * X_copy = (enzo_float *) field.values("X_copy");
+  if (X_copy) for (int i=0; i<m; i++) X_copy[i] = X[i];
   Solver::end_(block);
 }
 

@@ -29,9 +29,6 @@ MethodOrderHilbert::MethodOrderHilbert(int min_level) throw ()
     is_weight_child_(-1),
     min_level_(min_level)
 {
-  // All blocks at all levels must call this Method
-  set_call_on_all_levels();
-
   Refresh * refresh = cello::refresh(ir_post_);
   cello::simulation()->refresh_set_name(ir_post_,name());
   refresh->add_field("density");

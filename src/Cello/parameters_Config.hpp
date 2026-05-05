@@ -161,6 +161,7 @@ public: // interface
     solver_prolong(),
     solver_min_level(),
     solver_max_level(),
+    solver_force_global_timestep(),
     solver_field_x(),
     solver_field_b(),
     stopping_cycle(0),
@@ -327,6 +328,7 @@ public: // interface
       solver_prolong(),
       solver_min_level(),
       solver_max_level(),
+      solver_force_global_timestep(),
       solver_field_x(),
       solver_field_b(),
       stopping_cycle(0),
@@ -571,6 +573,7 @@ public: // attributes
   std::vector<std::string>   solver_restrict;
   std::vector<std::string>   solver_prolong;
   std::vector<int>           solver_min_level;
+  std::vector<int>           solver_force_global_timestep;
   std::vector<int>           solver_max_level;
   std::vector<std::string>   solver_field_x;
   std::vector<std::string>   solver_field_b;

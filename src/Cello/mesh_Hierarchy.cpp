@@ -94,7 +94,7 @@ void Hierarchy::pup (PUP::er &p)
   p | num_blocks_global_;
   p | num_blocks_level_;
   p | num_blocks_level_global_;
-  p |  num_blocks_changed_;
+  p | num_blocks_changed_;
 
   p | num_particles_;
   p | num_zones_total_;
@@ -194,19 +194,46 @@ void Hierarchy::upper(double * x, double * y, double * z) const throw ()
 
 //----------------------------------------------------------------------
 
-void Hierarchy::root_blocks
+int Hierarchy::min_leaf_level() const
+{
+  for (int level = 0; level <= max_level_; level++) {
+    if (num_blocks_global(level) < root_blocks(nullptr,nullptr,nullptr,level)) {
+      return level - 1;
+    }
+  }
+  return -1;
+}
+
+//----------------------------------------------------------------------
+
+int Hierarchy::max_leaf_level() const
+{
+  for (int level = max_level_; level >= min_level_; level--) {
+    if (num_blocks_global(level) > 0)
+      return level;
+  }
+  return -1;
+}
+
+//----------------------------------------------------------------------
+
+long long Hierarchy::root_blocks
 (int * nbx, int * nby, int * nbz,int level) const throw()
 {
   if (nbx) (*nbx) = blocking_[0];
   if (nby) (*nby) = blocking_[1];
   if (nbz) (*nbz) = blocking_[2];
+
+  long long retval = blocking_[0]*blocking_[1]*blocking_[2];
   if (level > 0) {
-    const int r = std::pow(2,level);
-    const int rank = cello::rank();
-    if (nbx && rank >= 1) (*nbx) *= r;
-    if (nby && rank >= 2) (*nby) *= r;
-    if (nbz && rank >= 3) (*nbz) *= r;
+    const int rc = std::pow(cello::num_children(),level);
+    const int r  = std::pow(2,level);
+    if (nbx) (*nbx) *= r;
+    if (nby) (*nby) *= r;
+    if (nbz) (*nbz) *= r;
+    retval *= rc;
   }
+  return retval;
 }
 
 //----------------------------------------------------------------------

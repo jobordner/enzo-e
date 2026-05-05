@@ -22,8 +22,6 @@ Method::Method (double courant) throw()
     super_field_prev_(),
     is_time_curr_(-1),
     is_time_prev_(-1),
-    ignore_lower_level_limit_(false),
-    ignore_upper_level_limit_(false),
     index_perf_(-1)
 {
   ir_post_ = add_refresh_();
@@ -57,8 +55,6 @@ void Method::pup (PUP::er &p)
   p | super_field_prev_;
   p | is_time_curr_;
   p | is_time_prev_;
-  p | ignore_lower_level_limit_;
-  p | ignore_upper_level_limit_;
   p | index_perf_;
 }
 
@@ -100,11 +96,13 @@ bool Method::is_scheduled(Block * block) const
 
 bool Method::is_active(std::shared_ptr<State> state, int level)
 {
+  // Default is method is only active for levels in State
+  // levels [level_lower, level_upper) when not global time-stepping
+
   const int level_lower = state->level_lower();
   const int level_upper = state->level_upper();
   return (state->state_type() == State::Type::Global)
-    || ( (    ignore_lower_level_limit() || (level_lower <= level))
-         && ( ignore_upper_level_limit() || (level < level_upper)));
+    || ( level_lower <= level )  && ( level < level_upper );
 }
 
 //======================================================================

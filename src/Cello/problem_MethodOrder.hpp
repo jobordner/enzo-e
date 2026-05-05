@@ -53,6 +53,9 @@ public: // virtual methods
   virtual std::string name () throw ()
   { return "order"; }
 
+  virtual bool is_active(std::shared_ptr<State> state, int level) override
+  { return true; }
+
 public: // methods
 
   // accumulate block counts and weights

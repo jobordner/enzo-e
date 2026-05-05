@@ -32,6 +32,7 @@ Solver::Solver (std::string name,
                 int solve_type,
                 int index_prolong,
                 int index_restrict,
+                int force_global_timestep,
                 int min_level,
                 int max_level) throw()
   : PUP::able(),
@@ -47,6 +48,7 @@ Solver::Solver (std::string name,
     solve_type_(solve_type),
     index_prolong_(index_prolong),
     index_restrict_(index_restrict),
+    force_global_timestep_(force_global_timestep),
     ir_post_(-1),
     include_ghosts_(false)
 {
@@ -72,6 +74,7 @@ Solver::Solver () throw()
     solve_type_(solve_leaf),
     index_prolong_(0),
     index_restrict_(0),
+    force_global_timestep_(false),
     ir_post_(-1),
     include_ghosts_(false)
 {
@@ -207,4 +210,16 @@ bool Solver::is_finest_ (Block * block) const
 	   solve_type_,name_.c_str());
     return false;
   }
+}
+
+//----------------------------------------------------------------------
+
+int Solver::level_lower_(Block * block) const throw()
+{
+  int level_lower = 0;
+  if (block->state()->state_type() == State::Type::Level &&
+      ! force_global_timestep_) {
+    level_lower = block->state()->level_lower();
+  }
+  return level_lower;
 }
