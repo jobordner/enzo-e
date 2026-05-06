@@ -28,8 +28,6 @@ EnzoBlock::EnzoBlock( CkMigrateMessage *m)
   state_ = std::make_shared<EnzoState>(0, 0.0, 0.0, false);
 
   TRACE("CkMigrateMessage");
-  // EnzoSimulation[0] counts migrated Blocks
-  proxy_enzo_simulation[0].p_method_balance_check();
 }
 
 //----------------------------------------------------------------------
@@ -90,6 +88,22 @@ EnzoBlock::~EnzoBlock()
   CkPrintf ("%d %p TRACE_BLOCK %s ~EnzoBlock(...)\n",
             CkMyPe(),(void *)this,name(thisIndex).c_str());
 #endif
+}
+
+//----------------------------------------------------------------------
+
+void EnzoBlock::ckAboutToMigrate(void)
+{
+  Block::ckAboutToMigrate();
+}
+
+//----------------------------------------------------------------------
+
+void EnzoBlock::ckJustMigrated(void)
+{
+  Block::ckJustMigrated();
+  if (!coarsened_)
+    proxy_enzo_simulation[0].p_method_balance_check();
 }
 
 //----------------------------------------------------------------------

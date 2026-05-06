@@ -66,7 +66,7 @@ void EnzoSimulation::r_method_balance_count(CkReductionMsg * msg)
   /*  PERF_REDUCE_STOP(perf_rindex_reduce_method_balance); */
   int * count_total = (int * )msg->getData();
   sync_method_balance_.set_stop(*count_total + 1);
-
+ 
   if (CkMyPe() == 0) {
     cello::monitor()->print("Method EnzoMethodBalance", "migrating %d blocks",*count_total);
   }

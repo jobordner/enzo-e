@@ -532,7 +532,6 @@ enum class InitCycleKind {
   {                                                     \
     size_t size;                                        \
     memcpy(&size, POINTER, sizeof(size_t));             \
-    CkPrintf ("SIZE %lu\n",size);                       \
     (POINTER) += sizeof(size_t);                        \
     (VECTOR).resize(size);                              \
     for (size_t i=0; i<(VECTOR).size(); i++) {          \

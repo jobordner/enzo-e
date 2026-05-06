@@ -65,6 +65,10 @@ public: // interface
   /// Destructor
   virtual ~EnzoBlock();
 
+  /// Pre- and post-migration functions called by Charm++
+  void ckAboutToMigrate(void);
+  void ckJustMigrated(void);
+
   //--------------------------------------------------
   // Charm++ virtual
   //--------------------------------------------------
