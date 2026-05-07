@@ -245,9 +245,12 @@ void EnzoSolverEnzo::restrict_recv(EnzoBlock * enzo_block,
 void EnzoSolverEnzo::root_solve_begin(EnzoBlock * enzo_block)
 {
   TRACE_SOLVE(enzo_block,"04 root_solve_begin");
-  if (level_lower_(enzo_block) == 0) {
 
-    // If level_lower == 0, perform root-level solve
+  const int level_root = cello::hierarchy()->min_leaf_level();
+
+  if (level_lower_(enzo_block) == level_root) {
+
+    // If level_lower == root level, perform root-level solve
 
     Solver * solve_root = cello::solver(index_solve_root_);
 
@@ -257,12 +260,12 @@ void EnzoSolverEnzo::root_solve_begin(EnzoBlock * enzo_block)
 
     solve_root->set_field_x (ix_);
     solve_root->set_field_b (ib_);
-
+    solve_root->set_max_level(level_root);
     solve_root->apply(A_,enzo_block);
 
   } else {
 
-    // bypass root solve if lower active level > 0
+    // bypass root solve if lower active level > root level
     root_solve_end(enzo_block);
 
   }

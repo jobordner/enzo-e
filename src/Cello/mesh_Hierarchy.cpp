@@ -198,10 +198,10 @@ int Hierarchy::min_leaf_level() const
 {
   for (int level = 0; level <= max_level_; level++) {
     if (num_blocks_global(level) < root_blocks(nullptr,nullptr,nullptr,level)) {
-      return level - 1;
+      return level-1;
     }
   }
-  return -1;
+  return max_level_;
 }
 
 //----------------------------------------------------------------------
@@ -217,14 +217,14 @@ int Hierarchy::max_leaf_level() const
 
 //----------------------------------------------------------------------
 
-long long Hierarchy::root_blocks
+size_t Hierarchy::root_blocks
 (int * nbx, int * nby, int * nbz,int level) const throw()
 {
   if (nbx) (*nbx) = blocking_[0];
   if (nby) (*nby) = blocking_[1];
   if (nbz) (*nbz) = blocking_[2];
 
-  long long retval = blocking_[0]*blocking_[1]*blocking_[2];
+  size_t retval = blocking_[0]*blocking_[1]*blocking_[2];
   if (level > 0) {
     const int rc = std::pow(cello::num_children(),level);
     const int r  = std::pow(2,level);

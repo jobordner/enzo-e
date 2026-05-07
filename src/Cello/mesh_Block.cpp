@@ -906,7 +906,7 @@ std::string Block::name8(Index index) const throw()
     char digit = '0' + ax+2*(ay+2*az);
     name8 += digit;
   }
-  name8 += "]";
+  name8 += ":";
   for (int level=1; level<=index.level(); level++) {
     int shift = (INDEX_BITS_TREE-level);
     int tx = (t3[0] >> shift) & 1;
@@ -915,6 +915,7 @@ std::string Block::name8(Index index) const throw()
     char digit = tx+2*(ty+2*tz);
     name8 += '0' + digit;
   }
+  name8 += "]";
   return name8;
 }
 

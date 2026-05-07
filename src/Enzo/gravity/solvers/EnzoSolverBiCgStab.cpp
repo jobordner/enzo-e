@@ -106,65 +106,6 @@ void mutex_init_bcg_iter()
 #   define TRACE_SCALAR(BLOCK,NAME,SCALAR) /* ... */
 #endif
 
-#undef TRACE_FIELD  
-#ifdef DEBUG_FIELD
-#   define TRACE_FIELD(BLOCK,MSG,ID,NAME)                               \
-  const int iter = (s_iter_(block));                                    \
-  if (ITER_START <= iter && iter < ITER_END) {                          \
-  if (CYCLE_START <= BLOCK->cycle() &&                                  \
-      BLOCK->cycle() < CYCLE_END) {                                     \
-  Field field = BLOCK->data()->field();                                 \
-  enzo_float* X = (enzo_float*) field.values(ID);                       \
-  double sum_f=0.0,sum_g=0.0;                                           \
-  double min_f=1e100,min_g=1e100;                                       \
-  double max_f=-1e100,max_g=-1e00;                                      \
-  double sum_af=0.0,sum_ag=0.0;                                         \
-  double min_af=1e100,min_ag=1e100;                                     \
-  double max_af=-1e100,max_ag=-1e00;                                    \
-  int ix,iy,iz,count_f=0,count_g=0;                                     \
-  for (int iz=0; iz<mz_; iz++) {                                        \
-    for (int iy=0; iy<my_; iy++) {                                      \
-      for (int ix=0; ix<mx_; ix++) {                                    \
-        int i=ix+mx_*(iy+my_*iz);                                       \
-        enzo_float x = X[i];                                            \
-        enzo_float ax = std::abs(X[i]);                                 \
-        if (((gx_ <= ix && ix <mx_-gx_) &&                              \
-             (gy_ <= iy && iy <my_-gy_) &&                              \
-             (gz_ <= iz && iz <mz_-gz_))) {                             \
-          sum_f += x;                                                   \
-          min_f = std::min(min_f,x);                                    \
-          max_f = std::max(max_f,x);                                    \
-          sum_af += ax;                                                 \
-          min_af = std::min(min_af,ax);                                 \
-          max_af = std::max(max_af,ax);                                 \
-          count_f ++;                                                   \
-        } else {                                                        \
-          sum_g += x;                                                   \
-          min_g = std::min(min_g,x);                                    \
-          max_g = std::max(max_g,x);                                    \
-          sum_ag += ax;                                                 \
-          min_ag = std::min(min_ag,ax);                                 \
-          max_ag = std::max(max_ag,ax);                                 \
-          count_g ++;                                                   \
-        }                                                               \
-      }                                                                 \
-    }                                                                   \
-  }                                                                     \
-  CkPrintf ("%d TRACE_FIELD %s %s %s iter %d values %d [%g %g %g] ghosts %d [%g %g %g]\n", \
-            CkMyPe(),BLOCK->name().c_str(),MSG,NAME,iter,               \
-            count_f,min_f,sum_f/count_f,max_f,                          \
-            count_g,min_g,sum_g/count_g,max_g);                         \
-  CkPrintf ("%d TRACE_FIELD %s %s |%s| iter %d values %d [%g %g %g] ghosts %d [%g %g %g]\n", \
-            CkMyPe(),BLOCK->name().c_str(),MSG,NAME,iter,               \
-            count_f,min_af,sum_af/count_f,max_af,                     \
-            count_g,min_ag,sum_ag/count_g,max_ag);                    \
-  }                                                                     \
-  }                                                                   
-#else
-#   define TRACE_FIELD(BLOCK,MSG,ID,NAME) /* ... */
-#endif
-
-
 #ifdef TRACE_BCG
 #  undef TRACE_BCG
 #  define TRACE_BCG(BLOCK,SOLVER,msg)					\

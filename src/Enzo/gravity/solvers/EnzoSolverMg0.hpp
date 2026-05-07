@@ -5,7 +5,7 @@
 /// @date     2015-06-02
 /// @brief    [\ref Enzo] Declaration of EnzoSolverMg0
 ///
-/// Multigrid for solving a linear system on the root-level grid only
+/// Multigrid for solving a linear system on a single mesh level
 
 #ifndef ENZO_ENZO_SOLVER_MG0_HPP
 #define ENZO_ENZO_SOLVER_MG0_HPP
