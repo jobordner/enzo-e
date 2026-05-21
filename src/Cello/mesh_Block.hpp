@@ -177,7 +177,7 @@ public:
   /// Return a short variation of the Block name based on octal digits
   std::string name8(Index) const throw();
   std::string name8() const throw()
-  { if (name8_ == "") name8_ = name8(index_); return name8_; }
+  { if (name8_ == "") name8_ = name8(thisIndex); return name8_; }
 
   /// Return the size of the Block array
   void size_array (int * nx, int * ny = 0, int * nz = 0) const throw();

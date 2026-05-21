@@ -1449,11 +1449,14 @@ void Block::particle_scatter_neighbors_
 	      ! (0 <= iy && iy < 4) ||
 	      ! (0 <= iz && iz < 4)) {
 
+            CkPrintf ("%d ib ip %d %d\n",CkMyPe(),ib,ip);
 	    CkPrintf ("%d ix iy iz %d %d %d\n",CkMyPe(),ix,iy,iz);
 	    CkPrintf ("%d x y z %f %f %f\n",CkMyPe(),x,y,z);
 	    CkPrintf ("%d xa ya za %f %f %f\n",CkMyPe(),xa[ip*d],ya[ip*d],za[ip*d]);
 	    CkPrintf ("%d xm ym zm %f %f %f\n",CkMyPe(),xm,ym,zm);
 	    CkPrintf ("%d xp yp zp %f %f %f\n",CkMyPe(),xp,yp,zp);
+	    CkPrintf ("%d xl yl zl %f %f %f\n",CkMyPe(),xl,yl,zl);
+	    CkPrintf ("%d x0 y0 z0 %f %f %f\n",CkMyPe(),x0,y0,z0);
 	    ERROR3 ("Block::particle_scatter_neighbors_",
 		    "particle indices (ix,iy,iz) = (%d,%d,%d) out of bounds",
 		    ix,iy,iz);

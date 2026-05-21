@@ -428,7 +428,7 @@ void EnzoMethodMHDVlct::compute ( Block * block) throw()
         enzo::block(block)->CellWidth[2],
       };
 
-    const double dt = block->state()->dt();
+    const double dt = block->dt();
 
     // stale_depth indicates the number of field entries from the outermost
     // field value that the region including "stale" values (need to be

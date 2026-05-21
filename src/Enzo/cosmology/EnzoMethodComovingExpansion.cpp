@@ -87,17 +87,17 @@ void EnzoMethodComovingExpansion::compute ( Block * block) throw()
 
       enzo_float compute_time;
       if (has_history) {
-  	compute_time = 0.5 * (enzo_block->state()->time() +
+  	compute_time = 0.5 * (enzo_block->time() +
   			      field.history_time(1));
       }
       else {
-  	compute_time = enzo_block->state()->time();
+  	compute_time = enzo_block->time();
       }
 
       enzo_float cosmo_a=1.0;
       enzo_float cosmo_dadt=0.0;
       cosmology->compute_expansion_factor (&cosmo_a, &cosmo_dadt, compute_time);
-      double dt = block->state()->dt();
+      double dt = block->dt();
       enzo_float Coefficient = dt*cosmo_dadt/cosmo_a;
 
 
@@ -231,7 +231,7 @@ double EnzoMethodComovingExpansion::timestep( Block * block ) throw()
   EnzoBlock * enzo_block = enzo::block(block);
 
   cosmology->compute_expansion_timestep(&dtExpansion,
-                                        (enzo_float) enzo_block->state()->time());
+                                        (enzo_float) enzo_block->time());
 
   return (double) dtExpansion;
 

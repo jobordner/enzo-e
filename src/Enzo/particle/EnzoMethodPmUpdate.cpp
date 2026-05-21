@@ -1,5 +1,4 @@
 // See LICENSE_CELLO file for license and copyright information
-
 /// @file     enzo_EnzoMethodPmUpdate.cpp
 /// @author   James Bordner (jobordner@ucsd.edu)
 /// @date     Fri Apr  2 17:05:23 PDT 2010
@@ -92,10 +91,10 @@ void EnzoMethodPmUpdate::compute ( Block * block) throw()
 
     enzo_float cosmo_a=1.0,cosmo_dadt=0.0;
 
-    const double dt = block->state()->dt();
+    const double time = block->time();
+    const double dt   = block->dt();
 
     if (cosmology) {
-      double time = block->state()->time();
       cosmology-> compute_expansion_factor (&cosmo_a,&cosmo_dadt,time+0.5*dt);
       //      cosmology-> compute_expansion_factor (&av,&dadtv,time+dt);
     }
@@ -308,8 +307,8 @@ double EnzoMethodPmUpdate::timestep ( Block * block ) throw()
 
     if (cosmology) {
       enzo_float cosmo_a=1.0,cosmo_dadt=0.0;
-      double time = block->state()->time();
-      double dt   = block->state()->dt();
+      const double time = block->time();
+      const double dt   = block->dt();
       cosmology-> compute_expansion_factor (&cosmo_a,&cosmo_dadt,time+0.5*dt);
       hx *= cosmo_a;
       hy *= cosmo_a;

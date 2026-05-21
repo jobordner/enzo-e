@@ -35,6 +35,7 @@ public: // interface
       dt_level_(),
       stopping_(false),
       method_state_(),
+      level_root_(0),
       level_lower_(0),
       level_upper_(std::numeric_limits<int>::max()),
       state_type_(Type::Global),
@@ -54,6 +55,7 @@ public: // interface
       dt_level_(),
       stopping_(stopping),
       method_state_(),
+      level_root_(0),
       level_lower_(0),
       level_upper_(std::numeric_limits<int>::max()),
       state_type_(Type::Global),
@@ -82,6 +84,7 @@ public: // interface
     p | dt_level_;
     p | stopping_;
     p | method_state_;
+    p | level_root_;
     p | level_lower_;
     p | level_upper_;
     p | state_type_;
@@ -194,15 +197,18 @@ public: // interface
   Type state_type() const { return state_type_; }
   Next state_next() const { return state_next_; }
 
+  void set_level_root (int level_root)
+  { level_root_ = level_root; }
+
   void set_level_type (const std::string & level_type, int max_level)
   {
     if (level_type == "sequential") {
       state_next_ = Next::Sequential;
-      level_lower_ = 0;
-      level_upper_ = 1;
+      level_lower_ = level_root_;
+      level_upper_ = level_root_ + 1;
     } else if (level_type == "concurrent") {
       state_next_ = Next::Concurrent;
-      level_lower_ = 0;
+      level_lower_ = level_root_;
       level_upper_ = max_level+1;
     } else {
       ERROR1 ("State::set_level_type()",
@@ -313,6 +319,7 @@ public: // interface
     SIZE_VECTOR_TYPE(size,double,dt_level_);
     SIZE_SCALAR_TYPE(size,bool,stopping_);
     SIZE_VECTOR_OBJECT_TYPE(size, MethodState, method_state_);
+    SIZE_SCALAR_TYPE(size,int,level_root_);
     SIZE_SCALAR_TYPE(size,int,level_lower_);
     SIZE_SCALAR_TYPE(size,int,level_upper_);
     SIZE_ENUM_CLASS_TYPE(size,Type,state_type_);
@@ -333,6 +340,7 @@ public: // interface
     SAVE_VECTOR_TYPE(pc,double,dt_level_);
     SAVE_SCALAR_TYPE(pc,bool,stopping_);
     SAVE_VECTOR_OBJECT_TYPE(pc, MethodState, method_state_);
+    SAVE_SCALAR_TYPE(pc,int,level_root_);
     SAVE_SCALAR_TYPE(pc,int,level_lower_);
     SAVE_SCALAR_TYPE(pc,int,level_upper_);
     SAVE_ENUM_CLASS_TYPE(pc,Type,state_type_);
@@ -353,6 +361,7 @@ public: // interface
     LOAD_VECTOR_TYPE(pc,double,dt_level_);
     LOAD_SCALAR_TYPE(pc,bool,stopping_);
     LOAD_VECTOR_OBJECT_TYPE(pc, MethodState, method_state_);
+    LOAD_SCALAR_TYPE(pc,int,level_root_);
     LOAD_SCALAR_TYPE(pc,int,level_lower_);
     LOAD_SCALAR_TYPE(pc,int,level_upper_);
     LOAD_ENUM_CLASS_TYPE(pc,Type,state_type_);
@@ -420,6 +429,8 @@ public: // interface
       i++;
     }
 
+    CkPrintf ("   level_root_  %d\n",level_root_);
+
     CkPrintf ("   level_lower_ %d\n",level_lower_);
     CkPrintf ("   level_upper_ %d\n",level_upper_);
 
@@ -486,6 +497,10 @@ protected: // attributes
 
   /// Method-specific state scalars
   std::vector<MethodState> method_state_;
+
+  /// Effective root-level, usually the coarsest level containing
+  /// any leaf nodes
+  int level_root_;
 
   /// Range of levels active
   int level_lower_;

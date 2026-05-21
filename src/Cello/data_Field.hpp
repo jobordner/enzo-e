@@ -477,6 +477,15 @@ public: // interface
 	      bool use_file = false) const throw()
   { field_data_->print(field_descr_,message,use_file); }
 
+  void png (const std::string & file_name,
+            int id_field, int nx, int ny,
+            bool include_ghost = false,
+            double min=0.0, double max=0.0 )
+  {
+    field_data_->png(field_descr_,file_name,
+                     id_field,nx,ny,include_ghost,min,max);
+  }
+
 private: // attributes
 
   /// Field descriptor for global field data

@@ -558,10 +558,13 @@ namespace cello {
   int max_level()
   { return config()->mesh_max_level; }
 
+  int level_root()
+  { return hierarchy() ? hierarchy()->min_leaf_level() : 0; }
+
   //----------------------------------------------------------------------
 
-  int finest_level()
-  { return hierarchy() ? hierarchy()->finest_level() : 0; }
+  int level_top()
+  { return hierarchy() ? hierarchy()->max_leaf_level() : 0; }
 
   //----------------------------------------------------------------------
 

@@ -91,6 +91,12 @@ public:  // virtual methods
 
 public: // methods
 
+  /// Call barrier before entering
+  void wait_at_start(EnzoBlock * enzo_block);
+
+  /// Begin solver after initial barrier
+  void begin_solve(EnzoBlock * enzo_block);
+
   /// Restrict b to coarser Block
   void restrict_send(EnzoBlock * enzo_block);
   void restrict_recv(EnzoBlock * enzo_block,
@@ -123,6 +129,15 @@ public: // methods
   void end(Block* block);
 
 protected: // methods
+
+  /// Call the root-level solver
+  void call_root_solve_(EnzoBlock * enzo_block);
+  /// Call the block solver
+  void call_block_solve_(EnzoBlock * enzo_block);
+  /// Call the last smoother
+  void call_last_smooth_(EnzoBlock * enzo_block);
+
+  bool do_call_refresh_(EnzoBlock * enzo_block, int level_refresh);
 
   /// Access the Field message for buffering prolongation data
   FieldMsg ** pmsg_prolong_(Block * block)

@@ -8,6 +8,7 @@
 #include "cello.hpp"
 #include "data.hpp"
 
+#include "pngwriter.h"
 // #define DEBUG_COARSE_ARRAY
 //----------------------------------------------------------------------
 
@@ -847,6 +848,83 @@ void FieldData::print
     free ((void *)field_name);
   }
   fclose (fp);
+}
+
+//----------------------------------------------------------------------
+
+void FieldData::png (const FieldDescr * field_descr,
+                     const std::string & file_name,
+                     int id_field,
+                     int NX, int NY,
+                     bool include_ghost,
+                     double min, double max)
+{
+  int mx,my,mz;
+  const int m = dimensions(field_descr,id_field,&mx,&my,&mz);
+  int gx,gy,gz;
+  field_descr->ghost_depth (id_field,&gx,&gy,&gz);
+
+  if (include_ghost) { gx=gy=gz=0; }
+
+  cello_float * x = (cello_float *)values(field_descr,id_field);
+
+  // Determine the range of values to determine field image colors
+  if (max <= min) {
+    min=1e37;
+    max=-1e37;
+    for (int iz=gz; iz<mz-gz; iz++) {
+      for (int iy=gy; iy<my-gy; iy++) {
+        for (int ix=gx; ix<mx-gx; ix++) {
+          int i = ix+mx*(iy+my*iz);
+          min=std::min(cello_float(min),x[i]);
+          max=std::max(cello_float(max),x[i]);
+        }
+      }
+    }
+  }
+  CkPrintf ("Writing %s field %s range [%g %g]\n",
+            file_name.c_str(),field_descr->field_name(id_field).c_str(),min,max);
+
+  if (max <= min) max = min + 1;
+  
+  // Open the PNG file
+  pngwriter * plot = new pngwriter (NX,NY,0,file_name.c_str());
+
+  // Write Field data
+  const int nx = mx-2*gx;
+  const int ny = my-2*gy;
+  int ix_min=10000,ix_max=-100000;
+  int iy_min=10000,iy_max=-100000;
+  double c_min=1e10, c_max=-1e10;
+  for (int iz=gz; iz<mz-gz; iz++) {
+    for (int iy=gy; iy<my-gy; iy++) {
+      const int iym = (iy - gy)*NY / ny;
+      const int iyp = (iy - gy + 1)*NY / ny - 1;
+      iy_min = std::min(iy_min,iym);
+      iy_min = std::min(iy_min,iyp);
+      iy_max = std::max(iy_max,iym);
+      iy_max = std::max(iy_max,iyp);
+      for (int ix=gx; ix<mx-gx; ix++) {
+        const int ixm = (ix - gx)*NX / nx;
+        const int ixp = (ix - gx + 1)*NX / nx - 1;
+        ix_min = std::min(ix_min,ixm);
+        ix_min = std::min(ix_min,ixp);
+        ix_max = std::max(ix_max,ixm);
+        ix_max = std::max(ix_max,iyp);
+        const int i = ix+mx*(iy+my*iz);
+        double c = (x[i]-min) / (max-min);
+        plot->filledsquare(ixm,iym, ixp,iyp, c, c, c);
+        c_min=std::min(c,c_min);
+        c_max=std::max(c,c_max);
+      }
+    }
+  }
+  CkPrintf ("Image pixel range [ %d:%d , %d:%d] = %g:%g\n",
+            ix_min,ix_max,iy_min,iy_max,c_min,c_max);
+
+  // Close the PNG file
+  plot->close();
+  delete plot;
 }
 
 //----------------------------------------------------------------------

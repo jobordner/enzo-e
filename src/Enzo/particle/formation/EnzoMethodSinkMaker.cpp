@@ -317,7 +317,7 @@ void EnzoMethodSinkMaker::compute_ ( Block *block) throw()
 	// Set creation time equal to current time
 	pcreation_time     =
 	  (enzo_float *) particle.attribute_array(it, ia_creation_time, ibatch);
-	pcreation_time[ip_batch * dcreation_time] = enzo::block(block)->state()->time();
+	pcreation_time[ip_batch * dcreation_time] = enzo::block(block)->time();
 
 	// Set ID to be the global cell index
 	pid = (int64_t * ) particle.attribute_array(it, ia_id, ibatch);

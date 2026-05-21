@@ -92,8 +92,8 @@ void Block::compute_next_ ()
 
       refresh -> set_level_lower(state()->level_lower());
       refresh -> set_level_upper(state()->level_upper());
-      // refresh -> set_adaptive_timestep
-      //   (cello::simulation()->state()->state_type() == State::Type::Level);
+      refresh -> set_adaptive_timestep
+        (cello::simulation()->state()->state_type() == State::Type::Level);
 
       refresh_start (ir_post,CkIndex_Block::p_compute_continue());
 
@@ -179,9 +179,7 @@ void Block::compute_end_ ()
 
   // Update block cycle and time
 
-  const int level_top = cello::hierarchy()->finest_level();
-
-  state()->advance(level_top);
+  state()->advance(cello::level_top());
 
   // delete fluxes
   data()->flux_data()->deallocate();

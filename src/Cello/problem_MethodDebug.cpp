@@ -10,6 +10,8 @@
 #include "test.hpp"
 
 // #define DEBUG_DEBUG
+#define CHECK_FOR_NAN
+
 //----------------------------------------------------------------------
 
 MethodDebug::MethodDebug
@@ -39,10 +41,10 @@ MethodDebug::MethodDebug
   cello::simulation()->refresh_set_name(ir_post_,name());
   cello::refresh(ir_post_)->add_all_fields();
 
-  field_sum_.resize(num_fields);
-  field_min_.resize(num_fields);
-  field_max_.resize(num_fields);
-  field_count_.resize(num_fields);
+  field_sum_.resize(num_fields*2);
+  field_min_.resize(num_fields*2);
+  field_max_.resize(num_fields*2);
+  field_count_.resize(num_fields*2);
 
   for (int i=0; i<3; i++) {
     particle_sum_[i].resize(num_particles);
@@ -56,7 +58,9 @@ MethodDebug::MethodDebug
 
 void MethodDebug::compute ( Block * block) throw()
 {
-  const int num_reduce = 4*(num_fields_+3*num_particles_);
+  Field field = block->data()->field();
+  int num_history = (field.num_history() + 1);
+  const int num_reduce = 4*(num_fields_*num_history+3*num_particles_);
   cello_reduce_type * reduce = new cello_reduce_type [1+num_reduce];
   reduce[0] = num_reduce+1;
   const int kmin=0;
@@ -70,38 +74,48 @@ void MethodDebug::compute ( Block * block) throw()
     reduce[k+knum] = 0;
   }
 
-  if (block->is_leaf()) {
+  // accumulate local reductions for global
 
-    // accumulate local reductions for global
+  int mx,my,mz;
+  int gx,gy,gz;
+  field.dimensions (0,&mx,&my,&mz);
+  field.ghost_depth (0,&gx,&gy,&gz);
 
-    Field field = block->data()->field();
-    int mx,my,mz;
-    int gx,gy,gz;
-    field.dimensions (0,&mx,&my,&mz);
-    field.ghost_depth (0,&gx,&gy,&gz);
-    gx=gy=gz=0;
-    const double rel_vol = cello::relative_cell_volume (block->level());
-    int k=1;
+  const double rel_vol = cello::relative_cell_volume (block->level());
+  int k=1;
+  for (int ih = 0; ih < num_history; ih++) {
     for (int index_field=0; index_field<num_fields_; index_field++) {
 
-      cello_float * values = (cello_float *) field.values(index_field);
+      cello_float * values = (cello_float *) field.values(index_field,ih);
 
+      int err_count = 0;
       for (int iz=gz; iz<mz-gz; iz++) {
         for (int iy=gy; iy<my-gy; iy++) {
           for (int ix=gx; ix<mx-gx; ix++) {
             int i=ix + mx*(iy + my*iz);
 
             cello_reduce_type value = values[i];
-            reduce[k+kmin] = std::min(reduce[k+kmin],value);
-            reduce[k+kmax] = std::max(reduce[k+kmax],value);
-            reduce[k+ksum] += values[i];
-            reduce[k+knum] += rel_vol;
+            if (values[i] != values[i] && err_count++ < 10) {
+              CkPrintf ("DEBUG_NAN %s %s %d %d %d %p %d/10 is nan!\n",
+                        block->name8().c_str(),
+                        field.field_name(index_field).c_str(),
+                        ix,iy,iz,&values[i],err_count);
+            }
+            if (block->is_leaf()) {
+              reduce[k+kmin] = std::min(reduce[k+kmin],value);
+              reduce[k+kmax] = std::max(reduce[k+kmax],value);
+              reduce[k+ksum] += values[i];
+              reduce[k+knum] += rel_vol;
+            }
           }
         }
       }
-      k += 4;
+      if (block->is_leaf()) {
+        k += 4;
+      }
     }
-
+  }
+  if (block->is_leaf()) {
     // particles
     Particle particle = block->data()->particle();
     const int mb = particle.batch_size();
@@ -139,13 +153,15 @@ void MethodDebug::compute ( Block * block) throw()
   {
     int id = 0;
     Field field = block->data()->field();
+    for (int ih = 0; ih < num_history; ih++) {
     for (int i_f=0; i_f<num_fields_; i_f++) {
       std::string name = field.field_name(i_f).c_str();
       cello::monitor()->print
-        ("Method", "Field %s %s min %Lg max %Lg sum %Lg cnt %Lg",
-         name.c_str(),block->name().c_str(),
+        ("Method", "Field %s age %d %s min %Lg max %Lg sum %Lg cnt %Lg",
+         name.c_str(),ih,block->name().c_str(),
          reduce[id],reduce[id+1],reduce[id+2],reduce[id+3]);
       id+=4;
+    }
     }
     Particle particle = block->data()->particle();
     for (int it=0; it<num_particles_; it++) {
@@ -192,12 +208,16 @@ void MethodDebug::compute_continue
 
   cello_reduce_type * data = (cello_reduce_type *) msg->getData();
   int id = 1;
-  for (int index_field=0; index_field<num_fields_; index_field++) {
-    field_min_[index_field] = data[id];
-    field_max_[index_field] = data[id+1];
-    field_sum_[index_field] = data[id+2];
-    field_count_[index_field] = data[id+3];
-    id+=4;
+  Field field = block->data()->field();
+  int num_history = (field.num_history() + 1);
+  for (int ih = 0; ih < num_history; ih++) {
+    for (int index_field=0; index_field<num_fields_; index_field++) {
+      field_min_[index_field*2+ih] = data[id];
+      field_max_[index_field*2+ih] = data[id+1];
+      field_sum_[index_field*2+ih] = data[id+2];
+      field_count_[index_field*2+ih] = data[id+3];
+      id+=4;
+    }
   }
   for (int it=0; it<num_particles_; it++) {
     for (int i=0; i<3; i++) {
@@ -208,24 +228,28 @@ void MethodDebug::compute_continue
       id+=4;
     }
   }
-  const int num_reduce = 4*(num_fields_+3*num_particles_);
+  const int num_reduce = 4*(num_fields_*num_history+3*num_particles_);
   ASSERT2("MethodDebug::compute_continue()",
           "reduce array mismatch %d != %d",
           id,num_reduce+1,(id == num_reduce+1));
 
   delete msg;
 
-  Field field = block->data()->field();
   Particle particle = block->data()->particle();
   if (block->index().is_root()) {
     int nx,ny,nz;
     cello::hierarchy()->root_size(&nx,&ny,&nz);
     //    long int root_cells = nx*ny*nz;
     for (int i_f=0; i_f<num_fields_; i_f++) {
-      std::string name = field.field_name(i_f).c_str();
-      cello::monitor()->print
-        ("Method", "Field %s min %30.24Lg avg %30.24Lg max %30.24Lg",name.c_str(),
-         field_min_[i_f],field_sum_[i_f]/field_count_[i_f],field_max_[i_f]);
+      for (int ih = 0; ih < num_history; ih++) {
+        std::string name = field.field_name(i_f).c_str();
+        cello::monitor()->print
+          ("Method", "Field %s-%d min %30.24Lg avg %30.24Lg max %30.24Lg",
+           name.c_str(),ih, 
+           field_min_[i_f*2+ih],
+           field_sum_[i_f*2+ih]/field_count_[i_f*2+ih],
+           field_max_[i_f*2+ih]);
+      }
     }
     for (int it=0; it<num_particles_; it++) {
       for (int i=0; i<3; i++) {
@@ -243,46 +267,23 @@ void MethodDebug::compute_continue
 
   if (block->is_leaf()) {
 
-    for (int i_f=0; i_f<num_fields_; i_f++) {
+    for (int ih = 0; ih < num_history; ih++) {
+      for (int i_f=0; i_f<num_fields_; i_f++) {
 
-      int mx,my,mz;
-      field.dimensions (i_f,&mx,&my,&mz);
-      cello_float * values = (cello_float*)field.values(i_f);
+        int mx,my,mz;
+        field.dimensions (i_f,&mx,&my,&mz);
+        cello_float * values = (cello_float*)field.values(i_f,ih);
 
-      int gx=0,gy=0,gz=0;
-      if (!l_ghost_) field.ghost_depth (i_f,&gx,&gy,&gz);
-
-      if (l_print_) {
-        // Write field sums to output
-        char buffer[256];
-        snprintf(buffer,255,"field-%s-%s-%03d.data",
-                 field.field_name(i_f).c_str(),
-                 block->name().c_str(),block->state()->cycle());
-        FILE * fp = fopen (buffer,"a");
-        for (int iz=gz; iz<mz-gz; iz++) {
-          for (int iy=gy; iy<my-gy; iy++) {
-            for (int ix=gx; ix<mx-gx; ix++) {
-              int i=ix + mx*(iy + my*iz);
-              fprintf(fp,"%d %d %d %20.18f\n",ix,iy,iz,values[i]);
-            }
-          }
-        }
-        fclose(fp);
-      }
-      // write coarse field if needed
-      if (l_coarse_) {
+        int gx=0,gy=0,gz=0;
+        if (!l_ghost_) field.ghost_depth (i_f,&gx,&gy,&gz);
 
         if (l_print_) {
-          // write coarse field
+          // Write field sums to output
           char buffer[256];
-          snprintf(buffer,255,"FIELD-%s-%s-%03d.data",
+          snprintf(buffer,255,"field-%s-%s-%03d.data",
                    field.field_name(i_f).c_str(),
                    block->name().c_str(),block->state()->cycle());
           FILE * fp = fopen (buffer,"a");
-
-          int mx,my,mz;
-          field.coarse_dimensions (i_f,&mx,&my,&mz);
-          cello_float * values = (cello_float*)field.coarse_values(i_f);
           for (int iz=gz; iz<mz-gz; iz++) {
             for (int iy=gy; iy<my-gy; iy++) {
               for (int ix=gx; ix<mx-gx; ix++) {
@@ -292,6 +293,31 @@ void MethodDebug::compute_continue
             }
           }
           fclose(fp);
+        }
+        // write coarse field if needed
+        if (l_coarse_) {
+
+          if (l_print_) {
+            // write coarse field
+            char buffer[256];
+            snprintf(buffer,255,"FIELD-%s-%s-%03d.data",
+                     field.field_name(i_f).c_str(),
+                     block->name().c_str(),block->state()->cycle());
+            FILE * fp = fopen (buffer,"a");
+
+            int mx,my,mz;
+            field.coarse_dimensions (i_f,&mx,&my,&mz);
+            cello_float * values = (cello_float*)field.coarse_values(i_f);
+            for (int iz=gz; iz<mz-gz; iz++) {
+              for (int iy=gy; iy<my-gy; iy++) {
+                for (int ix=gx; ix<mx-gx; ix++) {
+                  int i=ix + mx*(iy + my*iz);
+                  fprintf(fp,"%d %d %d %20.18f\n",ix,iy,iz,values[i]);
+                }
+              }
+            }
+            fclose(fp);
+          }
         }
       }
     }

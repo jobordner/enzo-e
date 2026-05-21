@@ -213,14 +213,6 @@ public: // interface
   void set_blocks_global(int level, int num_blocks) throw()
   { num_blocks_level_global_[level-min_level_] = num_blocks; }
 
-  int finest_level() const throw()
-  {
-    for (int level=max_level_; level>=min_level_; level--) {
-      if (num_blocks_level_global_.at(level-min_level_) > 0) return level;
-    }
-    return -1;
-  }
-
   /// Return the ith block in this pe
   Block * block (int index_block)
   { return block_vec_.at(index_block); }

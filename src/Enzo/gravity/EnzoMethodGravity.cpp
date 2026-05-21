@@ -51,7 +51,6 @@ EnzoMethodGravity::EnzoMethodGravity(ParameterGroup p, int index_solver,
   }
 
   // Declare required fields
-  const bool accumulate = p.value<bool>("accumulate",true);
 
   // Change this if fields used in this routine change
   // declare required fields
@@ -89,6 +88,8 @@ EnzoMethodGravity::EnzoMethodGravity(ParameterGroup p, int index_solver,
       }
     }
   }
+
+  const bool accumulate = p.value<bool>("accumulate",true);
 
   if (accumulate){
     cello::define_field ("density_particle");
@@ -354,7 +355,7 @@ void EnzoMethodGravity::compute_accelerations (EnzoBlock * enzo_block) throw()
   // Extrapolate potential from "potential_curr" and "potential_prev"
   // if supercycling and not a solve step
 
-  const bool is_root = enzo_block->index().is_root();
+  if (enzo_block->level() < 0) return;
 
   if (is_supercycle_potential() && is_solve_cycle_(enzo_block)) {
 
@@ -366,11 +367,11 @@ void EnzoMethodGravity::compute_accelerations (EnzoBlock * enzo_block) throw()
 
     if (is_solve_cycle_(enzo_block)) {
 
-      super_update_time_(enzo_block, enzo_block->state()->time());
+      super_update_time_(enzo_block, enzo_block->time());
 
     } else {
 
-      super_extrapolate_fields_(enzo_block, enzo_block->state()->time());
+      super_extrapolate_fields_(enzo_block, enzo_block->time());
 
     }
   }
@@ -385,8 +386,8 @@ void EnzoMethodGravity::compute_accelerations (EnzoBlock * enzo_block) throw()
     enzo_float cosmo_a = 1.0;
     enzo_float cosmo_dadt = 0.0;
     enzo_float * potential = (enzo_float*) field.values ("potential");
-    auto dt   = enzo_block->state()->dt();
-    auto time = enzo_block->state()->time();
+    const double dt   = enzo_block->dt();
+    const double time = enzo_block->time();
     cosmology-> compute_expansion_factor (&cosmo_a,&cosmo_dadt,time+0.5*dt);
     for (int i=0; i<m; i++) potential[i] /= cosmo_a;
   }
@@ -413,7 +414,7 @@ void EnzoMethodGravity::compute_accelerations (EnzoBlock * enzo_block) throw()
 
     } else { // not a solve step
 
-      super_extrapolate_fields_(enzo_block, enzo_block->state()->time());
+      super_extrapolate_fields_(enzo_block, enzo_block->time());
     }
 
   } else {
@@ -469,8 +470,8 @@ double EnzoMethodGravity::timestep_ (Block * block) throw()
   if (cosmology) {
     enzo_float cosmo_a = 1.0;
     enzo_float cosmo_dadt = 0.0;
-    double dt = block->state()->dt();
-    double time = block->state()->time();
+    const double dt   = block->dt();
+    const double time = block->time();
     cosmology-> compute_expansion_factor (&cosmo_a,&cosmo_dadt,time+0.5*dt);
     mean_cell_width *= cosmo_a;
   }

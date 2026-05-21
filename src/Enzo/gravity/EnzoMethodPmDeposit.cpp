@@ -567,21 +567,12 @@ void EnzoMethodPmDeposit::compute ( Block * block) throw()
 
     std::fill_n(density_particle_arr.data(), mx*my*mz, 0.0);
 
-    // NOTE 2022-06-24: previously, we filled density_particle_accum_arr with
-    // zeros at around this location and included the following note:
-    //     NOTE: density_total is now cleared in EnzoMethodGravity to
-    //     instead of here to possible race conditions with refresh.  This
-    //     means EnzoMethodPmDeposit ("pm_deposit") currently CANNOT be
-    //     used without EnzoMethodGravity ("gravity")
-    // This operation & comment didn't sense since we completely overwrite
-    // values of density_total & density_particle_accum_arr later in this method
-
     // Get cosmological scale factors, if cosmology is turned on
     enzo_float cosmo_a=1.0;
     enzo_float cosmo_dadt=0.0;
     EnzoPhysicsCosmology * cosmology = enzo::cosmology();
-    const double time = block->state()->time();
-    const double dt   = block->state()->dt();
+    const double time = block->time();
+    const double dt   = block->dt();
     if (cosmology) {
       cosmology->compute_expansion_factor
         (&cosmo_a,&cosmo_dadt,time + alpha_*dt);

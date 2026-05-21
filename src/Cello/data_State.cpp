@@ -39,15 +39,12 @@ void State::set_cycle(int cycle)
   }
 }
 
+//----------------------------------------------------------------------
+
 double State::time(int level) const
 {
-  double t=time_;
-  if (state_type_ == Type::Global) {
-    t = time_;
-  } else {
-    t = time_level_curr_[level];
-  }
-  return t;
+  return (state_type_ == Type::Global) ?
+    time_ : time_level_curr_[level];
 }
 
 //----------------------------------------------------------------------
@@ -112,23 +109,17 @@ void State::advance(int level_top)
       time_level_curr_[level] = time_level_curr_[level_top];
     }
 
-    if (state_next_ == Next::Sequential) {
+    // Find finest level whose current time != next-coarser level time
+    int level = (state_next_ == Next::Sequential) ?
+      level_top : level_max - 1;
+    while (level > 0 && time_level_curr_[level] == time_level_curr_[level-1])
+      level--;
 
-      int level = level_top;
-      while (level > 0 && time_level_curr_[level] == time_level_curr_[level-1])
-        level--;
-      level_lower_ = level;
-      level_upper_ = level + 1;
+    level_lower_ = level;
 
-    } else if (state_next_ == Next::Concurrent) {
+    level_upper_ = (state_next_ == Next::Sequential) ?
+      level + 1 : time_level_curr_.size();
 
-      int level = level_max - 1;
-      while (level > 0 && (time_level_curr_[level] == time_level_curr_[level-1]))
-        level--;
-      level_lower_ = level;
-      level_upper_ = time_level_curr_.size();
-
-    }
   }
 }
 
@@ -137,6 +128,7 @@ void State::advance(int level_top)
 bool State::is_active ( int level ) const
 {
   bool retval = true;
+  
   if (state_type_ == Type::Level) {
     retval = (level_lower_ <= level) && (level < level_upper_);
   }

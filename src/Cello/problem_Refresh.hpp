@@ -258,7 +258,7 @@ public: // interface
 
   /// Return whether any fields are refreshed
   bool any_fields() const
-  { return (all_fields_ || (field_list_src_.size() > 0)); }
+  { return (all_fields_ || (field_list_src().size() > 0)); }
 
   std::vector<int> field_list_src(int level = 0,
                                   int face_type = 0) const;
@@ -429,7 +429,7 @@ public: // interface
   /// from destination field
   bool accumulate(int i_f) const
   {
-    return accumulate_ && (field_list_src_[i_f] != field_list_dst_[i_f]);
+    return accumulate_ && (field_list_src()[i_f] != field_list_dst()[i_f]);
   }
 
   //  bool accumulate() const
@@ -473,12 +473,12 @@ public: // interface
     CkPrintf ("Refresh %p\n",(void*)this);
     CkPrintf ("     all_fields = %d\n",all_fields_);
     CkPrintf ("     src fields:");
-    for (size_t i=0; i<field_list_src_.size(); i++)
-      CkPrintf (" %d",field_list_src_[i]);
+    for (size_t i=0; i<field_list_src().size(); i++)
+      CkPrintf (" %d",field_list_src()[i]);
     CkPrintf ("\n");
     CkPrintf ("     dst fields:");
-    for (size_t i=0; i<field_list_dst_.size(); i++)
-      CkPrintf (" %d",field_list_dst_[i]);
+    for (size_t i=0; i<field_list_dst().size(); i++)
+      CkPrintf (" %d",field_list_dst()[i]);
     CkPrintf ("\n");
     CkPrintf ("     all_particles = %d\n",all_particles_);
     CkPrintf ("     particles:");

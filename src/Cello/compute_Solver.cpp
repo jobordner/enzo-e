@@ -216,10 +216,11 @@ bool Solver::is_finest_ (Block * block) const
 
 int Solver::level_lower_(Block * block) const throw()
 {
-  int level_lower = cello::hierarchy()->min_leaf_level();
+  int level_lower = cello::level_root();
   if (block->state()->state_type() == State::Type::Level &&
       ! force_global_timestep_) {
     level_lower = std::max(level_lower,block->state()->level_lower());
   }
   return level_lower;
 }
+

@@ -207,7 +207,7 @@ void EnzoMethodStarMakerStochasticSF::compute ( Block *block) throw()
         // (just set to efficiency if dynamical time is ignored)
         //
 
-        const auto dt   = enzo_block->state()->dt();
+        const auto dt   = enzo_block->dt();
         const auto time = enzo_units->time();
         double star_fraction =  use_dynamical_time_ ?
           std::min(efficiency_ * dt * time / tdyn, 1.0) : efficiency_ ;
@@ -287,7 +287,7 @@ void EnzoMethodStarMakerStochasticSF::compute ( Block *block) throw()
         plifetime = (enzo_float *) particle.attribute_array(it, ia_l, ib);
         pform     = (enzo_float *) particle.attribute_array(it, ia_to, ib);
 
-        pform[io]     =  enzo_block->state()->time();   // formation time
+        pform[io]     =  enzo_block->time();   // formation time
         plifetime[io] =  tdyn;  // 10.0 * enzo_constants::Myr_s / enzo_units->time() ; // lifetime
 
         if (metal){

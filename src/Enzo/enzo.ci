@@ -266,6 +266,7 @@ module enzo {
     entry void p_solver_enzo_root_solve_end();
     entry void p_solver_enzo_refresh_level_end();
     entry void r_solver_enzo_wait_at_end(CkReductionMsg *msg);
+    entry void r_solver_enzo_wait_at_start(CkReductionMsg *msg);
     entry void p_solver_enzo_block_solve_end();
     entry void p_solver_enzo_last_smooth_end();
 

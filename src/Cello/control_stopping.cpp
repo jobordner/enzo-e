@@ -48,11 +48,6 @@ void Block::stopping_enter_()
 
 void Block::stopping_begin_()
 {
-  if (index_.is_root()) {
-    CkPrintf ("TRACE_MESH leaf level range %d %d\n",
-              cello::hierarchy()->min_leaf_level(),
-              cello::hierarchy()->max_leaf_level());
-  }
   PERF_START(perf_rindex_stopping);
   TRACE_STOPPING("Block::stopping_begin_");
 
@@ -126,9 +121,18 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 
   // Extract global timestep, timestep per level, and timestep per method
 
-  double dt_global = stopping_dt_global_(min_reduce,nl,nm);
   auto dt_level =    stopping_dt_level_ (min_reduce,nl,nm);
   auto dt_method =   stopping_dt_method_(min_reduce,nl,nm);
+
+  double dt_global = stopping_dt_global_(min_reduce,nl,nm);
+
+  for (int k=cello::level_root();
+       k <=  cello::level_top();
+       k++) {
+    if (dt_level[k] > 0) {
+      dt_global = std::min(dt_global,dt_level[k]);
+    }
+  }
 
   delete msg;
 

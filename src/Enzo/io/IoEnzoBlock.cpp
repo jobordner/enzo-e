@@ -36,7 +36,7 @@ void IoEnzoBlock::set_block (Block * block) throw()
 
   EnzoBlock * enzo_block = static_cast<EnzoBlock*>(block);
 
-  enzo_dt_ = enzo_block->state()->dt();
+  enzo_dt_ = enzo_block->dt();
   for (int i=0; i<3; i++) {
     enzo_GridLeftEdge_[i] = enzo_block->GridLeftEdge[i];
     enzo_GridDimension_[i] = enzo_block->GridDimension[i];

@@ -242,6 +242,7 @@ public: /// entry methods
   void p_solver_enzo_root_solve_end();
   void p_solver_enzo_refresh_level_end();
   void r_solver_enzo_wait_at_end(CkReductionMsg *msg);
+  void r_solver_enzo_wait_at_start(CkReductionMsg *msg);
   void p_solver_enzo_block_solve_end();
   void p_solver_enzo_last_smooth_end();
 

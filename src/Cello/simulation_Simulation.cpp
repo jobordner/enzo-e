@@ -1049,21 +1049,24 @@ void Simulation::monitor_output()
   monitor-> print("Simulation", "cycle %04d",      state_->cycle());
   monitor-> print("Simulation", "time-sim %15.12e",state_->time());
   monitor-> print("Simulation", "dt %15.12e",      state_->dt());
+  const int level_lower = cello::level_root();
+  const int level_upper = cello::level_top();
+  const int level_max = cello::max_level();
   if (state_->state_type() == State::Type::Level) {
     std::string active_levels{""};
-    for (int level=0; level<=hierarchy_->max_level(); level++) {
+    for (int level=level_lower; level<=level_upper; level++) {
       monitor-> print("Simulation", "cycle-level %d %04d",
                         level,state_->cycle(level));
     }
-    for (int level=0; level<=hierarchy_->max_level(); level++) {
+    for (int level=level_lower; level<=level_upper; level++) {
       monitor-> print("Simulation", "time-level %d %15.12e",
                         level,state_->time(level));
     }
-    for (int level=0; level<=hierarchy_->max_level(); level++) {
+    for (int level=level_lower; level<=level_upper; level++) {
       monitor-> print("Simulation", "dt-level %d %15.12e",
                         level,state_->dt_level(level));
     }
-    for (int level=0; level<=hierarchy_->max_level(); level++) {
+    for (int level=0; level<=level_max; level++) {
       static const char digit[] = "0123456789";
       active_levels.push_back(state_->is_active(level) ? digit[level%10] : ' ');
     }

@@ -457,6 +457,7 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
   }
 
 #else
+
   for (size_t i_f=0; i_f < field_list_src.size(); i_f++) {
 
     size_t index_src = field_list_src[i_f];
@@ -1017,7 +1018,6 @@ void FieldFace::time_interpolate_
   double time_this_prev = state->time_prev(level_);
   double time_face_curr = state->time_curr(level_ + face_type_);
   double time_face_prev = state->time_prev(level_ + face_type_);
-
   if (time_this_curr == time_this_prev) return;
 
   int n3[3];

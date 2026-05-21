@@ -235,6 +235,7 @@ bool Block::do_adapt_()
   }
 #endif
 
+  //  bool root_level_cycle = (state()->level_lower() == 0);
   return adapt_scheduled && is_cycle_boundary;
 }
 
@@ -268,10 +269,11 @@ int Block::adapt_compute_desired_level_(int level_maximum)
 
     Schedule * schedule = refine->schedule();
 
-    if ((schedule==NULL) || schedule->write_this_cycle(state_->cycle(),state_->time()) ) {
-      adapt = std::max(adapt,refine->apply(this));
+    if ((schedule==nullptr) ||
+        schedule->write_this_cycle(state_->cycle(),state_->time()) ) {
+      const int adapt_this = refine->apply(this);
+      adapt = std::max(adapt,adapt_this);
     }
-
   }
   const int initial_cycle = cello::config()->initial_cycle;
   const bool is_first_cycle = (initial_cycle == state_->cycle());

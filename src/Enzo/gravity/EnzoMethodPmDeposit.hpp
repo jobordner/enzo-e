@@ -40,6 +40,12 @@ public: // interface
   /// Compute maximum timestep for this method
   virtual double timestep ( Block * block) throw();
 
+  virtual bool is_active(std::shared_ptr<State> state, int level) override
+  {
+    const int level_lower = state->level_lower();
+    return level >= (level_lower - 1);
+  }
+
 protected: // attributes
 
   /// Deposit at time + alpha*dt

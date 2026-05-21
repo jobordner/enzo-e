@@ -91,7 +91,7 @@ bool Method::is_scheduled(Block * block) const
   return 
     (! schedule_) ||
     (schedule_->write_this_cycle
-     (block->state()->cycle(), block->state()->time()));
+     (block->state()->cycle(), block->time()));
 }
 
 bool Method::is_active(std::shared_ptr<State> state, int level)
@@ -205,7 +205,7 @@ void Method::super_save_fields_(Block * block )
   // Copy time to time_curr
 
   double &     time_curr = *block->data()->scalar_double().value(is_time_curr_);
-  const double time      = block->state()->time();
+  const double time      = block->time();
   time_curr = time;
 }
 

@@ -235,6 +235,9 @@ protected: // functions
   /// Return lower active level for adaptive time-stepping
   int level_lower_(Block * block) const throw();
 
+  /// Return effective root-level for unigrid solvers
+  int level_root_() const throw();
+
 protected: // attributes
 
   /// Name of the solver

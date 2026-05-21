@@ -67,6 +67,9 @@ public: // virtual functions
   /// Return the name of this MethodDebug
   virtual std::string name () throw () { return "debug"; }
 
+  virtual bool is_active(std::shared_ptr<State> state, int level) override
+  { return true; }
+
 protected: // attributes
 
   int num_fields_;

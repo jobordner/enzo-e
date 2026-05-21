@@ -258,6 +258,12 @@ public: // interface
 	      const char * message,
 	      bool use_file = false) const throw();
 
+  void png (const FieldDescr *,
+            const std::string & file_name,
+            int id_field, int nx, int ny,
+            bool include_ghost = false,
+            double min=0.0, double max=0.0);
+
   //----------------------------------------------------------------------
   // BLAS Operations [depreciated]
   //----------------------------------------------------------------------

@@ -255,7 +255,7 @@ double EnzoMethodPpm::timestep ( Block * block ) throw()
 
   if (comoving_coordinates_) {
 
-    enzo_float time = (enzo_float)enzo_block->state()->time();
+    enzo_float time = (enzo_float)enzo_block->time();
     cosmology->compute_expansion_factor (&cosmo_a, &cosmo_dadt, time);
 
   }

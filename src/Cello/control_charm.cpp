@@ -90,8 +90,7 @@ void Simulation::compute_advance_state()
   // Transition from Block to Simulation parallelism
   if (sync_advance_state_.next()) {
     // Advance Simulation state
-    const int level_top = cello::hierarchy()->finest_level();
-    state_->advance(level_top);
+    state_->advance(cello::level_top());
     // barrier before exiting compute
     auto callback = CkCallback
       (CkIndex_Simulation::r_advance_state_exit(nullptr),thisProxy);
