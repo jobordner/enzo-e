@@ -80,6 +80,7 @@ public: // interface
     refined_regions_upper(),
     num_method(0),
     method_courant_global(1.0),
+    method_debug_ghost(false),
     method_list(),
     method_schedule_index(),
     method_courant(),
@@ -247,6 +248,7 @@ public: // interface
       refined_regions_upper(),
       num_method(0),
       method_courant_global(1.0),
+      method_debug_ghost(false),
       method_list(),
       method_schedule_index(),
       method_courant(),
@@ -465,6 +467,7 @@ public: // attributes
 
   int                        num_method;
   double                     method_courant_global;
+  std::vector<int>           method_debug_ghost;
   std::vector<std::string>   method_list;
 
   std::vector<int>           method_max_supercycle;

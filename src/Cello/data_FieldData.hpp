@@ -203,7 +203,12 @@ public: // interface
 	       float value = 0.0, 
 	       int id_field_first = -1, 
 	       int id_field_last  = -1) throw();
- 
+
+  void copy ( const FieldDescr *,
+              int id_field_src, 
+              int id_field_dst,
+              bool l_ghost = true) throw();
+  
   /// Return whether array is allocated or not
   bool permanent_allocated() const throw()
   { return array_permanent_.size() > 0; }

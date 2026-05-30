@@ -38,26 +38,27 @@ void pngio::write(const std::string& fname, double* data, int width,
   if (min_max != nullptr) {
     // min_max directly specifies the min/max values
 
-    min = MIN(min,(*min_max)[0]);
-    max = MAX(max,(*min_max)[1]);
+    min = std::min(min,(*min_max)[0]);
+    max = std::max(max,(*min_max)[1]);
     ASSERT("pngio::write", "max must exceed min", max > min);
 
   } else {
 
     if (transform == ImgTransform::log) {
       for (int i=0; i<m; i++) {
-        min = MIN(min,log(fabs(data[i])));
-        max = MAX(max,log(fabs(data[i])));
+        double val = (data[i] == 0) ? -1 : log(fabs(data[i]));
+        min = std::min(min,val);
+        max = std::max(max,val);
       }
     } else if (transform == ImgTransform::abs) {
       for (int i=0; i<m; i++) {
-        min = MIN(min,fabs(data[i]));
-        max = MAX(max,fabs(data[i]));
+        min = std::min(min,fabs(data[i]));
+        max = std::max(max,fabs(data[i]));
       }
     } else if (transform == ImgTransform::none) {
       for (int i=0; i<m; i++) {
-        min = MIN(min,data[i]);
-        max = MAX(max,data[i]);
+        min = std::min(min,data[i]);
+        max = std::max(max,data[i]);
       }
     } else {
       ERROR("pngio::write", "transform has unknown value");
@@ -74,7 +75,8 @@ void pngio::write(const std::string& fname, double* data, int width,
       double value = data[i];
 
       if (transform == ImgTransform::abs) value = fabs(value);
-      if (transform == ImgTransform::log) value = log(fabs(value));
+      if (transform == ImgTransform::log)
+        value = (value == 0) ? -1 : log(fabs(value));
 
       double r=0.0,g=0.0,b=0.0;
 

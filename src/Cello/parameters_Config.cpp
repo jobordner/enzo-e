@@ -123,6 +123,7 @@ void Config::pup (PUP::er &p)
 
   p | num_method;
   p | method_courant_global;
+  p | method_debug_ghost;
   p | method_list;
   p | method_max_supercycle;
   p | method_schedule_index;
@@ -872,6 +873,7 @@ void Config::read_method_ (Parameters * p) throw()
   method_list.   resize(num_method);
   method_max_supercycle.resize(num_method);
   method_courant.resize(num_method);
+  method_debug_ghost.resize(num_method);
   method_order_ordering.resize(num_method);
   method_schedule_index.resize(num_method);
   method_type.resize(num_method);
@@ -911,6 +913,9 @@ void Config::read_method_ (Parameters * p) throw()
 
     // Read courant condition if any
     method_courant[index_method] = p->value_float  (full_name + ":courant",1.0);
+
+    method_debug_ghost[index_method] =
+      p->value_logical (full_name + ":ghost",false);
 
     // Read method ordering
     method_order_ordering[index_method] = p->value_string

@@ -1049,7 +1049,7 @@ void Simulation::monitor_output()
   monitor-> print("Simulation", "cycle %04d",      state_->cycle());
   monitor-> print("Simulation", "time-sim %15.12e",state_->time());
   monitor-> print("Simulation", "dt %15.12e",      state_->dt());
-  const int level_lower = cello::level_root();
+  const int level_lower = std::max(cello::level_root(),0);
   const int level_upper = cello::level_top();
   const int level_max = cello::max_level();
   if (state_->state_type() == State::Type::Level) {

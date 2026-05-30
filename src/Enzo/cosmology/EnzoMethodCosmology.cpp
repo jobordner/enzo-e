@@ -23,17 +23,13 @@ void EnzoMethodCosmology::compute(Block * block) throw()
 {
   auto cosmology = enzo::cosmology();
 
-#ifdef DEBUG_COSMO  
-  cosmology->print();
-#endif  
-
   // Monitor current redshift
   Monitor * monitor = cello::monitor();
   if (block->index().is_root()) {
+    cosmology->set_current_time(block->state()->time());
     monitor->print("Method", "%s redshift %.8f",
-		   this->name().c_str(),
-		   cosmology->current_redshift());
+                   this->name().c_str(),
+                   cosmology->current_redshift());
   }
-  
   block->compute_done(); 
 }

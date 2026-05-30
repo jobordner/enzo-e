@@ -380,7 +380,21 @@ public: // interface
 	       int id_first = -1, 
 	       int id_last  = -1) throw()
   { field_data_->clear (field_descr_,value,id_first,id_last); }
- 
+
+  /// Copy one field to another by name, optionally including ghosts
+  void copy (const std::string & name_src,
+             const std::string & name_dst,
+             bool l_ghost = true)
+  {
+    copy(field_id(name_src), field_id(name_dst),l_ghost);
+  }
+
+  /// Copy one field to another by id, optionally including ghosts
+  void copy (int id_src, int id_dst, bool l_ghost = true)
+  {
+    field_data_->copy(field_descr_,id_src,id_dst,l_ghost);
+  }
+
   /// Return whether array is allocated or not
   bool permanent_allocated() const throw()
   { return field_data_->permanent_allocated(); }

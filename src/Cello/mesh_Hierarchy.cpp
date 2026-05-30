@@ -198,7 +198,7 @@ int Hierarchy::min_leaf_level() const
 {
   for (int level = 0; level <= max_level_; level++) {
     if (num_blocks_global(level) < root_blocks(nullptr,nullptr,nullptr,level)) {
-      return level-1;
+      return std::max(0,level-1);
     }
   }
   return max_level_;

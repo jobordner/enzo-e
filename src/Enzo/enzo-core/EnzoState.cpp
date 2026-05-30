@@ -10,9 +10,12 @@
 
 //----------------------------------------------------------------------
 
-void EnzoState::advance (int level_top)
+void EnzoState::advance ()
 {
-  State::advance(level_top);
+  State::advance();
+
+  const int level_top = cello::level_top();
+
   auto * cosmology = enzo::cosmology();
   if (cosmology) {
     // update block redshift

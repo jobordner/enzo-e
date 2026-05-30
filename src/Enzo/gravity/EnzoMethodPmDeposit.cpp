@@ -621,7 +621,6 @@ void EnzoMethodPmDeposit::compute ( Block * block) throw()
                    gx, gy, gz);
     }
   }
-
   block->compute_done();
 }
 

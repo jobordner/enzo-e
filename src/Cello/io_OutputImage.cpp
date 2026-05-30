@@ -367,8 +367,7 @@ void OutputImage::write_block ( const Block *  block ) throw()
   if (type_is_mesh_()) {
 
     // value for mesh
-    double value = 0;
-    value = mesh_color_(block,block->level());
+    const double value = mesh_color_(block,block->level());
 
     if (face_rank_ >= 1) {
       reduce_box_filled_(image_mesh_,ixm,ixp,iym,iyp,value);
@@ -605,7 +604,7 @@ double OutputImage::mesh_color_(const Block * block, int level) const
   double value = 0;
   // Determine 0.0 <= value <= 1.0
   if (mesh_color_type_ == mesh_color_level) {
-    value = 1.0*level/max_level_;
+    value = 1.0*(level+1)/(max_level_+1);
   } else if (mesh_color_type_ == mesh_color_process) {
     value = (CkMyPe())/(CkNumPes()-1.0);
   } else if (mesh_color_type_ == mesh_color_age) {

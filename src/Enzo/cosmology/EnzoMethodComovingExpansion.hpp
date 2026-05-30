@@ -42,6 +42,9 @@ public: // virtual methods
   /// Compute maximum timestep for this method
   virtual double timestep ( Block * block) throw();
 
+  // virtual bool is_active(std::shared_ptr<State> state, int level) override
+  // { return true; }
+
 private: // attributes
 
   bool comoving_coordinates_;

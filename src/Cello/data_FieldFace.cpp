@@ -852,7 +852,7 @@ void FieldFace::mul_by_density_
   const bool scale_by_density =
     (face_type_ != 0) &&
     groups->is_in (field_name,"make_field_conservative");
-
+  
   if (scale_by_density) {
 
     const int index_density = field.field_id ("density");
@@ -922,6 +922,7 @@ void FieldFace::div_by_density_
   const bool scale_by_density =
     (face_type_ != 0) &&
     groups->is_in (field_name,"make_field_conservative");
+
   if (scale_by_density) {
     union { float * d4; double * d8; long double * d16; };
     union { float * f4; double * f8;long double * f16;  };
@@ -991,6 +992,9 @@ void FieldFace::box_adjust_accumulate_ (Box * box, int accumulate, int g3[3])
     gs3[0] = (face_[0]) ? g3[0] : 0;
     gs3[1] = (face_[1]) ? g3[1] : 0;
     gs3[2] = (face_[2]) ? g3[2] : 0;
+    gs3[0] = g3[0];
+    gs3[1] = g3[1];
+    gs3[2] = g3[2];
 
   } else {
 

@@ -21,22 +21,6 @@
 #include "charm_simulation.hpp"
 #include "charm_mesh.hpp"
 
-// #define TRACE_METHOD_DT
-// #define DEBUG_ATS
-// #define DEBUG_STATE
-// #define DEBUG_STOPPING
-
-// #define TRACE_DT
-#define CYCLE_TRACE_DT 50
-
-#ifdef DEBUG_STOPPING
-#   define TRACE_STOPPING(A)					\
-  CkPrintf ("%d %s:%d %s TRACE %s\n",					\
-	    CkMyPe(),__FILE__,__LINE__,name_.c_str(),A);
-#else
-#   define TRACE_STOPPING(A) ;
-#endif
-
 //----------------------------------------------------------------------
 
 void Block::stopping_enter_()
@@ -49,7 +33,6 @@ void Block::stopping_enter_()
 void Block::stopping_begin_()
 {
   PERF_START(perf_rindex_stopping);
-  TRACE_STOPPING("Block::stopping_begin_");
 
   cello::simulation()->set_phase(phase_stopping);
 
@@ -75,19 +58,8 @@ void Block::stopping_begin_()
     for (int im=0; im<nm; im++) {
       const int k = 1+im+nm*(il);
       min_reduce[k] = cello::method(im)->timestep(this);
-#ifdef TRACE_DT
-      if (state()->cycle() >= CYCLE_TRACE_DT) {
-        CkPrintf ("TRACE_DT %s L%d %d %s %g\n",
-                  name().c_str(),il,im,cello::method(im)->name().c_str(),min_reduce[k]);
-      }
-#endif
     }
   }
-
-#ifdef TRACE_CONTRIBUTE
-  CkPrintf ("%s %s:%d DEBUG_CONTRIBUTE\n",
-            name().c_str(),__FILE__,__LINE__); fflush(stdout);
-#endif
 
   CkCallback callback (CkIndex_Block::r_stopping_compute_timestep(NULL),
                        thisProxy);
@@ -104,7 +76,6 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
   /* PERF_REDUCE_STOP(perf_rindex_reduce_stopping); */
   PERF_START(perf_rindex_stopping);
 
-  TRACE_STOPPING("Block::r_stopping_compute_timestep");
   ++age_;
 
   double * min_reduce = (double * )msg->getData();
@@ -123,7 +94,6 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 
   auto dt_level =    stopping_dt_level_ (min_reduce,nl,nm);
   auto dt_method =   stopping_dt_method_(min_reduce,nl,nm);
-
   double dt_global = stopping_dt_global_(min_reduce,nl,nm);
 
   for (int k=cello::level_root();
@@ -166,12 +136,6 @@ void Block::stopping_update_method_state_
 {
   // update Method states for supercycling
 
-#ifdef DEBUG_STATE
-  // Write current state
-  if (index().is_root()) {
-    state()->print("update_method_state");
-  }
-#endif
   for (int k=0; k<dt_method.size(); k++) {
     const int max_super = cello::method(k)->max_supercycle();
     const double max_dt_method = dt_global*max_super;
@@ -320,7 +284,8 @@ std::vector<double> Block::stopping_dt_level_
 
   // Reduce level timesteps to not overshoot next-coarser timestep
   if (state_->state_next() == State::Next::Sequential) {
-    for (int level = 1; level <= cello::max_level(); level++) {
+    for (int level = cello::level_root()+1;
+         level <= cello::max_level(); level++) {
       if (state_->is_active(level)) {
         if (dt_level[level-1] != std::numeric_limits<double>::max()) {
           dt_level[level] = std::min
@@ -329,8 +294,9 @@ std::vector<double> Block::stopping_dt_level_
       }
     }
   } else if (state_->state_next() == State::Next::Concurrent) {
-    if (level_lower > 0) {
-      for (int level = 1; level <= cello::max_level(); level++) {
+    if (level_lower > cello::level_root()) {
+      for (int level = cello::level_root()+1;
+           level <= cello::max_level(); level++) {
         if (state_->is_active(level)) {
           if (dt_level[level-1] != std::numeric_limits<double>::max()) {
             dt_level[level] = std::min
@@ -356,8 +322,6 @@ std::vector<double> Block::stopping_dt_level_
 
 void Block::stopping_balance_()
 {
-  TRACE_STOPPING("Block::stopping_balance_");
-
   Schedule * schedule = cello::simulation()->schedule_balance();
 
   bool do_balance =
@@ -398,7 +362,6 @@ void Block::r_stopping_load_balance(CkReductionMsg *msg)
 {
   delete msg;
   PERF_REDUCE_STOP(perf_rindex_reduce_balance);
-  TRACE_STOPPING("load_balance begin");
   cello::simulation()->set_phase (phase_balance);
 
   AtSync();
@@ -408,7 +371,6 @@ void Block::r_stopping_load_balance(CkReductionMsg *msg)
 
 void Block::ResumeFromSync()
 {
-  TRACE_STOPPING("load_balance exit");
   PERF_STOP(perf_rindex_balance);
   stopping_exit_();
 }
@@ -458,8 +420,6 @@ void Block::performance_projections_update_logging_()
 
 void Block::exit_()
 {
-
-  TRACE_STOPPING("Block::exit_");
   const int in = cello::index_static();
   if (index().is_root()) {
     if (DataMsg::counter[in] != 0) {

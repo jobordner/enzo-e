@@ -272,8 +272,6 @@ void EnzoMethodGravity::compute(Block * block) throw()
        CkIndex_EnzoBlock::p_method_gravity_end() :
        CkIndex_EnzoBlock::p_method_gravity_continue());
 
-    solver->set_callback (CkIndex_EnzoBlock::p_method_gravity_continue());
-
     // Save previous potential
 
     if ( is_supercycle_potential() ) {
@@ -376,14 +374,14 @@ void EnzoMethodGravity::compute_accelerations (EnzoBlock * enzo_block) throw()
     }
   }
 
-
   Field field = enzo_block->data()->field();
   const int m = field.dimensions (0);
 
   EnzoPhysicsCosmology * cosmology = enzo::cosmology();
 
+  enzo_float cosmo_a = 1.0;
+  // Scale potential for cosmological expansion
   if (cosmology) {
-    enzo_float cosmo_a = 1.0;
     enzo_float cosmo_dadt = 0.0;
     enzo_float * potential = (enzo_float*) field.values ("potential");
     const double dt   = enzo_block->dt();
@@ -423,16 +421,21 @@ void EnzoMethodGravity::compute_accelerations (EnzoBlock * enzo_block) throw()
 
   }
 
+  // Revert to unscaled potential
+  if (cosmology) {
+    enzo_float * potential = (enzo_float*) field.values ("potential");
+    for (int i=0; i<m; i++) potential[i] *= cosmo_a;
+  }
+
   // Clear "B" and "density_total" fields for next call
   // Note density_total may not be defined
 
   enzo_float * B = (enzo_float*) field.values("B");
   for (int i=0; i<m; i++) B[i] = 0.0;
 
-  enzo_float * de_t = (enzo_float*) field.values("density_total");
-  enzo_float * de_t_copy = (enzo_float*) field.values("density_total_copy");
-  if (de_t && de_t_copy) for (int i=0; i<m; i++) de_t_copy[i] = de_t[i];
-  if (de_t) for (int i=0; i<m; i++) de_t[i] = 0.0;
+  field.clear(0.0,field.field_id("density_total"));
+  field.clear(0.0,field.field_id("density_particle"));
+  field.clear(0.0,field.field_id("density_particle_accumulate"));
 
 }
 

@@ -295,7 +295,7 @@ public: // interface
 
   /// Update level range for next set of timesteps given maximum level
   /// of blocks in the hierarchy
-  virtual void advance(int level_top);
+  virtual void advance();
 
   /// Return whether blocks in the given level can advance
   bool is_active ( int level ) const;

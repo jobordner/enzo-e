@@ -61,16 +61,16 @@ void EnzoMethodComovingExpansion::compute ( Block * block) throw()
 		   enzo::cosmology()->current_redshift());
   }
 
-
   /* Only do this if
      1. this is a leaf block
      2. we are using comoving coordinates
      3. baryon fields are present.
+     4.  adaptive time-stepping level is active
   */
 
-  if ((block->is_leaf() &&
-       comoving_coordinates_ &&
-       field.field_count() > 0))
+  if (block->is_leaf() &&
+      comoving_coordinates_ &&
+      (field.field_count() > 0))
     {
 
       EnzoPhysicsCosmology * cosmology = enzo::cosmology();

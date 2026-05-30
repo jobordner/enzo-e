@@ -61,6 +61,8 @@ public: // interface
   /// CHARM++ PUP::able declaration
   PUPable_decl(EnzoPhysicsCosmology);
 
+  EnzoPhysicsCosmology(const EnzoPhysicsCosmology &) = default;
+
   /// CHARM++ migration constructor
   EnzoPhysicsCosmology(CkMigrateMessage *m)
     : Physics (m),
@@ -77,10 +79,6 @@ public: // interface
       cosmo_dadt_(0.0),
       current_redshift_(-1.0)
   {}
-
-  /// Virtual destructor
-  virtual ~EnzoPhysicsCosmology()
-  { }
 
   /// CHARM++ Pack / Unpack function
   void pup (PUP::er &p)

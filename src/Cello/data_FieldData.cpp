@@ -295,7 +295,7 @@ const char * FieldData::unknowns
   int id_field, int index_history ) const throw ()
 {
   return (const char *)
-    ((FieldData *)this) -> unknowns(field_descr,id_field);
+    ((FieldData *)this) -> unknowns(field_descr,id_field,index_history);
 }
 
 //----------------------------------------------------------------------
@@ -305,18 +305,7 @@ char * FieldData::unknowns
  int id_field, int index_history  ) throw ()
 {
 
-  // update field id if permanent and old value in history
-
-  int nh = field_descr->num_history();
-  if (field_descr->is_permanent(id_field) &&
-      (1 <= index_history && index_history <= nh)) {
-    const int np = field_descr->num_permanent();
-    id_field = history_id_[id_field + np*index_history];
-  }
-
-  // First get values including ghosts
-  // (note index_history ommitted since already have updated id_field)
-  char * unknowns = values(field_descr,id_field);
+  char * unknowns = values(field_descr,id_field,index_history);
 
   // Then adjust for ghost zones
   if ( ghosts_allocated() && unknowns ) {
@@ -400,6 +389,79 @@ void FieldData::clear
   }
 }
 
+//----------------------------------------------------------------------
+
+void FieldData::copy
+(
+ const FieldDescr * field_descr,
+ int id_src,
+ int id_dst,
+ bool l_ghost) throw()
+{
+  int mx,my,mz;
+  int gx,gy,gz;
+  dimensions(field_descr,id_src,&mx,&my,&mz);
+  field_descr->ghost_depth(id_src,&gx,&gy,&gz);
+  precision_type precision = field_descr->precision(id_src);
+  union { char * src; float * src4; double * src8; long double * src16; };
+  union { char * dst; float * dst4; double * dst8; long double * dst16; };
+  src  = &array_permanent_[0] + offsets_[id_src];
+  dst  = &array_permanent_[0] + offsets_[id_dst];
+  switch (precision) {
+  case precision_single:
+    if (l_ghost) {
+      for (int i=0; i<mx*my*mz; i++) {
+        dst4[i] = src4[i];
+      }
+    } else {
+      for (int iz=gz; iz<mz-gz; iz++) {
+        for (int iy=gy; iy<my-gy; iy++) {
+          for (int ix=gx; ix<mx-gx; ix++) {
+            const int i = ix + mx*(iy + my*iz);
+            dst4[i] = src4[i];
+          }
+        }
+      }
+    }
+    break;
+  case precision_double:
+    if (l_ghost) {
+      for (int i=0; i<mx*my*mz; i++) {
+        dst8[i] = src8[i];
+      }
+    } else {
+      for (int iz=gz; iz<mz-gz; iz++) {
+        for (int iy=gy; iy<my-gy; iy++) {
+          for (int ix=gx; ix<mx-gx; ix++) {
+            const int i = ix + mx*(iy + my*iz);
+            dst8[i] = src8[i];
+          }
+        }
+      }
+    }
+    break;
+  case precision_quadruple:
+    if (l_ghost) {
+      for (int i=0; i<mx*my*mz; i++) {
+        dst16[i] = src16[i];
+      }
+    } else {
+      for (int iz=gz; iz<mz-gz; iz++) {
+        for (int iy=gy; iy<my-gy; iy++) {
+          for (int ix=gx; ix<mx-gx; ix++) {
+            const int i = ix + mx*(iy + my*iz);
+            dst16[i] = src16[i];
+          }
+        }
+      }
+    }
+    break;
+  default:
+    ERROR1("FieldData::copy",
+           "Clear called with unsupported precision %s",
+           cello::precision_name[precision]);
+  }
+}
 //----------------------------------------------------------------------
 
 void FieldData::allocate_permanent
@@ -1429,7 +1491,6 @@ void FieldData::set_history_(const FieldDescr * field_descr)
   history_time_.resize(nh+1);
   for (int ih=0; ih<=nh; ih++) {
     for (int ip=0; ip<np; ip++) {
-
       int i = ip + np*ih;
       history_id_[i] = (ih==0) ? ip : field_descr->history_id(ip,ih);
     }

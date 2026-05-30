@@ -85,10 +85,12 @@ void State::set_dt (double dt)
 
 //----------------------------------------------------------------------
 
-void State::advance(int level_top)
+void State::advance()
 {
   ++cycle_;
   time_ += dt_;
+
+  const int level_top = cello::level_top();
 
   if (state_type_ == Type::Level) {
 
@@ -110,9 +112,13 @@ void State::advance(int level_top)
     }
 
     // Find finest level whose current time != next-coarser level time
+
+    const int level_root = cello::level_root();
+
     int level = (state_next_ == Next::Sequential) ?
       level_top : level_max - 1;
-    while (level > 0 && time_level_curr_[level] == time_level_curr_[level-1])
+    while ((level > level_root) &&
+           (time_level_curr_[level] == time_level_curr_[level-1]))
       level--;
 
     level_lower_ = level;

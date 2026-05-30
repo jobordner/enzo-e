@@ -88,7 +88,7 @@ void Refresh::box_accumulate_adjust
   if (accumulate_) {
     int gs3[3] = {0};
     for (int i=0; i<cello::rank(); i++) {
-      gs3[i] = (if3[i] != 0) ? g3[i] : 0;
+      gs3[i] = g3[i];
     }
     box->set_send_ghosts(gs3);
   }

@@ -235,8 +235,9 @@ bool Block::do_adapt_()
   }
 #endif
 
-  //  bool root_level_cycle = (state()->level_lower() == 0);
-  return adapt_scheduled && is_cycle_boundary;
+  const bool root_level_cycle = (state()->level_lower() <= cello::level_root());
+
+  return adapt_scheduled && is_cycle_boundary && root_level_cycle;
 }
 
 //----------------------------------------------------------------------

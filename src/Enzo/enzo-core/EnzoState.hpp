@@ -50,7 +50,7 @@ public: // interface
   }
 
   /// Update redshift whenever time is updated
-  virtual void advance(int level_top) override;
+  virtual void advance() override;
   virtual void init_time (double time) override;
   virtual void init_time (double time, int level) override;
   virtual void set_time (double time) override;

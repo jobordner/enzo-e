@@ -90,7 +90,7 @@ void Block::compute_next_ ()
 
       refresh->set_active (is_leaf());
 
-      refresh -> set_level_lower(state()->level_lower());
+      refresh -> set_level_lower(std::max(0,state()->level_lower()-1));
       refresh -> set_level_upper(state()->level_upper());
       refresh -> set_adaptive_timestep
         (cello::simulation()->state()->state_type() == State::Type::Level);
@@ -179,7 +179,7 @@ void Block::compute_end_ ()
 
   // Update block cycle and time
 
-  state()->advance(cello::level_top());
+  state()->advance();
 
   // delete fluxes
   data()->flux_data()->deallocate();
