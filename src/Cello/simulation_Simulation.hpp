@@ -270,7 +270,8 @@ public: // virtual functions
   // Monitor
   //--------------------------------------------------
 
-  void monitor_output();
+  virtual void monitor_output();
+
   void p_monitor_output()
   { monitor_output(); }
 

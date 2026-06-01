@@ -292,5 +292,19 @@ const Factory * EnzoSimulation::factory() const throw()
   return factory_;
 }
 
+//----------------------------------------------------------------------
+
+void EnzoSimulation::monitor_output()
+{
+  if (! (monitor_flag_ && (CkMyPe() == 0))) return;
+
+  Simulation::monitor_output();
+
+  if (CkMyPe() == 0) {
+    cello::monitor()->print
+      ("Simulation", "redshift %.8f", enzo::cosmology()->current_redshift());
+  }
+}
+
 //======================================================================
 

@@ -96,10 +96,12 @@ public: // functions
 public: // virtual functions
 
   /// Initialize the Enzo Simulation
-  virtual void initialize() throw();
+  virtual void initialize() throw() override;
 
   /// Return an EnzoFactory object, creating it if needed
-  virtual const Factory * factory() const throw();
+  virtual const Factory * factory() const throw() override;
+
+  virtual void monitor_output() override;
 
 private: // functions
 
