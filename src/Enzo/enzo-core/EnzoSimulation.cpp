@@ -300,7 +300,7 @@ void EnzoSimulation::monitor_output()
 
   Simulation::monitor_output();
 
-  if (CkMyPe() == 0) {
+  if (enzo::cosmology() && (CkMyPe() == 0)) {
     cello::monitor()->print
       ("Simulation", "redshift %.8f", enzo::cosmology()->current_redshift());
   }
