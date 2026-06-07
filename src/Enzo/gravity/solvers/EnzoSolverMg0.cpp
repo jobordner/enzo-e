@@ -199,7 +199,7 @@ EnzoSolverMg0::EnzoSolverMg0
   refresh->add_field (ic_);
 
   refresh->set_min_face_rank(cello::rank() - 1);
-  
+
   ScalarDescr * scalar_descr_int  = cello::scalar_descr_int();
   i_iter_  = scalar_descr_int ->new_value(name + ":iter");
 

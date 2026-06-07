@@ -35,11 +35,11 @@ public: // virtual functions
 
   /// Restrict coarse Field values to the child block (icx,icy,icz)
 
-  virtual int apply 
+  virtual int apply
   ( precision_type precision,
     void *       values_c, int nd3_c[3], int im3_c[3], int n3_c[3],
     const void * values_f, int nd3_f[3], int im3_f[3], int n3_f[3],
-    bool accumulate = false) = 0;
+    bool accumulate = false) const = 0;
 
   /// Return the name identifying the restrict operator
   virtual std::string name () const = 0;

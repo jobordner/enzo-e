@@ -70,6 +70,7 @@ EnzoSolverCg::EnzoSolverCg
     cello::simulation()->refresh_set_name(ir_post_,name);
 
     refresh->add_field (ix_);
+    refresh->set_min_face_rank (cello::rank() - 1);
 
   //--------------------------------------------------
 
@@ -79,6 +80,7 @@ EnzoSolverCg::EnzoSolverCg
     Refresh * refresh_matvec = cello::refresh(ir_matvec_);
 
     refresh_matvec->add_field (id_);
+    refresh_matvec->set_min_face_rank (cello::rank() - 1);
 
     refresh_matvec->set_callback(CkIndex_EnzoBlock::p_solver_cg_matvec());
 
@@ -90,6 +92,7 @@ EnzoSolverCg::EnzoSolverCg
     Refresh * refresh_loop_2 = cello::refresh(ir_loop_2_);
 
     refresh_loop_2->add_field (id_);
+    refresh_loop_2->set_min_face_rank (cello::rank() - 1);
 
     refresh_loop_2->set_callback(CkIndex_EnzoBlock::p_solver_cg_loop_2());
 

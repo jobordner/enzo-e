@@ -17,11 +17,11 @@ RestrictLinear::RestrictLinear() throw()
 
 //----------------------------------------------------------------------
 
-int RestrictLinear::apply 
+int RestrictLinear::apply
 ( precision_type precision,
   void *       values_c, int nd3_c[3], int im3_c[3],  int n3_c[3],
   const void * values_f, int nd3_f[3], int im3_f[3],  int n3_f[3],
-    bool accumulate)
+  bool accumulate) const
 {
   switch (precision) {
 
@@ -57,7 +57,7 @@ template<class T>
 int RestrictLinear::apply_
 ( T *       values_c, int nd3_c[3], int im3_c[3],  int n3_c[3],
   const T * values_f, int nd3_f[3], int im3_f[3],  int n3_f[3],
-    bool accumulate)
+  bool accumulate) const
 {
 
   const int rank = (nd3_f[1] == 1) ? 1 : ((nd3_f[2] == 1) ? 2 : 3);

@@ -402,8 +402,8 @@ public: // interface
   /// Return the current minimum rank (dimension) of faces to refresh
   /// e.g. 0: everything, 1: omit corners, 2: omit corners and edges
   int min_face_rank() const
-  { return min_face_rank_; }
-
+  { return (accumulate_ || (coarse_padding() > 0)) ? 0 : min_face_rank_;  }
+  
   /// Set the ghost depth
   void set_ghost_depth(int ghost_depth)
   { ghost_depth_ = ghost_depth; }
@@ -411,7 +411,7 @@ public: // interface
   /// Set a new minimum rank (dimension) of faces to refresh
   /// e.g. 0: everything, 1: omit corners, 2: omit corners and edges
   void set_min_face_rank(int min_face_rank)
-  { min_face_rank_ = min_face_rank; }
+{ min_face_rank_ = min_face_rank; }
 
   /// Return the data field ghost depth
   int ghost_depth() const
@@ -544,14 +544,14 @@ public: // interface
   { return id_refresh_; }
 
   /// Return whether the prolongation requires padded coarse array
-  int coarse_padding(const Prolong * prolong) const;
+  int coarse_padding() const;
 
   /// Set the prolongation operator for refresh
   void set_prolong (int id_prolong)
   { id_prolong_ = id_prolong; }
 
   /// Return the prolongation operator for refresh
-  Prolong * get_prolong ();
+  const Prolong * get_prolong () const;
   /// Return the prolongation id
   int index_prolong () const
   { return id_prolong_; }
@@ -571,9 +571,9 @@ public: // interface
   void set_final_sync (int sync = true)
   { final_sync_ = sync; }
 
-  Restrict * get_restrict ();
+  const Restrict * get_restrict () const;
   
-  //--------------------------------------------------
+//--------------------------------------------------
 
   /// Return the number of bytes required to serialize the data object
   int data_size () const;

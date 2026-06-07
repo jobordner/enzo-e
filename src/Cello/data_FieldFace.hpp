@@ -148,10 +148,10 @@ public: // interface
 
 private: // functions
 
-  Prolong * prolong_ ()
+  const Prolong * prolong_ ()
   { return refresh_->get_prolong(); }
 
-  Restrict * restrict_ ()
+  const Restrict * restrict_ ()
   { return refresh_->get_restrict(); }
   
   /// copy data

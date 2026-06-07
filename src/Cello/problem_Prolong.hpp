@@ -45,7 +45,7 @@ public: // virtual methods
   ( precision_type precision,
     void *       values_f, int nd3_f[3], int im3_f[3], int n3_f[3],
     const void * values_c, int nd3_c[3], int im3_c[3], int n3_c[3],
-    bool accumulate = false) = 0;
+    bool accumulate = false) const = 0;
 
   /// Return the name identifying the prolongation operator
   virtual std::string name () const = 0;
@@ -57,7 +57,7 @@ protected: // virtual protected methods
 
   /// Amount of padding required in coarse region (default 0)
   /// Should only be called by Refresh::coarse_padding()
-  friend int Refresh::coarse_padding(const Prolong *) const ;
+  friend int Refresh::coarse_padding() const ;
   virtual int coarse_padding_() const
   { return 0; }
 

@@ -146,6 +146,7 @@ c
       j2 = jn
       k1 = 1
       k2 = kn
+
 c
 c  Loop over directions, using a Strang-type splitting
 c

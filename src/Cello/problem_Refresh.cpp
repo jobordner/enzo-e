@@ -80,6 +80,7 @@ void Refresh::add_particle(std::string particle_type)
   const int id_particle = cello::particle_descr()->type_index(particle_type);
   add_field(id_particle);
 }
+
 //----------------------------------------------------------------------
 
 void Refresh::box_accumulate_adjust
@@ -96,15 +97,15 @@ void Refresh::box_accumulate_adjust
 
 //----------------------------------------------------------------------
 
-int Refresh::coarse_padding(const Prolong * prolong_ptr) const
+int Refresh::coarse_padding() const
 {
-  const int pad = accumulate_ ? 0 : prolong_ptr->coarse_padding_();
+  const int pad = accumulate_ ? 0 : get_prolong()->coarse_padding_();
   return pad;
 }
 
 //----------------------------------------------------------------------
 
-Prolong * Refresh::get_prolong ()
+const Prolong * Refresh::get_prolong () const
 {
   Problem * problem = cello::problem();
   Prolong * prolong_ptr = problem ?
@@ -115,14 +116,14 @@ Prolong * Refresh::get_prolong ()
 
 //----------------------------------------------------------------------
 
-Restrict * Refresh::get_restrict ()
+const Restrict * Refresh::get_restrict () const
 {
   Problem * problem = cello::problem();
   Restrict * restrict_ptr = problem ?
     problem->get_restrict(id_restrict_) : nullptr;
   return restrict_ptr ? restrict_ptr : new RestrictLinear;
 }
-  
+
 //----------------------------------------------------------------------
 
 int Refresh::data_size () const

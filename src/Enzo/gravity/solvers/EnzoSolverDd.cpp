@@ -56,8 +56,6 @@ EnzoSolverDd::EnzoSolverDd
       index_solve_domain_(index_solve_domain),
       index_solve_smooth_(index_solve_smooth),
       ixc_(-1),
-      mx_(0),my_(0),mz_(0),
-      gx_(0),gy_(0),gz_(0),
       coarse_level_(coarse_level)
 {
 
@@ -88,20 +86,18 @@ void EnzoSolverDd::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
 {
   Solver::begin_(block);
 
-  Field field = block->data()->field();
-
-  field.dimensions (ib_,&mx_,&my_,&mz_);
-  field.ghost_depth(ib_,&gx_,&gy_,&gz_);
-
   A_ = A;
 
   allocate_temporary_(block);
 
-  if (block->state()->cycle()==0)
-    std::fill_n ((enzo_float*) field.values("X_copy"), mx_*my_*mz_, 0.0);
+  Field field = block->data()->field();
+  const int m = field.dimensions (ib_);
+
+  if (block->state()->cycle()==0 && field.values("X_copy"))
+    std::fill_n ((enzo_float*) field.values("X_copy"), m, 0.0);
 
   // Check that component solvers are of the correct type
-  ASSERT2("EnzoSolverDd::apply()",
+ASSERT2("EnzoSolverDd::apply()",
 	  "Coarse solver %s type %s != solve_level",
 	  cello::solver(index_solve_coarse_)->name().c_str(),
 	  solve_string[cello::solver(index_solve_coarse_)->solve_type()],
@@ -116,8 +112,6 @@ void EnzoSolverDd::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
   sync_prolong->set_stop(1 + 1); // self and parent
 
   int level = block->level();
-
-  const int m = mx_*my_*mz_;
 
   if ( ! block->is_leaf() ) {
     std::fill_n ((enzo_float*) field.values(ib_), m, 0.0);
@@ -344,14 +338,15 @@ void EnzoSolverDd::prolong_recv
 void EnzoSolverDd::copy_xc_to_x_(EnzoBlock * enzo_block) throw()
 {
 
-  const int m = mx_*my_*mz_;
-
   Field field = enzo_block->data()->field();
+  const int m = field.dimensions(ix_);
 
-  std::copy_n((enzo_float *) field.values(ixc_),m,
-	      (enzo_float *) field.values(ix_));
-  std::copy_n((enzo_float *) field.values(ixc_),m,
-	      (enzo_float *) field.values("X_copy"));
+  if (field.values(ixc_) && field.values(ix_))
+    std::copy_n((enzo_float *) field.values(ixc_),m,
+                (enzo_float *) field.values(ix_));
+  if (field.values(ixc_) && field.values("X_copy"))
+    std::copy_n((enzo_float *) field.values(ixc_),m,
+                (enzo_float *) field.values("X_copy"));
 }
 
 //----------------------------------------------------------------------

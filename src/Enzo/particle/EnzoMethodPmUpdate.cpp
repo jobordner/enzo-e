@@ -43,6 +43,7 @@ EnzoMethodPmUpdate::EnzoMethodPmUpdate
   refresh->add_field("acceleration_y");
   refresh->add_field("acceleration_z");
 
+  refresh->set_min_face_rank(cello::rank() - 1);
   ParticleDescr * particle_descr = cello::particle_descr();
   Grouping * particle_groups = particle_descr->groups();
 

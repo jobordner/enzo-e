@@ -41,7 +41,7 @@ void EnzoProlongPoisson::apply
 ( precision_type precision,
   void *       values_f, int nd3_f[3], int im3_f[3], int n3_f[3],
   const void * values_c, int nd3_c[3], int im3_c[3], int n3_c[3],
-  bool accumulate)
+  bool accumulate) const
 {
   TRACE6("EnzoProlongPoisson fine   %d:%d %d:%d %d:%d",
 	 im3_f[0],n3_f[0]+im3_f[0],
@@ -64,7 +64,7 @@ void EnzoProlongPoisson::apply
 void EnzoProlongPoisson::apply_
 (       enzo_float * values_f, int nd3_f[3], int im3_f[3], int n3_f[3],
   const enzo_float * values_c, int nd3_c[3], int im3_c[3], int n3_c[3],
-	bool accumulate)
+	bool accumulate) const
 {
   int dx_c = 1;
   int dy_c = nd3_c[0];

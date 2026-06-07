@@ -105,6 +105,8 @@ EnzoMethodGravity::EnzoMethodGravity(ParameterGroup p, int index_solver,
 
   refresh_add_potentials_   (refresh);
   refresh_add_accelerations_(refresh);
+  refresh->set_min_face_rank(cello::rank()-1);
+
   // Accumulate is used when particles are deposited into density_total
 
   if (accumulate) {
@@ -132,6 +134,7 @@ EnzoMethodGravity::EnzoMethodGravity(ParameterGroup p, int index_solver,
 
   refresh_add_potentials_   (refresh_exit);
   refresh_add_accelerations_(refresh_exit);
+  refresh_exit->set_min_face_rank(cello::rank()-1);
 
   refresh_exit->set_callback(CkIndex_EnzoBlock::p_method_gravity_end());
 

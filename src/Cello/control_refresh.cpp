@@ -39,6 +39,17 @@
 #  define TRACE_PROLONG(MSG,PROLONG,mf3,if3,nf3,mc3,ic3,nc3) /* ... */
 #endif
 
+#ifdef TRACE_REFRESH
+#  undef TRACE_REFRESH
+#  define TRACE_REFRESH(BLOCK,REFRESH,MSG)                              \
+  CkPrintf ("%d TRACE_REFRESH %s %s %s\n", \
+            CkMyPe(),BLOCK->name().c_str(),std::string(MSG).c_str(),    \
+            cello::simulation()->refresh_name((REFRESH)->id()).c_str());
+#else
+#  define TRACE_REFRESH(BLOCK,REFRESH,MSG)  /* ... */
+#endif
+
+
 //----------------------------------------------------------------------
 
 void Block::refresh_start (int id_refresh, int callback)
@@ -47,18 +58,9 @@ void Block::refresh_start (int id_refresh, int callback)
   CHECK_ID(id_refresh);
 
   Refresh * refresh = cello::refresh(id_refresh);
+  TRACE_REFRESH(this,refresh,"01-refresh_start");
   Sync * sync = sync_(id_refresh);
-
-#ifdef TRACE_REFRESH
-  CkPrintf ("%d TRACE_REFRESH ENTER %s %s adapt %d levels %d %d global %d\n",
-            CkMyPe(),name().c_str(),
-            cello::simulation()->refresh_name(id_refresh).c_str(),
-            refresh->adaptive_timestep(),
-            refresh->level_lower(),refresh->level_upper(),
-            refresh->global());
-#endif
-
-  // Send field and/or particle data associated with the given refresh
+ // Send field and/or particle data associated with the given refresh
   // object to corresponding neighbors
 
   if ( refresh->is_active() ) {
@@ -116,6 +118,7 @@ void Block::refresh_wait (int id_refresh, int callback)
   CHECK_ID(id_refresh);
 
   Refresh * refresh = cello::refresh(id_refresh);
+  TRACE_REFRESH(this,refresh,"02-refresh_wait");
   Sync * sync = sync_(id_refresh);
 
   ASSERT1("Block::refresh_wait()",
@@ -172,9 +175,10 @@ void Block::refresh_check_done (int id_refresh)
   CHECK_ID(id_refresh);
 
   Refresh * refresh = cello::refresh(id_refresh);
+  TRACE_REFRESH(this,refresh,"03-refresh_check");
   Sync * sync = sync_(id_refresh);
 
-  ASSERT1("Block::refresh_check_done()",
+ASSERT1("Block::refresh_check_done()",
 	  "Refresh[%d] must not be in inactive state",
 	  id_refresh,
 	  (sync->state() != RefreshState::INACTIVE) );
@@ -239,6 +243,7 @@ void Block::p_refresh_recv (MsgRefresh * msg_refresh)
 
 void Block::refresh_exit (Refresh & refresh)
 {
+  TRACE_REFRESH(this,&refresh,"04-refresh_exit");
   PERF_REFRESH_START(perf_rindex_refresh_exit);
   CHECK_ID(refresh.id());
   update_boundary_();
@@ -299,10 +304,10 @@ int Block::refresh_load_field_faces_ (Refresh & refresh)
 
   const int min_face_rank = refresh.min_face_rank();
   const int neighbor_type = refresh.neighbor_type();
+  const int pad = refresh.coarse_padding();
   if (neighbor_type == neighbor_leaf ||
       neighbor_type == neighbor_tree) {
-
-    // Loop over neighbor leaf Blocks (not necessarily same level)
+   // Loop over neighbor leaf Blocks (not necessarily same level)
 
     ItNeighbor it_neighbor = refresh.it_neighbor (this,DirType::Both);
 
@@ -320,8 +325,6 @@ int Block::refresh_load_field_faces_ (Refresh & refresh)
       const int face_type = it_neighbor.face_type();
 
       // handle padded interpolation special case if needed
-      
-      int pad = refresh.coarse_padding(refresh.get_prolong());
 
       if (pad == 0) {
         refresh_load_field_face_
@@ -386,12 +389,11 @@ int Block::refresh_load_field_faces_ (Refresh & refresh)
 
         Index index_neighbor = it_neighbor.index();
         const int level_face = it_neighbor.face_level();
-        Prolong * prolong = refresh.get_prolong();
-        int pad = refresh.coarse_padding(prolong);
+        int pad = refresh.coarse_padding();
         // if refreshing this level and neighbor is coarse, increment
         // counter for expected received face data
         if ((level_block == level_refresh) &&
-            (level_face == level_block - 1)) {
+          (level_face == level_block - 1)) {
           ++count;
           // if I'm the coarse neighbor of a level-refreshed block,
           // send face data
@@ -450,7 +452,7 @@ int Block::refresh_load_coarse_face_
   const int level = index_.level();
   int count = 0;
 
-  const int pad = refresh.coarse_padding(refresh.get_prolong());
+  const int pad = refresh.coarse_padding();
 
   if ((pad > 0) && (level != level_face)) {
 
@@ -839,12 +841,11 @@ void Block::refresh_coarse_send_
 
 void Block::refresh_coarse_apply_ (Refresh * refresh)
 {
-  Prolong * prolong_ptr = refresh->get_prolong();
-
-  const int pad = refresh->coarse_padding(prolong_ptr);
+  const int pad = refresh->coarse_padding();
 
   if (pad > 0) {
 
+  const Prolong * prolong_ptr = refresh->get_prolong();
     const int min_face_rank = refresh->min_face_rank();
     const int neighbor_type = refresh->neighbor_type();
     const int root_level    = refresh->root_level();

@@ -972,7 +972,7 @@ void FieldFace::set_box_(Box * box, bool invert)
   box->set_block(BoxType_receive,face_type_,face_,child_);
   if (invert) invert_face();
 
-  int pad = prolong_() ? refresh_->coarse_padding(prolong_()) : 0;
+  int pad = prolong_() ? refresh_->coarse_padding() : 0;
   if (face_type_ <= 0) pad = 0;
 
   box->set_padding(pad);

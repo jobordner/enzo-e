@@ -62,7 +62,7 @@ void EnzoProlong::apply
 ( precision_type precision,
   void *       values_f, int m3_f[3], int o3_f[3], int n3_f[3],
   const void * values_c, int m3_c[3], int o3_c[3], int n3_c[3],
-  bool accumulate)
+  bool accumulate) const
 {
   if (!accumulate) {
     // only call EnzoProlong if accumulate = false
@@ -113,7 +113,7 @@ void EnzoProlong::apply_
 ( 
  enzo_float * values_f, int m3_f[3], int o3_f[3], int n3_f[3],
  const enzo_float * values_c, int m3_c[3], int o3_c[3], int n3_c[3],
- bool accumulate)
+ bool accumulate) const
 {
   int rank = cello::rank();
 
@@ -173,11 +173,14 @@ void EnzoProlong::apply_
   const int mf = m3_f[0]*m3_f[1]*m3_f[2];
   enzo_float * temp_f = (accumulate) ? (new enzo_float [mf]) : values_f;
 
+  // (copied to bypass sending const variables to fortran subroutine)
+  int method = method_;
+  int positive = positive_;
   FORTRAN_NAME(interpolate)
     (&rank,
      ((enzo_float*)(values_c))+o_c, pdims, pstart, pend, r3,
-     ((enzo_float*)(temp_f))+o_f, gdims, gstart, work, &method_,
-     &positive_, &error);
+     ((enzo_float*)(temp_f))+o_f, gdims, gstart, work, &method,
+     &positive, &error);
 
   DEBUG_PRINT_ARRAY0("values_c",values_c,m3_c,n3_c,o3_c);
   DEBUG_PRINT_ARRAY0("values_f",values_f,m3_f,n3_f,o3_f);

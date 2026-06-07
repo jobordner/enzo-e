@@ -26,7 +26,7 @@ void ProlongLinear::apply
 ( precision_type precision,
   void *       values_f, int mf3[3], int of3[3], int nf3[3],
   const void * values_c, int mc3[3], int oc3[3], int nc3[3],
-  bool accumulate)
+  bool accumulate) const
 {
   TRACE6("ProlongLinear fine   %d:%d %d:%d %d:%d",
          of3[0],nf3[0]+of3[0],
@@ -81,7 +81,7 @@ template <class T>
 void ProlongLinear::apply_
 (  T * values_f, int mf3[3], int of3[3], int nf3[3],
    const T * values_c, int mc3[3], int oc3[3], int nc3[3],
-   bool accumulate)
+   bool accumulate) const
 {
   const int dcx = 1;
   const int dcy = mc3[0];
