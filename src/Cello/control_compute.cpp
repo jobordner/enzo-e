@@ -94,7 +94,6 @@ void Block::compute_next_ ()
       refresh -> set_level_upper(state()->level_upper());
       refresh -> set_adaptive_timestep
         (cello::simulation()->state()->state_type() == State::Type::Level);
-
       refresh_start (ir_post,CkIndex_Block::p_compute_continue());
 
     } else {

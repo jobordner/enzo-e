@@ -43,7 +43,7 @@ EnzoMethodPpm::EnzoMethodPpm (bool store_fluxes_for_corrections,
     comoving_coordinates_(enzo::cosmology() != nullptr),
     store_fluxes_for_corrections_(store_fluxes_for_corrections),
     diffusion_(p.value<bool>("diffusion", false)),
-    flattening_(p.value<bool>("flattening", false)),
+    flattening_(p.value<int>("flattening", 0)),
     pressure_free_(p.value<bool>("pressure_free", false)),
     steepening_(p.value<bool>("steepening", false)),
     use_minimum_pressure_support_(p.value<bool>
@@ -105,10 +105,10 @@ EnzoMethodPpm::EnzoMethodPpm (bool store_fluxes_for_corrections,
 
   // add all color fields to refresh
   refresh->add_all_fields("color");
-
-  refresh->set_min_face_rank(cello::rank()-1);
-
-  // PPM parameters initialized in EnzoBlock::initialize()
+  // note min_face_rank reverts to 0 when EnzoProlong is used
+  refresh->set_min_face_rank(0);
+  
+   // PPM parameters initialized in EnzoBlock::initialize()
 }
 
 //----------------------------------------------------------------------

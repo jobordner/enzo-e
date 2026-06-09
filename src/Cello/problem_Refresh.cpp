@@ -97,10 +97,10 @@ void Refresh::box_accumulate_adjust
 
 //----------------------------------------------------------------------
 
-int Refresh::coarse_padding() const
+int Refresh::coarse_padding(const Prolong * prolong) const
 {
-  const int pad = accumulate_ ? 0 : get_prolong()->coarse_padding_();
-  return pad;
+  return (accumulate_ || prolong == nullptr) ?
+    0 : prolong->coarse_padding_();
 }
 
 //----------------------------------------------------------------------
@@ -123,7 +123,7 @@ const Restrict * Refresh::get_restrict () const
     problem->get_restrict(id_restrict_) : nullptr;
   return restrict_ptr ? restrict_ptr : new RestrictLinear;
 }
-
+  
 //----------------------------------------------------------------------
 
 int Refresh::data_size () const
