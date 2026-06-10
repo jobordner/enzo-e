@@ -402,7 +402,9 @@ public: // interface
   /// Return the current minimum rank (dimension) of faces to refresh
   /// e.g. 0: everything, 1: omit corners, 2: omit corners and edges
   int min_face_rank() const
-  { return (accumulate_ || (coarse_padding() > 0)) ? 0 : min_face_rank_; }
+  {
+    return (accumulate_ || (coarse_padding() > 0) || any_particles()) ?
+      0 : min_face_rank_; }
 
   /// Set the ghost depth
   void set_ghost_depth(int ghost_depth)
