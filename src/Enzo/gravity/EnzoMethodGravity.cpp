@@ -131,7 +131,7 @@ EnzoMethodGravity::EnzoMethodGravity(ParameterGroup p, int index_solver,
   cello::simulation()->refresh_set_name(ir_exit_,name()+":exit");
   Refresh * refresh_exit = cello::refresh(ir_exit_);
   refresh_exit->set_prolong(index_prolong_);
-
+  refresh_exit->set_final_sync();
   refresh_add_potentials_   (refresh_exit);
   refresh_add_accelerations_(refresh_exit);
   refresh_exit->set_min_face_rank(cello::rank()-1);

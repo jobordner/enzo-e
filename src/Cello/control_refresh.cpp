@@ -9,6 +9,7 @@
 // #define TRACE_LOAD_FACE
 // #define TRACE_PROLONG
 // #define TRACE_REFRESH
+// #define TRACE_PERF_REFRESH
 
 // #define PRINT_COARSE_FIELD
 // #define DEBUG_ARRAY
@@ -55,6 +56,9 @@
 void Block::refresh_start (int id_refresh, int callback)
 {
   PERF_START(perf_rindex_refresh);
+#ifdef TRACE_PERF_REFRESH
+  CkPrintf ("TRACE_PERF_REFRESH %s %d start\n",name().c_str(),id_refresh);
+#endif
   CHECK_ID(id_refresh);
 
   Refresh * refresh = cello::refresh(id_refresh);
@@ -249,7 +253,6 @@ void Block::refresh_exit (Refresh & refresh)
   update_boundary_();
 
   if (refresh.final_sync()) {
-    //  if (true) {
 
     control_sync
       (refresh.callback(),
@@ -294,6 +297,9 @@ void Block::refresh_exit (Refresh & refresh)
 
   PERF_REFRESH_STOP(perf_rindex_refresh_exit);
   PERF_STOP(perf_rindex_refresh);
+#ifdef TRACE_PERF_REFRESH
+  CkPrintf ("TRACE_PERF_REFRESH %s %d stop\n",name().c_str(),refresh.id());
+#endif
 }
 
 //----------------------------------------------------------------------

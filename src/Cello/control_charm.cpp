@@ -130,7 +130,6 @@ void Block::compute_exit_continue_ ()
   if (cello::simulation()->state()->state_type() == State::Type::Level) {
     int ir_cycle_end = cello::simulation()->ir_cycle_end();
     Refresh * refresh = cello::refresh(ir_cycle_end);
-
     refresh->add_all_fields();
     refresh->add_all_particles();
     refresh->set_global();

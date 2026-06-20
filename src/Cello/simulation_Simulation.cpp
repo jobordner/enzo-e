@@ -864,12 +864,17 @@ void Simulation::initialize_refresh_() throw()
 {
   const int ghost_depth = 4;
   const int min_face_rank = 0;
+
   ir_cycle_begin_ = cello::simulation()->new_register_refresh
     (Refresh::create
      (ghost_depth,min_face_rank, neighbor_leaf, sync_neighbor, 0));
+  cello::simulation()->refresh_set_name(ir_cycle_begin_,"cycle_begin");
+
   ir_cycle_end_ = cello::simulation()->new_register_refresh
     (Refresh::create
      (ghost_depth,min_face_rank, neighbor_leaf, sync_neighbor, 0));
+  cello::simulation()->refresh_set_name(ir_cycle_end_,"cycle_end");
+
 }
 
 //----------------------------------------------------------------------

@@ -77,7 +77,7 @@ EnzoSolverEnzo::EnzoSolverEnzo
   // Create level refresh
   const int * g3 = cello::config()->field_ghost_depth;
   const int ghost_depth = std::max({g3[0],g3[1],g3[2]});
-  const int min_face_rank = cello::config()->adapt_min_face_rank;
+  const int min_face_rank = cello::rank() - 1;
 
   ir_level_list_.resize(max_level + 1);
   int level = 0;
