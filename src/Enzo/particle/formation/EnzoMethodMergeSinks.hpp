@@ -38,10 +38,6 @@ public:
   /// Apply the method
   virtual void compute( Block * block) throw();
 
-  /// Name
-  virtual std::string name () throw()
-  { return "merge_sinks"; }
-
   /// Not sure if this is needed
   virtual std::string particle_type () throw()
   { return "sink";}

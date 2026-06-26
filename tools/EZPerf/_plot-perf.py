@@ -36,7 +36,7 @@ def plot_total(plt,filename,label,type='total',scale=1e-6):
 #--------------------------------------------------
 def plot_list(plt,file_list,type='total',scale=1e-6,sort=True):
     if (sort):
-        # sort file names by revert end time
+        # sort file names by reverse end time
         file_times = []
         for file in file_list:
             if (os.path.exists(file) and (not file.endswith(('_post.data')))):
@@ -46,7 +46,7 @@ def plot_list(plt,file_list,type='total',scale=1e-6,sort=True):
                     glob_y = data[:,1]
                     file_times.append([glob_y[len(glob_y)-1],file])
         i=1
-        # plot by revert end time
+        # plot by reverse end time
         for row in sorted(file_times,reverse=True):
             file = row[1]
             if (os.path.exists(file)):
@@ -58,11 +58,15 @@ def plot_list(plt,file_list,type='total',scale=1e-6,sort=True):
                     glob_x = glob_x[1:n-1]
                     glob_y = glob_y[2:n] - glob_y[1:n-1]
                 name=os.path.splitext(os.path.basename(file))[0]
+                i_ = name.find("_")
+                if (i_ > 0):
+                    temp=name[:i_+1]
+                    name = name.replace(temp,"")
                 plt.plot(glob_x,scale*glob_y, label=name, color=c[i%7],marker=m[i%7], ls=l, lw=w)
                 i=i+1
     else:
         i=1
-        # plot by revert end time
+        # plot by reverse end time
         for file in sorted(file_list):
             data =  loadtxt(file,dtype=float)
             glob_x = data[:,0]
@@ -72,6 +76,7 @@ def plot_list(plt,file_list,type='total',scale=1e-6,sort=True):
                 glob_x = glob_x[1:n-1]
                 glob_y = glob_y[2:n] - glob_y[1:n-1]
             name=os.path.splitext(os.path.basename(file))[0]
+
             plt.plot(glob_x,scale*glob_y, label=name, color=c[i%7],marker=m[i%7], ls=l, lw=w)
             i=i+1
 
@@ -113,10 +118,20 @@ def html_table_row_start(html):
 def html_table_row_stop(html):
     html.write('         </tr>\n')
 
+def html_table_row_next(html,index,max_rows):
+    index = index + 1
+    if (index >= max_rows):
+        index = 1
+        html_table_row_stop(html)
+        html_table_row_start(html)
+    return index
+
 def html_section_h1(html,name):
     html.write('<h1> '+name+' </h1>\n')
 def html_section_h2(html,name):
     html.write('<h2> '+name+' </h2>\n')
+def html_section_h3(html,name):
+    html.write('<h3> '+name+' </h3>\n')
 
 def html_table_cell_image(html,image):
     html.write('            <td>\n')
@@ -124,7 +139,7 @@ def html_table_cell_image(html,image):
     html.write('            </td>\n')
 
 def plot_time_total(plt,region_list,html):
-    plot_open(plt,'Enzo-E: cumulative times','cycle','time (s)');
+    plot_open(plt,'cumulative times','cycle','time (s)');
     plot_total(plt,'cycle.data','cycle',scale=1.0)
     plot_list(plt,region_list)
     plt.legend(loc='upper left',ncols=3)
@@ -133,7 +148,7 @@ def plot_time_total(plt,region_list,html):
 
 # ----------------------------------------------------------------------
 def plot_time_cycle(plt,region_list,html):
-    plot_open(plt,'Enzo-E: per-cycle times','cycle','time (s)');
+    plot_open(plt,'per-cycle times','cycle','time (s)');
     plot_total(plt,'cycle.data','cycle',scale=1.0,type='cycle')
     plot_list(plt,region_list,type='cycle')
     plt.legend(loc='upper left',ncols=3)
@@ -151,16 +166,6 @@ figure(figsize=(8,6), dpi=100)
 
 html=html_start()
 
-html_section_h2(html,"Simulation Times")
-
-html_table_start(html)
-
-# ======================================================================
-# ROW 1: TIMES SUMMARY
-# ======================================================================
-
-
-html_table_row_start(html)
 
 # ----------------------------------------------------------------------
 region_list = []
@@ -177,25 +182,17 @@ if os.path.exists('reduce.data'):
 if os.path.exists('smp.data'):
     region_list.append('smp.data')
 
-plot_time_total(plt,region_list,html)
-plot_time_cycle(plt,region_list,html)
-
-# ----------------------------------------------------------------------
-
-html_table_row_stop(html)
-html_table_stop(html)
-
 # ======================================================================
 # ROW 2: MEMORY, BLOCKS, BALANCE
 # ======================================================================
 
-html_section_h2(html,"Memory usage, mesh blocks, and load balance")
+html_section_h2(html,"Memory, blocks, and load balance")
 
 html_table_start(html)
 html_table_row_start(html)
 
 # ----------------------------------------------------------------------
-plot_open(plt,'Enzo-E: memory usage','cycle','Mbytes');
+plot_open(plt,'memory usage','cycle','Mbytes');
 plot_list(plt,glob.glob('memory_*data'))
 plt.legend(loc='upper left',ncols=3)
 ym,yp = plt.ylim()
@@ -203,13 +200,13 @@ plt.ylim(0,yp)
 plot_write('plot_memory',html)
 # ----------------------------------------------------------------------
 if os.path.exists('mesh_total-blocks.data'):
-    plot_open(plt,'Enzo-E: blocks per level','cycle','blocks');
+    plot_open(plt,'blocks per level','cycle','blocks');
     plot_total(plt,'mesh_total-blocks.data','mesh_blocks-total',scale=1.0)
     plot_list(plt,glob.glob('mesh_blocks*.data'),scale=1.0,sort=False)
     plt.legend(loc='upper left',ncols=1)
     plot_write('plot_mesh',html)
 # ----------------------------------------------------------------------
-plot_open(plt,'Enzo-E: load-balance efficiency','cycle','efficiency');
+plot_open(plt,'load-balance efficiency','cycle','efficiency');
 plot_list(plt,glob.glob('balance_eff-*data'),scale=1.0)
 plt.legend(loc='upper left',ncols=3)
 plt.ylim(0,1)
@@ -224,55 +221,70 @@ html_table_stop(html)
 # ROW 3: TOTAL TIMES
 # ======================================================================
 
-html_section_h2(html,"Region cumulative times")
+html_section_h2(html,"Absolute cumulative times")
 
 html_table_start(html)
 html_table_row_start(html)
 
+plot_time_total(plt,region_list,html)
+
+index = 1
+max_index = 3
+
 # ----------------------------------------------------------------------
 if os.path.exists('method.data'):
-    plot_open(plt,'Enzo-E: cumulative time in method','cycle','time (s)');
+    plot_open(plt,'cumulative method time','cycle','time (s)');
     [method_x_total, method_y_total] = plot_total(plt,'method.data','method')
     plot_list(plt,glob.glob('method_*data'))
     plt.legend(loc='upper left',ncols=3)
     #plt.yscale('log')
     plot_write('plot_method_total',html)
+    index = html_table_row_next(html,index,max_index)
+
 # ----------------------------------------------------------------------
 if os.path.exists('solver.data'):
-    plot_open(plt,'Enzo-E: cumulative time in solver','cycle','time (s)');
+    plot_open(plt,'cumulative solver time','cycle','time (s)');
     [solver_x_total, solver_y_total] = plot_total(plt,'solver.data','solver')
     print (glob.glob('solver_*data'))
     plot_list(plt,glob.glob('solver_*data'))
     plt.legend(loc='upper left',ncols=3)
     #plt.yscale('log')
     plot_write('plot_solver_total',html)
+    index = html_table_row_next(html,index,max_index)
+
 # ----------------------------------------------------------------------
 if os.path.exists('adapt.data'):
-    plot_open(plt,'Enzo-E: cumulative time in adapt','cycle','time (s)');
+    plot_open(plt,'cumulative adapt time','cycle','time (s)');
     [adapt_x_total, adapt_y_total] = plot_total(plt,'adapt.data','adapt')
     plot_list(plt,glob.glob('adapt_*data'))
     plt.legend(loc='upper left',ncols=3)
     #plt.yscale('log')
     plot_write('plot_adapt_total',html)
+    index = html_table_row_next(html,index,max_index)
+
 # ----------------------------------------------------------------------
 if os.path.exists('refresh.data'):
-    plot_open(plt,'Enzo-E: cumulative time in refresh','cycle','time (s)');
+    plot_open(plt,'cumulative refresh time','cycle','time (s)');
     [refresh_x_total, refresh_y_total] = plot_total(plt,'refresh.data','refresh')
     plot_list(plt,glob.glob('refresh_*data'))
-    plt.legend(loc='upper left',ncols=3)
+    plt.legend(loc='upper left',ncols=2)
     #plt.yscale('log')
     plot_write('plot_refresh_total',html)
+    index = html_table_row_next(html,index,max_index)
+
 # ----------------------------------------------------------------------
 if os.path.exists('redshift.data'):
-    plot_open(plt,'Enzo-E: redshift','cycle','redshift');
+    plot_open(plt,'redshift','cycle','redshift');
     [redshift_x_total, redshift_y_total] = plot_total(plt,'redshift.data','redshift',scale=1.0)
     plot_list(plt,glob.glob('redshift_*data'))
     plt.legend(loc='upper left',ncols=3)
     #plt.yscale('log')
     plot_write('plot_redshift_total',html)
+    index = html_table_row_next(html,index,max_index)
+
 # ----------------------------------------------------------------------
 if os.path.exists('smp.data'):
-    plot_open(plt,'Enzo-E: cumulative time in SMP','cycle','time (s)');
+    plot_open(plt,'cumulative SMP time','cycle','time (s)');
     [smp_x_total, smp_y_total] = plot_total(plt,'smp.data','smp')
     plot_list(plt,glob.glob('smp_*data'))
     plt.legend(loc='upper left',ncols=3)
@@ -287,42 +299,52 @@ html_table_stop(html)
 # ROW 4: CYCLE TIMES
 # ======================================================================
 
-html_section_h2(html,"Region per-cycle times")
+html_section_h2(html,"Absolute per-cycle times")
 
 html_table_start(html)
 html_table_row_start(html)
 
+plot_time_cycle(plt,region_list,html)
+
 # ----------------------------------------------------------------------
 if os.path.exists('method.data'):
-    plot_open(plt,'Enzo-E: per-cycle time in method','cycle','time (s)');
+    plot_open(plt,'per-cycle method time','cycle','time (s)');
     [method_x_total, method_y_total] = plot_total(plt,'method.data','method',type='cycle')
     plot_list(plt,glob.glob('method_*data'),type='cycle')
     plt.legend(loc='upper left',ncols=3)
     plot_write('plot_method_cycle',html)
+    index = html_table_row_next(html,index,max_index)
+
 # ----------------------------------------------------------------------
 if os.path.exists('solver.data'):
-    plot_open(plt,'Enzo-E: per-cycle time in solver','cycle','time (s)');
+    plot_open(plt,'per-cycle solver time','cycle','time (s)');
     [solver_x_total, solver_y_total] = plot_total(plt,'solver.data','solver',type='cycle')
     plot_list(plt,glob.glob('solver_*data'),type='cycle')
     plt.legend(loc='upper left',ncols=3)
     plot_write('plot_solver_cycle',html)
+    index = html_table_row_next(html,index,max_index)
+
 # ----------------------------------------------------------------------
 if os.path.exists('adapt.data'):
-    plot_open(plt,'Enzo-E: per-cycle time in adapt','cycle','time (s)');
+    plot_open(plt,'per-cycle adapt time','cycle','time (s)');
     [adapt_x_total, adapt_y_total] = plot_total(plt,'adapt.data','adapt',type='cycle')
     plot_list(plt,glob.glob('adapt_*data'),type='cycle')
     plt.legend(loc='upper left',ncols=3)
     plot_write('plot_adapt_cycle',html)
+    index = html_table_row_next(html,index,max_index)
+
 # ----------------------------------------------------------------------
 if os.path.exists('refresh.data'):
-    plot_open(plt,'Enzo-E: per-cycle time in refresh','cycle','time (s)');
+    plot_open(plt,'per-cycle refresh time','cycle','time (s)');
     [refresh_x_total, refresh_y_total] = plot_total(plt,'refresh.data','refresh',type='cycle')
     plot_list(plt,glob.glob('refresh_*data'),type='cycle')
-    plt.legend(loc='upper left',ncols=3)
+    plt.legend(loc='upper left',ncols=2)
     plot_write('plot_refresh_cycle',html)
+    index = html_table_row_next(html,index,max_index)
+
 # ----------------------------------------------------------------------
 if os.path.exists('smp.data'):
-    plot_open(plt,'Enzo-E: per-cycle time in smp','cycle','time (s)');
+    plot_open(plt,'per-cycle smp time','cycle','time (s)');
     [smp_x_total, smp_y_total] = plot_total(plt,'smp.data','smp',type='cycle')
     plot_list(plt,glob.glob('smp_*data'),type='cycle')
     plt.legend(loc='upper left',ncols=3)

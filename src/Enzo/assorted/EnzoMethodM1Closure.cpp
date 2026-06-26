@@ -20,7 +20,7 @@
 //----------------------------------------------------------------------
 
 EnzoMethodM1Closure::EnzoMethodM1Closure(ParameterGroup p)
-  : Method(),
+  : Method("m1_closure"),
     // the following attributes get initialized straight from the parameter file
     N_groups_(p.value<int>("N_groups",1)),
     flux_function_(p.value<std::string>("flux_function","GLF")),
@@ -143,7 +143,6 @@ EnzoMethodM1Closure::EnzoMethodM1Closure(ParameterGroup p)
   } 
 
   // Initialize default Refresh object
-  cello::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_field("photon_density");
 
@@ -189,9 +188,8 @@ EnzoMethodM1Closure::EnzoMethodM1Closure(ParameterGroup p)
   }
  
   // Initialize Refresh object for after injection step 
-  ir_injection_ = add_refresh_();
+  ir_injection_ = add_refresh_(":injection");
 
-  cello::simulation()->refresh_set_name(ir_injection_, name()+":injection");
   Refresh * refresh_injection = cello::refresh(ir_injection_);
 
   refresh_injection->set_accumulate(true);
@@ -1622,7 +1620,7 @@ void EnzoMethodM1Closure::call_inject_photons(EnzoBlock * enzo_block) throw()
     CkCallback callback (CkIndex_EnzoBlock::p_method_m1_closure_set_global_averages(NULL),
              enzo_block->proxy_array());
 
-    PERF_REDUCE_START(perf_rindex_reduce_method_m1_closure);
+    PERF_REDUCE_START(iperf_reduce_method_m1_closure);
     enzo_block->contribute(temp, CkReduction::sum_double, callback);
   } else { // just set sigmaN = sigmaE = either sigma_vernier or custom value, and eps = mean(energy)
 
@@ -1667,7 +1665,7 @@ void EnzoMethodM1Closure::call_inject_photons(EnzoBlock * enzo_block) throw()
 
 void EnzoBlock::p_method_m1_closure_set_global_averages(CkReductionMsg * msg)
 {
-  PERF_REDUCE_STOP(perf_rindex_reduce_method_m1_closure);
+  PERF_REDUCE_STOP(iperf_reduce_method_m1_closure);
   EnzoMethodM1Closure * method = static_cast<EnzoMethodM1Closure*> (this->method()); 
   method->set_global_averages(this, msg);
 }

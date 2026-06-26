@@ -28,7 +28,7 @@ public: // interface
    float overdensity_threshold);
 
   EnzoMethodInference()
-    : Method(),
+    : Method("inference"),
       level_base_(0),
       level_array_(0),
       level_infer_(0),
@@ -66,9 +66,6 @@ public: // interface
 
   /// Apply the method to advance a block one timestep 
   virtual void compute( Block * block) throw();
-
-  virtual std::string name () throw () 
-  { return "inference"; }
 
 public: // methods
 

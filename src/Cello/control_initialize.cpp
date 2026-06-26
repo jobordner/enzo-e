@@ -92,7 +92,7 @@ void Simulation::r_initialize_next(CkReductionMsg * msg)
 void Simulation::r_initialize_block_array(CkReductionMsg * msg) 
 {
   TRACE_INITIAL_SIM("Simulation::r_initialize_block_array_()");
-  PERF_START(perf_rindex_initial);
+  PERF_START(iperf_initial);
   delete msg;
   initialize_block_array_();
 }

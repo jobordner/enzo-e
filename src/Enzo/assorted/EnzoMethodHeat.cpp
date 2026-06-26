@@ -13,7 +13,7 @@
 //----------------------------------------------------------------------
 
 EnzoMethodHeat::EnzoMethodHeat (ParameterGroup p)
-  : Method(),
+  : Method("heat"),
     alpha_(p.value<double>("alpha",1.0))
 {
 
@@ -21,7 +21,6 @@ EnzoMethodHeat::EnzoMethodHeat (ParameterGroup p)
 
   // Initialize default Refresh object
 
-  cello::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_field("temperature");
 

@@ -38,7 +38,7 @@ Performance::Performance (Config * config)
   projections_schedule_off_(NULL),
 #endif
   warnings_(config ? config->performance_warnings : false),
-  index_region_current_(perf_rindex_unknown)
+  index_region_current_(iperf_unknown)
 {
 
   const int in = cello::index_static();

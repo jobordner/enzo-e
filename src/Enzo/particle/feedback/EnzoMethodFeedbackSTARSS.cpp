@@ -239,7 +239,7 @@ extern "C" void FORTRAN_NAME(cic_deposit)
 // =============================================================================
 
 EnzoMethodFeedbackSTARSS::EnzoMethodFeedbackSTARSS(ParameterGroup p)
-  : Method()
+  : Method("feedback")
   , ir_feedback_(-1)
 {
   FieldDescr * field_descr = cello::field_descr();
@@ -263,7 +263,6 @@ EnzoMethodFeedbackSTARSS::EnzoMethodFeedbackSTARSS(ParameterGroup p)
   cello::define_field_in_group("metal_density","color");
 
   // Initialize refresh object
-  cello::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_all_fields();
 
@@ -310,8 +309,7 @@ EnzoMethodFeedbackSTARSS::EnzoMethodFeedbackSTARSS(ParameterGroup p)
   // values are then sent to the *deposit_accumulate fields during the refresh operation. Values are then
   // copied back to the original field. 
   
-  ir_feedback_ = add_refresh_();
-  cello::simulation()->refresh_set_name(ir_feedback_,name()+":add");
+  ir_feedback_ = add_refresh_(":add");
   Refresh * refresh_fb = cello::refresh(ir_feedback_); 
 
   refresh_fb->set_accumulate(true);

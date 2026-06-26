@@ -11,7 +11,8 @@ double Method::courant_global = 1.0;
 
 //----------------------------------------------------------------------
 
-Method::Method (double courant) throw()
+Method::Method (std::string name,
+                double courant) throw()
   : schedule_(NULL),
     courant_(courant),
     neighbor_type_(neighbor_leaf),
@@ -22,7 +23,8 @@ Method::Method (double courant) throw()
     super_field_prev_(),
     is_time_curr_(-1),
     is_time_prev_(-1),
-    index_perf_(-1)
+    index_perf_(-1),
+    name_(name)
 {
   ir_post_ = add_refresh_();
   Refresh * refresh = cello::refresh(ir_post_);
@@ -60,7 +62,7 @@ void Method::pup (PUP::er &p)
 
 //----------------------------------------------------------------------
 
-int Method::add_refresh_ (int neighbor_type)
+int Method::add_refresh_ (const std::string & suffix, int neighbor_type)
 {
   const int ghost_depth = 4;
   const int min_face_rank = 0;
@@ -68,7 +70,8 @@ int Method::add_refresh_ (int neighbor_type)
   Refresh * refresh = 
     Refresh::create (ghost_depth,min_face_rank, neighbor_type, sync_neighbor, 0);
 
-  return cello::simulation()->new_register_refresh (refresh);
+  return cello::simulation()->new_register_refresh
+    (refresh, std::string("method_") + name() + suffix);
 }
 
 //----------------------------------------------------------------------

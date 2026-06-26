@@ -36,7 +36,7 @@
 MethodOrder::MethodOrder
 (std::string ordering,
  int min_level) throw ()
-  : Method(),
+  : Method("order"),
     is_index_(-1),
     is_count_(-1),
     is_windex_(-1),
@@ -56,7 +56,6 @@ MethodOrder::MethodOrder
   }
 
   Refresh * refresh = cello::refresh(ir_post_);
-  cello::simulation()->refresh_set_name(ir_post_,ordering);
   refresh->add_field("density");
 
   /// Create Scalar data for ordering index

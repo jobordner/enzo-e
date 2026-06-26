@@ -56,9 +56,6 @@ public: // interface
   ///
   virtual void compute (Block *block) throw();
 
-  virtual std::string name () throw()
-  { return "background_acceleration"; }
-
   virtual double timestep (Block * block) throw();
 
   const EnzoPotentialConfigGalaxy* try_get_config_galaxy() const

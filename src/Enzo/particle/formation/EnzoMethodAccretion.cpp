@@ -15,7 +15,7 @@
 
 EnzoMethodAccretion::EnzoMethodAccretion
 (ParameterGroup p)
-  : Method(),
+  : Method("accretion"),
     accretion_radius_cells_(p.value<double>("accretion_radius_cells", 4.0)),
     physical_density_threshold_cgs_(p.value<double>
                                     ("physical_density_threshold_cgs", 1.e-24)),
@@ -67,15 +67,14 @@ EnzoMethodAccretion::EnzoMethodAccretion
 
   // Initial refresh: refresh all fields and sink particles
   int it = cello::particle_descr()->type_index("sink");
-  cello::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_all_fields();
   refresh->add_particle(it);
 
   // Second refresh: add source fields values in ghost zones to source_accumulate fields
   // values in active cells in neighbouring blocks
-  ir_accretion_ = add_refresh_();
-  cello::simulation()->refresh_set_name(ir_accretion_,name()+":add");
+  ir_accretion_ = add_refresh_(":add");
+
   Refresh * refresh_accretion = cello::refresh(ir_accretion_);
 
   refresh_accretion->set_accumulate(true);

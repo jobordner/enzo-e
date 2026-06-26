@@ -83,7 +83,7 @@ Solver::Solver () throw()
 
 //----------------------------------------------------------------------
 
-int Solver::add_refresh_ ()
+int Solver::add_refresh_ (const std::string & suffix)
 {
   const int * g3 = cello::config()->field_ghost_depth;
   const int ghost_depth = std::max(g3[0],std::max(g3[1],g3[2]));
@@ -96,7 +96,8 @@ int Solver::add_refresh_ ()
   refresh->set_prolong(index_prolong_);
   refresh->set_restrict(index_restrict_);
 
-  return cello::simulation()->new_register_refresh(refresh);
+  return cello::simulation()->new_register_refresh
+    (refresh,std::string("solver_"+name()+suffix));
 }
 
 //======================================================================

@@ -105,7 +105,7 @@ EnzoMethodGrackle::EnzoMethodGrackle
  ParameterGroup p,
  const double time
 )
-  : Method(),
+  : Method("grackle"),
     grackle_facade_(std::move(parse_chemistry(p)),
                     // for when not using cosmology - redshift of UVB
                     p.value<double>("radiation_redshift", -1.0),
@@ -124,7 +124,6 @@ EnzoMethodGrackle::EnzoMethodGrackle
   define_required_grackle_fields();
 
   /// Initialize default Refresh
-  cello::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_all_fields();
 

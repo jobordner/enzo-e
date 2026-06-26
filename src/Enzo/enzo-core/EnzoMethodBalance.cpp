@@ -11,11 +11,10 @@
 //----------------------------------------------------------------------
 
 EnzoMethodBalance::EnzoMethodBalance()
-  : Method()
+  : Method("balance")
 {
   cello::define_field("density");
 
-  cello::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_field("density");
 }
@@ -55,7 +54,7 @@ void EnzoMethodBalance::compute ( Block * block) throw()
   CkCallback callback
     (CkIndex_EnzoSimulation::r_method_balance_count(nullptr), 0,
      proxy_enzo_simulation);
-  /*   PERF_REDUCE_START(perf_rindex_reduce_method_balance); */
+  /*   PERF_REDUCE_START(iperf_reduce_method_balance); */
   block->contribute(sizeof(int), &count_local,
                     CkReduction::sum_int, callback);
 
@@ -63,7 +62,7 @@ void EnzoMethodBalance::compute ( Block * block) throw()
 
 void EnzoSimulation::r_method_balance_count(CkReductionMsg * msg)
 {
-  /*  PERF_REDUCE_STOP(perf_rindex_reduce_method_balance); */
+  /*  PERF_REDUCE_STOP(iperf_reduce_method_balance); */
   int * count_total = (int * )msg->getData();
   sync_method_balance_.set_stop(*count_total + 1);
  

@@ -22,7 +22,7 @@
 
 EnzoMethodPmUpdate::EnzoMethodPmUpdate
 ( ParameterGroup p )
-  : Method(),
+  : Method("pm_update"),
     // load value from Method:pm_update:max_dt
     max_dt_(p.value<double>("max_dt", std::numeric_limits<double>::max()))
 {
@@ -35,8 +35,6 @@ EnzoMethodPmUpdate::EnzoMethodPmUpdate
   if (rank >= 3) cello::define_field("acceleration_z");
 
    // Initialize default Refresh object
-
-  cello::simulation()->refresh_set_name(ir_post_,name());
 
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_field("acceleration_x");

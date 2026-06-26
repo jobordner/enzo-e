@@ -34,7 +34,7 @@ extern "C" void  FORTRAN_NAME(dep_grid_cic)
 //----------------------------------------------------------------------
 
 EnzoMethodPmDeposit::EnzoMethodPmDeposit (ParameterGroup p)
-  : Method(),
+  : Method("pm_deposit"),
     // read value from "Method:pm_deposit:alpha"
     alpha_(p.value<double> ("alpha",0.5))
 {
@@ -71,8 +71,6 @@ EnzoMethodPmDeposit::EnzoMethodPmDeposit (ParameterGroup p)
   if (rank >= 3) cello::define_field ("velocity_z");
 
   // Initialize default Refresh object
-
-  cello::simulation()->refresh_set_name(ir_post_,name());
 
   Refresh * refresh = cello::refresh(ir_post_);
 

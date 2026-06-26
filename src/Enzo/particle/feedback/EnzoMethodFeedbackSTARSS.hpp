@@ -43,10 +43,6 @@ public:
 
    void compute_ (Block * block);
 
-   /// name
-   virtual std::string name() throw()
-   { return "feedback"; }
-
    // Compute the maximum timestep for this method
    virtual double timestep (Block * block) throw();
 

@@ -27,7 +27,7 @@ EnzoMethodTurbulence::EnzoMethodTurbulence
  double temperature_initial,
  double mach_number,
  bool comoving_coordinates)
-  : Method(),
+  : Method("turbulence"),
     density_initial_(density_initial),
     temperature_initial_(temperature_initial),
     edot_(edot),
@@ -55,8 +55,6 @@ EnzoMethodTurbulence::EnzoMethodTurbulence
   }
 
   // Initialize default Refresh object
-
-  cello::simulation()->refresh_set_name(ir_post_,name());
 
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_all_fields();
@@ -176,7 +174,7 @@ void EnzoMethodTurbulence::compute ( Block * block) throw()
 
   CkCallback callback (CkIndex_EnzoBlock::r_method_turbulence_end(NULL),
 		       enzo_block->proxy_array());
-  PERF_REDUCE_START(perf_rindex_reduce_method_turbulence);
+  PERF_REDUCE_START(iperf_reduce_method_turbulence);
   enzo_block->contribute(n*sizeof(double),g,r_method_turbulence_type,callback);
 }
 
@@ -189,7 +187,7 @@ void register_method_turbulence(void)
 
 CkReductionMsg * r_method_turbulence(int n, CkReductionMsg ** msgs)
 {
-  PERF_REDUCE_STOP(perf_rindex_reduce_method_turbulence);
+  PERF_REDUCE_STOP(iperf_reduce_method_turbulence);
   double accum[max_turbulence_array];
   for (int i=0; i<max_turbulence_array; i++) {
     accum[i] = 0.0;

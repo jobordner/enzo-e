@@ -33,7 +33,7 @@ public: // interface
   MethodTrace (CkMigrateMessage *m)
     : Method(m),
       timestep_(0.0),
-      name_()
+      type_()
   { }
 
   /// CHARM++ Pack / Unpack function
@@ -42,7 +42,7 @@ public: // interface
     TRACEPUP;
     Method::pup(p);
     p | timestep_;
-    p | name_;
+    p | type_;
   };
 
 public: // virtual functions
@@ -54,10 +54,6 @@ public: // virtual functions
 
   virtual void compute ( Block * block) throw();
 
-  /// Return the name of this MethodTrace
-  virtual std::string name () throw ()
-  { return "trace"; }
-
 protected: // functions
 
 
@@ -66,7 +62,7 @@ protected: // attributes
   double timestep_;
 
   /// Name of the particle type to update
-  std::string name_;
+  std::string type_;
 
 };
 

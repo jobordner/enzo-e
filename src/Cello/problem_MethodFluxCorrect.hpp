@@ -61,10 +61,6 @@ public: // virtual functions
 
   virtual void compute ( Block * block) throw();
 
-  /// Return the name of this MethodFluxCorrect
-  virtual std::string name () throw ()
-  { return "flux_correct"; }
-
 protected: // functions
 
   void flux_correct_ (Block * block);

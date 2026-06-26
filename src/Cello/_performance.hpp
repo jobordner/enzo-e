@@ -38,48 +38,48 @@
 
 #   define PERF_ADAPT_START(INDEX)              \
   PERF_START(INDEX);                            \
-  PERF_START(perf_rindex_adapt);
+  PERF_START(iperf_adapt);
 #   define PERF_ADAPT_STOP(INDEX)               \
-  PERF_STOP(perf_rindex_adapt);                 \
+  PERF_STOP(iperf_adapt);                 \
   PERF_STOP(INDEX);
 #   define PERF_ADAPT_POST(INDEX)               \
   PERF_START(INDEX);                            \
-  PERF_START(perf_rindex_adapt_post);
+  PERF_START(iperf_adapt_post);
 
 #   define PERF_REDUCE_START(INDEX)             \
-  PERF_START(perf_rindex_reduce);               \
+  PERF_START(iperf_reduce);               \
   PERF_START(INDEX);
 #   define PERF_REDUCE_STOP(INDEX)              \
   PERF_STOP(INDEX);                             \
-  PERF_STOP(perf_rindex_reduce);
+  PERF_STOP(iperf_reduce);
 
-#   define PERF_REFRESH_START(INDEX)            \
-  PERF_START(INDEX);
-#   define PERF_REFRESH_STOP(INDEX)             \
-  PERF_STOP(INDEX);
-#   define PERF_REFRESH_POST(INDEX)             \
-  PERF_START(INDEX);
+#   define PERF_REFRESH_START(REFRESH)            \
+  PERF_START((cello::simulation()->perf_refresh_base() + (REFRESH)->id())); \
+  PERF_START(iperf_refresh);
+#   define PERF_REFRESH_STOP(REFRESH)             \
+  PERF_STOP((cello::simulation()->perf_refresh_base() + (REFRESH)->id())); \
+  PERF_STOP(iperf_refresh);
 
 #   define PERF_SOLVER_START(SOLVER)            \
   PERF_START((SOLVER)->index_perf());           \
-  PERF_START(perf_rindex_solver);
+  PERF_START(iperf_solver);
 #   define PERF_SOLVER_STOP(SOLVER)             \
-  PERF_STOP(perf_rindex_solver);                \
+  PERF_STOP(iperf_solver);                \
   PERF_STOP((SOLVER)->index_perf());
 
 #   define PERF_METHOD_START(METHOD)            \
   PERF_START((METHOD)->index_perf());           \
-  PERF_START(perf_rindex_method);
+  PERF_START(iperf_method);
 #   define PERF_METHOD_STOP(METHOD)             \
-  PERF_STOP(perf_rindex_method);                \
+  PERF_STOP(iperf_method);                \
   PERF_STOP((METHOD)->index_perf());
 
 #ifdef CONFIG_SMP_MODE
 #   define PERF_SMP_START(INDEX)                \
   PERF_START(INDEX);                            \
-  PERF_START(perf_rindex_smp);
+  PERF_START(iperf_smp);
 #   define PERF_SMP_STOP(INDEX)                 \
-  PERF_STOP(perf_rindex_smp);                   \
+  PERF_STOP(iperf_smp);                   \
   PERF_STOP(INDEX);
 #endif
 

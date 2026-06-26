@@ -32,7 +32,7 @@ void Block::stopping_enter_()
 
 void Block::stopping_begin_()
 {
-  PERF_START(perf_rindex_stopping);
+  PERF_START(iperf_stopping);
 
   cello::simulation()->set_phase(phase_stopping);
 
@@ -66,15 +66,15 @@ void Block::stopping_begin_()
   contribute
     (n*sizeof(double), min_reduce.data(), CkReduction::min_double, callback);
 
-  PERF_STOP(perf_rindex_stopping);
+  PERF_STOP(iperf_stopping);
 }
 
 //----------------------------------------------------------------------
 
 void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 {
-  /* PERF_REDUCE_STOP(perf_rindex_reduce_stopping); */
-  PERF_START(perf_rindex_stopping);
+  /* PERF_REDUCE_STOP(iperf_reduce_stopping); */
+  PERF_START(iperf_stopping);
 
   ++age_;
 
@@ -126,7 +126,7 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
 
   stopping_balance_();
 
-  PERF_STOP(perf_rindex_stopping);
+  PERF_STOP(iperf_stopping);
 }
 
 //----------------------------------------------------------------------
@@ -346,7 +346,7 @@ void Block::stopping_balance_()
       (CkIndex_Block::r_stopping_load_balance(nullptr), proxy_array());
 
     adapt_ready_ = true;
-    PERF_REDUCE_START(perf_rindex_reduce_balance);
+    PERF_REDUCE_START(iperf_reduce_balance);
     contribute(callback);
 
   } else {
@@ -361,7 +361,7 @@ void Block::stopping_balance_()
 void Block::r_stopping_load_balance(CkReductionMsg *msg)
 {
   delete msg;
-  PERF_REDUCE_STOP(perf_rindex_reduce_balance);
+  PERF_REDUCE_STOP(iperf_reduce_balance);
   cello::simulation()->set_phase (phase_balance);
 
   AtSync();
@@ -371,7 +371,7 @@ void Block::r_stopping_load_balance(CkReductionMsg *msg)
 
 void Block::ResumeFromSync()
 {
-  PERF_STOP(perf_rindex_balance);
+  PERF_STOP(iperf_balance);
   stopping_exit_();
 }
 

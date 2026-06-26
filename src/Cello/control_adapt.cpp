@@ -88,7 +88,7 @@ void Block::adapt_barrier_()
       (CkIndex_Block::r_adapt_next(nullptr), 
        proxy_array());
     adapt_ready_ = true;
-    PERF_REDUCE_START(perf_rindex_reduce_adapt);
+    PERF_REDUCE_START(iperf_reduce_adapt);
     contribute(sizeof(int),&changed,CkReduction::sum_int, callback);
   }
 }
@@ -103,7 +103,7 @@ void Block::adapt_barrier_()
 /// adapt_end_().
 void Block::adapt_next_()
 {
-  PERF_REDUCE_STOP(perf_rindex_reduce_adapt);
+  PERF_REDUCE_STOP(iperf_reduce_adapt);
   int num_blocks_changed = cello::hierarchy()->num_blocks_changed();
   cello::hierarchy()->set_num_blocks_changed
     (std::max(adapt_changed_,num_blocks_changed));
@@ -529,12 +529,18 @@ void Block::adapt_send_level()
   int of3[3];
   std::map<Index,int> index_count;
   std::map<Index,bool> index_first;
+  int num_local_neighbors=0;
+  int num_total_neighbors=0;
   while (it_neighbor.next(of3)) {
     Index index_neighbor = it_neighbor.index();
+    ++num_total_neighbors;
+    if (thisProxy[index_neighbor].ckLocal() != nullptr)
+      ++num_local_neighbors;
     index_first[index_neighbor] = true;
     ++index_count[index_neighbor];
   }
 
+  cello::hierarchy()->increment_neighbors(num_local_neighbors,num_total_neighbors);
   std::map<Index,MsgAdapt *> msg_map;
 
   while (it_neighbor.next(of3)) {
@@ -572,7 +578,7 @@ void Block::adapt_send_level()
 
 void Block::p_adapt_recv_level (MsgAdapt * msg)
 {
-  PERF_ADAPT_START(perf_rindex_adapt_recv_level);
+  PERF_ADAPT_START(iperf_adapt_recv_level);
   if (!adapt_ready_) {
     // save message for later
     adapt_msg_list_.push_back(msg);
@@ -591,8 +597,8 @@ void Block::p_adapt_recv_level (MsgAdapt * msg)
        msg->count_);
     delete msg;
   }
-  PERF_ADAPT_STOP (perf_rindex_adapt_recv_level);
-  PERF_ADAPT_POST (perf_rindex_adapt_recv_level_post);
+  PERF_ADAPT_STOP (iperf_adapt_recv_level);
+  PERF_ADAPT_POST (iperf_adapt_recv_level_post);
 }
 
 void Block::adapt_recv_level()
@@ -902,7 +908,7 @@ void Block::adapt_coarsen_()
 
 void Block::p_adapt_recv_child (MsgCoarsen * msg)
 {
-  PERF_ADAPT_START(perf_rindex_adapt_recv_child);
+  PERF_ADAPT_START(iperf_adapt_recv_child);
   msg->update(data());
   int * ic3 = msg->ic3();
   int * child_face_level_curr = msg->face_level();
@@ -942,8 +948,8 @@ void Block::p_adapt_recv_child (MsgCoarsen * msg)
 
   delete msg;
 
-  PERF_ADAPT_STOP (perf_rindex_adapt_recv_child);
-  PERF_ADAPT_POST (perf_rindex_adapt_recv_child_post);
+  PERF_ADAPT_STOP (iperf_adapt_recv_child);
+  PERF_ADAPT_POST (iperf_adapt_recv_child_post);
 }
 
 

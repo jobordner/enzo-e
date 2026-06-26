@@ -43,10 +43,6 @@ public:
   /// Apply the method
   virtual void compute( Block * block) throw();
 
-  /// Name
-  virtual std::string name () throw()
-  { return "star_maker"; }
-
   /// Default particle type for star maker -
   ///   this should be overwritten in child
   ///   classes that may not be making normal stars

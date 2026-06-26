@@ -278,7 +278,7 @@ void compute_accel_(const T functor,
 
 EnzoMethodBackgroundAcceleration::EnzoMethodBackgroundAcceleration
 (ParameterGroup p)
- : Method(),
+ : Method("background_acceleration"),
    zero_acceleration_(false),
    potential_center_xyz_{}, // fills array with zeros
    flavor_(p.value<std::string>("flavor","unknown")),
@@ -320,7 +320,6 @@ EnzoMethodBackgroundAcceleration::EnzoMethodBackgroundAcceleration
 
   // Do not need to refresh acceleration fields in this method
   // since we do not need to know any ghost zone information
-  cello::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_field(iax);
   refresh->add_field(iay);

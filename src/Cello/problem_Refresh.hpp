@@ -574,7 +574,7 @@ public: // interface
   { final_sync_ = sync; }
 
   const Restrict * get_restrict () const;
-  
+
   //--------------------------------------------------
 
   /// Return the number of bytes required to serialize the data object
@@ -680,6 +680,7 @@ private: // attributes
 
   /// Whether to perform a final synchronization (using sync_exit())
   int final_sync_;
+
 };
 
 #endif /* PROBLEM_REFRESH_HPP */

@@ -20,7 +20,8 @@ class Method : public PUP::able
 public: // interface
 
   /// Create a new Method
-  Method (double courant = 1.0) throw();
+  Method (std::string name,
+          double courant = 1.0) throw();
 
   /// Charm++ PUP::able declarations
   PUPable_abstract(Method);
@@ -37,7 +38,9 @@ public: // interface
       super_field_curr_(),
       super_field_prev_(),
       is_time_curr_(false),
-      is_time_prev_(false)
+      is_time_prev_(false),
+      index_perf_(0),
+      name_("")
   { }
 
   /// Destructor
@@ -61,7 +64,8 @@ public: // virtual functions
   virtual void compute ( Block * block) throw() = 0;
 
   /// Return the name of this Method
-  virtual std::string name () throw () = 0;
+  std::string name () throw ()
+  { return name_; }
 
   /// Compute maximum timestep for this method
   ///
@@ -130,7 +134,8 @@ public: // methods
 protected: // functions
 
   /// Add a new refresh object
-  int add_refresh_ (int neighbor_type = neighbor_leaf);
+  int add_refresh_ (const std::string & suffix = "",
+                    int neighbor_type = neighbor_leaf);
 
   /// Whether this is a "solve-cycle" when supercycling
   bool is_solve_cycle_(Block * block);
@@ -199,6 +204,9 @@ protected: // attributes
 
   /// Performance index
   int index_perf_;
+
+  /// Method name
+  std::string name_;
 };
 
 #endif /* PROBLEM_METHOD_HPP */

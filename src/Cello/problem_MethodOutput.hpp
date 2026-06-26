@@ -77,10 +77,6 @@ public: // interface
   /// barrier before exiting
   void compute_done (Block * block);
 
-  /// Return the name of this MethodOutput
-  virtual std::string name () throw ()
-  { return "output"; }
-
 protected: // functions
 
   void output_ (Block * block);

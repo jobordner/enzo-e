@@ -250,7 +250,7 @@ protected:
   { return *block->data()->scalar_int().value(is_iter_); }
 
   /// Register all refresh phases
-  void new_register_refresh_();
+  void register_refresh_();
   
 protected: // attributes
 

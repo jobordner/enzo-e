@@ -64,9 +64,6 @@ public: // virtual methods
   /// Apply the method to determine the Hilbert ordering of blocks
   virtual void compute( Block * block) throw() override;
 
-  virtual std::string name () throw () override
-  { return "order_hilbert"; }
-
   virtual bool is_active(std::shared_ptr<State> state, int level) override
   { return true; }
 

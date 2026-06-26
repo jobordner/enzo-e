@@ -45,7 +45,6 @@ EnzoSolverJacobi::EnzoSolverJacobi
   if (! local_) {
 
     Refresh * refresh = cello::refresh(ir_post_);
-    cello::simulation()->refresh_set_name(ir_post_,name);
 
     refresh->add_field (ix_);
     refresh->set_min_face_rank(cello::rank() - 1);
@@ -53,10 +52,9 @@ EnzoSolverJacobi::EnzoSolverJacobi
     ScalarDescr * scalar_descr_int = cello::scalar_descr_int();
     i_iter_ = scalar_descr_int->new_value(name_ + ":iter");
 
-    ir_smooth_ = add_refresh_();
+    ir_smooth_ = add_refresh_(":smooth");
 
     Refresh * refresh_smooth = cello::refresh(ir_smooth_);
-    cello::simulation()->refresh_set_name(ir_smooth_,name+":smooth");
 
     refresh_smooth->add_field (ix_);
     refresh_smooth->set_min_face_rank(cello::rank() - 1);

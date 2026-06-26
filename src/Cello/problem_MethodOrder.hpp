@@ -50,9 +50,6 @@ public: // virtual methods
   /// Apply the method to determine the ordering of blocks
   virtual void compute( Block * block) throw();
 
-  virtual std::string name () throw ()
-  { return "order"; }
-
   virtual bool is_active(std::shared_ptr<State> state, int level) override
   { return true; }
 

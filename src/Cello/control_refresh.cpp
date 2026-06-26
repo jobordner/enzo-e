@@ -6,18 +6,6 @@
 /// @brief    Charm-related functions associated with refreshing ghost zones
 /// @ingroup  Control
 
-// #define TRACE_LOAD_FACE
-// #define TRACE_PROLONG
-// #define TRACE_REFRESH
-// #define TRACE_PERF_REFRESH
-
-// #define PRINT_COARSE_FIELD
-// #define DEBUG_ARRAY
-// #define DEBUG_ARRAY_CYCLE 0
-// #define DEBUG_PRINT true
-// #define DEBUG_PRINT_BLOCK "B1:0_1:1"
-// #define DEBUG_BOX
-
 #include "simulation.hpp"
 #include "mesh.hpp"
 #include "control.hpp"
@@ -25,54 +13,24 @@
 #include "charm_simulation.hpp"
 #include "charm_mesh.hpp"
 
-#define CHECK_ID(ID) ASSERT1 ("CHECK_ID","Invalid id %d",ID,(ID>=0));
-
-#ifdef TRACE_PROLONG
-#  undef TRACE_PROLONG
-#  define TRACE_PROLONG(MSG,PROLONG,mf3,if3,nf3,mc3,ic3,nc3)            \
-  CkPrintf ("TRACE_PROLONG %s:%d %s %s mf %d %d %d nf %d %d %d if %d %d %d\n",__FILE__,__LINE__,MSG, PROLONG->name().c_str(), \
-            mf3[0],mf3[1],mf3[2],nf3[0],nf3[1],nf3[2],if3[0],if3[1],if3[2]); \
-  CkPrintf ("TRACE_PROLONG %s:%d %s %s mc %d %d %d nc %d %d %d ic %d %d %d\n",__FILE__,__LINE__,MSG, PROLONG->name().c_str(), \
-            mc3[0],mc3[1],mc3[2],nc3[0],nc3[1],nc3[2],ic3[0],ic3[1],ic3[2]); \
-
-#else
-#  undef TRACE_PROLONG
-#  define TRACE_PROLONG(MSG,PROLONG,mf3,if3,nf3,mc3,ic3,nc3) /* ... */
-#endif
-
-#ifdef TRACE_REFRESH
-#  undef TRACE_REFRESH
-#  define TRACE_REFRESH(BLOCK,REFRESH,MSG)                              \
-  CkPrintf ("%d TRACE_REFRESH %s %s %s\n", \
-            CkMyPe(),BLOCK->name().c_str(),std::string(MSG).c_str(),    \
-            cello::simulation()->refresh_name((REFRESH)->id()).c_str());
-#else
-#  define TRACE_REFRESH(BLOCK,REFRESH,MSG)  /* ... */
-#endif
-
-
 //----------------------------------------------------------------------
 
 void Block::refresh_start (int id_refresh, int callback)
 {
-  PERF_START(perf_rindex_refresh);
-#ifdef TRACE_PERF_REFRESH
-  CkPrintf ("TRACE_PERF_REFRESH %s %d start\n",name().c_str(),id_refresh);
-#endif
-  CHECK_ID(id_refresh);
 
   Refresh * refresh = cello::refresh(id_refresh);
-  TRACE_REFRESH(this,refresh,"01-refresh_start");
+  PERF_REFRESH_START(refresh);
   Sync * sync = sync_(id_refresh);
- // Send field and/or particle data associated with the given refresh
+
+  // Send field and/or particle data associated with the given refresh
   // object to corresponding neighbors
 
   if ( refresh->is_active() ) {
 
     ASSERT2 ("Block::refresh_start()",
-	     "%s refresh[%d] state is not inactive",
-	     name().c_str(),id_refresh,
-	     (sync->state() == RefreshState::INACTIVE));
+             "%s refresh[%d] state is not inactive",
+             name().c_str(),id_refresh,
+             (sync->state() == RefreshState::INACTIVE));
 
     sync->set_state(RefreshState::ACTIVE);
 
@@ -86,8 +44,8 @@ void Block::refresh_start (int id_refresh, int callback)
     // send Particle face data
     int count_particle=0;
     if (refresh->any_particles()){
-      count_particle = refresh_load_particle_faces_(*refresh,
-						    refresh->particles_are_copied());
+      count_particle = refresh_load_particle_faces_
+        (*refresh,refresh->particles_are_copied());
     }
 
     // send Flux face data
@@ -100,9 +58,9 @@ void Block::refresh_start (int id_refresh, int callback)
 
     // Make sure sync counter is not active
     ASSERT4 ("Block::refresh_start()",
-	     "refresh[%d] sync object %p is active (%d/%d)",
-	     id_refresh, sync, sync->value(), sync->stop(),
-	     (sync->value() == 0 && sync->stop() == 0));
+             "refresh[%d] sync object %p is active (%d/%d)",
+             id_refresh, sync, sync->value(), sync->stop(),
+             (sync->value() == 0 && sync->stop() == 0));
 
     // Initialize sync counter
     sync->set_stop(count);
@@ -117,12 +75,10 @@ void Block::refresh_start (int id_refresh, int callback)
 }
 
 //----------------------------------------------------------------------
+
 void Block::refresh_wait (int id_refresh, int callback)
 {
-  CHECK_ID(id_refresh);
-
   Refresh * refresh = cello::refresh(id_refresh);
-  TRACE_REFRESH(this,refresh,"02-refresh_wait");
   Sync * sync = sync_(id_refresh);
 
   ASSERT1("Block::refresh_wait()",
@@ -176,16 +132,13 @@ void Block::refresh_wait (int id_refresh, int callback)
 
 void Block::refresh_check_done (int id_refresh)
 {
-  CHECK_ID(id_refresh);
-
   Refresh * refresh = cello::refresh(id_refresh);
-  TRACE_REFRESH(this,refresh,"03-refresh_check");
   Sync * sync = sync_(id_refresh);
 
-ASSERT1("Block::refresh_check_done()",
-	  "Refresh[%d] must not be in inactive state",
-	  id_refresh,
-	  (sync->state() != RefreshState::INACTIVE) );
+  ASSERT1("Block::refresh_check_done()",
+          "Refresh[%d] must not be in inactive state",
+          id_refresh,
+          (sync->state() != RefreshState::INACTIVE) );
 
   if ( (sync->stop()==0) ||
        (sync->is_done() && (sync->state() == RefreshState::READY))) {
@@ -194,8 +147,8 @@ ASSERT1("Block::refresh_check_done()",
 
     ASSERT2("Block::refresh_wait()",
             "Refresh %d message list has size %lu instead of 0",
-	    id_refresh,refresh_msg_list_[id_refresh].size(),
-	    (refresh_msg_list_[id_refresh].size() == 0));
+            id_refresh,refresh_msg_list_[id_refresh].size(),
+            (refresh_msg_list_[id_refresh].size() == 0));
 
     // reset sync counter
     sync->reset();
@@ -220,7 +173,6 @@ ASSERT1("Block::refresh_check_done()",
 void Block::p_refresh_recv (MsgRefresh * msg_refresh)
 {
   const int id_refresh = msg_refresh->id_refresh();
-  CHECK_ID(id_refresh);
   Sync * sync = sync_(id_refresh);
 
   if (sync->state() == RefreshState::READY) {
@@ -247,9 +199,6 @@ void Block::p_refresh_recv (MsgRefresh * msg_refresh)
 
 void Block::refresh_exit (Refresh & refresh)
 {
-  TRACE_REFRESH(this,&refresh,"04-refresh_exit");
-  PERF_REFRESH_START(perf_rindex_refresh_exit);
-  CHECK_ID(refresh.id());
   update_boundary_();
 
   if (refresh.final_sync()) {
@@ -295,11 +244,7 @@ void Block::refresh_exit (Refresh & refresh)
 
   }
 
-  PERF_REFRESH_STOP(perf_rindex_refresh_exit);
-  PERF_STOP(perf_rindex_refresh);
-#ifdef TRACE_PERF_REFRESH
-  CkPrintf ("TRACE_PERF_REFRESH %s %d stop\n",name().c_str(),refresh.id());
-#endif
+  PERF_REFRESH_STOP(&refresh);
 }
 
 //----------------------------------------------------------------------
@@ -313,7 +258,7 @@ int Block::refresh_load_field_faces_ (Refresh & refresh)
   const int pad = refresh.coarse_padding();
   if (neighbor_type == neighbor_leaf ||
       neighbor_type == neighbor_tree) {
-   // Loop over neighbor leaf Blocks (not necessarily same level)
+    // Loop over neighbor leaf Blocks (not necessarily same level)
 
     ItNeighbor it_neighbor = refresh.it_neighbor (this,DirType::Both);
 
@@ -399,7 +344,7 @@ int Block::refresh_load_field_faces_ (Refresh & refresh)
         // if refreshing this level and neighbor is coarse, increment
         // counter for expected received face data
         if ((level_block == level_refresh) &&
-          (level_face == level_block - 1)) {
+            (level_face == level_block - 1)) {
           ++count;
           // if I'm the coarse neighbor of a level-refreshed block,
           // send face data
@@ -516,7 +461,7 @@ int Block::refresh_load_coarse_face_
       refresh_coarse_send_
         (index_neighbor,
          data()->field(), refresh,
-         iam3,iap3,ifms3,ifps3,ifmr3,ifpr3,"SR");
+         iam3,iap3,ifms3,ifps3,ifmr3,ifpr3);
 
     } else if (l_recv) {
 
@@ -601,7 +546,7 @@ int Block::refresh_load_coarse_face_
               refresh_coarse_send_
                 (index_neighbor,
                  data()->field(), refresh,
-                 iam3,iap3,ifms3,ifps3,ifmr3,ifpr3,"ER");
+                 iam3,iap3,ifms3,ifps3,ifmr3,ifpr3);
 
               ASSERT3 ("Block::refresh_load_coarse_face_",
                        "Face if3_er %d %d %d out of bounds",
@@ -697,7 +642,7 @@ int Block::refresh_load_coarse_face_
               refresh_coarse_send_
                 (index_extra,
                  data()->field(),refresh,
-                 iam3,iap3, ifms3,ifps3, ifmr3,ifpr3,"SE");
+                 iam3,iap3, ifms3,ifps3, ifmr3,ifpr3);
 
               ASSERT3 ("Block::refresh_load_coarse_face_",
                        "Face if3_se %d %d %d out of bounds",
@@ -721,14 +666,14 @@ int Block::refresh_load_coarse_face_
 int Block::delete_non_local_particles_(int it){
 
   Particle particle (cello::particle_descr(),
-		     data()->particle_data());
+                     data()->particle_data());
 
   const std::string type_name = particle.type_name(it);
   ASSERT1("Block::clean_up_particles_",
-	  "This function has been called for particle type"
-	  " %s, which has no is_copy attribute",
-	  type_name.c_str(),
-	  particle.has_attribute(it,"is_copy"));
+          "This function has been called for particle type"
+          " %s, which has no is_copy attribute",
+          type_name.c_str(),
+          particle.has_attribute(it,"is_copy"));
 
   const int rank = cello::rank();
 
@@ -822,15 +767,13 @@ void Block::refresh_coarse_send_
  Field field,Refresh & refresh,
  int iam3[3], int iap3[3],
  int ifms3[3], int ifps3[3],
- int ifmr3[3], int ifpr3[3],
- std::string debug)
+ int ifmr3[3], int ifpr3[3])
 {
   MsgRefresh * msg_refresh = new MsgRefresh;
 
   DataMsg * data_msg = new DataMsg;
 
   const int id_refresh = refresh.id();
-  CHECK_ID(id_refresh);
   data_msg->set_coarse_array
     (field, iam3,iap3,ifms3,ifps3,ifmr3,ifpr3,
      refresh.field_list_src(),
@@ -851,7 +794,7 @@ void Block::refresh_coarse_apply_ (Refresh * refresh)
 
   if (pad > 0) {
 
-  const Prolong * prolong_ptr = refresh->get_prolong();
+    const Prolong * prolong_ptr = refresh->get_prolong();
     const int min_face_rank = refresh->min_face_rank();
     const int neighbor_type = refresh->neighbor_type();
     const int root_level    = refresh->root_level();
@@ -978,16 +921,11 @@ void Block::refresh_coarse_apply_ (Refresh * refresh)
 
             prolong_ptr->array_sizes_valid (n3_f,n3_c);
             const bool accumulate = refresh->accumulate(i_f);
-            TRACE_PROLONG("coarse_apply",prolong_ptr, m3_f,ip3_f,np3_f, m3_c,ip3_c,np3_c);
             prolong_ptr->apply(default_precision,
-                           field_values_dst, m3_f, ip3_f, np3_f,
-                           coarse_field_src, m3_c, ip3_c, np3_c,
-                           accumulate);
+                               field_values_dst, m3_f, ip3_f, np3_f,
+                               coarse_field_src, m3_c, ip3_c, np3_c,
+                               accumulate);
 
-            if (accumulate) {
-              DEBUG_PRINT_ARRAY0("refresh_coarse_apply coarse_field",coarse_field,m3_c,np3_c,ip3_c);
-              DEBUG_PRINT_ARRAY0("refresh_field_apply field_values",field_values_dst,m3_f,np3_f,ip3_f);
-            }
           }
         }
       }
@@ -1043,12 +981,11 @@ void Block::particle_send_
     Particle particle_send (p_descr,p_data);
 
     const int id_refresh = refresh.id();
-    CHECK_ID(id_refresh);
 
     ASSERT1 ("Block::particle_send_()",
-	     "id_refresh %d of refresh object is out of range",
-	     id_refresh,
-	     (0 <= id_refresh));
+             "id_refresh %d of refresh object is out of range",
+             id_refresh,
+             (0 <= id_refresh));
 
     if (p_data && p_data->num_particles(p_descr)>0) {
 
@@ -1079,12 +1016,13 @@ void Block::particle_send_
 
 //----------------------------------------------------------------------
 
-int Block::particle_load_faces_ (int npa,
-				 ParticleData * particle_list[],
-				 ParticleData * particle_array[],
-				 Index index_list[],
-				 Refresh *refresh,
-                                 const bool copy)
+int Block::particle_load_faces_
+(int npa,
+ ParticleData * particle_list[],
+ ParticleData * particle_array[],
+ Index index_list[],
+ Refresh *refresh,
+ const bool copy)
 {
   // Array elements correspond to child-sized blocks to
   // the left, inside, and right of the main Block.  Particles
@@ -1136,7 +1074,7 @@ int Block::particle_load_faces_ (int npa,
   // Scatter particles among particle_data array
 
   Particle particle (cello::particle_descr(),
-		     data()->particle_data());
+                     data()->particle_data());
 
   std::vector<int> type_list;
   if (refresh->all_particles()) {
@@ -1311,20 +1249,20 @@ void Block::particle_apply_periodic_update_
     Particle particle_neighbor (p_descr,p_data);
 
     if ( ((rank >= 1) && dpx[il] != 0.0) ||
-	 ((rank >= 2) && dpy[il] != 0.0) ||
-	 ((rank >= 3) && dpz[il] != 0.0) ) {
+         ((rank >= 2) && dpy[il] != 0.0) ||
+         ((rank >= 3) && dpz[il] != 0.0) ) {
 
       // ... for each particle type
       const int nt = particle_neighbor.num_types();
       for (int it=0; it<nt; it++) {
 
-	// ... for each batch of particles
-	const int nb = particle_neighbor.num_batches(it);
-	for (int ib=0; ib<nb; ib++) {
+        // ... for each batch of particles
+        const int nb = particle_neighbor.num_batches(it);
+        for (int ib=0; ib<nb; ib++) {
 
-	  particle_neighbor.position_update (it,ib,dpx[il],dpy[il],dpz[il]);
+          particle_neighbor.position_update (it,ib,dpx[il],dpy[il],dpz[il]);
 
-	}
+        }
       }
     }
   }
@@ -1412,7 +1350,7 @@ void Block::particle_scatter_neighbors_
       // (...positions may use absolute coordinates (float) or
       // block-local coordinates (int))
       const bool is_float =
-	(cello::type_is_float(particle.attribute_type(it,ia_x)));
+        (cello::type_is_float(particle.attribute_type(it,ia_x)));
 
       // (...stride may be != 1 if particle attributes are interleaved)
       const int d  = particle.stride(it,ia_x);
@@ -1423,69 +1361,69 @@ void Block::particle_scatter_neighbors_
 
       for (int ib=0; ib<nb; ib++) {
 
-	const int np = particle.num_particles(it,ib);
+        const int np = particle.num_particles(it,ib);
 
-	if (np == 0) continue;
+        if (np == 0) continue;
 
-	// ...extract particle position arrays
+        // ...extract particle position arrays
 
-	std::vector<double> xa(np,0.0);
-	std::vector<double> ya(np,0.0);
-	std::vector<double> za(np,0.0);
+        std::vector<double> xa(np,0.0);
+        std::vector<double> ya(np,0.0);
+        std::vector<double> za(np,0.0);
 
-	particle.position(it,ib,xa.data(),ya.data(),za.data());
+        particle.position(it,ib,xa.data(),ya.data(),za.data());
 
-	// ...initialize mask used for scatter and delete
-	// ...and corresponding particle indices
+        // ...initialize mask used for scatter and delete
+        // ...and corresponding particle indices
 
-	bool * mask = new bool[np];
-	int * index = new int[np];
+        bool * mask = new bool[np];
+        int * index = new int[np];
 
-	for (int ip=0; ip<np; ip++) {
+        for (int ip=0; ip<np; ip++) {
 
-	  // look at block scatter children for help?
-	  double x = is_float ? 2.0*(xa[ip*d]-x0)/xl : xa[ip*d];
-	  double y = is_float ? 2.0*(ya[ip*d]-y0)/yl : ya[ip*d];
-	  double z = is_float ? 2.0*(za[ip*d]-z0)/zl : za[ip*d];
+          // look at block scatter children for help?
+          double x = is_float ? 2.0*(xa[ip*d]-x0)/xl : xa[ip*d];
+          double y = is_float ? 2.0*(ya[ip*d]-y0)/yl : ya[ip*d];
+          double z = is_float ? 2.0*(za[ip*d]-z0)/zl : za[ip*d];
 
-	  int ix = (rank >= 1) ? (x + 2) : 0;
-	  int iy = (rank >= 2) ? (y + 2) : 0;
-	  int iz = (rank >= 3) ? (z + 2) : 0;
+          int ix = (rank >= 1) ? (x + 2) : 0;
+          int iy = (rank >= 2) ? (y + 2) : 0;
+          int iz = (rank >= 3) ? (z + 2) : 0;
 
-	  if (! (0 <= ix && ix < 4) ||
-	      ! (0 <= iy && iy < 4) ||
-	      ! (0 <= iz && iz < 4)) {
+          if (! (0 <= ix && ix < 4) ||
+              ! (0 <= iy && iy < 4) ||
+              ! (0 <= iz && iz < 4)) {
 
             CkPrintf ("%d ib ip %d %d\n",CkMyPe(),ib,ip);
-	    CkPrintf ("%d ix iy iz %d %d %d\n",CkMyPe(),ix,iy,iz);
-	    CkPrintf ("%d x y z %f %f %f\n",CkMyPe(),x,y,z);
-	    CkPrintf ("%d xa ya za %f %f %f\n",CkMyPe(),xa[ip*d],ya[ip*d],za[ip*d]);
-	    CkPrintf ("%d xm ym zm %f %f %f\n",CkMyPe(),xm,ym,zm);
-	    CkPrintf ("%d xp yp zp %f %f %f\n",CkMyPe(),xp,yp,zp);
-	    CkPrintf ("%d xl yl zl %f %f %f\n",CkMyPe(),xl,yl,zl);
-	    CkPrintf ("%d x0 y0 z0 %f %f %f\n",CkMyPe(),x0,y0,z0);
-	    ERROR3 ("Block::particle_scatter_neighbors_",
-		    "particle indices (ix,iy,iz) = (%d,%d,%d) out of bounds",
-		    ix,iy,iz);
-	  }
+            CkPrintf ("%d ix iy iz %d %d %d\n",CkMyPe(),ix,iy,iz);
+            CkPrintf ("%d x y z %f %f %f\n",CkMyPe(),x,y,z);
+            CkPrintf ("%d xa ya za %f %f %f\n",CkMyPe(),xa[ip*d],ya[ip*d],za[ip*d]);
+            CkPrintf ("%d xm ym zm %f %f %f\n",CkMyPe(),xm,ym,zm);
+            CkPrintf ("%d xp yp zp %f %f %f\n",CkMyPe(),xp,yp,zp);
+            CkPrintf ("%d xl yl zl %f %f %f\n",CkMyPe(),xl,yl,zl);
+            CkPrintf ("%d x0 y0 z0 %f %f %f\n",CkMyPe(),x0,y0,z0);
+            ERROR3 ("Block::particle_scatter_neighbors_",
+                    "particle indices (ix,iy,iz) = (%d,%d,%d) out of bounds",
+                    ix,iy,iz);
+          }
 
-	  const int i = ix + 4*(iy + 4*iz);
-	  index[ip] = i;
-	  bool in_block = true;
-	  in_block = in_block && (!(rank >= 1) || (1 <= ix && ix <= 2));
-	  in_block = in_block && (!(rank >= 2) || (1 <= iy && iy <= 2));
-	  in_block = in_block && (!(rank >= 3) || (1 <= iz && iz <= 2));
-	  mask[ip] = ! in_block;
-	}
+          const int i = ix + 4*(iy + 4*iz);
+          index[ip] = i;
+          bool in_block = true;
+          in_block = in_block && (!(rank >= 1) || (1 <= ix && ix <= 2));
+          in_block = in_block && (!(rank >= 2) || (1 <= iy && iy <= 2));
+          in_block = in_block && (!(rank >= 3) || (1 <= iz && iz <= 2));
+          mask[ip] = ! in_block;
+        }
 
-	// ...scatter particles to particle array
-	particle.scatter  (it,ib,np,mask,index,npa,particle_array, copy);
+        // ...scatter particles to particle array
+        particle.scatter  (it,ib,np,mask,index,npa,particle_array, copy);
 
-	// ... delete scattered particles if moved
-	count += particle.delete_particles (it,ib,mask);
+        // ... delete scattered particles if moved
+        count += particle.delete_particles (it,ib,mask);
 
-	delete [] mask;
-	delete [] index;
+        delete [] mask;
+        delete [] index;
       } // Loop over batches
     } // Loop over particle types
 
@@ -1576,7 +1514,6 @@ void Block::refresh_load_flux_face_
   }
 
   const int id_refresh = refresh.id();
-  CHECK_ID(id_refresh);
 
   ASSERT1 ("Block::refresh_load_flux_face_()",
            "id_refresh %d of refresh object is out of range",

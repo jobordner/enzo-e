@@ -36,10 +36,6 @@ public:
   virtual std::string particle_type () throw()
   { return "star";}
 
-  /// Name
-  virtual std::string name () throw()
-   { return "star_maker";}
-
   virtual ~EnzoMethodStarMakerStochasticSF() throw() {};
 
 protected:

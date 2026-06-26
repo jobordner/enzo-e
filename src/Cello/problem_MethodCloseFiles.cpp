@@ -23,12 +23,11 @@ void method_close_files_mutex_init()
 //----------------------------------------------------------------------
 
 MethodCloseFiles::MethodCloseFiles(ParameterGroup p) throw()
-  : Method(),
+  : Method("close_files"),
     seconds_stagger_( p.value("seconds_stagger",0.0) ),
     seconds_delay_( p.value("seconds_delay",0.0) ),
     group_size_(p.value("group_size", std::numeric_limits<int>::max()))
 {
-  cello::simulation()->refresh_set_name(ir_post_,"close_files");
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_all_fields();
 }
@@ -41,7 +40,7 @@ void MethodCloseFiles::compute( Block * block) throw()
   const bool is_first_cycle = (block->state()->cycle() == cello::config()->initial_cycle);
   if (is_first_cycle) {
     throttle_stagger_();
-    PERF_SMP_START(perf_rindex_smp_method_close_files);
+    PERF_SMP_START(iperf_smp_method_close_files);
     CmiLock(MethodCloseFiles::node_lock);
     for (auto it=FileHdf5::file_list.begin();
          it!=FileHdf5::file_list.end(); ++it) {
@@ -56,7 +55,7 @@ void MethodCloseFiles::compute( Block * block) throw()
       FileHdf5::file_list.erase(it);
     }
     CmiUnlock(MethodCloseFiles::node_lock);
-    PERF_SMP_STOP(perf_rindex_smp_method_close_files);
+    PERF_SMP_STOP(iperf_smp_method_close_files);
   }
 
   block->compute_done(); 

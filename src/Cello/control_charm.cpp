@@ -17,7 +17,7 @@
 
 void Block::initial_exit_()
 {
-  PERF_START(perf_rindex_initial);
+  PERF_START(iperf_initial);
 
   bool initial_restart = cello::config()->initial_restart;
 
@@ -26,7 +26,7 @@ void Block::initial_exit_()
   } else {
     control_sync_barrier (CkIndex_Block::r_adapt_enter(NULL));
   }
-  PERF_STOP(perf_rindex_initial);
+  PERF_STOP(iperf_initial);
 }
 
 //----------------------------------------------------------------------
@@ -42,13 +42,13 @@ void Block::adapt_exit_()
 
 void Block::output_exit_()
 {
-  PERF_START(perf_rindex_output);
+  PERF_START(iperf_output);
 
   cello::simulation()->monitor_output();
 
   control_sync_barrier (CkIndex_Block::r_stopping_enter(NULL));
 
-  PERF_STOP(perf_rindex_output);
+  PERF_STOP(iperf_output);
 }
 
 //----------------------------------------------------------------------
@@ -66,10 +66,10 @@ void Block::stopping_exit_()
     if (cello::simulation()->cycle_changed()) {
       if (state_->cycle() > cello::simulation()->initial_cycle()) {
         // stop if any previous cycle
-        PERF_STOP(perf_rindex_cycle);
+        PERF_STOP(iperf_cycle);
       }
       // start 
-      PERF_START(perf_rindex_cycle);
+      PERF_START(iperf_cycle);
     }
     compute_enter_();
 

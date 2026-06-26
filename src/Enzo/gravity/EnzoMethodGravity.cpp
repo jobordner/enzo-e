@@ -29,7 +29,7 @@ EnzoMethodGravity::EnzoMethodGravity(ParameterGroup p, int index_solver,
                                      int index_prolong,
                                      int max_super,
                                      std::string type_super)
-  : Method(),
+  : Method("gravity"),
     index_solver_(index_solver),
     order_(p.value<int>("order",4)),
     ir_exit_(-1),
@@ -99,7 +99,6 @@ EnzoMethodGravity::EnzoMethodGravity(ParameterGroup p, int index_solver,
   // Refresh adds density_total field faces and one layer of ghost
   // zones to "B" field
 
-  cello::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->set_prolong(index_prolong_);
 
@@ -127,8 +126,7 @@ EnzoMethodGravity::EnzoMethodGravity(ParameterGroup p, int index_solver,
     refresh->add_field_src_dst("density_total","B");
   }
 
-  ir_exit_ = add_refresh_();
-  cello::simulation()->refresh_set_name(ir_exit_,name()+":exit");
+  ir_exit_ = add_refresh_(":exit");
   Refresh * refresh_exit = cello::refresh(ir_exit_);
   refresh_exit->set_prolong(index_prolong_);
   refresh_exit->set_final_sync();

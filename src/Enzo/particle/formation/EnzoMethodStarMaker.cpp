@@ -21,11 +21,9 @@
 //-------------------------------------------------------------------
 
 EnzoMethodStarMaker::EnzoMethodStarMaker(ParameterGroup p)
-  : Method()
+  : Method("star_maker")
 {
   cello::particle_descr()->check_particle_attribute("star","mass");
-
-  cello::simulation()->refresh_set_name(ir_post_,name());
 
   Refresh * refresh = cello::refresh(ir_post_);
 

@@ -16,12 +16,10 @@
 //----------------------------------------------------------------------
 
 EnzoMethodPpml::EnzoMethodPpml(ParameterGroup p)
-  : Method(),
+  : Method("ppml"),
     comoving_coordinates_(enzo::cosmology() != nullptr)
 {
   // Initialize the default Refresh object
-  cello::simulation()->refresh_set_name(ir_post_,name());
-
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_all_fields();
 

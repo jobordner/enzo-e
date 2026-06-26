@@ -237,9 +237,9 @@ public: // virtual functions
   /// Reduce output, using p_output_write to send data to writing processes
   void s_write()
   {
-    PERF_START(perf_rindex_output);
+    PERF_START(iperf_output);
     write_();
-    PERF_STOP(perf_rindex_output);
+    PERF_STOP(iperf_output);
   };
   void write_();
 
@@ -347,7 +347,7 @@ public: // virtual functions
   //--------------------------------------------------
 
   /// refresh_register
-  int new_register_refresh (Refresh * refresh)
+  int new_register_refresh (Refresh * refresh, std::string name)
   {
     const int id_refresh = refresh_list_.size();
     ASSERT("Simulation::new_register_refresh()",
@@ -355,13 +355,8 @@ public: // virtual functions
 	   (id_refresh >= 0));
     refresh->set_id(id_refresh);
     refresh_list_.push_back(refresh);
+    refresh_name_.push_back(name);
     return id_refresh;
-  }
-  void refresh_set_name (int id, std::string name)
-  {
-    if (id >= int(refresh_name_.size()))
-      refresh_name_.resize(id+1);
-    refresh_name_[id] = name;
   }
 
   std::string refresh_name (int id) const
@@ -457,10 +452,11 @@ protected: // functions
                                bool & already_exists);
   std::ifstream file_open_file_list_(std::string name_dir);
 
-public: // static attributes
+public:
 
-  static int perf_method_base_rindex;
-  static int perf_solver_base_rindex;
+  int perf_method_base()  { return perf_method_base_rindex_; }
+  int perf_solver_base()  { return perf_solver_base_rindex_; }
+  int perf_refresh_base() { return perf_refresh_base_rindex_; }
 
 protected: // attributes
 
@@ -582,6 +578,11 @@ protected: // attributes
   /// Flag to synchronize monitor output only on first call by a
   /// root-process block per cycle
   bool monitor_flag_;
+
+  int perf_method_base_rindex_;
+  int perf_solver_base_rindex_;
+  int perf_refresh_base_rindex_;
+
 };
 
 #endif /* SIMULATION_SIMULATION_HPP */

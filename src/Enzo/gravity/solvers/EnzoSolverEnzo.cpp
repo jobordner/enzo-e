@@ -56,7 +56,6 @@ EnzoSolverEnzo::EnzoSolverEnzo
   // Create solver refresh
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_field (ix_);
-  cello::simulation()->refresh_set_name(ir_post_,name);
 
   // Create restrict and prolong sync counters
   ScalarDescr * scalar_descr_sync = cello::scalar_descr_sync();
@@ -93,9 +92,10 @@ EnzoSolverEnzo::EnzoSolverEnzo
     refresh_level->set_restrict(index_restrict);
     refresh_level->set_final_sync(false);
 
-    ir_level = cello::simulation()->new_register_refresh(refresh_level);
-    cello::simulation()->refresh_set_name
-      (ir_level, name+":level:"+std::to_string(level));
+    std::string refresh_name =
+      std::string("solver_")+this->name()+":level:"+std::to_string(level);
+    ir_level = cello::simulation()->new_register_refresh
+      (refresh_level,refresh_name);
     ++level;
   }
 }

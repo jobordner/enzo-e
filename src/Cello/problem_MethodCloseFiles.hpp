@@ -43,9 +43,6 @@ public: // virtual methods
   /// Apply the method 
   virtual void compute( Block * block) throw();
 
-  virtual std::string name () throw () 
-  { return "close_files"; }
-
 private: // functions
 
   void throttle_stagger_();

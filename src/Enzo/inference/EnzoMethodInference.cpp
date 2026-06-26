@@ -20,7 +20,7 @@ EnzoMethodInference::EnzoMethodInference
  int level_infer,
  std::string field_group,
  float overdensity_threshold)
-  : Method(),
+  : Method("inference"),
     level_base_(level_base),
     level_array_(level_array),
     level_infer_(level_infer),
@@ -59,7 +59,6 @@ EnzoMethodInference::EnzoMethodInference
   }
 
   // Initialize default Refresh object
-  cello::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   // BUG WORKAROUND: add a field to bypass hang bug
   refresh->add_field("density");

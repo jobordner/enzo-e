@@ -20,13 +20,13 @@ public: // interface
 
   /// Create a new MethodCheckATS object
   MethodCheckATS ( ParameterGroup p )
-    : Method()
+    : Method("check_ats")
   {
     init_refresh_();
   }
 
   MethodCheckATS()
-    : Method()
+    : Method("check_ats")
   {
     init_refresh_();
   }
@@ -50,9 +50,6 @@ public: // virtual methods
 
   /// Apply the method to advance a block one timestep 
   virtual void compute( Block * block) throw();
-
-  virtual std::string name () throw () 
-  { return "check_ats"; }
 
   /// Compute maximum timestep for this method
   virtual double timestep ( Block * block) throw();

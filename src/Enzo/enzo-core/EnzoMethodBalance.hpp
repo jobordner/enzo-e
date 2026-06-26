@@ -38,9 +38,6 @@ public: // virtual methods
   /// Apply the method to advance a block one timestep 
   virtual void compute( Block * block) throw();
 
-  virtual std::string name () throw () 
-  { return "balance"; }
-
   virtual bool is_active(std::shared_ptr<State> state, int level) override
   { return true; }
 

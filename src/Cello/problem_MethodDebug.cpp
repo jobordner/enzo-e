@@ -21,7 +21,7 @@ MethodDebug::MethodDebug
  bool l_coarse,
  bool l_ghost
  ) throw()
-  : Method (),
+  : Method("debug"),
     num_fields_(num_fields),
     num_particles_(num_particles),
     field_sum_(),
@@ -38,7 +38,6 @@ MethodDebug::MethodDebug
 {
   // Set up post-refresh to refresh all fields
 
-  cello::simulation()->refresh_set_name(ir_post_,name());
   cello::refresh(ir_post_)->add_all_fields();
 
   field_sum_.resize(num_fields*2);
@@ -183,7 +182,7 @@ void MethodDebug::compute ( Block * block) throw()
   CkCallback callback (CkIndex_Block::r_method_debug_sum_fields(NULL),
                        block->proxy_array());
 
-  PERF_REDUCE_START(perf_rindex_reduce_method_debug);
+  PERF_REDUCE_START(iperf_reduce_method_debug);
   block->contribute
     ((1+num_reduce)*sizeof(cello_reduce_type), reduce,
      r_reduce_method_debug_type, callback);
@@ -195,7 +194,7 @@ void MethodDebug::compute ( Block * block) throw()
 
 void Block::r_method_debug_sum_fields(CkReductionMsg * msg)
 {
-  PERF_REDUCE_STOP(perf_rindex_reduce_method_debug);
+  PERF_REDUCE_STOP(iperf_reduce_method_debug);
   static_cast<MethodDebug*>
     (this->method())->compute_continue(this,msg);
 }

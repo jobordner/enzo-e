@@ -148,7 +148,7 @@ EnzoSolverBiCgStab::EnzoSolverBiCgStab
 
   /// Initialize default Refresh (called before entry to compute())
 
-  new_register_refresh_();
+  register_refresh_();
 
 }
 
@@ -359,7 +359,7 @@ void EnzoSolverBiCgStab::compute_(EnzoBlock* block) throw() {
 //----------------------------------------------------------------------
 
 void EnzoBlock::r_solver_bicgstab_start_1(CkReductionMsg* msg) {
-  PERF_REDUCE_STOP(perf_rindex_reduce_solver_bicgstab);
+  PERF_REDUCE_STOP(iperf_reduce_solver_bicgstab);
   static_cast<EnzoSolverBiCgStab*> (solver())->start_2(this,msg);
 
 }
@@ -465,7 +465,7 @@ void EnzoSolverBiCgStab::start_2(EnzoBlock* block,
 
 void EnzoBlock::r_solver_bicgstab_start_3(CkReductionMsg* msg) {
 
-  PERF_REDUCE_STOP(perf_rindex_reduce_solver_bicgstab);
+  PERF_REDUCE_STOP(iperf_reduce_solver_bicgstab);
   static_cast<EnzoSolverBiCgStab*> (solver())->loop_0a(this,msg);
 
 }
@@ -556,13 +556,13 @@ void EnzoSolverBiCgStab::loop_0(EnzoBlock* block) throw() {
   if (is_converged) {
     if (block->level() == coarse_level_) {
 #ifdef CONFIG_SMP_MODE
-      PERF_SMP_START(perf_rindex_smp_solver_bcg);
+      PERF_SMP_START(iperf_smp_solver_bcg);
       CmiLock(bcg_iter_node_lock);
 #endif
       cello::simulation()->set_solver_iter(index_,iter);
 #ifdef CONFIG_SMP_MODE
       CmiUnlock(bcg_iter_node_lock);
-      PERF_SMP_STOP(perf_rindex_smp_solver_bcg);
+      PERF_SMP_STOP(iperf_smp_solver_bcg);
 #endif
     }
   }
@@ -784,7 +784,7 @@ void EnzoSolverBiCgStab::loop_4(EnzoBlock* block) throw() {
 
 void EnzoBlock::r_solver_bicgstab_loop_5(CkReductionMsg* msg) {
 
-  PERF_REDUCE_STOP(perf_rindex_reduce_solver_bicgstab);
+  PERF_REDUCE_STOP(iperf_reduce_solver_bicgstab);
   static_cast<EnzoSolverBiCgStab*> (solver())->loop_6(this,msg);
 
 }
@@ -1020,7 +1020,7 @@ void EnzoSolverBiCgStab::loop_10(EnzoBlock* block) throw() {
 //----------------------------------------------------------------------
 
 void EnzoBlock::r_solver_bicgstab_loop_11(CkReductionMsg* msg) {
-  PERF_REDUCE_STOP(perf_rindex_reduce_solver_bicgstab);
+  PERF_REDUCE_STOP(iperf_reduce_solver_bicgstab);
   static_cast<EnzoSolverBiCgStab*> (solver())->loop_12(this,msg);
 
 }
@@ -1175,7 +1175,7 @@ void EnzoSolverBiCgStab::loop_12(EnzoBlock* block,
 //----------------------------------------------------------------------
 
 void EnzoBlock::r_solver_bicgstab_loop_13(CkReductionMsg* msg) {
-  PERF_REDUCE_STOP(perf_rindex_reduce_solver_bicgstab);
+  PERF_REDUCE_STOP(iperf_reduce_solver_bicgstab);
   static_cast<EnzoSolverBiCgStab*> (solver())->loop_14(this,msg);
 
 }
@@ -1248,7 +1248,7 @@ void EnzoSolverBiCgStab::loop_14(EnzoBlock* block,
 //----------------------------------------------------------------------
 
 void EnzoBlock::r_solver_bicgstab_loop_15(CkReductionMsg* msg) {
-  PERF_REDUCE_STOP(perf_rindex_reduce_solver_bicgstab);
+  PERF_REDUCE_STOP(iperf_reduce_solver_bicgstab);
   static_cast<EnzoSolverBiCgStab*> (solver())->loop_0b(this,msg);
 
 }
@@ -1273,7 +1273,7 @@ void EnzoSolverBiCgStab::inner_product_
   if (solve_type_ == solve_tree) {
     dot_compute_tree_(block,n,reduce+1,is_array,i_function,s_iter_(block));
   } else {
-    PERF_REDUCE_START(perf_rindex_reduce_solver_bicgstab);
+    PERF_REDUCE_START(iperf_reduce_solver_bicgstab);
     block->contribute((n+1)*sizeof(cello_reduce_type), reduce,
 		      sum_cello_reduce_n_type, callback);
   }
@@ -1508,10 +1508,9 @@ void EnzoSolverBiCgStab::dot_done_(EnzoBlock * block,
 
 //----------------------------------------------------------------------
 
-void EnzoSolverBiCgStab::new_register_refresh_()
+void EnzoSolverBiCgStab::register_refresh_()
 {
   Refresh * refresh_post = cello::refresh(ir_post_);
-  cello::simulation()->refresh_set_name(ir_post_,name());
 
   if (solve_type_ == solve_tree)
     refresh_post->set_root_level (coarse_level_);
@@ -1522,8 +1521,7 @@ void EnzoSolverBiCgStab::new_register_refresh_()
 
   //--------------------------------------------------
 
-  ir_loop_3_ = add_refresh_();
-  cello::simulation()->refresh_set_name(ir_loop_3_,name()+":loop_3");
+  ir_loop_3_ = add_refresh_(":loop_3");
 
   Refresh * refresh_loop_3 = cello::refresh(ir_loop_3_);
 
@@ -1538,8 +1536,7 @@ void EnzoSolverBiCgStab::new_register_refresh_()
 
   //--------------------------------------------------
 
-  ir_loop_9_ = add_refresh_();
-  cello::simulation()->refresh_set_name(ir_loop_9_,name()+":loop_9");
+  ir_loop_9_ = add_refresh_(":loop_9");
 
   Refresh * refresh_loop_9 = cello::refresh(ir_loop_9_);
 

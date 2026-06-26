@@ -32,10 +32,6 @@ public:
   /// Apply method
   virtual void compute ( Block * block) throw();
 
-  /// Name
-  virtual std::string name () throw()
-   { return "accretion";}
-  
 private:
 
   // methods

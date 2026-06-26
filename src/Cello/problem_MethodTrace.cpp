@@ -11,12 +11,10 @@
 //----------------------------------------------------------------------
 
 MethodTrace::MethodTrace(ParameterGroup p) noexcept
-  : Method ( p.value<double>("courant",1.0) ),
+  : Method ( "trace", p.value<double>("courant",1.0) ),
     timestep_( p.value<double>("timestep", std::numeric_limits<double>::max()) ),
-    name_( p.value<std::string>("name", "trace") )
+    type_( p.value<std::string>("name", "trace") )
 {
-  cello::simulation()->refresh_set_name(ir_post_,name_);
-
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_all_particles();
 }
@@ -32,7 +30,7 @@ void MethodTrace::compute ( Block * block) throw()
 
     // initialize trace particle type and position attributes
 
-    const int it = particle.type_index(name_);
+    const int it = particle.type_index(type_);
 
     const int ia_x = particle.attribute_index(it,"x");
     const int ia_y = particle.attribute_index(it,"y");

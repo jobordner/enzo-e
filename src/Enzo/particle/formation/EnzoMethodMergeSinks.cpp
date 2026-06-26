@@ -24,7 +24,7 @@
 
 
 EnzoMethodMergeSinks::EnzoMethodMergeSinks(ParameterGroup p)
-  : Method(),
+  : Method("merge_sinks"),
     merging_radius_cells_(p.value<double>("merging_radius_cells",8.0))
 {
   // This method requires three dimensions.
@@ -53,7 +53,6 @@ EnzoMethodMergeSinks::EnzoMethodMergeSinks(ParameterGroup p)
 	 (enzo_config->mesh_root_blocks[2] > 2));
 
   // Refresh copies all sink particles from neighbouring blocks
-  cello::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   ParticleDescr * particle_descr = cello::particle_descr();
   refresh->add_particle(particle_descr->type_index("sink"));

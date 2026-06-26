@@ -33,7 +33,8 @@ public: // interface
                     std::string type_super);
 
   EnzoMethodGravity()
-    : index_solver_(-1),
+    : Method("gravity"),
+      index_solver_(-1),
       order_(4),
       ir_exit_(-1),
       index_prolong_(0),
@@ -92,9 +93,6 @@ public: // interface
 
   /// Solve for the gravitational potential
   virtual void compute( Block * block) throw();
-
-  virtual std::string name () throw () 
-  { return "gravity"; }
 
   /// Compute maximum timestep for this method
   virtual double timestep (Block * block) throw() ;

@@ -13,7 +13,7 @@
 //----------------------------------------------------------------------
 
 EnzoMethodCosmology::EnzoMethodCosmology() throw()
-: Method ()
+: Method ("cosmology")
 {
 }
 

@@ -64,9 +64,6 @@ public: // virtual functions
 
   virtual void compute ( Block * block) throw();
 
-  /// Return the name of this MethodDebug
-  virtual std::string name () throw () { return "debug"; }
-
   virtual bool is_active(std::shared_ptr<State> state, int level) override
   { return true; }
 

@@ -16,7 +16,7 @@
 //-------------------------------------------------------------------
 
 EnzoMethodSinkMaker::EnzoMethodSinkMaker(ParameterGroup p) noexcept
-  : Method(),
+  : Method("sink_maker"),
     jeans_length_resolution_cells_
       (p.value<double>("jeans_length_resolution_cells", 4.0)),
     physical_density_threshold_cgs_
@@ -66,8 +66,6 @@ EnzoMethodSinkMaker::EnzoMethodSinkMaker(ParameterGroup p) noexcept
 	 "Method:sink_maker:max_offset_cell_fraction must be between 0.0 and "
 	 "0.1 (inclusive).",
 	 (max_offset_cell_fraction_ >= 0.0) && (max_offset_cell_fraction_ <= 0.1));
-
-  cello::simulation()->refresh_set_name(ir_post_,name());
 
   Refresh * refresh = cello::refresh(ir_post_);
   ParticleDescr * particle_descr = cello::particle_descr();

@@ -39,9 +39,6 @@ public: // virtual methods
   /// Apply the method to advance a block one timestep
   virtual void compute( Block * block) throw();
 
-  virtual std::string name () throw ()
-  { return "check"; }
-
 protected: // methods
 
   DataMsg * create_data_msg_ (Block * block);

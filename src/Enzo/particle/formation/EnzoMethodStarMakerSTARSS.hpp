@@ -36,10 +36,6 @@ public:
   std::string particle_type () throw() override
   { return "star";}
 
-  /// Name
-  std::string name () throw() override
-   { return "star_maker";}
-
   virtual ~EnzoMethodStarMakerSTARSS() throw() {};
 
   /// return minimum AMR level where star formation can occur

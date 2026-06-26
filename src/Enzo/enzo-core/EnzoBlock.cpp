@@ -54,11 +54,11 @@ EnzoBlock::EnzoBlock( MsgType msg_type)
 
 void EnzoBlock::set_msg_check(EnzoMsgCheck * msg)
 {
-  PERF_START(perf_rindex_block);
+  PERF_START(iperf_block);
   restart_set_data_(msg);
   initialize();
   Block::initialize();
-  PERF_STOP(perf_rindex_block);
+  PERF_STOP(iperf_block);
 }
 
 //----------------------------------------------------------------------

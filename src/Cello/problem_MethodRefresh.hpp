@@ -59,10 +59,6 @@ public: // virtual functions
 
   virtual void compute ( Block * block) throw();
 
-  /// Return the name of this MethodRefresh
-  virtual std::string name () throw ()
-  { return "refresh"; }
-
 protected: // functions
 
   void refresh_ (Block * block);

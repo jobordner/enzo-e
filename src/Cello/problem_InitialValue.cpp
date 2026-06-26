@@ -55,7 +55,7 @@ void InitialValue::enforce_block ( Block * block,
 				   const Hierarchy  * hierarchy ) throw()
 {
 #ifdef CONFIG_SMP_MODE
-  PERF_SMP_START(perf_rindex_smp_initial_value);
+  PERF_SMP_START(iperf_smp_initial_value);
   CmiLock(initial_value_node_lock);
 #endif  
   // make sure values_ is initialized
@@ -174,7 +174,7 @@ void InitialValue::enforce_block ( Block * block,
 
 #ifdef CONFIG_SMP_MODE
   CmiUnlock(initial_value_node_lock);
-  PERF_SMP_STOP(perf_rindex_smp_initial_value);
+  PERF_SMP_STOP(iperf_smp_initial_value);
 #endif
 
   block->initial_done();

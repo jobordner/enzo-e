@@ -42,9 +42,13 @@ Hierarchy::Hierarchy
   refined_regions_upper_(),
   num_blocks_(0),
   num_blocks_global_(0),
+  num_blocks_changed_(0),
   num_blocks_level_(),
   num_blocks_level_global_(),
-  num_blocks_changed_(0),
+  num_neighbors_local_(0),
+  num_neighbors_total_(0),
+  block_vec_(),
+  /// Number of block neighbors on this process
   num_particles_(0),
   num_zones_total_(0),
   num_zones_real_(0),
@@ -92,9 +96,11 @@ void Hierarchy::pup (PUP::er &p)
 
   p | num_blocks_;
   p | num_blocks_global_;
+  p | num_blocks_changed_;
   p | num_blocks_level_;
   p | num_blocks_level_global_;
-  p | num_blocks_changed_;
+  p | num_neighbors_local_;
+  p | num_neighbors_total_;
 
   p | num_particles_;
   p | num_zones_total_;
@@ -254,13 +260,13 @@ void Hierarchy::increment_block_count(int count, int level)
           level, 0 <= index && index < n);
   num_blocks_level_[level-min_level_] += count;
 #ifdef CONFIG_SMP_MODE
-  PERF_SMP_START(perf_rindex_smp_hierarchy);
+  PERF_SMP_START(iperf_smp_hierarchy);
   CmiLock(hierarchy_node_lock);
 #endif
   Hierarchy::num_blocks_node += count;
 #ifdef CONFIG_SMP_MODE
   CmiUnlock(hierarchy_node_lock);
-  PERF_SMP_STOP(perf_rindex_smp_hierarchy);
+  PERF_SMP_STOP(iperf_smp_hierarchy);
 #endif
 }
 
@@ -270,13 +276,13 @@ void Hierarchy::increment_particle_count(int64_t count)
 {
   num_particles_ += count;
 #ifdef CONFIG_SMP_MODE
-  PERF_SMP_START(perf_rindex_smp_hierarchy);
+  PERF_SMP_START(iperf_smp_hierarchy);
   CmiLock(hierarchy_node_lock);
 #endif
   Hierarchy::num_particles_node += count;
 #ifdef CONFIG_SMP_MODE
   CmiUnlock(hierarchy_node_lock);
-  PERF_SMP_STOP(perf_rindex_smp_hierarchy);
+  PERF_SMP_STOP(iperf_smp_hierarchy);
 #endif
   
 }

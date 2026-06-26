@@ -70,7 +70,7 @@ Block::Block ()
     order_count_(1),
     order_next_()
 {
-  PERF_START(perf_rindex_block);
+  PERF_START(iperf_block);
   init_refresh_();
   init_adapt_(nullptr);
 }
@@ -124,21 +124,21 @@ Block::Block ( MsgType msg_type )
   CkPrintf ("%d TRACE_BLOCK %s Block::Block(MsgType)\n",  CkMyPe(),name(thisIndex).c_str());
 #endif
 
-  PERF_START(perf_rindex_block);
+  PERF_START(iperf_block);
 
   init_refresh_();
   usesAtSync = true;
 
   thisIndex.array(array_,array_+1,array_+2);
 
-  PERF_STOP(perf_rindex_block);
+  PERF_STOP(iperf_block);
 }
 
 //----------------------------------------------------------------------
 
 void Block::set_msg_refine(MsgRefine * msg)
 {
-  PERF_START(perf_rindex_block);
+  PERF_START(iperf_block);
 
   std::vector<int> face_level;
   face_level.clear();
@@ -170,7 +170,7 @@ void Block::set_msg_refine(MsgRefine * msg)
 #endif
 
   delete msg;
-  PERF_STOP(perf_rindex_block);
+  PERF_STOP(iperf_block);
 }
 
 //----------------------------------------------------------------------
@@ -744,7 +744,7 @@ void Block::p_refresh_child
  int    ic3[3]
  )
 {
-  PERF_START(perf_rindex_refresh_child);
+  PERF_START(iperf_refresh_child);
   int if3[3] = {0,0,0};
   int  g3[3] = {0,0,0};
   Refresh * refresh = new Refresh;
@@ -759,7 +759,7 @@ void Block::p_refresh_child
 
   field_face -> array_to_face (buffer, data()->field());
   delete field_face;
-  PERF_STOP(perf_rindex_refresh_child);
+  PERF_STOP(iperf_refresh_child);
 }
 
 //----------------------------------------------------------------------

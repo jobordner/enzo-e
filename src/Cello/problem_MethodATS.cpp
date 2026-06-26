@@ -50,7 +50,6 @@ double MethodATS::timestep ( Block * block) throw()
 
 void MethodATS::init_refresh_()
 {
-  cello::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_field("test_ats");
 }

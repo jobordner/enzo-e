@@ -80,7 +80,7 @@ MethodOutput::MethodOutput
    int blocking_x,
    int blocking_y,
    int blocking_z) noexcept
-    : Method(),
+    : Method("output"),
       file_name_(file_name),
       path_name_(path_name),
       field_list_(),
@@ -219,7 +219,7 @@ void MethodOutput::compute ( Block * block) throw()
 
   CkCallback callback(CkIndex_Block::r_method_output_continue(nullptr),
                       cello::block_array());
-  PERF_REDUCE_START(perf_rindex_reduce_method_output);
+  PERF_REDUCE_START(iperf_reduce_method_output);
   block->contribute(callback);
 
 }
@@ -228,7 +228,7 @@ void MethodOutput::compute ( Block * block) throw()
 
 void Block::r_method_output_continue(CkReductionMsg *msg)
 {
-  PERF_REDUCE_STOP(perf_rindex_reduce_method_output);
+  PERF_REDUCE_STOP(iperf_reduce_method_output);
   delete msg;
   MethodOutput * method = static_cast<MethodOutput*> (this->method());
   method->compute_continue(this);

@@ -18,9 +18,6 @@
 // #define DEBUG_SIMULATION
 // #define DEBUG_MSG_REFINE
 
-int Simulation::perf_method_base_rindex = 0;
-int Simulation::perf_solver_base_rindex = 0;
-
 Simulation::Simulation
 (
  const char *   parameter_file,
@@ -71,7 +68,11 @@ Simulation::Simulation
   restart_stream_file_list_(),
   ir_cycle_begin_(-1),
   ir_cycle_end_(-1),
-  monitor_flag_(true)
+  monitor_flag_(true),
+  perf_method_base_rindex_(0),
+  perf_solver_base_rindex_(0),
+  perf_refresh_base_rindex_(0)
+
 {
   for (int i=0; i<256; i++) dir_checkpoint_[i] = '\0';
 #ifdef DEBUG_SIMULATION
@@ -140,7 +141,10 @@ Simulation::Simulation()
   restart_stream_file_list_(),
   ir_cycle_begin_(-1),
   ir_cycle_end_(-1),
-  monitor_flag_(true)
+  monitor_flag_(true),
+  perf_method_base_rindex_(0),
+  perf_solver_base_rindex_(0),
+  perf_refresh_base_rindex_(0)
 {
   for (int i=0; i<256; i++) dir_checkpoint_[i] = '\0';
 #ifdef DEBUG_SIMULATION
@@ -197,7 +201,10 @@ Simulation::Simulation (CkMigrateMessage *m)
     restart_stream_file_list_(),
     ir_cycle_begin_(-1),
     ir_cycle_end_(-1),
-    monitor_flag_(true)
+    monitor_flag_(true),
+    perf_method_base_rindex_(0),
+    perf_solver_base_rindex_(0),
+    perf_refresh_base_rindex_(0)
 {
   for (int i=0; i<256; i++) dir_checkpoint_[i] = '\0';
 #ifdef DEBUG_SIMULATION
@@ -314,6 +321,10 @@ void Simulation::pup (PUP::er &p)
   p | ir_cycle_begin_;
   p | ir_cycle_end_;
   p | monitor_flag_;
+
+  p | perf_method_base_rindex_;
+  p | perf_solver_base_rindex_;
+  p | perf_refresh_base_rindex_;
 }
 
 //----------------------------------------------------------------------
@@ -322,7 +333,7 @@ void Simulation::finalize() throw()
 {
   TRACE0;
 
-  PERF_STOP(perf_rindex_simulation);
+  PERF_STOP(iperf_simulation);
 
   performance_->end();
 
@@ -419,104 +430,111 @@ void Simulation::initialize_performance_() throw()
   performance_ = new Performance (config_);
 
   Performance * p = performance_;
-  p->new_region(perf_rindex_unknown,            "unknown");
-  p->new_region(perf_rindex_simulation,         "simulation");
-  p->new_region(perf_rindex_cycle,              "cycle");
-  p->new_region(perf_rindex_initial,            "initial");
+  p->new_region(iperf_unknown,            "unknown");
+  p->new_region(iperf_simulation,         "simulation");
+  p->new_region(iperf_cycle,              "cycle");
+  p->new_region(iperf_initial,            "initial");
 
   const bool in_charm = true;
-  p->new_region(perf_rindex_adapt,                 "adapt");
-  p->new_region(perf_rindex_adapt_post,            "adapt_post",in_charm);
-  p->new_region(perf_rindex_adapt_enter,           "adapt_enter");
-  p->new_region(perf_rindex_adapt_enter_post,      "adapt_enter_post",in_charm);
-  p->new_region(perf_rindex_adapt_end,             "adapt_end");
-  p->new_region(perf_rindex_adapt_end_post,        "adapt_end_post",in_charm);
-  p->new_region(perf_rindex_adapt_update,          "adapt_update");
-  p->new_region(perf_rindex_adapt_update_post,     "adapt_update_post",in_charm);
-  p->new_region(perf_rindex_adapt_next,            "adapt_next");
-  p->new_region(perf_rindex_adapt_next_post,       "adapt_next_post",in_charm);
-  p->new_region(perf_rindex_adapt_called,          "adapt_called");
-  p->new_region(perf_rindex_adapt_called_post,     "adapt_called_post",in_charm);
-  p->new_region(perf_rindex_adapt_exit,            "adapt_exit");
-  p->new_region(perf_rindex_adapt_exit_post,       "adapt_exit_post",in_charm);
-  p->new_region(perf_rindex_adapt_delete,          "adapt_delete");
-  p->new_region(perf_rindex_adapt_delete_post,     "adapt_delete_post",in_charm);
-  p->new_region(perf_rindex_adapt_recv_level,      "adapt_recv_level");
-  p->new_region(perf_rindex_adapt_recv_level_post, "adapt_recv_level_post",in_charm);
-  p->new_region(perf_rindex_adapt_recv_child,      "adapt_recv_child");
-  p->new_region(perf_rindex_adapt_recv_child_post, "adapt_recv_child_post",in_charm);
-  p->new_region(perf_rindex_refresh,               "refresh");
-  p->new_region(perf_rindex_refresh_post,          "refresh_post",in_charm);
-  p->new_region(perf_rindex_refresh_recv,          "refresh_recv");
-  p->new_region(perf_rindex_refresh_recv_post,     "refresh_recv_post",in_charm);
-  p->new_region(perf_rindex_refresh_exit,          "refresh_exit");
-  p->new_region(perf_rindex_refresh_exit_post,     "refresh_exit_post",in_charm);
-  p->new_region(perf_rindex_refresh_child,         "refresh_child");
-  p->new_region(perf_rindex_refresh_child_post,    "refresh_child_post",in_charm);
+  p->new_region(iperf_adapt,                 "adapt");
+  p->new_region(iperf_adapt_post,            "adapt_post",in_charm);
+  p->new_region(iperf_adapt_enter,           "adapt_enter");
+  p->new_region(iperf_adapt_enter_post,      "adapt_enter_post",in_charm);
+  p->new_region(iperf_adapt_end,             "adapt_end");
+  p->new_region(iperf_adapt_end_post,        "adapt_end_post",in_charm);
+  p->new_region(iperf_adapt_update,          "adapt_update");
+  p->new_region(iperf_adapt_update_post,     "adapt_update_post",in_charm);
+  p->new_region(iperf_adapt_next,            "adapt_next");
+  p->new_region(iperf_adapt_next_post,       "adapt_next_post",in_charm);
+  p->new_region(iperf_adapt_called,          "adapt_called");
+  p->new_region(iperf_adapt_called_post,     "adapt_called_post",in_charm);
+  p->new_region(iperf_adapt_exit,            "adapt_exit");
+  p->new_region(iperf_adapt_exit_post,       "adapt_exit_post",in_charm);
+  p->new_region(iperf_adapt_delete,          "adapt_delete");
+  p->new_region(iperf_adapt_delete_post,     "adapt_delete_post",in_charm);
+  p->new_region(iperf_adapt_recv_level,      "adapt_recv_level");
+  p->new_region(iperf_adapt_recv_level_post, "adapt_recv_level_post",in_charm);
+  p->new_region(iperf_adapt_recv_child,      "adapt_recv_child");
+  p->new_region(iperf_adapt_recv_child_post, "adapt_recv_child_post",in_charm);
+  p->new_region(iperf_refresh,               "refresh");
+  p->new_region(iperf_refresh_post,          "refresh_post",in_charm);
+  p->new_region(iperf_refresh_recv,          "refresh_recv");
+  p->new_region(iperf_refresh_recv_post,     "refresh_recv_post",in_charm);
+  p->new_region(iperf_refresh_exit,          "refresh_exit");
+  p->new_region(iperf_refresh_exit_post,     "refresh_exit_post",in_charm);
+  p->new_region(iperf_refresh_child,         "refresh_child");
+  p->new_region(iperf_refresh_child_post,    "refresh_child_post",in_charm);
 
-  p->new_region(perf_rindex_reduce,                "reduce");
-  p->new_region(perf_rindex_reduce_adapt,          "reduce_adapt");
-  p->new_region(perf_rindex_reduce_charm,          "reduce_charm");
-  p->new_region(perf_rindex_reduce_initialize,     "reduce_initialize");
-  p->new_region(perf_rindex_reduce_method_balance, "reduce_method_balance");
-  p->new_region(perf_rindex_reduce_method_check,   "reduce_method_check");
-  p->new_region(perf_rindex_reduce_method_debug,   "reduce_method_debug");
-  p->new_region(perf_rindex_reduce_method_flux_correct,"reduce_method_flux_correct");
-  p->new_region(perf_rindex_reduce_method_inference, "reduce_method_inference");
-  p->new_region(perf_rindex_reduce_method_m1_closure,"reduce_method_m1_closure");
-  p->new_region(perf_rindex_reduce_method_order_hilbert,"reduce_method_order_hilbert");
-  p->new_region(perf_rindex_reduce_method_order_morton,"reduce_method_order_morton");
-  p->new_region(perf_rindex_reduce_method_output,  "reduce_method_output");
-  p->new_region(perf_rindex_reduce_method_turbulence,"reduce_method_turbulence");
-  p->new_region(perf_rindex_reduce_output,         "reduce_output");
-  p->new_region(perf_rindex_reduce_restart,        "reduce_restart");
-  p->new_region(perf_rindex_reduce_simulation,     "reduce_simulation");
-  p->new_region(perf_rindex_reduce_solver_bicgstab,"reduce_solver_bicgstab");
-  p->new_region(perf_rindex_reduce_solver_cg,      "reduce_solver_cg");
-  p->new_region(perf_rindex_reduce_solver_dd,      "reduce_solver_dd");
-  p->new_region(perf_rindex_reduce_solver_mg0,     "reduce_solver_mg0");
-  p->new_region(perf_rindex_reduce_stopping,       "reduce_stopping");
+  p->new_region(iperf_reduce,                "reduce");
+  p->new_region(iperf_reduce_adapt,          "reduce_adapt");
+  p->new_region(iperf_reduce_charm,          "reduce_charm");
+  p->new_region(iperf_reduce_initialize,     "reduce_initialize");
+  p->new_region(iperf_reduce_method_balance, "reduce_method_balance");
+  p->new_region(iperf_reduce_method_check,   "reduce_method_check");
+  p->new_region(iperf_reduce_method_debug,   "reduce_method_debug");
+  p->new_region(iperf_reduce_method_flux_correct,"reduce_method_flux_correct");
+  p->new_region(iperf_reduce_method_inference, "reduce_method_inference");
+  p->new_region(iperf_reduce_method_m1_closure,"reduce_method_m1_closure");
+  p->new_region(iperf_reduce_method_order_hilbert,"reduce_method_order_hilbert");
+  p->new_region(iperf_reduce_method_order_morton,"reduce_method_order_morton");
+  p->new_region(iperf_reduce_method_output,  "reduce_method_output");
+  p->new_region(iperf_reduce_method_turbulence,"reduce_method_turbulence");
+  p->new_region(iperf_reduce_output,         "reduce_output");
+  p->new_region(iperf_reduce_restart,        "reduce_restart");
+  p->new_region(iperf_reduce_simulation,     "reduce_simulation");
+  p->new_region(iperf_reduce_solver_bicgstab,"reduce_solver_bicgstab");
+  p->new_region(iperf_reduce_solver_cg,      "reduce_solver_cg");
+  p->new_region(iperf_reduce_solver_dd,      "reduce_solver_dd");
+  p->new_region(iperf_reduce_solver_mg0,     "reduce_solver_mg0");
+  p->new_region(iperf_reduce_stopping,       "reduce_stopping");
 
 #ifdef CONFIG_SMP_MODE
-  p->new_region(perf_rindex_smp,                     "smp");
-  p->new_region(perf_rindex_smp_field_face,          "smp_field_face");
-  p->new_region(perf_rindex_smp_hierarchy,           "smp_hierarchy");
-  p->new_region(perf_rindex_smp_initial_music,     "smp_initial_music");
-  p->new_region(perf_rindex_smp_initial_value,     "smp_initial_value");
-  p->new_region(perf_rindex_smp_method_close_files,"smp_method_close_files");
-  p->new_region(perf_rindex_smp_solver_bcg,        "smp_solver_bcg");
+  p->new_region(iperf_smp,                     "smp");
+  p->new_region(iperf_smp_field_face,          "smp_field_face");
+  p->new_region(iperf_smp_hierarchy,           "smp_hierarchy");
+  p->new_region(iperf_smp_initial_music,     "smp_initial_music");
+  p->new_region(iperf_smp_initial_value,     "smp_initial_value");
+  p->new_region(iperf_smp_method_close_files,"smp_method_close_files");
+  p->new_region(iperf_smp_solver_bcg,        "smp_solver_bcg");
 #endif
-  p->new_region(perf_rindex_method,                "method");
-  p->new_region(perf_rindex_solver,                "solver");
-  p->new_region(perf_rindex_control,               "control");
-  p->new_region(perf_rindex_output,                "output");
-  p->new_region(perf_rindex_balance,               "balance");
-  p->new_region(perf_rindex_stopping,              "stopping");
-  p->new_region(perf_rindex_block,                 "block");
-  p->new_region(perf_rindex_exit,                  "exit");
+  p->new_region(iperf_method,                "method");
+  p->new_region(iperf_solver,                "solver");
+  p->new_region(iperf_control,               "control");
+  p->new_region(iperf_output,                "output");
+  p->new_region(iperf_balance,               "balance");
+  p->new_region(iperf_stopping,              "stopping");
+  p->new_region(iperf_block,                 "block");
+  p->new_region(iperf_exit,                  "exit");
 
 #ifdef CONFIG_USE_GRACKLE
-  p->new_region(perf_rindex_grackle,            "grackle");
+  p->new_region(iperf_grackle,            "grackle");
 #endif
 
   // Initialize Performance monitoring
 
   const Problem * problem = cello::problem();
   // add Method performance regions
-  perf_method_base_rindex = p->num_regions();
+  perf_method_base_rindex_ = p->num_regions();
   for (int i=0; i<problem->num_methods(); i++) {
-    Method * method = problem->method(i);
+    Method * method = cello::method(i);
     std::string region_name = std::string("method_") + method->name();
-    p->new_region(perf_method_base_rindex + i, region_name);
-    method->set_perf_index(perf_method_base_rindex + i);
+    p->new_region(perf_method_base_rindex_ + i, region_name);
+    method->set_perf_index(perf_method_base_rindex_ + i);
   }
   // add Solver performance regions
-  perf_solver_base_rindex = p->num_regions();
+  perf_solver_base_rindex_ = p->num_regions();
   for (int i=0; i<problem->num_solvers(); i++) {
-    Solver * solver = problem->solver(i);
+    Solver * solver = cello::solver(i);
     std::string region_name = std::string("solver_") + solver->name();
-    p->new_region(perf_solver_base_rindex + i, region_name);
-    solver->set_perf_index(perf_solver_base_rindex + i);
+    p->new_region(perf_solver_base_rindex_ + i, region_name);
+    solver->set_perf_index(perf_solver_base_rindex_ + i);
+  }
+  // add Refresh performance regions
+  perf_refresh_base_rindex_ = p->num_regions();
+  for (int i=0; i<refresh_list_.size(); i++) {
+    Refresh * refresh = cello::refresh(i);
+    std::string region_name = std::string("refresh_") + refresh_name_[i];
+    p->new_region(perf_refresh_base_rindex_ + i, region_name);
   }
 
   timer_.start();
@@ -530,7 +548,7 @@ void Simulation::initialize_performance_() throw()
 
   p->begin();
 
-  PERF_START(perf_rindex_simulation);
+  PERF_START(iperf_simulation);
 
 }
 
@@ -867,14 +885,12 @@ void Simulation::initialize_refresh_() throw()
 
   ir_cycle_begin_ = cello::simulation()->new_register_refresh
     (Refresh::create
-     (ghost_depth,min_face_rank, neighbor_leaf, sync_neighbor, 0));
-  cello::simulation()->refresh_set_name(ir_cycle_begin_,"cycle_begin");
+     (ghost_depth,min_face_rank, neighbor_leaf, sync_neighbor, 0),
+     "cycle_begin");
 
   ir_cycle_end_ = cello::simulation()->new_register_refresh
     (Refresh::create
-     (ghost_depth,min_face_rank, neighbor_leaf, sync_neighbor, 0));
-  cello::simulation()->refresh_set_name(ir_cycle_end_,"cycle_end");
-
+     (ghost_depth,min_face_rank, neighbor_leaf, sync_neighbor, 0),"cycle_end");
 }
 
 //----------------------------------------------------------------------
@@ -1047,11 +1063,15 @@ void Simulation::monitor_output()
   Monitor * monitor = this->monitor();
 
   monitor-> print("", "-------------------------------------");
+
   const bool in_p = monitor->include_proc();
   const bool in_t = monitor->include_time();
   monitor->set_include_proc(true);
   monitor->set_include_time(true);
   monitor-> print("Simulation", "cycle %04d",      state_->cycle());
+  monitor->set_include_proc(in_p);
+  monitor->set_include_time(in_t);
+
   monitor-> print("Simulation", "time-sim %15.12e",state_->time());
   monitor-> print("Simulation", "dt %15.12e",      state_->dt());
   const int level_lower = std::max(cello::level_root(),0);
@@ -1077,8 +1097,7 @@ void Simulation::monitor_output()
     }
     monitor-> print("Simulation", "active levels [ %s ]", active_levels.c_str());
   }
-  monitor->set_include_proc(in_p);
-  monitor->set_include_time(in_t);
+
   thisProxy.p_monitor_performance();
 }
 
@@ -1086,54 +1105,33 @@ void Simulation::monitor_output()
 
 void Simulation::monitor_performance()
 {
-  int nr  = performance_->num_regions();
-  int nc =  performance_->num_counters();
+  // Global performance metrics
+  // [0] num_sum
+  // [1] num_max
+  // [...] metrics
 
-  // 0 num_sum
-  // 1 num_max
-  // 2 msg_coarsen
-  // 3 msg_refine
-  // 4 msg_refresh
-  // 5 data_msg
-  // 6 field_face
-  // 7 particle_data
-  // 8 num-particles
-  // 9+ num_solver_iters
-  // NL+ num-blocks-<L>
-  // 10+ num_blocks_total
-  // 11+ max_proc_blocks
-  // 12+ max_proc_particles
-  // 13+ max_node_blocks
-  // 14+ max_node_particles
-  // 15+ max_solver_iters
+  std::vector<long long> counters_reduce_vector;
 
-  const int num_solver = problem()->num_solvers();
+  counters_reduce_vector.push_back(0); // place holder for num_sum
+  counters_reduce_vector.push_back(0); // place holder for num_max
 
-  int n = 15 + 2*num_solver + ( hierarchy_->max_level() - hierarchy_->min_level() + 1) + nr*nc;
-
-
-  long long * counters_region = new long long [nc];
-  long long * counters_reduce = new long long [n];
-
-  int m=0;
-  const int num_max = 4 + num_solver;
-  counters_reduce[m++] = n - num_max - 2;
-  counters_reduce[m++] = num_max;
-
-  // accumulated metrics
+  // summed metrics
 
   const int in = cello::index_static();
 
-  counters_reduce[m++] = MsgCoarsen::counter[in];     // 2
-  counters_reduce[m++] = MsgRefine::counter[in];      // 3
-  counters_reduce[m++] = MsgRefresh::counter[in];     // 4
-  counters_reduce[m++] = MsgOrder::counter[in];       // @@@  
-  counters_reduce[m++] = DataMsg::counter[in];        // 5
-  counters_reduce[m++] = FieldFace::counter[in];      // 6
-  counters_reduce[m++] = ParticleData::counter[in];   // 7
-  counters_reduce[m++] = hierarchy_->num_particles(); // 8
+  counters_reduce_vector.push_back( MsgCoarsen::counter[in] );
+  counters_reduce_vector.push_back( MsgRefine::counter[in] );
+  counters_reduce_vector.push_back( MsgRefresh::counter[in] );
+  counters_reduce_vector.push_back( MsgOrder::counter[in] );
+  counters_reduce_vector.push_back( DataMsg::counter[in] );
+  counters_reduce_vector.push_back( FieldFace::counter[in] );
+  counters_reduce_vector.push_back( ParticleData::counter[in] );
+  counters_reduce_vector.push_back( hierarchy_->num_particles() );
+
+  const int num_solver = problem()->num_solvers();
   for (int i=0; i<num_solver; i++) {
-    counters_reduce[m++] = cello::simulation()->get_solver_num_iter(i);
+    counters_reduce_vector.push_back
+      ( cello::simulation()->get_solver_num_iter(i) );
   }
 
   const int min_level = hierarchy_->min_level();
@@ -1141,48 +1139,56 @@ void Simulation::monitor_performance()
   int num_blocks_total = 0;
   for (int i=min_level; i<=hierarchy_->max_level(); i++) {
     num_blocks_total +=  hierarchy_->num_blocks(i);
-    counters_reduce[m++] = hierarchy_->num_blocks(i); // NL
+    counters_reduce_vector.push_back( hierarchy_->num_blocks(i) );
   }
-  counters_reduce[m++] = num_blocks_total;            // 10  num_blocks_total
+  counters_reduce_vector.push_back( num_blocks_total );
 
   // performance region counters
+  const int nc =  performance_->num_counters();
+  const int nr  = performance_->num_regions();
+  std::vector<long long> counters_region;
+  counters_region.resize(nc);
   for (int ir = 0; ir < nr; ir++) {
-    performance_->region_counters(ir,counters_region);
+    performance_->region_counters(ir,counters_region.data());
     for (int ic = 0; ic < nc; ic++) {
-      counters_reduce[m++] = counters_region[ic];
+      counters_reduce_vector.push_back( counters_region[ic] );
     }
   }
 
+  // Block neighbor metrics
+  counters_reduce_vector.push_back( hierarchy_->num_neighbors_local() );
+  counters_reduce_vector.push_back( hierarchy_->num_neighbors_total() );
+  hierarchy_->clear_num_neighbors();
+
+  // Save number of summed metrics
+  counters_reduce_vector[0] = counters_reduce_vector.size() - 2;
+
   // maximum metrics
 
-  counters_reduce[m++] = num_blocks_total;            // 11  max_proc_blocks
-  counters_reduce[m++] = hierarchy_->num_particles(); // 12  max_proc_particles
-  counters_reduce[m++] = Hierarchy::num_blocks_node;  // 13  max_node_blocks
-  counters_reduce[m++] = Hierarchy::num_particles_node;// 14 max_node_particles
+  counters_reduce_vector.push_back( num_blocks_total );
+  counters_reduce_vector.push_back( hierarchy_->num_particles() );
+  counters_reduce_vector.push_back( Hierarchy::num_blocks_node );
+  counters_reduce_vector.push_back( Hierarchy::num_particles_node );
+
   for (int i=0; i<num_solver; i++) {
-    counters_reduce[m++] = cello::simulation()->get_solver_max_iter(i); // 15 max_node_particles
+    counters_reduce_vector.push_back
+      ( cello::simulation()->get_solver_max_iter(i) );
   }
 
-  ASSERT2("Simulation::monitor_performance()",
-	  "Actual array length %d != expected array length %d", m,n,
-	  (m == n) );
+  // Save number of maxed metrics
+  counters_reduce_vector[1] =
+    counters_reduce_vector.size() - counters_reduce_vector[0] - 2;
 
   // --------------------------------------------------
-#ifdef TRACE_CONTRIBUTE
-  CkPrintf ("%s:%d DEBUG_CONTRIBUTE\n",__FILE__,__LINE__); fflush(stdout);
-#endif
 
-  PERF_REDUCE_START(perf_rindex_reduce_simulation);
+  PERF_REDUCE_START(iperf_reduce_simulation);
   contribute
-    (n*sizeof(long long),
-     counters_reduce,
+    (counters_reduce_vector.size()*sizeof(long long),
+     counters_reduce_vector.data(),
      r_reduce_performance_type,
      CkCallback (CkIndex_Simulation::r_monitor_performance_reduce(NULL),
 		 thisProxy));
   // --------------------------------------------------
-
-  delete [] counters_reduce;
-  delete [] counters_region;
 
 }
 
@@ -1190,7 +1196,7 @@ void Simulation::monitor_performance()
 
 void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
 {
-  PERF_REDUCE_STOP(perf_rindex_reduce_simulation);
+  PERF_REDUCE_STOP(iperf_reduce_simulation);
 
   const Monitor * monitor = this->monitor();
 
@@ -1199,42 +1205,38 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   int index_region_cycle = performance_->region_index("cycle");
 
   int m = 0;
-  const int num_sum = counters_reduce[m++];             // 0
-  const int num_max = counters_reduce[m++];             // 1
-  const long long msg_coarsen = counters_reduce[m++];   // 2
-  const long long msg_refine  = counters_reduce[m++];   // 3
-  const long long msg_refresh = counters_reduce[m++];   // 4
-  const long long msg_order = counters_reduce[m++];   // @@@
-  const long long data_msg    = counters_reduce[m++];   // 5
-  const long long field_face  = counters_reduce[m++];   // 6
-  const long long particle_data = counters_reduce[m++]; // 7
-  const long long num_particles = counters_reduce[m++]; // 8
+  const int num_sum = counters_reduce[m++];
+  const int num_max = counters_reduce[m++];
+
+  monitor->print("perf:counter","msg-coarsen %lld", counters_reduce[m++]);
+  monitor->print("perf:counter","msg-refine %lld",  counters_reduce[m++]);
+  monitor->print("perf:counter","msg-refresh %lld", counters_reduce[m++]);
+  monitor->print("perf:counter","msg-order %lld",   counters_reduce[m++]);
+  monitor->print("perf:counter","data-msg %lld",    counters_reduce[m++]);
+  monitor->print("perf:counter","field-face %lld",  counters_reduce[m++]);
+  monitor->print("perf:counter","particle-data %lld",counters_reduce[m++]);
+
+  const int num_particles = counters_reduce[m++];
+  monitor->print("perf:data","num-particles total %lld",num_particles);
+
+  // Solver iterations
 
   const int num_solver = problem()->num_solvers();
   for (int i=0; i<num_solver; i++) {
-    const long long num_solver_iter = counters_reduce[m++]; // 15
-    if (num_solver_iter>0) {
+    const long long num_solver_iter = counters_reduce[m++];
+    if (num_solver_iter > 0) {
       monitor->print ("perf:solver","num-%s-iter %lld",
                       problem()->solver(i)->name().c_str(),
                       num_solver_iter);
     }
   }
-  monitor->print("perf:counter","msg-coarsen %lld", msg_coarsen);
-  monitor->print("perf:counter","msg-refine %lld", msg_refine);
-  monitor->print("perf:counter","msg-refresh %lld", msg_refresh);
-  monitor->print("perf:counter","msg-order %lld", msg_order);
-  monitor->print("perf:counter","data-msg %lld", data_msg);
-  monitor->print("perf:counter","field-face %lld", field_face);
-  monitor->print("perf:counter","particle-data %lld", particle_data);
 
-  monitor->print("perf:data","num-particles total %lld",
-                 num_particles);
 
   // compute total blocks and leaf blocks
   long long num_total_blocks = 0;
   long long num_leaf_blocks = 0;
   for (int i=hierarchy_->min_level(); i<=hierarchy_->max_level(); i++) {
-    const long long num_blocks_level = counters_reduce[m++]; // NL
+    const long long num_blocks_level = counters_reduce[m++];
     hierarchy()->set_blocks_global(i,num_blocks_level);
 
     if (i>=0) {
@@ -1256,7 +1258,7 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   monitor->print ("perf:mesh","leaf-blocks %lld",  num_leaf_blocks);
   monitor->print ("perf:mesh","total-blocks %lld", num_total_blocks);
 
-  const long long num_blocks_total   = counters_reduce[m++]; // 10
+  const long long num_blocks_total   = counters_reduce[m++];
 
   if (num_total_blocks != num_blocks_total) {
     WARNING2 ("Simulation::r_monitor_performance_reduce()",
@@ -1270,7 +1272,7 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   for (int ir = 0; ir < num_regions; ir++) {
     for (int ic = 0; ic < num_counters; ic++, m++) {
       bool do_print =
-        (ir != perf_rindex_unknown) &&
+        (ir != iperf_unknown) &&
         ((performance_->counter_type(ic) != PerfCounterType::Absolute) ||
          (ir == index_region_cycle)) &&
         (counters_reduce[m] != 0);
@@ -1289,20 +1291,11 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
     }
   }
 
-  const long long max_proc_blocks    = counters_reduce[m++]; // 11
-  const long long max_proc_particles = counters_reduce[m++]; // 12
-  const long long max_node_blocks    = counters_reduce[m++]; // 13
-  const long long max_node_particles = counters_reduce[m++]; // 14
+  const long long num_neighbors_local = counters_reduce[m++];
+  const long long num_neighbors_total = counters_reduce[m++];
 
-  // Solver iterations
-
-  for (int i=0; i<num_solver; i++) {
-    const long long max_solver_iters       = counters_reduce[m++]; // 15
-    monitor->print ("perf:solver","max-%s-iter %lld",
-                    problem()->solver(i)->name().c_str(),
-                    max_solver_iters);
-  }
-  cello::simulation()->clear_solver_iter(); // clear it for the next solve
+  const long long max_proc_blocks    = counters_reduce[m++];
+  const long long max_proc_particles = counters_reduce[m++];
 
   // Block load balance metrics
 
@@ -1312,6 +1305,9 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   monitor->print ("perf:balance","avg-blocks-proc %f",  avg_proc_blocks);
   monitor->print ("perf:balance","eff-blocks-core %f",
                   avg_proc_blocks / max_proc_blocks);
+
+  const long long max_node_blocks    = counters_reduce[m++];
+  const long long max_node_particles = counters_reduce[m++];
 
   //    block node load-balance
   if (CkNumPes() != CkNumNodes()) {
@@ -1323,7 +1319,6 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   }
 
   // Particle load-balance metrics
-
   if (num_particles > 0) {
     //    particle process load-balance
     const double avg_proc_particles = 1.0*num_particles/CkNumPes();
@@ -1345,6 +1340,24 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
                       avg_node_particles / max_node_particles );
     }
   }
+
+  // Number of block neighbors local and total
+  monitor->print ("perf:balance","num_neighbors_local %lld",
+                  num_neighbors_local);
+  monitor->print ("perf:balance","num-neighbors-total %lld",
+                  num_neighbors_total);
+  monitor->print ("perf:balance","avg-neighbors-local %f",
+                  1.0*num_neighbors_local/num_neighbors_total);
+
+  // Solver iterations
+
+  for (int i=0; i<num_solver; i++) {
+    monitor->print ("perf:solver","max-%s-iter %lld",
+                    problem()->solver(i)->name().c_str(),
+                    counters_reduce[m++]);
+  }
+  cello::simulation()->clear_solver_iter();
+
 
   ASSERT3("Simulation::monitor_performance()",
           "Actual array length %d != expected array length 2 + %d + %d",

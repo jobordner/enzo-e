@@ -89,7 +89,7 @@ parse_mhdchoice_pack_pair_(ParameterGroup p)
 
 EnzoMethodMHDVlct::EnzoMethodMHDVlct (ParameterGroup p,
                                       bool store_fluxes_for_corrections)
-  : Method()
+  : Method("mhd_vlct")
 {
 
   std::pair<std::string, EnzoMHDIntegratorStageArgPack*> pair
@@ -143,7 +143,6 @@ EnzoMethodMHDVlct::EnzoMethodMHDVlct (ParameterGroup p,
   scratch_space_ = nullptr;
 
   // Finally, initialize the default Refresh object
-  cello::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   // Need to refresh all fields because the fields holding passively advected
   // scalars won't necessarily be known until after all Methods have been

@@ -36,6 +36,8 @@ public: // interface
     num_blocks_changed_(0),
     num_blocks_level_(),
     num_blocks_level_global_(),
+    num_neighbors_local_(0),
+    num_neighbors_total_(0),
     block_vec_(),
     num_particles_(0), 
     num_zones_total_(0), 
@@ -213,6 +215,20 @@ public: // interface
   void set_blocks_global(int level, int num_blocks) throw()
   { num_blocks_level_global_[level-min_level_] = num_blocks; }
 
+  int num_neighbors_local() const { return num_neighbors_local_; }
+  int num_neighbors_total() const { return num_neighbors_total_; }
+
+  void increment_neighbors(int num_neighbors_local, int num_neighbors_total)
+  {
+    num_neighbors_local_ += num_neighbors_local;
+    num_neighbors_total_ += num_neighbors_total;
+  }
+  void clear_num_neighbors()
+  {
+    num_neighbors_local_ = 0;
+    num_neighbors_total_ = 0;
+  }
+
   /// Return the ith block in this pe
   Block * block (int index_block)
   { return block_vec_.at(index_block); }
@@ -294,6 +310,10 @@ protected: // attributes
 
   /// Current number of total blocks per refinement level
   std::vector<int> num_blocks_level_global_;
+
+  /// Number of block neighbors on this process
+  long long num_neighbors_local_;
+  long long num_neighbors_total_;
 
   /// Pointers to Blocks on this process
   std::vector<Block *> block_vec_;

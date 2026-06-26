@@ -20,14 +20,14 @@ public: // interface
 
   /// Create a new MethodNull object
   MethodNull ( ParameterGroup p )
-    : Method(),
+    : Method("null"),
       dt_(p.value("dt", std::numeric_limits<double>::max()))
   {
     init_refresh_();
   }
 
   MethodNull()
-    : Method(),
+    : Method("null"),
       dt_ (std::numeric_limits<double>::max()),
       advanced_time_(false)
   {
@@ -57,9 +57,6 @@ public: // virtual methods
 
   /// Apply the method to advance a block one timestep 
   virtual void compute( Block * block) throw();
-
-  virtual std::string name () throw () 
-  { return "null"; }
 
   /// Compute maximum timestep for this method
   virtual double timestep ( Block * block) throw()

@@ -20,7 +20,7 @@ public: // interface
 
   /// Create a new MethodATS object
   MethodATS ( ParameterGroup p )
-    : Method(),
+    : Method("ats"),
       dt_level_()
   {
     int n=p.list_length("dt_level");
@@ -36,7 +36,7 @@ public: // interface
   }
 
   MethodATS()
-    : Method(), dt_level_()
+    : Method("ats"), dt_level_()
   {
     init_refresh_();
   }
@@ -61,9 +61,6 @@ public: // virtual methods
 
   /// Apply the method to advance a block one timestep 
   virtual void compute( Block * block) throw();
-
-  virtual std::string name () throw () 
-  { return "ats"; }
 
   /// Compute maximum timestep for this method
   virtual double timestep ( Block * block) throw();

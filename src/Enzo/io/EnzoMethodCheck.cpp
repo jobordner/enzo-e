@@ -24,13 +24,12 @@ EnzoMethodCheck::EnzoMethodCheck
  std::vector<std::string> directory,
  int monitor_iter,
  bool include_ghosts)
-  : Method(),
+  : Method("check"),
     num_files_(num_files),
     directory_(directory),
     include_ghosts_(include_ghosts)
 {
   Refresh * refresh = cello::refresh(ir_post_);
-  cello::simulation()->refresh_set_name(ir_post_,name());
   refresh->add_field("density");
   // Create IO writer
   if (CkMyPe() == 0) {
@@ -78,7 +77,7 @@ void EnzoMethodCheck::compute ( Block * block) throw()
   if (!cello::is_initial_cycle(InitCycleKind::fresh_or_noncharm_restart)) {
      CkCallback callback(CkIndex_EnzoSimulation::r_method_check_enter(NULL),0,
                          proxy_enzo_simulation);
-     PERF_REDUCE_START(perf_rindex_reduce_method_check);
+     PERF_REDUCE_START(iperf_reduce_method_check);
      block->contribute(callback);
   } else { // Don't checkpoint if it's the initial cycle
     block->compute_done();
@@ -282,7 +281,7 @@ void EnzoSimulation::p_check_done()
 
 void EnzoBlock::p_check_done()
 {
-  PERF_REDUCE_STOP(perf_rindex_reduce_method_check);
+  PERF_REDUCE_STOP(iperf_reduce_method_check);
   compute_done();
 }
 

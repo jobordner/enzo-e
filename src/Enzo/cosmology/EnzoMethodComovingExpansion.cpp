@@ -11,11 +11,9 @@
 
 EnzoMethodComovingExpansion::EnzoMethodComovingExpansion
 ( bool comoving_coordinates )
-  : Method(),
+  : Method("comoving_expansion"),
     comoving_coordinates_(comoving_coordinates)
 {
-  cello::simulation()->refresh_set_name(ir_post_,name());
-
   const int rank = cello::rank();
 
   cello::define_field ("density");

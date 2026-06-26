@@ -42,7 +42,7 @@ MethodRefresh::MethodRefresh
  int min_face_rank,
  bool all_fields,
  bool all_particles) noexcept
-  : Method(),
+  : Method("refresh"),
     field_list_(),
     particle_list_(),
     ghost_depth_(ghost_depth),

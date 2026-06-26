@@ -62,7 +62,7 @@ MethodFluxCorrect::MethodFluxCorrect(ParameterGroup p) noexcept
 MethodFluxCorrect::MethodFluxCorrect
 (std::string group, bool enable,
  std::map<std::string, double> min_digits_map) noexcept
-  : Method (),
+  : Method("flux_correct"),
     ir_pre_(-1),
     group_(group),
     enable_(enable),
@@ -72,7 +72,6 @@ MethodFluxCorrect::MethodFluxCorrect
     scratch_()
 {
   // Set up post-refresh to refresh all conserved fields in group_
-  cello::simulation()->refresh_set_name(ir_post_,name());
   Grouping * groups = cello::field_groups();
   const int nf=groups->size(group_);
   for (int i_f=0; i_f<nf; i_f++) {
@@ -81,9 +80,8 @@ MethodFluxCorrect::MethodFluxCorrect
 
   //  neighbor_flux causes synchronization errors; using neighbor_leaf:
   //  ir_pre_ = add_refresh_(neighbor_flux);
-  ir_pre_ = add_refresh_(neighbor_leaf);
+  ir_pre_ = add_refresh_(":pre");
   Refresh * refresh_pre = cello::refresh(ir_pre_);
-  cello::simulation()->refresh_set_name(ir_pre_,name()+"_fluxes");
   refresh_pre->set_callback(CkIndex_Block::p_method_flux_correct_refresh());
   refresh_pre->add_all_fluxes();
   // Also ensure conserved fields are themselves refreshed
@@ -199,7 +197,7 @@ void MethodFluxCorrect::compute_continue_refresh( Block * block ) throw()
   CkCallback callback (CkIndex_Block::r_method_flux_correct_sum_fields(nullptr), 
                        block->proxy_array());
 
-  PERF_REDUCE_START(perf_rindex_reduce_method_flux_correct);
+  PERF_REDUCE_START(iperf_reduce_method_flux_correct);
   block->contribute
     ((nf+1)*sizeof(long double), reduce, sum_long_double_n_type, callback);
 
@@ -210,7 +208,7 @@ void MethodFluxCorrect::compute_continue_refresh( Block * block ) throw()
 
 void Block::r_method_flux_correct_sum_fields(CkReductionMsg * msg)
 {
-  PERF_REDUCE_STOP(perf_rindex_reduce_method_flux_correct);
+  PERF_REDUCE_STOP(iperf_reduce_method_flux_correct);
   static_cast<MethodFluxCorrect*>
     (this->method())->compute_continue_sum_fields(this,msg);
 }

@@ -19,7 +19,7 @@ while [[ -L $file ]]; do
     file=`readlink $file`
 done
 topdir=$(dirname $file)
-topdir="$PWD/$topdir"
+#topdir="$PWD/$topdir"
 
 bindir="`dirname $0`"
 if [ "$bindir" == "${bindir#/}" ]; then
@@ -45,6 +45,9 @@ if [[ -e "$outdir" ]]; then
     rm -rf $outdir
 fi
 mkdir $outdir
+
+echo "cp $topdir/cello.css $outdir"
+cp $topdir/cello.css $outdir
 cd $outdir
 
 input="input-clean.data"

@@ -39,7 +39,7 @@
 
 EnzoMethodPpm::EnzoMethodPpm (bool store_fluxes_for_corrections,
                               ParameterGroup p)
-  : Method(),
+  : Method("ppm"),
     comoving_coordinates_(enzo::cosmology() != nullptr),
     store_fluxes_for_corrections_(store_fluxes_for_corrections),
     diffusion_(p.value<bool>("diffusion", false)),
@@ -90,7 +90,6 @@ EnzoMethodPpm::EnzoMethodPpm (bool store_fluxes_for_corrections,
 
   // Initialize default Refresh object
 
-  cello::simulation()->refresh_set_name(ir_post_,name());
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_field("density");
   refresh->add_field("velocity_x");

@@ -214,7 +214,7 @@ protected: // functions
 		       double rr_min=0.0, double rr=0.0, double rr_max=0.0,
 		       bool is_final = false) throw();
   /// Add a new refresh object
-  int add_refresh_ ();
+  int add_refresh_ (const std::string & suffix = "");
 
   /// Perform vector copy X <- Y
   template <class T>
