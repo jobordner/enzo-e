@@ -255,7 +255,7 @@ int Block::refresh_load_field_faces_ (Refresh & refresh)
 
   const int min_face_rank = refresh.min_face_rank();
   const int neighbor_type = refresh.neighbor_type();
-  const int pad = refresh.coarse_padding();
+  const int pad = refresh.coarse_padding(refresh.get_prolong());
   if (neighbor_type == neighbor_leaf ||
       neighbor_type == neighbor_tree) {
     // Loop over neighbor leaf Blocks (not necessarily same level)
@@ -340,7 +340,7 @@ int Block::refresh_load_field_faces_ (Refresh & refresh)
 
         Index index_neighbor = it_neighbor.index();
         const int level_face = it_neighbor.face_level();
-        int pad = refresh.coarse_padding();
+        int pad = refresh.coarse_padding(refresh.get_prolong());
         // if refreshing this level and neighbor is coarse, increment
         // counter for expected received face data
         if ((level_block == level_refresh) &&
@@ -403,7 +403,7 @@ int Block::refresh_load_coarse_face_
   const int level = index_.level();
   int count = 0;
 
-  const int pad = refresh.coarse_padding();
+  const int pad = refresh.coarse_padding(refresh.get_prolong());
 
   if ((pad > 0) && (level != level_face)) {
 
@@ -790,7 +790,7 @@ void Block::refresh_coarse_send_
 
 void Block::refresh_coarse_apply_ (Refresh * refresh)
 {
-  const int pad = refresh->coarse_padding();
+  const int pad = refresh->coarse_padding(refresh->get_prolong());
 
   if (pad > 0) {
 

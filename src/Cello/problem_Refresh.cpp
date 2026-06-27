@@ -99,8 +99,10 @@ void Refresh::box_accumulate_adjust
 
 int Refresh::coarse_padding(const Prolong * prolong) const
 {
-  const Prolong * p = prolong ? prolong : get_prolong();
-  return (accumulate_ || p == nullptr) ? 0 : p->coarse_padding_() ;
+
+  return (accumulate_ || prolong == nullptr) ?
+    0 : prolong->coarse_padding_();
+
 }
 
 //----------------------------------------------------------------------
@@ -111,7 +113,6 @@ const Prolong * Refresh::get_prolong () const
   Prolong * prolong_ptr = problem ?
     problem->get_prolong(id_prolong_) : nullptr;
   return prolong_ptr ? prolong_ptr : new ProlongLinear;
-
 }
 
 //----------------------------------------------------------------------
