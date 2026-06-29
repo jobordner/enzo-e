@@ -41,8 +41,8 @@ fi
 # ==============================
 
 if [[ -e "$outdir" ]]; then
-    echo "Warning deleting previous $outdir!"
-    rm -rf $outdir
+    echo "Directory $outdir exists: skipping..."
+    exit 1
 fi
 mkdir $outdir
 
