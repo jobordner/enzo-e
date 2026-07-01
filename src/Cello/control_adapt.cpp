@@ -262,17 +262,13 @@ int Block::adapt_compute_desired_level_(int level_maximum)
   int level = this->level();
   int level_desired = level;
 
-  Problem * problem = cello::problem();
-  Refine * refine;
+  for (int k=0; k<cello::num_refine(); k++) {
 
-  int index_refine = 0;
-  while ((refine = problem->refine(index_refine++))) {
-
-    Schedule * schedule = refine->schedule();
+    Schedule * schedule = cello::refine(k)->schedule();
 
     if ((schedule==nullptr) ||
         schedule->write_this_cycle(state_->cycle(),state_->time()) ) {
-      const int adapt_this = refine->apply(this);
+      const int adapt_this = cello::refine(k)->apply(this);
       adapt = std::max(adapt,adapt_this);
     }
   }

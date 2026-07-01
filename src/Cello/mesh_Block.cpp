@@ -468,8 +468,8 @@ ItNeighbor Block::it_neighbor (Index index,
 Method * Block::method () throw ()
 {
   Problem * problem = cello::problem();
-  Method * method = problem->method(index_method_);
-  return method;
+  return (index_method_ < cello::num_method()) ?
+    cello::method(index_method_) : nullptr;
 }
 
 //----------------------------------------------------------------------
@@ -672,15 +672,14 @@ void Block::initial_begin()
     initial_new_begin_();
 
   } else {
+
     // Apply initial conditions
-    index_initial_ = 0;
-    Problem * problem = cello::problem();
-    while (Initial * initial = problem->initial(index_initial_)) {
-      initial->enforce_block(this,cello::hierarchy());
-      index_initial_++;
+    for (int k=0; k<cello::num_initial(); k++) {
+      cello::initial(k)->enforce_block(this,cello::hierarchy());
     }
   }
 }
+
 //----------------------------------------------------------------------
 
 Block::~Block()
@@ -1200,11 +1199,8 @@ void Block::update_boundary_ ()
 
   determine_boundary_(is_boundary,&fxm,&fxp,&fym,&fyp,&fzm,&fzp);
 
-  int index = 0;
-  Problem * problem = cello::problem();
-  Boundary * boundary;
-
-  while ((boundary = problem->boundary(index++))) {
+  for (int k=0; k<cello::num_boundary(); k++) {
+    Boundary * boundary = cello::boundary(k);
     // Update boundaries
     if ( fxm ) boundary->enforce(this,face_lower,axis_x);
     if ( fxp ) boundary->enforce(this,face_upper,axis_x);

@@ -176,9 +176,9 @@ double Block::stopping_dt_global_
 
   // adjust timestep dt to align with any scheduled output times
   double time_curr = state_->time();
-  int index_output=0;
-  while (Output * output = cello::output(index_output++)) {
-    Schedule * schedule = output->schedule();
+
+  for (int k=0; k<cello::num_output(); k++) {
+    Schedule * schedule = cello::output(k)->schedule();
     dt_global = schedule->update_timestep(time_curr,dt_global);
   }
 
@@ -244,9 +244,8 @@ std::vector<double> Block::stopping_dt_level_
   }
 
   // adjust level timesteps to align with any scheduled output times
-  int index_output=0;
-  while (Output * output = cello::output(index_output++)) {
-    Schedule * schedule = output->schedule();
+  for (int k=0; k<cello::num_output(); k++) {
+    Schedule * schedule = cello::output(k)->schedule();
     int level = 0;
     for (auto & dt : dt_level) {
       double time_curr = state_->time(level++);

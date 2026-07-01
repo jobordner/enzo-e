@@ -20,13 +20,16 @@ public: // interface
 
   /// Create a new MethodCheckATS object
   MethodCheckATS ( ParameterGroup p )
-    : Method("check_ats")
+    : Method("check_ats"), field_name_(), error_curr_(), error_prev_()
   {
+    field_name_ = p.value<std::string>("field_name","ats_field");
+    error_curr_ = p.value<std::string>("error_curr","ats_error_curr");
+    error_prev_ = p.value<std::string>("error_prev","ats_error_prev");
     init_refresh_();
   }
 
   MethodCheckATS()
-    : Method("check_ats")
+    : Method("check_ats"), field_name_(), error_curr_(), error_prev_()
   {
     init_refresh_();
   }
@@ -36,7 +39,7 @@ public: // interface
 
   /// Charm++ PUP::able migration constructor
   MethodCheckATS (CkMigrateMessage *m)
-    : Method (m)
+    : Method (m), field_name_(), error_curr_(), error_prev_()
   { }
 
   /// CHARM++ Pack / Unpack function
@@ -44,15 +47,18 @@ public: // interface
   {
     TRACEPUP;
     Method::pup(p);
+    p | field_name_;
+    p | error_curr_;
+    p | error_prev_;
   }
 
 public: // virtual methods
 
   /// Apply the method to advance a block one timestep 
-  virtual void compute( Block * block) throw();
+  virtual void compute( Block * block) throw() override;
 
   /// Compute maximum timestep for this method
-  virtual double timestep ( Block * block) throw();
+  virtual double timestep ( Block * block) throw() override;
 
 protected: // methods
 
@@ -60,30 +66,22 @@ protected: // methods
   void init_refresh_();
 
   /// Test that ghost values are expected
-  void test_ghosts_(Block * block,
-                    cello_float * array_curr,
-                    cello_float * error_curr,
-                    int mx, int my, int mz,
-                    int gx, int gy, int gz);
+  void test_field_(Block * block,
+                   cello_float * array,
+                   cello_float * error,
+                   cello_float time,
+                   int mx, int my, int mz,
+                   int gx, int gy, int gz);
 
-  /// Test that current time field values are correct
-  void test_curr_(Block * block,
-                  cello_float * array_curr,
-                  cello_float * error_curr,
-                  int mx, int my, int mz,
-                  int gx, int gy, int gz,
-                  double time);
-
-  /// Test that previous time field values are correct
-  void test_prev_(Block * block,
-                  cello_float * array_curr,
-                  cello_float * error_curr,
-                  int mx, int my, int mz,
-                  int gx, int gy, int gz,
-                  double time);
+  bool compare_ (const cello_float & a, const cello_float & b) const;
 
 protected: // attributes
 
+  /// Field name for testing
+  std::string field_name_;
+  /// Field names to record errors
+  std::string error_curr_;
+  std::string error_prev_;
 };
 
 #endif /* PROBLEM_METHOD_CHECK_ATS_HPP */

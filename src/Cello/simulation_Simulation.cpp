@@ -846,12 +846,12 @@ void Simulation::initialize_hierarchy_() throw()
 			   config_->mesh_root_blocks[2]);
 
   bool lp3[3] = { false, false, false };
-  int index_boundary = 0;
   auto & root_blocks = config_->mesh_root_blocks;
-  Boundary * boundary;
-  while ( (boundary = cello::boundary(index_boundary++)) ) {
-    boundary->periodicity(lp3);
+
+  for (int k = 0; k < cello::num_boundary(); k++) {
+    cello::boundary(k)->periodicity(lp3);
   }
+
   int p3[3] = {lp3[0] ? root_blocks[0] : 0,
                lp3[1] ? root_blocks[1] : 0,
                lp3[2] ? root_blocks[2] : 0 };

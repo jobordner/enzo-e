@@ -507,6 +507,8 @@ public: // interface
     CkPrintf ("     advanced_time: %d\n",advanced_time_);
   }
 
+  void summary() const;
+
   /// Return loop limits 0:3 for 4x4x4 particle data array indices
   /// for the given neighbor
   void get_particle_bin_limits

@@ -6,7 +6,6 @@
 
 #include "problem.hpp"
 
-#define TOL 10.0
 //----------------------------------------------------------------------
 
 void MethodATS::compute( Block * block) throw()
@@ -16,7 +15,7 @@ void MethodATS::compute( Block * block) throw()
   if (block->is_leaf()) {
 
     Field field = block->data()->field();
-    int it = field.field_id("test_ats");
+    int it = field.field_id(field_name_);
     cello_float * array_curr = (cello_float *) field.values(it);
 
     int mx,my,mz;
@@ -37,9 +36,9 @@ void MethodATS::compute( Block * block) throw()
 
 double MethodATS::timestep ( Block * block) throw()
 {
-  double retval=1e10;
-  const size_t level = block->level();
-  if (level < dt_level_.size())
+  double retval=std::numeric_limits<double>::max();
+  const int level = block->level();
+  if (0 <= level && level < dt_level_.size())
     retval = dt_level_[level];
   return retval;
 }
@@ -51,7 +50,7 @@ double MethodATS::timestep ( Block * block) throw()
 void MethodATS::init_refresh_()
 {
   Refresh * refresh = cello::refresh(ir_post_);
-  refresh->add_field("test_ats");
+  refresh->add_field(field_name_);
 }
 
 //----------------------------------------------------------------------

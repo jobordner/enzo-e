@@ -66,14 +66,14 @@ void Problem::output_next(Simulation * simulation) throw()
   int cycle   = simulation->state()->cycle();
   double time = simulation->state()->time();
 
-  Output * output;
 
   // Find next schedule output (index_output_ initialized to -1)
 
+  Output * output = nullptr;
   do {
-
-    output = this->output(++index_output_);
-
+    ++index_output_;
+    output = (index_output_ < cello::num_output()) ?
+      cello::output(index_output_) : nullptr; 
   } while (output && ! output->is_scheduled(cycle, time));
 
   // assert (! output) || ( output->is_scheduled() )

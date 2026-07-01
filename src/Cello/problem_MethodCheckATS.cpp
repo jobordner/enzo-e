@@ -7,6 +7,8 @@
 #include "problem.hpp"
 
 #define TOL 10.0
+#define MAX_ERROR_COUNT 64
+
 //----------------------------------------------------------------------
 
 void MethodCheckATS::compute( Block * block) throw()
@@ -16,8 +18,7 @@ void MethodCheckATS::compute( Block * block) throw()
   if (block->is_leaf()) {
 
     Field field = block->data()->field();
-    int it = field.field_id("test_ats");
-    int ie = field.field_id("error_ats");
+    int it = field.field_id(field_name_);
 
     int mx,my,mz;
     int gx,gy,gz;
@@ -25,15 +26,15 @@ void MethodCheckATS::compute( Block * block) throw()
     field.ghost_depth (it,&gx,&gy,&gz);
     cello_float * array_curr = (cello_float *) field.values(it);
     cello_float * array_prev = (cello_float *) field.values(it,1);
-    cello_float * error = (cello_float *) field.values(ie);
+    cello_float * error_curr = (cello_float *) field.values(error_curr_);
+    cello_float * error_prev = (cello_float *) field.values(error_prev_);
 
     // Set field = (time + dt)
     const double time_curr = block->state()->time(level);
+    const double time_prev = block->state()->time_prev(level);
 
-    test_curr_(block,array_curr,error,mx,my,mz,gx,gy,gz,time_curr);
-    test_prev_(block,array_prev,error,mx,my,mz,gx,gy,gz,time_curr);
-
-    test_ghosts_(block,array_curr,error,mx,my,mz,gx,gy,gz);
+    test_field_(block,array_curr,error_curr,time_curr,mx,my,mz,gx,gy,gz);
+    test_field_(block,array_prev,error_prev,time_prev,mx,my,mz,gx,gy,gz);
 
   }
 
@@ -44,8 +45,7 @@ void MethodCheckATS::compute( Block * block) throw()
 
 double MethodCheckATS::timestep ( Block * block) throw()
 {
-  double retval=1e10;
-  return retval;
+  return std::numeric_limits<double>::max();
 }
 
 //======================================================================
@@ -55,154 +55,53 @@ double MethodCheckATS::timestep ( Block * block) throw()
 void MethodCheckATS::init_refresh_()
 {
   Refresh * refresh = cello::refresh(ir_post_);
-  refresh->add_field("test_ats");
+  refresh->add_field(field_name_);
+  // Don't refresh error field: want to keep ghost zones intact
 }
 
 //----------------------------------------------------------------------
 
-void MethodCheckATS::test_curr_(Block * block,
-                                cello_float * array_curr,
+void MethodCheckATS::test_field_(Block * block,
+                                cello_float * array,
                                 cello_float * error,
+                                cello_float time,
                                 int mx, int my, int mz,
-                                int gx, int gy, int gz,
-                                double time)
+                                int gx, int gy, int gz)
 {
-  const double mach = cello::machine_epsilon(precision_default);
-  bool err = false;
   cello_float value{0};
   int count_err = 0;
-  for (int iz=gz; iz<mz-gz; iz++) {
-    for (int iy=gy; iy<my-gy; iy++) {
-      for (int ix=gx; ix<mx-gx; ix++) {
-        const int i=ix + mx*(iy + my*iz);
-        if (time != array_curr[i] &&
-            cello::err_rel(time,double(array_curr[i])) > TOL*mach ) {
-          error[i] += 1;
-          ++count_err;
-          err = true;
-          value=array_curr[i];
-        }
-      }
-    }
-  }
-  const int max_count=100000;
-  static int count = 0;
-  if (err) {
-    CkPrintf ("%d METHOD_CHECK_ATS %d curr mismatch e.g. %g != %g\n",
-              CkMyPe(), count_err,value,time);
-    if (count++ >= max_count) {
-      ASSERT1("MethodCheckATS","curr mismatch count exceeded %d; exiting!",
-              max_count , (err != true));
-    }
-  }
-}
-
-//----------------------------------------------------------------------
-
-void MethodCheckATS::test_prev_(Block * block,
-                                cello_float * array_prev,
-                                cello_float * error,
-                                int mx, int my, int mz,
-                                int gx, int gy, int gz,
-                                double time)
-{
-  const double mach = cello::machine_epsilon(precision_default);
-  bool err = false;
-  cello_float value{0};
-  int count_err = 0;
-  for (int iz=gz; iz<mz-gz; iz++) {
-    for (int iy=gy; iy<my-gy; iy++) {
-      for (int ix=gx; ix<mx-gx; ix++) {
-        const int i=ix + mx*(iy + my*iz);
-        if (time != array_prev[i] &&
-            cello::err_rel(time,double(array_prev[i])) > TOL*mach ) {
-          error[i] += 2;
-          ++count_err;
-          err = true;
-          value=array_prev[i];
-        }
-      }
-    }
-  }
-  const int max_count=100000;
-  static int count = 0;
-  if (err) {
-    CkPrintf ("%d METHOD_CHECK_ATS %d prev mismatch e.g. %g != %g\n",
-              CkMyPe(), count_err,value,time);
-    if (count++ >= max_count) {
-      ASSERT1("MethodCheckATS","prev mismatch count exceeded %d; exiting!",
-              max_count , (err != true));
-    }
-  }
-}
-
-//----------------------------------------------------------------------
-
-void MethodCheckATS::test_ghosts_(Block * block,
-                                  cello_float * array_curr,
-                                  cello_float * error,
-                                  int mx, int my, int mz,
-                                  int gx, int gy, int gz)
-{
-  const int ix0 = mx/2;
-  const int iy0 = my/2;
-  const int iz0 = mz/2;
-
-  int g3[3] = {gx,gy,gz};
-  int m3[3] = {mx,my,mz};
-
-  const double mach = cello::machine_epsilon(precision_default);
-
-  const double time = cello::simulation()->state()->time();
-  int num_err_face[3][2] = {0};
-  int num_err_total = 0;
-  double value = 0.0;
-  int i3[3];
+  std::map<std::string,int> region_count;
+  std::string region = {"000"};
+  char * data = region.data();
   for (int iz=0; iz<mz; iz++) {
-    i3[2]=iz;
+    data[0] = (iz<gx) ? '-' : (iz<mx-gx) ? '0' : '+';
     for (int iy=0; iy<my; iy++) {
-      i3[1]=iy;
+      data[1] = (iz<gx) ? '-' : (iz<mx-gx) ? '0' : '+';
       for (int ix=0; ix<mx; ix++) {
-        i3[0]=ix;
+        data[2] = (iz<gx) ? '-' : (iz<mx-gx) ? '0' : '+';
         const int i=ix + mx*(iy + my*iz);
-        if ( time != array_curr[i] &&
-             cello::err_rel(time,double(array_curr[i])) > TOL*mach ) {
-          ++num_err_total;
-          error[i] += 4;
-          value = array_curr[i];
-          for (int axis=0; axis<cello::rank(); axis++) {
-            if (i3[axis]<g3[axis]) {
-              ++num_err_face[axis][0];
-            } else if (m3[axis]-g3[axis] <= i3[axis]) {
-              ++num_err_face[axis][1];
-            }
+        if (compare_(time,array[i])) {
+          int static count = 0;
+          if (count < MAX_ERROR_COUNT) {
+            count++;
+            CkPrintf ("DEBUG_CHECK_ATS mismatch cycle %d %g != %g\n",
+                      block->state()->cycle(),time,array[i]);
           }
+          if (error) ++error[i];
+          ++count_err;
+          value=array[i];
+          region_count[region]++;
         }
       }
     }
   }
-
-  const int max_count=1000;
-  static int count = 0;
-
-  const int level = block->level();
-
-  for (int axis=0; axis<cello::rank(); axis++) {
-    for (int face=0; face<2; face++) {
-      if (num_err_face[axis][face]) {
-        CkPrintf ("%d METHOD_CHECK_ATS %c%c ghost mismatch "
-                  "%g != %g level %d:%d\n",
-                  CkMyPe(),('x'+axis),(face==0?'m':'p'),
-                  value,time,
-                  level,block->face_level(axis,face));
-      }
-    }
-  }
-
-  bool halt_on_err = false;
-  if (num_err_total && (count++ >= max_count)) {
-    ASSERT1("MethodCheckATS","Ghost mismatch count >= %d",
-            max_count , (! halt_on_err));
-  }
 }
 
+//======================================================================
+  
+bool MethodCheckATS::compare_ (const cello_float & a, const cello_float & b) const
+{
+  const double mach = cello::machine_epsilon(precision_default);
+  return ((a != b) &&
+          (cello::err_rel(a,b) > TOL*mach));
+}

@@ -372,6 +372,13 @@ namespace cello {
 
   //----------------------------------------------------------------------
 
+  size_t num_method()
+  {
+    return problem() ? problem()->num_methods() : 0;
+  }
+
+  //----------------------------------------------------------------------
+
   Method * method(int k)
   {
     return problem() ? problem()->method(k) : nullptr;
@@ -386,9 +393,44 @@ namespace cello {
 
   //----------------------------------------------------------------------
 
+  size_t num_boundary()
+  {
+    return problem() ? problem()->num_boundary() : 0;
+  }
+
+  //----------------------------------------------------------------------
+
   Boundary * boundary(int i)
   {
     return problem() ? problem()->boundary(i) : nullptr;
+  }
+
+  //----------------------------------------------------------------------
+
+  size_t num_refine()
+  {
+    return problem() ? problem()->num_refine() : 0;
+  }
+
+  //----------------------------------------------------------------------
+
+  Refine * refine(int i)
+  {
+    return problem() ? problem()->refine(i) : nullptr;
+  }
+
+  //----------------------------------------------------------------------
+
+  size_t num_initial()
+  {
+    return problem() ? problem()->num_initial() : 0;
+  }
+
+  //----------------------------------------------------------------------
+
+  Initial * initial(int i)
+  {
+    return problem() ? problem()->initial(i) : nullptr;
   }
 
   //----------------------------------------------------------------------
@@ -468,9 +510,44 @@ namespace cello {
 
   //----------------------------------------------------------------------
 
+  size_t num_output()
+  {
+    return problem() ? problem()->num_output() : 0;
+  }
+
+  //----------------------------------------------------------------------
+
   Output * output(int k)
   {
     return problem() ? problem()->output(k) : nullptr;
+  }
+
+  //----------------------------------------------------------------------
+
+  size_t num_restrict()
+  {
+    return problem() ? problem()->num_restrict() : 0;
+  }
+
+  //----------------------------------------------------------------------
+
+  Restrict * restrict(int k)
+  {
+    return problem() ? problem()->get_restrict(k) : nullptr;
+  }
+
+  //----------------------------------------------------------------------
+
+  size_t num_prolong()
+  {
+    return problem() ? problem()->num_prolong() : 0;
+  }
+
+  //----------------------------------------------------------------------
+
+  Prolong * prolong(int k)
+  {
+    return problem() ? problem()->get_prolong(k) : nullptr;
   }
 
   //----------------------------------------------------------------------

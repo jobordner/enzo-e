@@ -109,9 +109,8 @@ int Refresh::coarse_padding(const Prolong * prolong) const
 
 const Prolong * Refresh::get_prolong () const
 {
-  Problem * problem = cello::problem();
-  Prolong * prolong_ptr = problem ?
-    problem->get_prolong(id_prolong_) : nullptr;
+  Prolong * prolong_ptr = (id_prolong_ < cello::num_prolong()) ?
+    cello::prolong(id_prolong_) : nullptr;
   return prolong_ptr ? prolong_ptr : new ProlongLinear;
 }
 
@@ -119,9 +118,8 @@ const Prolong * Refresh::get_prolong () const
 
 const Restrict * Refresh::get_restrict () const
 {
-  Problem * problem = cello::problem();
-  Restrict * restrict_ptr = problem ?
-    problem->get_restrict(id_restrict_) : nullptr;
+  Restrict * restrict_ptr = (id_restrict_ < cello::num_restrict()) ?
+    cello::restrict(id_restrict_) : nullptr;
   return restrict_ptr ? restrict_ptr : new RestrictLinear;
 }
   
@@ -291,7 +289,54 @@ bool Refresh::include_history(int face_type) const
   return adaptive_timestep();
 }
 
-//----------------------------------------------------------------------
+void Refresh::summary() const
+{
+  FILE * fp = nullptr;
+  fp = fopen ((std::string("Refresh-")+std::to_string(CkMyPe())+
+               "-" +
+               cello::simulation()->refresh_name(id_refresh_)).c_str(),"a");
+  fprintf (fp,active_?"1 ":"0 ");
+  const int ip = CkMyPe();
+  fprintf (fp,"Refresh %s F: ",
+            cello::simulation()->refresh_name(id_refresh_).c_str());
+  std::vector<int> f_src = this->field_list_src();
+  std::vector<int> f_dst = this->field_list_dst();
+  if (all_fields_) {
+    fprintf (fp,"* ");
+  } else if (f_src.size() == 0) {
+    fprintf (fp,"x ");
+  } else {
+    for (size_t i=0; i<f_src.size(); i++) {
+      int is=f_src[i];
+      int id=f_dst[i];
+      if (is==id) fprintf (fp,"%d ",is); else fprintf (fp,"%d>%d ",is,id);
+    }
+  }
+  fprintf (fp,"P: ");
+  if (all_particles_) {
+    fprintf (fp,"* ");
+  } else if (particle_list_.size() == 0) {
+    fprintf (fp,"x ");
+  } else {
+    for (size_t i=0; i<particle_list_.size(); i++) {
+      fprintf (fp,"%d ",particle_list_[i]);
+    }
+  }
+  fprintf (fp,"fl: %s ",all_fluxes_?"all":"none");
+  fprintf (fp,"g %d mfr %d nbr %d ",
+            ghost_depth_,min_face_rank_,neighbor_type_);
+  fprintf (fp,"acc %s ",accumulate_?"+":">");
+  fprintf (fp,"sync %d:%d  ",sync_type_,sync_id_);
+  fprintf (fp,"lev %d/%d %d:%d ",level_,root_level_,level_lower_,level_upper_);
+  fprintf (fp,"ats %d ",adaptive_timestep_?1:0);
+  fprintf (fp,"glb %d ",global_);
+  fprintf (fp,"adv: %d",advanced_time_);
+  fprintf (fp,"\n");
+  fflush(stdout);
+  fclose(fp);
+}
+
+//======================================================================
 
 void Refresh::include_history_fields_ (std::vector<int> & field_list,
                                        int face_type) const

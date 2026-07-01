@@ -17,8 +17,8 @@
 
 void Block::refresh_start (int id_refresh, int callback)
 {
-
   Refresh * refresh = cello::refresh(id_refresh);
+
   PERF_REFRESH_START(refresh);
   Sync * sync = sync_(id_refresh);
 

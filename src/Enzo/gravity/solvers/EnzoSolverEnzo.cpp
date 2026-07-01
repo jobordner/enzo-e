@@ -322,8 +322,8 @@ void EnzoSolverEnzo::root_solve_end(EnzoBlock * enzo_block)
 void EnzoSolverEnzo::prolong_send(EnzoBlock * enzo_block)
 {
   ItChild it_child(cello::rank());
-  int ic3[3];
 
+  int ic3[3];
   while (it_child.next(ic3)) {
 
     FieldMsg * msg = pack_field_(enzo_block,ix_,+1,ic3);
@@ -443,10 +443,8 @@ void EnzoBlock::r_solver_enzo_wait_at_end(CkReductionMsg *msg)
 
 void EnzoSolverEnzo::last_smooth(EnzoBlock * enzo_block)
 {
-  Solver * smooth_last = cello::solver(index_solve_smooth_);
-
-  if (smooth_last != nullptr) {
-
+  if (index_solve_smooth_ >= 0) {
+    Solver * smooth_last = cello::solver(index_solve_smooth_);
     call_last_smooth_(enzo_block);
 
   } else {
@@ -576,6 +574,7 @@ bool EnzoSolverEnzo::do_call_refresh_
 
   return call_refresh;
 }
+
 //----------------------------------------------------------------------
 
 FieldMsg * EnzoSolverEnzo::pack_field_(EnzoBlock * enzo_block,

@@ -33,6 +33,27 @@ def plot_total(plt,filename,label,type='total',scale=1e-6):
     plt.plot(total_x,scale*total_y, label=label, color=c[0],marker=m[0], ls=l, lw=w)
     return [total_x, total_y]
 
+def plot_file (plt,i,file,type,scale):
+    data =  loadtxt(file,dtype=float)
+    file_x = data[:,0]
+    file_y = data[:,1]
+#    total =  loadtxt('cycle.data',dtype=float)
+#    total_x = data[:,0]
+#    total_y = data[:,1]
+    if (type == 'cycle'):
+        n=len(file_x)
+        file_x = file_x[1:n-1]
+        file_y = file_y[2:n] - file_y[1:n-1]
+#        total_x = total_x[1:n-1]
+#        total_y = total_y[2:n] - total_y[1:n-1]
+    name=os.path.splitext(os.path.basename(file))[0]
+    i_ = name.find("_")
+    if (i_ > 0):
+        temp=name[:i_+1]
+        name = name.replace(temp,"")
+ #   plt.plot(file_x,scale*file_y/total_y, label=name, color=c[i%7],marker=m[i%7], ls=l, lw=w)
+    plt.plot(file_x,scale*file_y, label=name, color=c[i%7],marker=m[i%7], ls=l, lw=w)
+
 #--------------------------------------------------
 def plot_list(plt,file_list,type='total',scale=1e-6,sort=True):
     if (sort):
@@ -50,36 +71,14 @@ def plot_list(plt,file_list,type='total',scale=1e-6,sort=True):
         for row in sorted(file_times,reverse=True):
             file = row[1]
             if (os.path.exists(file)):
-                data =  loadtxt(file,dtype=float)
-                glob_x = data[:,0]
-                glob_y = data[:,1]
-                if (type == 'cycle'):
-                    n=len(glob_x)
-                    glob_x = glob_x[1:n-1]
-                    glob_y = glob_y[2:n] - glob_y[1:n-1]
-                name=os.path.splitext(os.path.basename(file))[0]
-                i_ = name.find("_")
-                if (i_ > 0):
-                    temp=name[:i_+1]
-                    name = name.replace(temp,"")
-                plt.plot(glob_x,scale*glob_y, label=name, color=c[i%7],marker=m[i%7], ls=l, lw=w)
+                plot_file (plt,i,file,type,scale)
                 i=i+1
     else:
         i=1
         # plot by reverse end time
         for file in sorted(file_list):
-            data =  loadtxt(file,dtype=float)
-            glob_x = data[:,0]
-            glob_y = data[:,1]
-            if (type == 'cycle'):
-                n=len(glob_x)
-                glob_x = glob_x[1:n-1]
-                glob_y = glob_y[2:n] - glob_y[1:n-1]
-            name=os.path.splitext(os.path.basename(file))[0]
-
-            plt.plot(glob_x,scale*glob_y, label=name, color=c[i%7],marker=m[i%7], ls=l, lw=w)
+            plot_file (plt,i,file,type,scale)
             i=i+1
-
 #--------------------------------------------------
 
 def plot_write(name,html):
@@ -305,6 +304,9 @@ html_table_start(html)
 html_table_row_start(html)
 
 plot_time_cycle(plt,region_list,html)
+
+index = 1
+
 
 # ----------------------------------------------------------------------
 if os.path.exists('method.data'):

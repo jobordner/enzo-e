@@ -117,13 +117,14 @@ void  Block::initial_new_begin_()
 void  Block::initial_new_next_()
 {
   TRACE_INITIAL("initial_new_next_()",this);
-  Initial * initial = cello::problem()->initial(index_initial_);
   const bool initial_restart = cello::config()->initial_restart;
 
-  // Bypass initialization on restart (may want exceptions)
-  if (initial && (! initial_restart)) {
-    initial->enforce_block(this,nullptr);
+  if ((! initial_restart) && (index_initial_ < cello::num_initial())) {
+
+    cello::initial(index_initial_)->enforce_block(this,nullptr);
+
   } else {
+    // Bypass initialization on restart (may want exceptions)
     bool is_first_cycle = (state_->cycle() == cello::config()->initial_cycle);
     bool level_is_valid = level() <= cello::config()->mesh_max_initial_level;
     if (is_first_cycle && level_is_valid) {

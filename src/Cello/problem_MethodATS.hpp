@@ -20,9 +20,9 @@ public: // interface
 
   /// Create a new MethodATS object
   MethodATS ( ParameterGroup p )
-    : Method("ats"),
-      dt_level_()
+    : Method("ats"), dt_level_(), field_name_()
   {
+    field_name_ = p.value<std::string>("field_name","ats_field");
     int n=p.list_length("dt_level");
     if (n>0) {
       dt_level_.resize(n);
@@ -36,7 +36,7 @@ public: // interface
   }
 
   MethodATS()
-    : Method("ats"), dt_level_()
+    : Method("ats"), dt_level_(), field_name_()
   {
     init_refresh_();
   }
@@ -46,7 +46,7 @@ public: // interface
 
   /// Charm++ PUP::able migration constructor
   MethodATS (CkMigrateMessage *m)
-    : Method (m), dt_level_()
+    : Method (m), dt_level_(), field_name_()
   { }
 
   /// CHARM++ Pack / Unpack function
@@ -55,15 +55,16 @@ public: // interface
     TRACEPUP;
     Method::pup(p);
     p | dt_level_;
+    p | field_name_;
   }
 
 public: // virtual methods
 
   /// Apply the method to advance a block one timestep 
-  virtual void compute( Block * block) throw();
+  virtual void compute( Block * block) throw() override;
 
   /// Compute maximum timestep for this method
-  virtual double timestep ( Block * block) throw();
+  virtual double timestep ( Block * block) throw() override;
 
 protected: // methods
 
@@ -80,6 +81,9 @@ protected: // attributes
 
   /// Level time steps
   std::vector<double> dt_level_;
+
+  /// Field used for storing current time for testing
+  std::string field_name_;
 };
 
 #endif /* PROBLEM_METHOD_ATS_HPP */

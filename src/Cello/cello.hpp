@@ -62,6 +62,7 @@ class Field;
 class FieldDescr;
 class Grouping;
 class Hierarchy;
+class Initial;
 class Method;
 class Monitor;
 class Output;
@@ -69,7 +70,10 @@ class Parameters;
 class ParticleDescr;
 class Performance;
 class Problem;
+class Prolong;
+class Refine;
 class Refresh;
+class Restrict;
 class ScalarDescr;
 class Simulation;
 class Solver;
@@ -867,20 +871,32 @@ namespace cello {
   const Factory * factory();
   /// Return a proxy for the Block chare array of Blocks
   CProxy_Block    block_array();
-  /// Return a pointor to the Problem object defining the problem being solved
+  /// Return a pointer to the Problem object defining the problem being solved
   Problem *       problem();
-  /// Return a pointor to the kth Method object 
-  Method *       method(int k);
-  /// Return a pointor to the Performance object
+  /// Return the number of method objects
+  size_t          num_method();
+  /// Return a pointer to the kth Method object 
+  Method *        method(int k);
+  /// Return a pointer to the Performance object
   Performance *   performance();
-  /// Return a pointor to the ith Bounday object
+  /// Return the number of boundary objects
+  size_t          num_boundary();
+  /// Return a pointer to the ith Bounday object
   Boundary *      boundary(int i);
+  /// Return the number of refine objects
+  size_t          num_refine();
+  /// Return a pointer to the ith Bounday object
+  Refine *        refine(int i);
+  /// Return the number of initial objects
+  size_t          num_initial();
+  /// Return a pointer to the ith Bounday object
+  Initial *       initial(int i);
   /// Return a pointer to the Hierarchy object defining the mesh hierarchy
   Hierarchy *     hierarchy();
   /// Return a pointer to the Config object containing user parameters values
   const Config *  config();
   /// Return a pointer to the Parameters object
-  const Parameters *  parameters();
+  const Parameters * parameters();
   /// Return a pointer to the FieldDescr object defining fields on Blocks
   FieldDescr *    field_descr();
   /// Return a pointer to the Groupings object defining field groups
@@ -900,8 +916,18 @@ namespace cello {
   Grouping *      particle_groups();
   /// Return a pointer to the Monitor object for writing output to stdout
   Monitor *       monitor();
+  /// Return the number of output objects
+  size_t          num_output();
   /// Return a pointer to the kth Output object 
   Output *        output(int k);
+  /// Return the number of restrict objects
+  size_t          num_restrict();
+  /// Return a pointer to the kth Restrict object 
+  Restrict *        restrict(int k);
+  /// Return the number of prolong objects
+  size_t          num_prolong();
+  /// Return a pointer to the kth Prolong object 
+  Prolong *        prolong(int k);
   /// Return a pointer to the Units object
   Units *         units();
   /// Return reference to in indexed Refresh object

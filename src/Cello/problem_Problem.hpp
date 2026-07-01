@@ -85,67 +85,54 @@ public: // interface
   void pup (PUP::er &p);
 
   /// Return the boundary object
-  Boundary * boundary(size_t i) const throw()
-  {
-    return (i < boundary_list_.size()) ?
-      boundary_list_[i] : nullptr;
-  }
+  size_t num_boundary() const throw()
+  { return boundary_list_.size(); }
+
+  Boundary * boundary(int i) const throw()
+  { return boundary_list_.at(i); }
 
   /// Return whether the problem is periodic
   bool is_periodic () const throw()
   { return is_periodic_; }
 
+  size_t num_initial() const throw()
+  { return initial_list_.size(); }
   /// Return the ith initialization object
-  Initial * initial(size_t i) const throw()
-  {
-    return (i < initial_list_.size()) ?
-      initial_list_[i] : nullptr;
-  }
+  Initial * initial(int i) const throw()
+  {  return initial_list_.at(i); }
+
+  size_t num_physics() const throw()
+  { return physics_list_.size(); }
 
   /// Return the ith physics object
-  Physics * physics(size_t i) const throw()
-  {
-    return (i < physics_list_.size()) ?
-      physics_list_[i] : nullptr;
-  }
-
+  Physics * physics(int i) const throw()
+  { return physics_list_.at(i); }
   /// Return the named physics object if present
   Physics * physics (std::string_view type) const throw();
 
+  size_t num_refine() const throw()
+  { return refine_list_.size(); }
   /// Return the ith refine object
-  Refine * refine(size_t i) const throw()
-  {
-    return (i < refine_list_.size()) ?
-      refine_list_[i] : nullptr;
-  }
+  Refine * refine(int i) const throw()
+  { return refine_list_.at(i); }
 
+  size_t num_output() const throw()
+  { return output_list_.size(); }
   /// Return the ith output object
-  Output * output(size_t i) const throw()
-  {
-    return (i < output_list_.size()) ?
-      output_list_[i] : nullptr;
-  }
-
-  /// Return the ith solver object
-  Solver * solver(size_t i) const throw()
-  {
-    return (i < solver_list_.size()) ?
-      solver_list_[i] : nullptr;
-  }
+  Output * output(int i) const throw()
+  { return output_list_.at(i); }
 
   int num_solvers () const throw()
   { return solver_list_.size(); }
-
-  /// Return the ith method object
-  Method * method(size_t i) const throw()
-  {
-    return (i < method_list_.size()) ?
-      method_list_[i] : nullptr;
-  }
+  /// Return the ith solver object
+  Solver * solver(int i) const throw()
+  { return solver_list_.at(i); }
 
   int num_methods () const throw()
   { return method_list_.size(); }
-
+  /// Return the ith method object
+  Method * method(int i) const throw()
+  { return method_list_.at(i); }
   /// Return the named method object if present
   Method * method (std::string_view name) const throw();
 
@@ -169,19 +156,19 @@ public: // interface
              (method_index(name1) < method_index(name2)) );
   }
 
+  size_t num_prolong() const throw()
+  { return prolong_list_.size(); }
+
   /// Return the ith prolong object
-  Prolong * get_prolong(size_t i = 0) const throw()
-  {
-    return (i < prolong_list_.size()) ?
-      prolong_list_[i] : nullptr;
-  }
+  Prolong * get_prolong(int i = 0) const throw()
+  { return prolong_list_.at(i); }
+
+  size_t num_restrict() const throw()
+  { return restrict_list_.size(); }
 
   /// Return the ith restrict object
-  Restrict * get_restrict(size_t i = 0) const throw()
-  {
-    return (i < restrict_list_.size()) ?
-      restrict_list_[i] : nullptr;
-  }
+  Restrict * get_restrict(int i = 0) const throw()
+  { return restrict_list_.at(i); }
 
   //--------------------------------------------------
   // OUTPUT

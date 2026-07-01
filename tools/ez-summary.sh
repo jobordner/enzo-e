@@ -11,7 +11,7 @@ while true; do
 
     t=${out##*/}
     awk 'BEGIN{ \
-            CONVFMT="%.3f"; bh=0; b0=-1; bn=-1; c0=-1; cn=-1;nh=-1;nn=-1;np=-1;smp=-1; rnd=0; inp=0} \
+            CONVFMT="%.3f"; bh=0; b0=-1; bn=-1; c0=-1; cn=-1;nh=-1;nn=-1;np=-1;smp=-1; rnd=0; inp=0; st="X";} \
     /Input File name /{inp=$NF}; \
     / time-sim / {te=$2; ts=$NF}; \
     / Simulation redshift /{tr=$NF}; \
@@ -25,6 +25,7 @@ while true; do
     /CkNumHosts/{nh=$NF;}; \
     /CkNumNodes/{nn=$NF;}; \
     /CkNumPes/{np=$NF;}; \
+    /END ENZO/{st="O"; }; \
     /CONFIG_SMP_MODE/{if ($NF=="Yes") smp="1"; if ($NF=="no") smp="0"; } \
     /Using randomized message/{rnd=1}; \
      END{ftr = sprintf ("%.2f",tr); \
@@ -33,7 +34,7 @@ while true; do
          fbh = sprintf ("%.2f",bh/1024./1024./1024.); \
          fc0 = sprintf ("%d",c0); \
          fcn = sprintf ("%d",cn); \
-   print "( mesh",mr,ms,mb,ml,\
+   print st,"( mesh",mr,ms,mb,ml,\
        ") ( charm",rnd,smp,\
        ") ( procs",nh,nn,np,\
        ") ( time",fte,fts,ftr,\
