@@ -10,8 +10,6 @@
 
 // #define TRACE_PADDED_FACE
 
-class Block;
-
 class FieldData {
 
   /// @class    FieldData
@@ -270,17 +268,6 @@ public: // interface
             double min=0.0, double max=0.0);
 
   //----------------------------------------------------------------------
-  // BLAS Operations [depreciated]
-  //----------------------------------------------------------------------
-
-  /// Compute inner product field(ix) . field(iy)
-  double dot (const FieldDescr *, int ix, int iy) throw();
-
-  /// Scale vector ix by scalar a
-  void scale (const FieldDescr *,
-	      int iy, long double a, int ix, bool ghosts = true ) throw();
-
-  //----------------------------------------------------------------------
   // History operations
   //----------------------------------------------------------------------
 
@@ -335,21 +322,22 @@ public: // interface
   char * load_data (FieldDescr * field_descr, char * buffer);
 
   //--------------------------------------------------
-private: // functions
+  // FieldMsg Message packing and unpacking
   //--------------------------------------------------
 
-  template<class T>
-  long double dot_(const T* X, const T* Y,
-		   int mx, int my, int mz,
-		   int nx, int ny, int nz,
-		   int gx, int gy, int gz) const throw();
+  FieldMsg * pack_msg_
+  (FieldDescr * field_descr,
+   int index_field, int refresh_type, int level,
+   int index_prolong, int index_restrict, int ic3[3]);
 
-  template<class T>
-  void scale_(T* Y, long double a, T * X, bool ghosts,
-	      int mx, int my, int mz,
-	      int nx, int ny, int nz,
-	      int gx, int gy, int gz) const throw();
+  void unpack_msg_
+  (FieldDescr * field_descr,
+   FieldMsg *, int index_field, int refresh_type, int level,
+   int index_prolong, int index_restrict);
 
+  //--------------------------------------------------
+private: // functions
+  //--------------------------------------------------
 
   /// Given field size and padding, compute offset to start of the next field
   int adjust_padding_ (int size, int padding) const throw();

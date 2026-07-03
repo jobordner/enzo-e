@@ -297,8 +297,8 @@ void Refresh::summary() const
                cello::simulation()->refresh_name(id_refresh_)).c_str(),"a");
   fprintf (fp,active_?"1 ":"0 ");
   const int ip = CkMyPe();
-  fprintf (fp,"Refresh %s F: ",
-            cello::simulation()->refresh_name(id_refresh_).c_str());
+  fprintf (fp,"Refresh %d:%s F: ",
+           id_refresh_,cello::simulation()->refresh_name(id_refresh_).c_str());
   std::vector<int> f_src = this->field_list_src();
   std::vector<int> f_dst = this->field_list_dst();
   if (all_fields_) {
@@ -330,7 +330,9 @@ void Refresh::summary() const
   fprintf (fp,"lev %d/%d %d:%d ",level_,root_level_,level_lower_,level_upper_);
   fprintf (fp,"ats %d ",adaptive_timestep_?1:0);
   fprintf (fp,"glb %d ",global_);
-  fprintf (fp,"adv: %d",advanced_time_);
+  fprintf (fp,"adv: %d ",advanced_time_);
+  fprintf (fp,"ip: %d ",id_prolong_);
+  fprintf (fp,"ir: %d",id_restrict_);
   fprintf (fp,"\n");
   fflush(stdout);
   fclose(fp);

@@ -641,7 +641,9 @@ void EnzoSolverMg0::restrict_recv
       msg = *pmsg_restrict(enzo_block,i);
       *pmsg_restrict(enzo_block,i) = nullptr;
       // Unpack field from message then delete message
+
       unpack_residual_(enzo_block,msg);
+
     }
 
     TRACE_FIELD(enzo_block,ir_,"R");
@@ -730,6 +732,7 @@ void EnzoSolverMg0::prolong_recv
   msg = *pmsg_prolong(enzo_block);
   *pmsg_prolong(enzo_block) = nullptr;
   // Unpack "C" vector data from children
+
   unpack_correction_(enzo_block,msg);
 
   Field field = enzo_block->data()->field();
@@ -847,173 +850,6 @@ void EnzoBlock::p_solver_mg0_last_smooth()
   solver->end(this);
 }
 
-//----------------------------------------------------------------------
-
-FieldMsg * EnzoSolverMg0::pack_residual_(EnzoBlock * enzo_block) throw()
-{
-  const Index index = enzo_block->index();
-  const int level   = enzo_block->level();
-  // copy face data to FieldFace
-
-  // Pack and send "R" to parent
-
-  int ic3[3];
-  index.child(level,&ic3[0],&ic3[1],&ic3[2],min_level_);
-
-  // <COMMON CODE> in restrict_send_() and prolong_send_()
-
-  int if3[3] = {0,0,0};
-  int g3[3] = {0,0,0};
-  Refresh * refresh = new Refresh;
-  refresh->set_prolong(index_prolong_);
-  refresh->set_restrict(index_restrict_);
-  refresh->add_field(ir_);
-  refresh->set_min_face_rank(cello::rank() - 1);
-
-  // copy data from EnzoBlock to array via FieldFace
-
-  FieldFace * field_face = enzo_block->create_face
-    (if3, ic3, g3, -1, refresh);
-
-  refresh->set_restrict(index_restrict_);
-
-  int narray;
-  char * array;
-
-  Field field = enzo_block->data()->field();
-
-  field_face->face_to_array(field,&narray,&array);
-
-  delete field_face;
-
-  // Create a FieldMsg for sending data to parent
-  // (note: charm messages not deleted on send; are deleted on receive)
-
-  FieldMsg * msg  = new (narray) FieldMsg;
-
-  /// WARNING: double copy
-
-  // Copy FieldFace data to msg
-
-  msg->n = narray;
-  memcpy (msg->a, array, narray);
-  delete [] array;
-  msg->ic3[0] = ic3[0];
-  msg->ic3[1] = ic3[1];
-  msg->ic3[2] = ic3[2];
-
-  return msg;
-
-}
-
-//----------------------------------------------------------------------
-
-void EnzoSolverMg0::unpack_residual_
-(EnzoBlock * enzo_block,FieldMsg * msg) throw()
-{
-  int if3[3] = {0,0,0};
-  int g3[3] = {0,0,0};
-  Refresh * refresh = new Refresh;
-  refresh->set_prolong(index_prolong_);
-  refresh->set_restrict(index_restrict_);
-  refresh->add_field(ib_);
-  refresh->set_min_face_rank(cello::rank() - 1);
-
-  // copy data from msg to this EnzoBlock
-
-  int * ic3 = msg->ic3;
-
-  FieldFace * field_face = enzo_block->create_face
-    (if3, ic3, g3, -1, refresh);
-
-  refresh->set_restrict(index_restrict_);
-
-  Field field = enzo_block->data()->field();
-
-  char * a = msg->a;
-  field_face->array_to_face(a, field);
-  delete field_face;
-
-  delete msg;
-}
-
-//----------------------------------------------------------------------
-
-FieldMsg * EnzoSolverMg0::pack_correction_
-(EnzoBlock * enzo_block, int ic3[3]) throw()
-{
-  // Pack and send "X" to children
-
-  // <COMMON CODE> in restrict_send_() and prolong_send_()
-
-  int if3[3] = {0,0,0};
-  int g3[3];
-  cello::field_descr()->ghost_depth(ix_,g3,g3+1,g3+2);
-  Refresh * refresh = new Refresh;
-  refresh->set_prolong(index_prolong_);
-  refresh->set_restrict(index_restrict_);
-  refresh->add_field(ix_);
-  refresh->set_min_face_rank(cello::rank() - 1);
-  // copy data from EnzoBlock to array via FieldFace
-
-  FieldFace * field_face = enzo_block->create_face
-    (if3, ic3, g3, +1, refresh);
-
-  Field field = enzo_block->data()->field();
-  int narray;
-  char * array;
-  field_face->face_to_array (field,&narray,&array);
-
-  delete field_face;
-
-  // Create a FieldMsg for sending data to parent
-  // (note: charm messages not deleted on send; are deleted on receive)
-
-  FieldMsg * msg  = new (narray) FieldMsg;
-
-  /// WARNING: double copy
-
-  // Copy FieldFace data to msg
-
-  msg->n = narray;
-  memcpy (msg->a, array, narray);
-  delete [] array;
-  msg->ic3[0] = ic3[0];
-  msg->ic3[1] = ic3[1];
-  msg->ic3[2] = ic3[2];
-
-  //  </COMMON CODE>
-
-  return msg;
-}
-
-//----------------------------------------------------------------------
-
-void EnzoSolverMg0::unpack_correction_
-(EnzoBlock * enzo_block, FieldMsg * msg) throw()
-{
-  int if3[3] = {0,0,0};
-  int g3[3];
-  cello::field_descr()->ghost_depth(ic_,g3,g3+1,g3+2);
-  Refresh * refresh = new Refresh;
-  refresh->set_prolong(index_prolong_);
-  refresh->set_restrict(index_restrict_);
-  refresh->add_field(ic_);
-  refresh->set_min_face_rank(cello::rank() - 1);
-
-  // copy data from msg to this EnzoBlock
-
-  FieldFace * field_face = enzo_block->create_face
-    (if3, msg->ic3, g3, +1, refresh);
-
-  Field field = enzo_block->data()->field();
-  field_face->array_to_face (msg->a, field);
-
-  delete field_face;
-  delete msg;
-
-}
-
 //======================================================================
 
 bool EnzoSolverMg0::is_converged_(EnzoBlock * enzo_block) const
@@ -1038,3 +874,46 @@ void EnzoSolverMg0::end(Block * block)
 
   Solver::end_(block);
 }
+
+//----------------------------------------------------------------------
+
+FieldMsg * EnzoSolverMg0::pack_residual_(EnzoBlock * enzo_block) throw()
+{
+  Field field = enzo_block->data()->field();
+  int ic3[3];
+  enzo_block->index().child
+    (enzo_block->level(),&ic3[0],&ic3[1],&ic3[2],min_level_);
+  return field.pack_msg
+    (ir_, -1, enzo_block->level(), index_prolong_, index_restrict_, ic3);
+}
+
+//----------------------------------------------------------------------
+
+void EnzoSolverMg0::unpack_residual_
+(EnzoBlock * enzo_block,FieldMsg * msg) throw()
+{
+  Field field = enzo_block->data()->field();
+  field.unpack_msg
+    (msg, ib_, -1, enzo_block->level(), index_prolong_, index_restrict_);
+}
+
+//----------------------------------------------------------------------
+
+FieldMsg * EnzoSolverMg0::pack_correction_
+(EnzoBlock * enzo_block, int ic3[3]) throw()
+{
+  Field field = enzo_block->data()->field();
+  return  field.pack_msg
+    (ix_, +1, enzo_block->level(), index_prolong_, index_restrict_, ic3);
+}
+
+//----------------------------------------------------------------------
+
+void EnzoSolverMg0::unpack_correction_
+(EnzoBlock * enzo_block, FieldMsg * msg) throw()
+{
+  Field field = enzo_block->data()->field();
+  field.unpack_msg
+    (msg, ic_, +1, enzo_block->level(), index_prolong_, index_restrict_);
+}
+

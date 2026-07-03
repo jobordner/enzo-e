@@ -600,7 +600,7 @@ namespace cello {
 
   int rank()
   {
-    return simulation() ? simulation()->rank() : 1;
+    return simulation() ? simulation()->rank() : 3;
   }
 
   //----------------------------------------------------------------------

@@ -24,9 +24,21 @@ public: // interface
 
   static long counter[CONFIG_NODE_SIZE];
 
-  /// Constructor of uninitialized FieldFace
+  FieldFace (int level, int face_type, 
+             int if3[3], int ic3[3], int g3[3],
+             Refresh * refresh, bool new_refresh = true)
+  {
+    ++counter[cello::index_static()];
+    set_level (level);
+    set_face_type (face_type);
+    set_child (ic3[0],ic3[1],ic3[2]);
+    set_face (if3[0],if3[1],if3[2]);
+    set_ghost(g3[0],g3[1],g3[2]);
+    set_refresh(refresh,new_refresh);
+  }
 
-  FieldFace (int rank = 0) throw();
+  /// Constructor of uninitialized FieldFace
+  FieldFace () throw();
 
   /// Destructor
   ~FieldFace() throw();
@@ -211,9 +223,6 @@ private: // functions
                          bool invert_face=false);
 
 private: // attributes
-
-  /// Rank of the problem
-  int rank_;
 
   /// Level of the associated block
   int level_;

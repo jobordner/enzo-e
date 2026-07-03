@@ -582,45 +582,10 @@ FieldMsg * EnzoSolverEnzo::pack_field_(EnzoBlock * enzo_block,
 				     int refresh_type,
 				     int * ic3)
 {
-  int  if3[3] = {0,0,0};
-  int g3[3];
-  cello::field_descr()->ghost_depth(index_field,g3,g3+1,g3+2);
-  if (refresh_type != +1)
-    for (int i=0; i<3; i++) g3[i]=0;
-
-  Refresh * refresh = new Refresh;
-  refresh->set_prolong(index_prolong_);
-  refresh->set_restrict(index_restrict_);
-  refresh->add_field(index_field);
-
-  FieldFace * field_face = enzo_block->create_face
-    (if3, ic3, g3, refresh_type, refresh);
-
-  if (refresh_type == +1) {
-    refresh->set_prolong(index_prolong_);
-  } else if (refresh_type == -1) {
-    refresh->set_restrict(index_restrict_);
-  }
-
   Field field = enzo_block->data()->field();
-  int narray;
-  char * array;
-  field_face->face_to_array(field,&narray,&array);
-
-  delete field_face;
-
-  FieldMsg * msg  = new (narray) FieldMsg;
-
-  msg->n = narray;
-  memcpy (msg->a, array, narray);
-  delete [] array;
-
-  msg->ic3[0] = ic3[0];
-  msg->ic3[1] = ic3[1];
-  msg->ic3[2] = ic3[2];
-
-  return msg;
-
+  return field.pack_msg
+    (index_field, refresh_type, enzo_block->level(),
+     index_prolong_, index_restrict_, ic3);
 }
 
 //----------------------------------------------------------------------
@@ -631,34 +596,9 @@ void EnzoSolverEnzo::unpack_field_
  int index_field,
  int refresh_type)
 {
-  int if3[3] = {0,0,0};
-  int g3[3];
-  cello::field_descr()->ghost_depth(index_field,g3,g3+1,g3+2);
-  if (refresh_type != +1)
-    for (int i=0; i<3; i++) g3[i]=0;
-  Refresh * refresh = new Refresh;
-  refresh->set_prolong(index_prolong_);
-  refresh->set_restrict(index_restrict_);
-  refresh->add_field(index_field);
-
-  int * ic3 = msg->ic3;
-
-  FieldFace * field_face = enzo_block->create_face
-    (if3, ic3, g3, refresh_type, refresh);
-
-  if (refresh_type == +1) {
-    refresh->set_prolong(index_prolong_);
-  } else if (refresh_type == -1) {
-    refresh->set_restrict(index_restrict_);
-  }
-
   Field field = enzo_block->data()->field();
-
-  char * a = msg->a;
-  field_face->array_to_face(a, field);
-  delete field_face;
-
-  delete msg;
+  field.unpack_msg
+    (msg, index_field, refresh_type, enzo_block->level(), index_prolong_, index_restrict_);
 }
 
 //----------------------------------------------------------------------

@@ -20,6 +20,10 @@ class Box {
 public: // interface
 
   /// Constructor
+  Box(int block_size[3], int ghost_depth[3])
+    : Box (3, block_size,ghost_depth)
+  { }
+
   Box(int rank, int block_size[3], int ghost_depth[3])
     : rank_(rank),
       block_size_(),

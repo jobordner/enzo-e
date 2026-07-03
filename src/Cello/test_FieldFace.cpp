@@ -329,8 +329,8 @@ PARALLEL_MAIN_BEGIN
 	  Field field_lower (field_descr,data_lower);
 	  Field field_upper (field_descr,data_upper);
 
-	  FieldFace face_lower (3);
-	  FieldFace face_upper (3);
+	  FieldFace face_lower ();
+	  FieldFace face_upper ();
 
 	  face_lower.set_face_type(0);
 	  face_upper.set_face_type(0);

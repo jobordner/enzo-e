@@ -243,14 +243,14 @@ void EnzoMethodGravity::compute(Block * block) throw()
       EnzoPhysicsCosmology * cosmology = enzo::cosmology();
 
       if (cosmology) {
+        // In cosmological simulations, density units are defined
+        // such that `rho_bar_m` is 1.0, and time units are defined
+        // such that `4 * pi * G * rho_bar_m` is 1.0, where `G` is
+        // the gravitational constant, and `rho_bar_m` is the mean
+        // matter density of the universe. These choices of units
+        // result in Poisson's equation having a much simplified
+        // form.
         for (int i=0; i<m; i++) {
-          // In cosmological simulations, density units are defined
-          // such that `rho_bar_m` is 1.0, and time units are defined
-          // such that `4 * pi * G * rho_bar_m` is 1.0, where `G` is
-          // the gravitational constant, and `rho_bar_m` is the mean
-          // matter density of the universe. These choices of units
-          // result in Poisson's equation having a much simplified
-          // form.
           DT[i] = - (DT[i] - 1.0);
           B[i]  = DT[i];
         }
@@ -259,8 +259,9 @@ void EnzoMethodGravity::compute(Block * block) throw()
         const long double scale =
           -4.0 * (cello::pi) * (enzo::grav_constant_codeU());
 
-        field.scale(ib, scale, idt);
-
+        for (int i=0; i<m; i++) {
+          B[i] = scale*DT[i];
+        }
       }
     }
 

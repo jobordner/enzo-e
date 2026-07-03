@@ -435,43 +435,10 @@ FieldMsg * EnzoSolverDd::pack_field_(EnzoBlock * enzo_block,
 				     int face_type,
 				     int * ic3)
 {
-  int  if3[3] = {0,0,0};
-  int g3[3];
-  cello::field_descr()->ghost_depth(index_field,g3,g3+1,g3+2);
-  if (face_type <= 0)
-    for (int i=0; i<3; i++) g3[i]=0;
-
-  Refresh * refresh = new Refresh;
-  refresh->add_field(index_field);
-
-  FieldFace * field_face = enzo_block->create_face
-    (if3, ic3, g3, face_type, refresh);
-
-  if (face_type > 0) {
-    refresh->set_prolong(index_prolong_);
-  } else if (face_type < 0) {
-    refresh->set_restrict(index_restrict_);
-  }
-
   Field field = enzo_block->data()->field();
-  int narray;
-  char * array;
-  field_face->face_to_array(field,&narray,&array);
-
-  delete field_face;
-
-  FieldMsg * msg  = new (narray) FieldMsg;
-
-  msg->n = narray;
-  memcpy (msg->a, array, narray);
-  delete [] array;
-
-  msg->ic3[0] = ic3[0];
-  msg->ic3[1] = ic3[1];
-  msg->ic3[2] = ic3[2];
-
-  return msg;
-
+  return field.pack_msg
+    (index_field, face_type, enzo_block->level(),
+     index_prolong_, index_restrict_, ic3);
 }
 
 //----------------------------------------------------------------------
@@ -482,31 +449,9 @@ void EnzoSolverDd::unpack_field_
  int index_field,
  int face_type)
 {
-  int if3[3] = {0,0,0};
-  int g3[3];
-  cello::field_descr()->ghost_depth(index_field,g3,g3+1,g3+2);
-  if (face_type <= 0 )
-    for (int i=0; i<3; i++) g3[i]=0;
-  Refresh * refresh = new Refresh;
-  refresh->add_field(index_field);
-
-  int * ic3 = msg->ic3;
-
-  FieldFace * field_face = enzo_block->create_face
-    (if3, ic3, g3, face_type, refresh);
-
-  if (face_type > 0) {
-    refresh->set_prolong(index_prolong_);
-  } else if (face_type < 0) {
-    refresh->set_restrict(index_restrict_);
-  }
-
   Field field = enzo_block->data()->field();
-
-  char * a = msg->a;
-  field_face->array_to_face(a, field);
-  delete field_face;
-
-  delete msg;
+  field.unpack_msg
+    (msg, index_field, face_type, enzo_block->level(),
+     index_prolong_, index_restrict_);
 }
 

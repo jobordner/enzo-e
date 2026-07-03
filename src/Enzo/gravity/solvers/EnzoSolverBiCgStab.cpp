@@ -75,8 +75,6 @@ EnzoSolverBiCgStab::EnzoSolverBiCgStab
     iter_max_(iter_max),
     ir_(0), ir0_(0), ip_(0),
     iy_(0), iv_(0), iq_(0), iu_(0),
-    m_(0), mx_(0), my_(0), mz_(0),
-    gx_(0), gy_(0), gz_(0),
     coarse_level_(coarse_level),
     ir_loop_3_(-1),
     ir_loop_9_(-1)
@@ -198,15 +196,6 @@ void EnzoSolverBiCgStab::pup(PUP::er& p) {
   p | iq_;
   p | iu_;
 
-  p | m_;
-  p | mx_;
-  p | my_;
-  p | mz_;
-
-  p | gx_;
-  p | gy_;
-  p | gz_;
-
   p | coarse_level_;
   p | ir_loop_3_;
   p | ir_loop_9_;
@@ -246,11 +235,6 @@ void EnzoSolverBiCgStab::apply
 
     /// access the field infromation on this block
 
-    field.dimensions (0, &mx_, &my_, &mz_);
-    field.ghost_depth(0, &gx_, &gy_, &gz_);
-
-    m_ = mx_*my_*mz_;
-
     compute_ (enzo_block);
   }
 }
@@ -280,7 +264,11 @@ void EnzoSolverBiCgStab::compute_(EnzoBlock* block) throw() {
   enzo_float* Q   = (enzo_float*) field.values(iq_);
   enzo_float* U   = (enzo_float*) field.values(iu_);
 
-  for (int i=0; i<m_; i++) {
+  int m,gx,gy,gz,mx,my,mz;
+  field.ghost_depth(0, &gx, &gy, &gz);
+  m = field.dimensions (0, &mx, &my, &mz);
+
+  for (int i=0; i<m; i++) {
     X[i] = R[i] = R0[i] = P[i] = 0.0;
     Y[i] = V[i] = Q[i] =  U[i] = 0.0;
   }
@@ -292,7 +280,7 @@ void EnzoSolverBiCgStab::compute_(EnzoBlock* block) throw() {
 
       enzo_float* X_copy  = (enzo_float*) field.values("X_copy");
 
-      for (int i=0; i<m_; i++) X[i] = X_copy[i];
+      for (int i=0; i<m; i++) X[i] = X_copy[i];
 
       double hx,hy,hz;
       block->cell_width(&hx,&hy,&hz);
@@ -318,11 +306,11 @@ void EnzoSolverBiCgStab::compute_(EnzoBlock* block) throw() {
       enzo_float* B = (enzo_float*) field.values(ib_);
       enzo_float* X = (enzo_float*) field.values(ix_);
 
-      for (int iz=gz_; iz<mz_-gz_; iz++) {
-	for (int iy=gy_; iy<my_-gy_; iy++) {
-	  for (int ix=gx_; ix<mx_-gx_; ix++) {
+      for (int iz=gz; iz<mz-gz; iz++) {
+	for (int iy=gy; iy<my-gy; iy++) {
+	  for (int ix=gx; ix<mx-gx; ix++) {
 	    count++;
-	    int i = ix + mx_*(iy + my_*iz);
+	    int i = ix + mx*(iy + my*iz);
 	    reduce[2] += B[i];
 	    reduce[3] += X[i];
 	  }
@@ -394,6 +382,10 @@ void EnzoSolverBiCgStab::start_2(EnzoBlock* block,
 
   if (is_finest_(block)) {
 
+    int gx,gy,gz,mx,my,mz;
+    field.ghost_depth(0, &gx, &gy, &gz);
+    const int m = field.dimensions (0, &mx, &my, &mz);
+
     /// access relevant fields
     enzo_float* B  = (enzo_float*) field.values(ib_);
     enzo_float* R0 = (enzo_float*) field.values(ir0_);
@@ -412,7 +404,7 @@ void EnzoSolverBiCgStab::start_2(EnzoBlock* block,
       enzo_float b_shift = bs / c;
       enzo_float x_shift = xs / c;
 
-      for (int i=0; i<m_; i++) {
+      for (int i=0; i<m; i++) {
 	B[i] -= b_shift;
 	X[i] -= x_shift;
       }
@@ -425,17 +417,17 @@ void EnzoSolverBiCgStab::start_2(EnzoBlock* block,
 
     /// LINE 01:  R0 = B - A * X_0
     /// LINE 02:  P0 = R0
-    for (int i=0; i<m_; i++) {
+    for (int i=0; i<m; i++) {
       R0[i] = R[i];
       P[i]  = R[i];
     }
 
     /// Compute local contributions to beta_n_ = DOT(R, R0)
     /// and B*B for stopping criteria
-    for (int iz=gz_; iz<mz_-gz_; iz++) {
-      for (int iy=gy_; iy<my_-gy_; iy++) {
-	for (int ix=gx_; ix<mx_-gx_; ix++) {
-	  int i = ix + mx_*(iy + my_*iz);
+    for (int iz=gz; iz<mz-gz; iz++) {
+      for (int iy=gy; iy<my-gy; iy++) {
+	for (int ix=gx; ix<mx-gx; ix++) {
+	  int i = ix + mx*(iy + my*iz);
 	  reduce[1] += R[i]*R0[i];
 	  reduce[2] += B[i]*B[i];
 	  reduce[3] += R[i];
@@ -515,17 +507,19 @@ void EnzoSolverBiCgStab::loop_0(EnzoBlock* block) throw() {
   const bool reuse_x = reuse_solution_ (cycle);
 
   const int iter = (s_iter_(block));
+  Field field = block->data()->field();
+  const int m = field.dimensions (ip_);
   if (iter == 0) {
     const cello_reduce_type s_r0s = S(r0s);
     const cello_reduce_type s_c =   S(c);
     if (is_singular_()) {
       enzo_float shift = s_r0s/ s_c;
       if (is_finest_(block)) {
-	Field field = block->data()->field();
+
 	enzo_float* R0 = (enzo_float*) field.values(ir0_);
 	enzo_float* P  = (enzo_float*) field.values(ip_);
 	enzo_float* R  = (enzo_float*) field.values(ir_);
-	for (int i=0; i<m_; i++) {
+	for (int i=0; i<m; i++) {
 	  R0[i] -= shift;
 	  R[i]  -= shift;
 	  P[i]  -= shift;
@@ -607,7 +601,7 @@ void EnzoSolverBiCgStab::loop_0(EnzoBlock* block) throw() {
       enzo_float* X       = (enzo_float*) field.values(ix_);
       enzo_float* X_copy  = (enzo_float*) field.values("X_copy");
 
-      for (int i=0; i<m_; i++) X_copy[i] = X[i];
+      for (int i=0; i<m; i++) X_copy[i] = X[i];
 
     }
 
@@ -633,11 +627,13 @@ void EnzoSolverBiCgStab::loop_2(EnzoBlock* block) throw() {
 
   Field field = block->data()->field();
 
+  const int m = field.dimensions (iy_);
+
   if (index_precon_ >= 0) {
 
     enzo_float * Y = (enzo_float*) field.values(iy_);
 
-    for (int i=0; i<m_; i++) Y[i] = 0.0;
+    for (int i=0; i<m; i++) Y[i] = 0.0;
 
     /// Access the preconditioner for this solver, if any
 
@@ -661,7 +657,7 @@ void EnzoSolverBiCgStab::loop_2(EnzoBlock* block) throw() {
     enzo_float * P = (enzo_float*) field.values(ip_);
 
     /// LINE 04: Y = M \ P  [ M = I ]
-    for (int i=0; i<m_; i++) Y[i] = P[i];
+    for (int i=0; i<m; i++) Y[i] = P[i];
 
     loop_25(block);
 
@@ -730,10 +726,13 @@ void EnzoSolverBiCgStab::loop_4(EnzoBlock* block) throw() {
 
     /// LINE 07 [part]  vr0_ = V*R0
 
-    for (int iz=gz_; iz<mz_-gz_; iz++) {
-      for (int iy=gy_; iy<my_-gy_; iy++) {
-	for (int ix=gx_; ix<mx_-gx_; ix++) {
-	  int i = ix + mx_*(iy + my_*iz);
+    int gx,gy,gz,mx,my,mz;
+    field.ghost_depth(0, &gx, &gy, &gz);
+    field.dimensions (0, &mx, &my, &mz);
+    for (int iz=gz; iz<mz-gz; iz++) {
+      for (int iy=gy; iy<my-gy; iy++) {
+	for (int ix=gx; ix<mx-gx; ix++) {
+	  int i = ix + mx*(iy + my*iz);
 	  reduce[1] += V[i]*R0[i];
 	}
       }
@@ -750,10 +749,10 @@ void EnzoSolverBiCgStab::loop_4(EnzoBlock* block) throw() {
       /// ys_ = sum (Y[i])
       /// vs_ = sum (V[i])
 
-      for (int iz=gz_; iz<mz_-gz_; iz++) {
-	for (int iy=gy_; iy<my_-gy_; iy++) {
-	  for (int ix=gx_; ix<mx_-gx_; ix++) {
-	    int i = ix + mx_*(iy + my_*iz);
+      for (int iz=gz; iz<mz-gz; iz++) {
+	for (int iy=gy; iy<my-gy; iy++) {
+	  for (int ix=gx; ix<mx-gx; ix++) {
+	    int i = ix + mx*(iy + my*iz);
 	    reduce[2] += Y[i];
 	    reduce[3] += V[i];
 	  }
@@ -814,6 +813,8 @@ void EnzoSolverBiCgStab::loop_6(EnzoBlock* block,
 
   if (is_finest_(block)) {
 
+    const int m = field.dimensions (ip_);
+
     /// for singular problems, project Y and V into R(A)
     if (is_singular_()) {
 
@@ -823,7 +824,7 @@ void EnzoSolverBiCgStab::loop_6(EnzoBlock* block,
       enzo_float y_shift = ys / S(c);
       enzo_float v_shift = vs / S(c);
 
-      for (int i=0; i<m_; i++) {
+      for (int i=0; i<m; i++) {
 	Y[i] -= y_shift;
 	V[i] -= v_shift;
       }
@@ -850,7 +851,7 @@ void EnzoSolverBiCgStab::loop_6(EnzoBlock* block,
 
     enzo_float alpha = S(alpha);
 
-    for (int i=0; i<m_; i++) {
+    for (int i=0; i<m; i++) {
       Q[i] = R[i] - alpha*V[i];
       X[i] = X[i] + alpha*Y[i];
     }
@@ -869,11 +870,13 @@ void EnzoSolverBiCgStab::loop_8(EnzoBlock* block) throw() {
 
   Field field = block->data()->field();
 
+  const int m = field.dimensions (iy_);
+
   if (index_precon_ >= 0) {
 
     enzo_float* Y = (enzo_float*) field.values(iy_);
 
-    for (int i=0; i<m_; i++) Y[i] = 0.0;
+    for (int i=0; i<m; i++) Y[i] = 0.0;
 
     /// Access the preconditioner for this solver, if any
 
@@ -899,7 +902,7 @@ void EnzoSolverBiCgStab::loop_8(EnzoBlock* block) throw() {
 
     /// LINE 10: Y = M \ Q  [ M = I ]
 
-    for (int i=0; i<m_; i++)  Y[i] = Q[i];
+    for (int i=0; i<m; i++)  Y[i] = Q[i];
 
     loop_85(block);
   }
@@ -964,10 +967,14 @@ void EnzoSolverBiCgStab::loop_10(EnzoBlock* block) throw() {
     /// omega_n = DOT(U, Q)
     /// omega_d = DOT(U, U)
 
-    for (int iz=gz_; iz<mz_-gz_; iz++) {
-      for (int iy=gy_; iy<my_-gy_; iy++) {
-	for (int ix=gx_; ix<mx_-gx_; ix++) {
-	  int i = ix + mx_*(iy + my_*iz);
+    int gx,gy,gz,mx,my,mz;
+    field.ghost_depth(0, &gx, &gy, &gz);
+    field.dimensions (0, &mx, &my, &mz);
+
+    for (int iz=gz; iz<mz-gz; iz++) {
+      for (int iy=gy; iy<my-gy; iy++) {
+	for (int ix=gx; ix<mx-gx; ix++) {
+	  int i = ix + mx*(iy + my*iz);
 	  reduce[1] += U[i]*Q[i];
 	  reduce[2] += U[i]*U[i];
 	}
@@ -984,10 +991,10 @@ void EnzoSolverBiCgStab::loop_10(EnzoBlock* block) throw() {
       /// ys_ = SUM(Y)
       /// us_ = SUM(U)
 
-      for (int iz=gz_; iz<mz_-gz_; iz++) {
-	for (int iy=gy_; iy<my_-gy_; iy++) {
-	  for (int ix=gx_; ix<mx_-gx_; ix++) {
-	    int i = ix + mx_*(iy + my_*iz);
+      for (int iz=gz; iz<mz-gz; iz++) {
+	for (int iy=gy; iy<my-gy; iy++) {
+	  for (int ix=gx; ix<mx-gx; ix++) {
+	    int i = ix + mx*(iy + my*iz);
 	    reduce[3] += Y[i];
 	    reduce[4] += U[i];
 	    reduce[5] += Q[i];
@@ -1061,6 +1068,10 @@ void EnzoSolverBiCgStab::loop_12(EnzoBlock* block,
 
   /// for singular problems, update omega_d and project Y and U into R(A)
 
+  int gx,gy,gz,mx,my,mz;
+  field.ghost_depth(0, &gx, &gy, &gz);
+  const int m = field.dimensions (0, &mx, &my, &mz);
+
   if (is_singular_()) {
 
     S(omega_n) -= us*qs/ S(c);
@@ -1071,7 +1082,7 @@ void EnzoSolverBiCgStab::loop_12(EnzoBlock* block,
       enzo_float* U = (enzo_float*) field.values(iu_);
       enzo_float y_shift = ys / S(c);
       enzo_float u_shift = us / S(c);
-      for (int i=0; i<m_; i++) {
+      for (int i=0; i<m; i++) {
 	Y[i] -= y_shift;
 	U[i] -= u_shift;
       }
@@ -1120,7 +1131,7 @@ void EnzoSolverBiCgStab::loop_12(EnzoBlock* block,
     /// LINE 13:     X = X + omega * Y
     /// LINE 14:     R = Q - omega * U
 
-    for (int i=0; i<m_; i++) {
+    for (int i=0; i<m; i++) {
       X[i] = X[i] + S(omega)*Y[i];
       R[i] = Q[i] - S(omega)*U[i];
     }
@@ -1144,10 +1155,10 @@ void EnzoSolverBiCgStab::loop_12(EnzoBlock* block,
     enzo_float* R  = (enzo_float*) field.values(ir_);
     enzo_float* R0 = (enzo_float*) field.values(ir0_);
 
-    for (int iz=gz_; iz<mz_-gz_; iz++) {
-      for (int iy=gy_; iy<my_-gy_; iy++) {
-	for (int ix=gx_; ix<mx_-gx_; ix++) {
-	  int i = ix + mx_*(iy + my_*iz);
+    for (int iz=gz; iz<mz-gz; iz++) {
+      for (int iy=gy; iy<my-gy; iy++) {
+	for (int ix=gx; ix<mx-gx; ix++) {
+	  int i = ix + mx*(iy + my*iz);
 	  reduce[1] += R[i]*R[i];
 	  reduce[2] += R[i]*R0[i];
 	}
@@ -1230,7 +1241,8 @@ void EnzoSolverBiCgStab::loop_14(EnzoBlock* block,
 
     /// LINE 16:     P = R + beta * (P - omega * V)
 
-    for (int i=0; i<m_; i++) {
+    const int m = field.dimensions (ip_);
+    for (int i=0; i<m; i++) {
       P[i] = R[i] + beta*(P[i] - S(omega)*V[i]);
     }
   }

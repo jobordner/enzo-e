@@ -216,17 +216,6 @@ protected: // functions
   /// Add a new refresh object
   int add_refresh_ (const std::string & suffix = "");
 
-  /// Perform vector copy X <- Y
-  template <class T>
-  void copy_ (T * X, const T * Y,
-	      int mx, int my, int mz,
-	      bool active = true) const throw()
-  {
-    if (! active ) return;
-    const int m = mx*my*mz;
-    std::memcpy(X,Y,m*sizeof(T));
-  }
-
   int sync_id_() const throw()
   { return this->id_sync_; }
 

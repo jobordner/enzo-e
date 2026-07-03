@@ -614,8 +614,8 @@ DataMsg * EnzoBlock::create_data_msg_ ()
   }
 
   // Create FieldFace object specifying fields to send
-  FieldFace * field_face = create_face
-    (if3,ic3,g3, 0, refresh);
+  FieldFace * field_face = new FieldFace
+    (level(), 0, if3,ic3,g3, refresh, true);
 
   // Create data message object to send
   DataMsg *   data_msg   = new DataMsg;

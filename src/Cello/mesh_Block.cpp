@@ -286,8 +286,8 @@ void Block::init_refine_
     refresh -> set_adaptive_timestep
       (state_->state_type() == State::Type::Level);
 
-    FieldFace * field_face = create_face
-      (if3, ic3, g3, +1, refresh);
+    FieldFace * field_face = new FieldFace
+      (level, +1, if3, ic3, g3, refresh, true);
 
     // Copy refined field data
 
@@ -706,8 +706,8 @@ Block::~Block()
     refresh -> set_adaptive_timestep
       (state()->state_type() == State::Type::Level);
 
-    FieldFace * field_face = create_face
-      ( if3,ic3,g3,-1,refresh);
+    FieldFace * field_face = new FieldFace
+      ( level, -1, if3,ic3,g3,refresh, true);
 
     field_face->face_to_array(data()->field(),&n,&array);
     delete field_face;
@@ -751,8 +751,8 @@ void Block::p_refresh_child
   refresh -> set_adaptive_timestep
     (state()->state_type() == State::Type::Level);
 
-  FieldFace * field_face = create_face
-    (if3, ic3, g3, -1,refresh);
+  FieldFace * field_face = new FieldFace
+    (level(), -1, if3, ic3, g3, refresh, true);
   // Adjust level for child block
   field_face->set_level (level()+1);
 
@@ -1051,24 +1051,6 @@ Index Block::index_from_global(int ix, int iy, int iz, int level, int min_level)
   }
 
   return index;
-}
-
-//----------------------------------------------------------------------
-
-FieldFace * Block::create_face
-(int if3[3], int ic3[3], int g3[3],
- int face_type, Refresh * refresh, bool new_refresh) const
-{
-  FieldFace  * field_face = new FieldFace;
-
-  field_face -> set_level (level());
-  field_face -> set_face_type (face_type);
-  field_face -> set_child (ic3[0],ic3[1],ic3[2]);
-  field_face -> set_face (if3[0],if3[1],if3[2]);
-  field_face -> set_ghost(g3[0],g3[1],g3[2]);
-  field_face -> set_refresh(refresh,new_refresh);
-
-  return field_face;
 }
 
 //----------------------------------------------------------------------

@@ -991,130 +991,6 @@ void FieldData::png (const FieldDescr * field_descr,
 
 //----------------------------------------------------------------------
 
-double FieldData::dot (const FieldDescr * field_descr, int ix, int iy) throw()
-{
-  int mx,my,mz;
-  int nx,ny,nz;
-  int gx,gy,gz;
-
-  size                        (&nx, &ny, &nz);
-  dimensions  (field_descr,ix, &mx, &my, &mz);
-  field_descr->ghost_depth(ix, &gx, &gy, &gz);
-
-  void * x = values(field_descr,ix);
-  void * y = values(field_descr,iy);
-
-  switch (field_descr->precision(ix)) {
-  case precision_single:
-    return dot_ ((float*)x,(float*)y,mx,my,mz,nx,ny,nz,gx,gy,gz);
-    break;
-  case precision_double:
-    return dot_ ((double*)x,(double*)y,mx,my,mz,nx,ny,nz,gx,gy,gz);
-    break;
-  case precision_quadruple:
-    return dot_ ((long double*)x,(long double*)y,mx,my,mz,nx,ny,nz,gx,gy,gz);
-    break;
-  default:
-    ERROR2("FieldData::dot()",
-	   "Unknown precision %d for field id %d",
-	   field_descr->precision(ix),ix);
-    return 0.0;
-    break;
-  }
-}
-
-template<class T>
-long double FieldData::dot_(const T* X, const T* Y, int mx, int my, int mz, int nx, int ny, int nz, int gx, int gy, int gz) const throw()
-{
-  const int i0 = gx + mx*(gy + my*gz);
-  long double value = 0.0;
-  for (int iz=0; iz<nz; iz++) {
-    for (int iy=0; iy<ny; iy++) {
-      for (int ix=0; ix<nx; ix++) {
-	int i = i0 + (ix + mx*(iy + my*iz));
-	value += X[i]*Y[i];
-      }
-    }
-  }
-  return value;
-}
-
-//----------------------------------------------------------------------
-
-void FieldData::scale
-(const FieldDescr * field_descr,
- int iy, long double a, int ix, bool ghosts) throw()
-{
-
-  ASSERT2 ("FieldData::scale()",
-	   "Calling scale on illegal fields: ix=%d iy=%d",
-	   ix,iy,
-	   (ix>=0) && (iy>=0) );
-
-  int mx,my,mz;
-  int nx,ny,nz;
-  int gx,gy,gz;
-
-  size                        (&nx, &ny, &nz);
-  dimensions  (field_descr,ix, &mx, &my, &mz);
-  field_descr->ghost_depth(ix, &gx, &gy, &gz);
-
-  void * x = values(field_descr,ix);
-  void * y = values(field_descr,iy);
-
-  switch (field_descr->precision(ix)) {
-  case precision_single:
-    scale_ ((float*)y,a,(float*)x,ghosts,
-	  mx,my,mz,nx,ny,nz,gx,gy,gz);
-    break;
-  case precision_double:
-    scale_ ((double*)y,a,(double*)x,ghosts,
-	   mx,my,mz,nx,ny,nz,gx,gy,gz);
-    break;
-  case precision_quadruple:
-    scale_ ((long double*)y,a,(long double*)x,ghosts,
-	   mx,my,mz,nx,ny,nz,gx,gy,gz);
-    break;
-  default:
-    ERROR2("FieldData::scale()",
-	   "Unknown precision %d for field id %d",
-	   field_descr->precision(ix),ix);
-    break;
-  }
-
-}
-
-template<class T>
-void FieldData::scale_
-(T * Y, long double a, T * X, bool ghosts,
- int mx, int my, int mz,
- int nx, int ny, int nz,
- int gx, int gy, int gz) const throw()
-{
-  if (ghosts) {
-    for (int iz=0; iz<mz; iz++) {
-      for (int iy=0; iy<my; iy++) {
-	for (int ix=0; ix<mx; ix++) {
-	  int i = ix + mx*(iy + my*iz);
-	  Y[i] = a*X[i];
-	}
-      }
-    }
-  } else {
-    int i0 = gx + mx*(gy + my*gz);
-    for (int iz=0; iz<nx; iz++) {
-      for (int iy=0; iy<ny; iy++) {
-	for (int ix=0; ix<mx; ix++) {
-	  int i = i0 + ix + mx*(iy + my*iz);
-	  Y[i] = a*X[i];
-	}
-      }
-    }
-  }
-}
-
-//----------------------------------------------------------------------
-
 void FieldData::save_history (const FieldDescr * field_descr, double time)
 {
   // Cycle temporary field id's, and copy permanent to history_id_[0]
@@ -1300,7 +1176,7 @@ char * FieldData::save_data (FieldDescr * field_descr,
 //----------------------------------------------------------------------
 
 char * FieldData::load_data (FieldDescr * field_descr,
-				char * buffer)
+                             char * buffer)
 {
   union {
     int  * pi;
@@ -1327,6 +1203,82 @@ char * FieldData::load_data (FieldDescr * field_descr,
 	  ((pc-buffer) == data_size(field_descr)));
 
   return pc;
+}
+
+//----------------------------------------------------------------------
+
+FieldMsg * FieldData::pack_msg_
+(FieldDescr * field_descr,
+ int index_field, int refresh_type, int level,
+ int index_prolong, int index_restrict,  int ic3[3])
+{
+  // Initialize if3[] and ig3[]
+  int  if3[3] = {0,0,0};
+  int g3[3];
+  cello::field_descr()->ghost_depth(index_field,g3,g3+1,g3+2);
+  if (refresh_type != +1)
+    for (int i=0; i<3; i++) g3[i]=0;
+
+  // Create Refresh object
+  Refresh * refresh = new Refresh;
+  refresh->add_field(index_field);
+  refresh->set_prolong(index_prolong);
+  refresh->set_restrict(index_restrict);
+
+  // Create FieldFace object
+  FieldFace * field_face = new FieldFace
+    (level, refresh_type, if3, ic3, g3, refresh);
+
+  Field field (cello::field_descr(), this);
+
+  // Create FieldMsg with copied data and return
+  const int n = field_face->num_bytes_array(field);
+  FieldMsg * msg  = new (n) FieldMsg;
+
+  field_face->face_to_array(field,msg->a);
+
+  delete field_face;
+
+  msg->ic3[0] = ic3[0];
+  msg->ic3[1] = ic3[1];
+  msg->ic3[2] = ic3[2];
+
+  return msg;
+
+}
+
+//----------------------------------------------------------------------
+
+void FieldData::unpack_msg_
+(FieldDescr * field_descr,
+ FieldMsg * msg, int index_field, int refresh_type, int level,
+ int index_prolong, int index_restrict)
+{
+  // Initialize if3[] and ig3[]
+  int if3[3] = {0,0,0};
+  int g3[3] = {0,0,0};
+  if (refresh_type == +1) {
+    field_descr->ghost_depth(index_field,g3,g3+1,g3+2);
+  }
+
+  // Create Refresh object
+  Refresh * refresh = new Refresh;
+  refresh->add_field(index_field);
+  refresh->set_prolong(index_prolong);
+  refresh->set_restrict(index_restrict);
+
+  // Create FieldFace object to copy packed msg data into field
+  int * ic3 = msg->ic3;
+  FieldFace * field_face = new FieldFace
+    (level,refresh_type, if3, ic3, g3, refresh, true);
+
+  Field field ( field_descr, this);
+  char * a = msg->a;
+  field_face->array_to_face(a, field);
+
+  delete field_face;
+
+  delete msg;
 }
 
 //======================================================================

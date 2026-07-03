@@ -8,8 +8,6 @@
 #include "cello.hpp"
 #include "data.hpp"
 
-#define FORTRAN_STORE
-
 // #define UNIFORM_FIELDS
 
 //----------------------------------------------------------------------
@@ -26,17 +24,6 @@ long FieldFace::counter[CONFIG_NODE_SIZE] = {0};
 
 //----------------------------------------------------------------------
 
-#define FORTRAN_NAME(NAME) NAME##_
-
-extern "C" void FORTRAN_NAME(field_face_store_4)
-  (float * field, float * array, int * m3, int * n3, int * accumulate);
-extern "C" void FORTRAN_NAME(field_face_store_8)
-  (double * field, double * array, int * m3, int * n3, int * accumulate);
-// extern "C" void FORTRAN_NAME(field_face_store_16)
-//   (long double * field, long double * array, int * m3, int * n3, int * accumulate);
-
-//----------------------------------------------------------------------
-
 enum enum_op_type {
   op_unknown,
   op_load,
@@ -46,22 +33,8 @@ enum enum_op_type {
 
 //----------------------------------------------------------------------
 
-#ifdef CHECK_COARSE
-#   undef  CHECK_COARSE
-#   define CHECK_COARSE(FIELD,index_field)                 \
-  { \
-    cello_float * coarse = (cello_float *)FIELD.coarse_values(index_field);     \
-    ASSERT ("CHECK_COARSE","coarse array is null", (coarse != nullptr)); \
-  }
-#else
-#   define CHECK_COARSE(FIELD,index_field)  /* ... */
-#endif
-
-//----------------------------------------------------------------------
-
-FieldFace::FieldFace (int rank) throw()
-  : rank_( rank ? rank : cello::rank() ),
-    level_(0),
+FieldFace::FieldFace () throw()
+  : level_(0),
     face_type_(0),
     refresh_(NULL),
     new_refresh_(false)
@@ -90,8 +63,7 @@ FieldFace::~FieldFace() throw ()
 //----------------------------------------------------------------------
 
 FieldFace::FieldFace(const FieldFace & field_face) throw ()
-  : rank_(0),
-    level_(0),
+  : level_(0),
     face_type_(0),
     refresh_(NULL),
     new_refresh_(false)
@@ -121,7 +93,6 @@ void FieldFace::copy_(const FieldFace & field_face)
     ghost_[i] = field_face.ghost_[i];
     child_[i] = field_face.child_[i];
   }
-  rank_       = field_face.rank_;
   level_      = field_face.level_;
   face_type_  = field_face.face_type_;
   refresh_    = field_face.refresh_;
@@ -142,7 +113,6 @@ void FieldFace::pup (PUP::er &p)
   PUParray(p,face_,3);
   PUParray(p,ghost_,3);
   PUParray(p,child_,3);
-  p | rank_;
   p | level_;
   p | face_type_;
   p | refresh_;
@@ -178,7 +148,6 @@ void FieldFace::face_to_array ( Field field,char * array) throw()
 
   for (size_t i_f=0; i_f < field_list_src.size(); i_f++) {
     const size_t index_field = field_list_src[i_f];
-    CHECK_COARSE(field,index_field);
 
     precision_type precision = field.precision(index_field);
 
@@ -195,7 +164,7 @@ void FieldFace::face_to_array ( Field field,char * array) throw()
 
     int i3[3], n3[3];
     field.size(n3,n3+1,n3+2);
-    Box box(rank_,n3,g3);
+    Box box(cello::rank(),n3,g3);
     box.set_centering(c3);
 
     set_box_(&box);
@@ -261,8 +230,6 @@ void FieldFace::array_to_face (char * array, Field field) throw()
   for (size_t i_f=0; i_f < field_list_dst.size(); i_f++) {
     size_t index_field = field_list_dst[i_f];
 
-    CHECK_COARSE(field,index_field);
-
     precision_type precision = field.precision(index_field);
 
     char * field_ghost =  field.values( index_field);
@@ -282,7 +249,7 @@ void FieldFace::array_to_face (char * array, Field field) throw()
     // adjust face relative to sender
 
     field.size(n3,n3+1,n3+2);
-    Box box (rank_,n3,g3);
+    Box box (cello::rank(),n3,g3);
     bool invert;
     set_box_(&box,invert=true);
     box.set_centering(c3);
@@ -375,7 +342,7 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
   field_src.ghost_depth(index_src,g3,g3+1,g3+2);
   field_src.centering  (index_src,c3,c3+1,c3+2);
 
-  Box box (rank_,n3,g3);
+  Box box (cello::rank(),n3,g3);
   set_box_(&box);
   box.set_centering(c3);
 
@@ -402,7 +369,6 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
 
     index_src = field_list_src[i_f];
     index_dst = field_list_dst[i_f];
-    CHECK_COARSE(field_src,index_src);
 
     char * values_src = field_src.values(index_src);
     char * values_dst = field_dst.values(index_dst);
@@ -462,7 +428,6 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
 
     size_t index_src = field_list_src[i_f];
     size_t index_dst = field_list_dst[i_f];
-    CHECK_COARSE(field_src,index_src);
 
     int m3[3],g3[3],c3[3];
 
@@ -472,7 +437,7 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
 
     const bool accumulate = refresh_->accumulate(i_f);
 
-    Box box (rank_,n3,g3);
+    Box box (cello::rank(),n3,g3);
     set_box_(&box);
     box.set_centering(c3);
 
@@ -567,8 +532,6 @@ int FieldFace::num_bytes_array(Field field) throw()
 
     size_t index_field = field_list_src[i_f];
 
-    CHECK_COARSE(field,index_field);
-
     precision_type precision = field.precision(index_field);
     int bytes_per_element = cello::sizeof_precision (precision);
 
@@ -581,7 +544,7 @@ int FieldFace::num_bytes_array(Field field) throw()
 
     const bool accumulate = refresh_->accumulate(i_f);
 
-    Box box (rank_,n3,g3);
+    Box box (cello::rank(),n3,g3);
     set_box_(&box);
     box.set_centering(c3);
 
@@ -613,7 +576,6 @@ int FieldFace::data_size () const
   SIZE_ARRAY_TYPE(count,int,ghost_,3);
   SIZE_ARRAY_TYPE(count,int,child_,3);
 
-  SIZE_SCALAR_TYPE(count,int,rank_);
   SIZE_SCALAR_TYPE(count,int,level_);
   SIZE_SCALAR_TYPE(count,int,face_type_);
 
@@ -633,7 +595,6 @@ char * FieldFace::save_data (char * buffer) const
   SAVE_ARRAY_TYPE(p,int,ghost_,3);
   SAVE_ARRAY_TYPE(p,int,child_,3);
 
-  SAVE_SCALAR_TYPE(p,int,rank_);
   SAVE_SCALAR_TYPE(p,int,level_);
   SAVE_SCALAR_TYPE(p,int,face_type_);
 
@@ -657,7 +618,6 @@ char * FieldFace::load_data (char * buffer)
   LOAD_ARRAY_TYPE(p,int,ghost_,3);
   LOAD_ARRAY_TYPE(p,int,child_,3);
 
-  LOAD_SCALAR_TYPE(p,int,rank_);
   LOAD_SCALAR_TYPE(p,int,level_);
   LOAD_SCALAR_TYPE(p,int,face_type_);
 
@@ -707,13 +667,6 @@ template<class T> size_t FieldFace::store_
 ( T * ghost, const T * array,
   int m3[3], int n3[3],int i3[3], bool accumulate) throw()
 {
-
-#ifdef FORTRAN_STORE
-  const bool use_fortran_store = true;
-#else  
-  const bool use_fortran_store = false;
-#endif
-
   // This is to get around a bug on SDSC Comet where this function
   // crashes with -O3 (See bugzilla report #90)
 
@@ -730,55 +683,36 @@ template<class T> size_t FieldFace::store_
 
   ghost_4 = (float *) ghost;
   array_4 = (float *) array;
-  
+
   int im = i3[0] + m3[0]*(i3[1] + m3[1]*i3[2]);
 
   int iaccumulate = accumulate ? 1 : 0;
 
-  if (use_fortran_store &&
-      (sizeof(T) != sizeof(long double)) ) {
-
-    if (sizeof(T)==sizeof(float)) {
-      FORTRAN_NAME(field_face_store_4)(ghost_4 + im,   array_4, m3,n3,
-                                       &iaccumulate);
-    } else if (sizeof(T)==sizeof(double)) {
-      FORTRAN_NAME(field_face_store_8)(ghost_8 + im,   array_8, m3,n3,
-                                       &iaccumulate);
-    // } else if (sizeof(T)==sizeof(long double)) {
-    //   FORTRAN_NAME(field_face_store_16)(ghost_16 + im, array_16, m3,n3,
-    //                                     &iaccumulate);
-    } else {
-      ERROR1 ("FieldFace::store_()",
-              "unknown float precision sizeof(T) = %lu\n",sizeof(T));
-    }
-  } else {
-
-    if (accumulate) {
-      // add values
-      for (int iz=0; iz <n3[2]; iz++)  {
-        int kz = iz+i3[2];
-        for (int iy=0; iy < n3[1]; iy++) {
-          int ky = iy+i3[1];
-          for (int ix=0; ix < n3[0]; ix++) {
-            int kx = ix+i3[0];
-            int index_array = ix + n3[0]*(iy + n3[1] * iz);
-            int index_field = kx + m3[0]*(ky + m3[1] * kz);
-            ghost[index_field] += array[index_array];
-          }
+  if (accumulate) {
+    // add values
+    for (int iz=0; iz <n3[2]; iz++)  {
+      int kz = iz+i3[2];
+      for (int iy=0; iy < n3[1]; iy++) {
+        int ky = iy+i3[1];
+        for (int ix=0; ix < n3[0]; ix++) {
+          int kx = ix+i3[0];
+          int index_array = ix + n3[0]*(iy + n3[1] * iz);
+          int index_field = kx + m3[0]*(ky + m3[1] * kz);
+          ghost[index_field] += array[index_array];
         }
       }
-    } else {
-      // copy values
-      for (int iz=0; iz <n3[2]; iz++)  {
-        int kz = iz+i3[2];
-        for (int iy=0; iy < n3[1]; iy++) {
-          int ky = iy+i3[1];
-          for (int ix=0; ix < n3[0]; ix++) {
-            int kx = ix+i3[0];
-            int index_array = ix + n3[0]*(iy + n3[1] * iz);
-            int index_field = kx + m3[0]*(ky + m3[1] * kz);
-            ghost[index_field] = array[index_array];
-          }
+    }
+  } else {
+    // copy values
+    for (int iz=0; iz <n3[2]; iz++)  {
+      int kz = iz+i3[2];
+      for (int iy=0; iy < n3[1]; iy++) {
+        int ky = iy+i3[1];
+        for (int ix=0; ix < n3[0]; ix++) {
+          int kx = ix+i3[0];
+          int index_array = ix + n3[0]*(iy + n3[1] * iz);
+          int index_field = kx + m3[0]*(ky + m3[1] * kz);
+          ghost[index_field] = array[index_array];
         }
       }
     }
@@ -1047,7 +981,7 @@ void FieldFace::time_interpolate_
 
     const bool accumulate = refresh_->accumulate(i_f);
 
-    Box box (rank_,n3,g3);
+    Box box (cello::rank(),n3,g3);
     set_box_(&box,invert);
     box.set_centering(c3);
 

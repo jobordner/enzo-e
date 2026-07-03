@@ -376,8 +376,8 @@ void Block::refresh_load_field_face_
     index_.child(index_.level(),ic3,ic3+1,ic3+2);
   }
   int g3[3] = {0,0,0};
-  FieldFace * field_face = create_face
-    (if3, ic3, g3, face_type, &refresh,false);
+  FieldFace * field_face = new FieldFace
+    (level(), face_type, if3, ic3, g3, &refresh,false);
 
   // create data message
   DataMsg * data_msg = new DataMsg;

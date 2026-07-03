@@ -831,12 +831,6 @@ public: // virtual functions
 
   void ResumeFromSync();
 
-  FieldFace * create_face
-  (int if3[3], int ic3[3], int g3[3],
-   int face_type,
-   Refresh * refresh,
-   bool new_refresh = true) const;
-
   virtual void print (FILE * fp = nullptr) const;
 
   const Adapt * adapt() const { return & adapt_; }

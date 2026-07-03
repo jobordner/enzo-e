@@ -336,8 +336,8 @@ void Block::adapt_refine_()
       refresh->add_all_data();
       refresh -> set_adaptive_timestep
         (state()->state_type() == State::Type::Level);
-      FieldFace * field_face = create_face
-	(if3,ic3,g3, +1, refresh);
+      FieldFace * field_face = new FieldFace
+        (level(), +1, if3,ic3,g3, refresh, true);
 
       // Create data message object to send
       DataMsg * data_msg = new DataMsg;
@@ -874,8 +874,8 @@ void Block::adapt_coarsen_()
   refresh -> set_adaptive_timestep
     (state()->state_type() == State::Type::Level);
 
-  FieldFace * field_face = create_face
-    (if3, ic3, g3, -1, refresh);
+  FieldFace * field_face = new FieldFace
+    (level,-1, if3, ic3, g3, refresh, true);
 
   const Index index_parent = index_.index_parent();
 

@@ -35,7 +35,7 @@ public: // interface
 
   /// Assignment operator
   Field & operator= (const Field & field) throw()
-  { 
+  {
     field_descr_ = field.field_descr_;
     field_data_ = field.field_data_;
     return *this;
@@ -51,23 +51,22 @@ public: // interface
     static bool warn[CONFIG_NODE_SIZE] = {false};
     const int in = cello::index_static();
     if (! warn[in]) {
-    
       WARNING ("Field::pup()",
 	       "Skipping since Field is intended as transient objects");
       warn[in]=true;
     }
-  };
-  
+  }
+
   /// Return the field descriptor for this field
   FieldDescr * field_descr() { return field_descr_; }
 
   /// Return the field data for this field
   FieldData * field_data() { return field_data_; }
 
-  void set_field_data(FieldData * field_data) 
+  void set_field_data(FieldData * field_data)
   { field_data_ = field_data; }
 
-  void set_field_descr(FieldDescr * field_descr) 
+  void set_field_descr(FieldDescr * field_descr)
   { field_descr_ = field_descr; }
 
   //==================================================
@@ -83,18 +82,18 @@ public: // interface
   { field_descr_->set_padding(padding); }
 
   /// Set centering for a field
-  void set_centering(int id, int cx, int cy=0, int cz=0) 
+  void set_centering(int id, int cx, int cy=0, int cz=0)
     throw()
   { field_descr_->set_centering(id,cx,cy,cz); }
 
   /// Set ghost_depth for a field
-  void set_ghost_depth(int id, int gx, int gy=0, int gz=0) 
+  void set_ghost_depth(int id, int gx, int gy=0, int gz=0)
     throw()
   { field_descr_->set_ghost_depth(id,gx,gy,gz); }
 
 
   /// Set precision for a field
-  void set_precision(int id, int precision) 
+  void set_precision(int id, int precision)
     throw()
   { field_descr_->set_precision(id,precision); }
 
@@ -126,10 +125,10 @@ public: // interface
   // Properties
   //----------------------------------------------------------------------
 
-  Grouping * groups () 
+  Grouping * groups ()
   { return field_descr_->groups(); }
 
-  const Grouping * groups () const 
+  const Grouping * groups () const
   { return field_descr_->groups(); }
 
   /// alignment in bytes of fields in memory
@@ -141,7 +140,7 @@ public: // interface
   { return field_descr_->padding() ;}
 
   /// centering of given field
-  void centering(int id, int * cx, int * cy = 0, int * cz = 0) const 
+  void centering(int id, int * cx, int * cy = 0, int * cz = 0) const
     throw()
   { return field_descr_->centering(id,cx,cy,cz); }
 
@@ -150,7 +149,7 @@ public: // interface
   { return field_descr_->is_centered(id); }
 
   /// depth of ghost zones of given field
-  int  ghost_depth(int id, int * gx = 0, int * gy = 0, int * gz = 0) const 
+  int  ghost_depth(int id, int * gx = 0, int * gy = 0, int * gz = 0) const
     throw()
   { return field_descr_->ghost_depth(id,gx,gy,gz); }
 
@@ -236,7 +235,7 @@ public: // interface
   /// expansion) then adjust for the new scaling factor
   void units_scale_cgs (int id, double amount)
   { field_data_->units_scale_cgs (field_descr_,id,amount); }
-    
+
   /// convert the field to "code units" given the unit scaling factor
   /// if it's already in code units, leave it as-is
   /// warning if scaling factor has changed
@@ -455,18 +454,6 @@ public: // interface
   void coarse_dimensions (int id_field, int *nx=0, int *ny=0, int *nz=0) const throw()
   { field_data_->coarse_dimensions (field_descr_,id_field, nx,ny,nz); }
 
-  //----------------------------------------------------------------------
-
-  // BLAS Operations [depreciated]
-
-  /// Compute inner product field(ix) . field(iy)
-  double dot (int ix, int iy) throw()
-  { return field_data_->dot (field_descr_,ix,iy); }
-  
-  /// Scale vector ix by scalar a
-  void scale (int iy, long double a, int ix, bool ghosts = true ) throw()
-  { field_data_->scale(field_descr_, iy,a,ix,ghosts); }
-
   //--------------------------------------------------
   /// Return the number of bytes required to serialize the data object
   int data_size () const
@@ -483,6 +470,29 @@ public: // interface
   /// serializing multiple objects in one buffer.
   char * load_data (char * buffer)
   { return field_data_->load_data (field_descr_,buffer); }
+
+  //--------------------------------------------------
+  // FieldMsg Message packing and unpacking
+  //--------------------------------------------------
+
+  FieldMsg * pack_msg
+  (int index_field, int refresh_type, int level,
+   int index_prolong, int index_restrict, int ic3[3])
+  {
+    return field_data_->pack_msg_
+      ( field_descr_,
+        index_field,refresh_type, level,
+        index_prolong, index_restrict, ic3);
+  };
+
+  void unpack_msg
+  (FieldMsg * msg, int index_field, int refresh_type, int level,
+   int index_prolong, int index_restrict)
+  {
+    field_data_->unpack_msg_
+      ( field_descr_, msg, index_field, refresh_type, level,
+        index_prolong, index_restrict);
+  }
 
   //----------------------------------------------------------------------
 

@@ -356,8 +356,8 @@ void EnzoBlock::p_restart_refine(int ic3[3],int io_reader, int ip)
   refresh->add_all_data();
   refresh -> set_adaptive_timestep
     (state()->state_type() == State::Type::Level);
-  FieldFace * field_face = create_face
-    (if3,ic3,g3, +1, refresh);
+  FieldFace * field_face = new FieldFace
+    (level(), +1, if3,ic3,g3, refresh, true);
 
   // Create data message object to send
   DataMsg * data_msg = new DataMsg;

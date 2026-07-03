@@ -73,9 +73,6 @@ public: // interface
       iv_(-1),
       iq_(-1),
       iu_(-1),
-      m_(0),
-      mx_(0), my_(0), mz_(0),
-      gx_(0), gy_(0), gz_(0),
       coarse_level_(0),
       ir_loop_3_(-1),
       ir_loop_9_(-1)
@@ -99,12 +96,9 @@ public: // interface
       iter_max_(0), 
       ir_(-1), ir0_(-1), ip_(-1), 
       iy_(-1), iv_(-1), iq_(-1), iu_(-1),
-      m_(0), mx_(0), my_(0), mz_(0),
-      gx_(0), gy_(0), gz_(0),
       coarse_level_(0),
       ir_loop_3_(-1),
       ir_loop_9_(-1)
-          
   {}
 
   /// Charm++ Pack / Unpack function
@@ -302,11 +296,6 @@ protected: // attributes
   int iv_;
   int iq_;
   int iu_;
-
-  /// Block field attributes
-  int m_;              /// product mx_*my_*mz_ for convenience
-  int mx_, my_, mz_;   /// total block size
-  int gx_, gy_, gz_;   /// ghost zones
 
   /// The level of the tree solve if solve_type == solve_tree
   int coarse_level_;
