@@ -60,6 +60,8 @@ Simulation::Simulation
   sync_restart_next_(),
   refresh_list_(),
   refresh_type_(RefreshType::Unknown),
+  refresh_perf_count_(),
+  refresh_perf_bytes_(),
   index_output_(-1),
   num_solver_iter_(),
   max_solver_iter_(),
@@ -133,6 +135,8 @@ Simulation::Simulation()
   sync_restart_next_(),
   refresh_list_(),
   refresh_type_(RefreshType::Unknown),
+  refresh_perf_count_(),
+  refresh_perf_bytes_(),
   index_output_(-1),
   num_solver_iter_(),
   max_solver_iter_(),
@@ -193,6 +197,8 @@ Simulation::Simulation (CkMigrateMessage *m)
     sync_restart_next_(),
     refresh_list_(),
     refresh_type_(RefreshType::Unknown),
+    refresh_perf_count_(),
+    refresh_perf_bytes_(),
     index_output_(-1),
     num_solver_iter_(),
     max_solver_iter_(),
@@ -304,6 +310,8 @@ void Simulation::pup (PUP::er &p)
   p | refresh_list_;
   p | refresh_type_;
   p | refresh_name_;
+  p | refresh_perf_count_;
+  p | refresh_perf_bytes_;
 
   PUParray(p,dir_checkpoint_,256);
 
@@ -1128,6 +1136,12 @@ void Simulation::monitor_performance()
   counters_reduce_vector.push_back( ParticleData::counter[in] );
   counters_reduce_vector.push_back( hierarchy_->num_particles() );
 
+  // Refresh count, fields, particles, bytes sent/received per refresh object
+  for (int i=0; i<refresh_list_.size(); i++) {
+    counters_reduce_vector.push_back (refresh_perf_count_[i]);
+    counters_reduce_vector.push_back (refresh_perf_bytes_[i]);
+  }
+
   const int num_solver = problem()->num_solvers();
   for (int i=0; i<num_solver; i++) {
     counters_reduce_vector.push_back
@@ -1219,6 +1233,14 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   const int num_particles = counters_reduce[m++];
   monitor->print("perf:data","num-particles total %lld",num_particles);
 
+  for (int i=0; i<refresh_list_.size(); i++) {
+    long long value;
+    if (value = counters_reduce[m++])
+      monitor->print ("perf:refresh","refresh-count %s %lld",refresh_name_[i].c_str(),value);
+    if (value = counters_reduce[m++])
+      monitor->print
+        ("perf:refresh","refresh-bytes %s %lld",refresh_name_[i].c_str(),value);
+  }
   // Solver iterations
 
   const int num_solver = problem()->num_solvers();
@@ -1346,7 +1368,7 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
                   num_neighbors_local);
   monitor->print ("perf:balance","num-neighbors-total %lld",
                   num_neighbors_total);
-  monitor->print ("perf:balance","avg-neighbors-local %f",
+  monitor->print ("perf:balance","eff-neighbors-local %f",
                   1.0*num_neighbors_local/num_neighbors_total);
 
   // Solver iterations

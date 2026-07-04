@@ -356,6 +356,8 @@ public: // virtual functions
     refresh->set_id(id_refresh);
     refresh_list_.push_back(refresh);
     refresh_name_.push_back(name);
+    refresh_perf_count_.push_back(0);
+    refresh_perf_bytes_.push_back(0);
     return id_refresh;
   }
 
@@ -363,6 +365,12 @@ public: // virtual functions
   {
     return (0 <= id && id < int(refresh_name_.size())) ?
       refresh_name_[id] : "UNKNOWN";
+  }
+
+  void refresh_perf_update (int id, int bytes)
+  {
+    refresh_perf_count_[id] ++;
+    refresh_perf_bytes_[id] += bytes;
   }
 
   /// Return the given refresh object
@@ -548,6 +556,8 @@ protected: // attributes
 
   std::vector < Refresh * > refresh_list_;
   std::vector < std::string > refresh_name_;
+  std::vector < long long > refresh_perf_count_;
+  std::vector < long long > refresh_perf_bytes_;
 
   /// Refresh scheduling type when using adaptive time-stepping: either
   /// Casual (when needed) or Eager (asap).

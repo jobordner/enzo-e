@@ -207,7 +207,7 @@ if os.path.exists('mesh_total-blocks.data'):
 # ----------------------------------------------------------------------
 plot_open(plt,'load-balance efficiency','cycle','efficiency');
 plot_list(plt,glob.glob('balance_eff-*data'),scale=1.0)
-plt.legend(loc='upper left',ncols=3)
+plt.legend(loc='lower left',ncols=3)
 plt.ylim(0,1)
 plot_write('plot_balance_eff',html)
 # ----------------------------------------------------------------------

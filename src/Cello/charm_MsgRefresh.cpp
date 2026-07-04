@@ -63,6 +63,8 @@ void * MsgRefresh::pack (MsgRefresh * msg)
   //  2. allocate buffer using CkAllocBuffer()
   //--------------------------------------------------
 
+  cello::simulation()->refresh_perf_update (msg->id_refresh_, size);
+
   char * buffer = (char *) CkAllocBuffer (msg,size);
 
   //--------------------------------------------------
