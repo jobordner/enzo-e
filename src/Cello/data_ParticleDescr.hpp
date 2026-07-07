@@ -277,7 +277,7 @@ private: // attributes
   /// different for different blocks.  Referenced as [it][ia]
 
   std::vector < std::vector <int> > attribute_offset_;
-  
+
   //--------------------------------------------------
   // GROUPING
   //--------------------------------------------------

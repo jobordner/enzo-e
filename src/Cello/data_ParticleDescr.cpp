@@ -345,7 +345,7 @@ int ParticleDescr::new_constant (int it, std::string name, int type)
   constant_name_[it].push_back(name);
   constant_type_[it].push_back(type);
   constant_bytes_[it].push_back(constant_bytes);
-  
+
   int max_bytes=0;
   int num_bytes=0;
   for (size_t ic=0; ic<constant_bytes_[it].size(); ic++) {
@@ -355,7 +355,7 @@ int ParticleDescr::new_constant (int it, std::string name, int type)
   num_bytes = align_(num_bytes,max_bytes);
   constant_offset_[it].push_back (constant_offset_[it][nc] + num_bytes);
   constant_array_[it].resize (constant_offset_[it][nc+1]);
-				  
+
   return nc;
 }
 

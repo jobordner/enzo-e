@@ -49,8 +49,6 @@ extern void png_array (const char * filename,
 // Defines
 //----------------------------------------------------------------------
 
-#define PARTICLE_ALIGN 16
-
 // integer limits on particle position within a Block:
 //
 //  -N    -N/2   0    N/2    N

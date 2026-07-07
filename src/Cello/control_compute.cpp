@@ -13,16 +13,19 @@
 #include "charm_simulation.hpp"
 #include "charm_mesh.hpp"
 
-//#define DEBUG_COMPUTE
+// #define DEBUG_COMPUTE
 #define CYCLE 0
 
 #ifdef DEBUG_COMPUTE
-#define TRACE_COMPUTE(FUN,NUM) \
+#define TRACE_COMPUTE(FUN,NUM)                                          \
   if (state()->cycle() >= CYCLE)                                        \
-    CkPrintf ("%d %d %02d %s %s DEBUG_COMPUTE %s()\n",                  \
-              CkMyPe(),state()->cycle(),NUM,                            \
+    CkPrintf ("%02d %d %d %s %s %d DEBUG_COMPUTE %s()\n",               \
+              state()->cycle(),                                         \
+              NUM,                                                      \
+              CkMyPe(),                                                 \
               name().c_str(),                                           \
               this->method()?this->method()->name().c_str():"null",     \
+              this->method()?index_method_ : 0,                         \
               FUN);
 #else
 #define TRACE_COMPUTE(FUN,NUM) /* ... */

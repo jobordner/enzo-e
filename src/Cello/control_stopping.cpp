@@ -360,7 +360,7 @@ void Block::stopping_balance_()
 void Block::r_stopping_load_balance(CkReductionMsg *msg)
 {
   delete msg;
-  PERF_REDUCE_STOP(iperf_reduce_balance);
+  //  PERF_REDUCE_STOP(iperf_reduce_balance);
   cello::simulation()->set_phase (phase_balance);
 
   AtSync();
@@ -370,8 +370,14 @@ void Block::r_stopping_load_balance(CkReductionMsg *msg)
 
 void Block::ResumeFromSync()
 {
-  PERF_STOP(iperf_balance);
-  stopping_exit_();
+  //  PERF_STOP(iperf_balance);
+  adapt_ready_ = true;
+  PERF_REDUCE_START(iperf_reduce_balance);
+
+  CkCallback callback = CkCallback
+    (CkIndex_Block::r_stopping_exit(nullptr), proxy_array());
+
+  contribute(callback);
 }
 
 //----------------------------------------------------------------------

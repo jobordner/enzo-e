@@ -489,6 +489,7 @@ void Simulation::initialize_performance_() throw()
   p->new_region(iperf_reduce_method_turbulence,"reduce_method_turbulence");
   p->new_region(iperf_reduce_output,         "reduce_output");
   p->new_region(iperf_reduce_restart,        "reduce_restart");
+  p->new_region(iperf_reduce_balance,        "reduce_balance");
   p->new_region(iperf_reduce_simulation,     "reduce_simulation");
   p->new_region(iperf_reduce_solver_bicgstab,"reduce_solver_bicgstab");
   p->new_region(iperf_reduce_solver_cg,      "reduce_solver_cg");

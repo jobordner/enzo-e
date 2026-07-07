@@ -427,14 +427,14 @@ enum class InitCycleKind {
 #define SAVE_SCALAR_TYPE(POINTER,TYPE,VALUE)    \
   {                                             \
     size_t n;                                   \
-    memcpy(POINTER,&(VALUE),n=sizeof(TYPE));	\
+    memcpy((POINTER),&(VALUE),n=sizeof(TYPE));	\
     (POINTER) += n;                             \
   }
 
 #define LOAD_SCALAR_TYPE(POINTER,TYPE,VALUE)    \
   {                                             \
     size_t n;                                   \
-    memcpy(&VALUE,POINTER,n=sizeof(TYPE));	\
+    memcpy(&(VALUE),(POINTER),n=sizeof(TYPE));	\
     (POINTER) += n;                             \
   }
 
@@ -449,17 +449,17 @@ enum class InitCycleKind {
 #define SAVE_ARRAY_TYPE(POINTER,TYPE,ARRAY,SIZE)        \
   {                                                     \
     size_t length = (SIZE);                             \
-    SAVE_SCALAR_TYPE(POINTER,size_t,length);            \
+    SAVE_SCALAR_TYPE((POINTER),size_t,length);            \
     size_t n;                                           \
-    memcpy(POINTER,&ARRAY[0],n=length*sizeof(TYPE));	\
+    memcpy((POINTER),&ARRAY[0],n=length*sizeof(TYPE));	\
     (POINTER) += n;                                     \
   }
 #define LOAD_ARRAY_TYPE(POINTER,TYPE,ARRAY,SIZE)        \
   {                                                     \
     size_t length = 0;                                  \
-    LOAD_SCALAR_TYPE(POINTER,size_t,length);            \
+    LOAD_SCALAR_TYPE((POINTER),size_t,length);            \
     size_t n;                                           \
-    memcpy(&ARRAY[0],POINTER,n=length*sizeof(TYPE));	\
+    memcpy(&ARRAY[0],(POINTER),n=length*sizeof(TYPE));	\
     (POINTER) += n;                                     \
   }
 
@@ -473,20 +473,20 @@ enum class InitCycleKind {
 #define SAVE_STRING_TYPE(POINTER,STRING)                        \
   {                                                             \
     size_t n,length = (STRING).size();                          \
-    memcpy(POINTER,&length, n=sizeof(size_t));                  \
+    memcpy((POINTER),&length, n=sizeof(size_t));                  \
     (POINTER) += n;                                             \
-    memcpy(POINTER,(STRING).data(),n=length*sizeof(char));	\
+    memcpy((POINTER),(STRING).data(),n=length*sizeof(char));	\
     (POINTER) += n;                                             \
   }
 
 #define LOAD_STRING_TYPE(POINTER,STRING)                \
   {                                                     \
     size_t n,length;                                    \
-    memcpy(&length, POINTER, n=sizeof(size_t));         \
+    memcpy(&length, (POINTER), n=sizeof(size_t));         \
     (POINTER) += n;                                     \
     (STRING).resize(length);                            \
     char * string = (char *)(STRING).data();            \
-    memcpy(string,POINTER,n=length*sizeof(char));       \
+    memcpy(string,(POINTER),n=length*sizeof(char));       \
     (POINTER) += n;                                     \
   }
 
@@ -498,18 +498,18 @@ enum class InitCycleKind {
 #define SAVE_VECTOR_TYPE(POINTER,TYPE,VECTOR)                   \
   {                                                             \
     size_t size = (VECTOR).size();                              \
-    memcpy(POINTER,&size, sizeof(size_t));                      \
+    memcpy((POINTER),&size, sizeof(size_t));                      \
     (POINTER) += sizeof(size_t);                                \
-    memcpy(POINTER,(TYPE*)&(VECTOR)[0],size*sizeof(TYPE));      \
+    memcpy((POINTER),(TYPE*)&(VECTOR)[0],size*sizeof(TYPE));      \
     (POINTER) += size*sizeof(TYPE);                             \
   }
 #define LOAD_VECTOR_TYPE(POINTER,TYPE,VECTOR)                   \
   {                                                             \
     size_t size;                                                \
-    memcpy(&size, POINTER, sizeof(size_t));                     \
+    memcpy(&size, (POINTER), sizeof(size_t));                     \
     (POINTER) += sizeof(size_t);                                \
     (VECTOR).resize(size);                                      \
-    memcpy((TYPE*)(VECTOR).data(),POINTER,size*sizeof(TYPE));	\
+    memcpy((TYPE*)(VECTOR).data(),(POINTER),size*sizeof(TYPE));	\
     (POINTER) += size*sizeof(TYPE);                             \
   }
 
@@ -519,28 +519,57 @@ enum class InitCycleKind {
 #define SIZE_VECTOR_VECTOR_TYPE(COUNT,TYPE,VECTOR)      \
   {                                                     \
     (COUNT) += sizeof(size_t);                          \
-    for (size_t i=0; i<(VECTOR).size(); i++) {          \
-      SIZE_VECTOR_TYPE(COUNT,TYPE,(VECTOR)[i]);         \
+    for (size_t iv2=0; iv2<(VECTOR).size(); iv2++) {    \
+      SIZE_VECTOR_TYPE(COUNT,TYPE,(VECTOR)[iv2]);       \
     }                                                   \
   }
 #define SAVE_VECTOR_VECTOR_TYPE(POINTER,TYPE,VECTOR)    \
   {                                                     \
     size_t size = (VECTOR).size();                      \
-    memcpy(POINTER,&size, sizeof(size_t));              \
+    memcpy((POINTER),&size, sizeof(size_t));              \
     (POINTER) += sizeof(size_t);                        \
-    for (size_t i=0; i<(VECTOR).size(); i++) {          \
-      SAVE_VECTOR_TYPE(POINTER,TYPE,(VECTOR)[i]);       \
+    for (size_t iv2=0; iv2<(VECTOR).size(); iv2++) {    \
+      SAVE_VECTOR_TYPE(POINTER,TYPE,(VECTOR)[iv2]);     \
     }                                                   \
   }
 #define LOAD_VECTOR_VECTOR_TYPE(POINTER,TYPE,VECTOR)    \
   {                                                     \
     size_t size;                                        \
-    memcpy(&size, POINTER, sizeof(size_t));             \
+    memcpy(&size, (POINTER), sizeof(size_t));             \
     (POINTER) += sizeof(size_t);                        \
     (VECTOR).resize(size);                              \
-    for (size_t i=0; i<(VECTOR).size(); i++) {          \
-      LOAD_VECTOR_TYPE(POINTER,TYPE,(VECTOR)[i]);       \
+    for (size_t iv2=0; iv2<(VECTOR).size(); iv2++) {    \
+      LOAD_VECTOR_TYPE((POINTER),TYPE,(VECTOR)[iv2]);     \
     }                                                   \
+  }
+
+//--------------------------------------------------
+
+#define SIZE_VECTOR_VECTOR_VECTOR_TYPE(COUNT,TYPE,VECTOR)       \
+  {                                                             \
+    (COUNT) += sizeof(size_t);                                  \
+    for (size_t iv3=0; iv3<(VECTOR).size(); iv3++) {            \
+      SIZE_VECTOR_VECTOR_TYPE(COUNT,TYPE,(VECTOR)[iv3]);        \
+    }                                                           \
+  }
+#define SAVE_VECTOR_VECTOR_VECTOR_TYPE(POINTER,TYPE,VECTOR)     \
+  {                                                             \
+    size_t size = (VECTOR).size();                              \
+    memcpy((POINTER),&size, sizeof(size_t));                      \
+    (POINTER) += sizeof(size_t);                                \
+    for (size_t iv3=0; iv3<(VECTOR).size(); iv3++) {            \
+      SAVE_VECTOR_VECTOR_TYPE((POINTER),TYPE,(VECTOR)[iv3]);      \
+    }                                                           \
+  }
+#define LOAD_VECTOR_VECTOR_VECTOR_TYPE(POINTER,TYPE,VECTOR)     \
+  {                                                             \
+    size_t size;                                                \
+    memcpy(&size, (POINTER), sizeof(size_t));                     \
+    (POINTER) += sizeof(size_t);                                \
+    (VECTOR).resize(size);                                      \
+    for (size_t iv3=0; iv3<(VECTOR).size(); iv3++) {            \
+      LOAD_VECTOR_VECTOR_TYPE((POINTER),TYPE,(VECTOR)[iv3]);      \
+    }                                                           \
   }
 
 //--------------------------------------------------
@@ -548,27 +577,27 @@ enum class InitCycleKind {
 #define SIZE_VECTOR_OBJECT_TYPE(COUNT,TYPE,VECTOR)      \
   {                                                     \
     (COUNT) += sizeof(size_t);                          \
-    for (size_t i=0; i<(VECTOR).size(); i++) {          \
-      SIZE_OBJECT_TYPE(COUNT,(VECTOR)[i]);              \
+    for (size_t iv1=0; iv1<(VECTOR).size(); iv1++) {          \
+      SIZE_OBJECT_TYPE(COUNT,(VECTOR)[iv1]);              \
     }                                                   \
   }
 #define SAVE_VECTOR_OBJECT_TYPE(POINTER,TYPE,VECTOR)    \
   {                                                     \
     size_t size = (VECTOR).size();                      \
-    memcpy(POINTER,&size, sizeof(size_t));              \
+    memcpy((POINTER),&size, sizeof(size_t));              \
     (POINTER) += sizeof(size_t);                        \
-    for (size_t i=0; i<(VECTOR).size(); i++) {          \
-      SAVE_OBJECT_TYPE(POINTER,(VECTOR)[i]);            \
+    for (size_t iv1=0; iv1<(VECTOR).size(); iv1++) {          \
+      SAVE_OBJECT_TYPE((POINTER),(VECTOR)[iv1]);            \
     }                                                   \
   }
 #define LOAD_VECTOR_OBJECT_TYPE(POINTER,TYPE,VECTOR)    \
   {                                                     \
     size_t size;                                        \
-    memcpy(&size, POINTER, sizeof(size_t));             \
+    memcpy(&size, (POINTER), sizeof(size_t));             \
     (POINTER) += sizeof(size_t);                        \
     (VECTOR).resize(size);                              \
-    for (size_t i=0; i<(VECTOR).size(); i++) {          \
-      LOAD_OBJECT_TYPE(POINTER,(VECTOR)[i]);            \
+    for (size_t iv1=0; iv1<(VECTOR).size(); iv1++) {          \
+      LOAD_OBJECT_TYPE((POINTER),(VECTOR)[iv1]);            \
     }                                                   \
   }
 
@@ -634,13 +663,13 @@ enum class InitCycleKind {
 #define SAVE_MAP_TYPE(POINTER,TYPE_1,TYPE_2,MAP)                \
   {                                                             \
     size_t size = (MAP).size();                                 \
-    memcpy(POINTER,&size, sizeof(size_t));                      \
+    memcpy((POINTER),&size, sizeof(size_t));                      \
     (POINTER) += sizeof(size_t);                                \
     auto iter = (MAP).begin();                                  \
     while (iter != (MAP).end()) {                               \
-      memcpy(POINTER,(TYPE_1*)&iter->first,sizeof(TYPE_1));     \
+      memcpy((POINTER),(TYPE_1*)&iter->first,sizeof(TYPE_1));     \
       (POINTER) += sizeof(TYPE_1);                              \
-      memcpy(POINTER,(TYPE_2*)&iter->second,sizeof(TYPE_2));    \
+      memcpy((POINTER),(TYPE_2*)&iter->second,sizeof(TYPE_2));    \
       (POINTER) += sizeof(TYPE_2);                              \
       ++iter;                                                   \
     }                                                           \
@@ -648,14 +677,14 @@ enum class InitCycleKind {
 #define LOAD_MAP_TYPE(POINTER,TYPE_1,TYPE_2,MAP)        \
   {                                                     \
     size_t size;                                        \
-    memcpy(&size, POINTER, sizeof(size_t));             \
+    memcpy(&size, (POINTER), sizeof(size_t));             \
     (POINTER) += sizeof(size_t);                        \
     for (size_t i=0; i<size; i++) {                     \
       TYPE_1 first;                                     \
       TYPE_2 second;                                    \
-      memcpy((TYPE_1*)&first,POINTER,sizeof(TYPE_1));   \
+      memcpy((TYPE_1*)&first,(POINTER),sizeof(TYPE_1));   \
       (POINTER) += sizeof(TYPE_1);                      \
-      memcpy((TYPE_2*)&second,POINTER,sizeof(TYPE_2));  \
+      memcpy((TYPE_2*)&second,(POINTER),sizeof(TYPE_2));  \
       (POINTER) += sizeof(TYPE_2);                      \
       (MAP)[first] = second;                            \
     }                                                   \
@@ -678,11 +707,11 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
 #define SAVE_SET_TYPE(POINTER,TYPE,SET)                                 \
   {                                                                     \
     size_t size = (SET).size();                                         \
-    memcpy(POINTER,&size, sizeof(int));                                 \
+    memcpy((POINTER),&size, sizeof(int));                                 \
     (POINTER) += sizeof(int);                                           \
     auto iter = (SET).begin();                                          \
     while (iter != (SET).end()) {                                       \
-      memcpy(POINTER,(argument_type<void(TYPE)>::type*)&(*iter),sizeof(argument_type<void(TYPE)>::type)); \
+      memcpy((POINTER),(argument_type<void(TYPE)>::type*)&(*iter),sizeof(argument_type<void(TYPE)>::type)); \
       (POINTER) += sizeof(argument_type<void(TYPE)>::type);             \
       ++iter;                                                           \
     }                                                                   \
@@ -691,11 +720,11 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
 #define LOAD_SET_TYPE(POINTER,TYPE,SET)                                 \
   {                                                                     \
     size_t size;                                                        \
-    memcpy(&size, POINTER, sizeof(int));                                \
+    memcpy(&size, (POINTER), sizeof(int));                                \
     (POINTER) += sizeof(int);                                           \
     for (size_t i=0; i<size; i++) {                                     \
       argument_type<void(TYPE)>::type first;                            \
-      memcpy((argument_type<void(TYPE)>::type*)&first,POINTER,sizeof(argument_type<void(TYPE)>::type)); \
+      memcpy((argument_type<void(TYPE)>::type*)&first,(POINTER),sizeof(argument_type<void(TYPE)>::type)); \
       (POINTER) += sizeof(argument_type<void(TYPE)>::type);             \
       (SET).insert(first);                                              \
     }                                                                   \
@@ -711,14 +740,14 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
 #define SAVE_ENUM_CLASS_TYPE(POINTER,TYPE,VALUE)                        \
   {                                                                     \
     int n;                                                              \
-    memcpy(POINTER,&(VALUE),n=sizeof(std::underlying_type<TYPE>));	\
+    memcpy((POINTER),&(VALUE),n=sizeof(std::underlying_type<TYPE>));	\
     (POINTER) += n;                                                     \
   }
 
 #define LOAD_ENUM_CLASS_TYPE(POINTER,TYPE,VALUE)                        \
   {                                                                     \
     int n;                                                              \
-    memcpy(&VALUE,POINTER,n=sizeof(std::underlying_type<TYPE>));        \
+    memcpy(&(VALUE),(POINTER),n=sizeof(std::underlying_type<TYPE>));        \
     (POINTER) += n;                                                     \
   }
 
@@ -817,8 +846,14 @@ namespace cello {
   inline void hex_string(char str[], int length)
   {
     //hexadecimal characters
-    char hex_characters[]={'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+    static const char hex_characters[] =
+      {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
     static std::default_random_engine generator;
+    static bool first = true;
+    if (first) {
+      first = false;
+      generator.seed(CkMyPe());
+    }
     static std::uniform_int_distribution<int> distribution(0,15);
     int i;
     for(i=0;i<length;i++)

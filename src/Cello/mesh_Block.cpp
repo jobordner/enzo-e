@@ -70,6 +70,10 @@ Block::Block ()
     order_count_(1),
     order_next_()
 {
+#ifdef TRACE_BLOCK
+  CkPrintf ("%d TRACE_BLOCK %s Block::Block()\n",
+            CkMyPe(),name(thisIndex).c_str());
+#endif
   PERF_START(iperf_block);
   init_refresh_();
   init_adapt_(nullptr);
@@ -81,6 +85,10 @@ Block::Block ()
 Block::Block (CkMigrateMessage *m)
   : CBase_Block(m)
 {
+#ifdef TRACE_BLOCK
+  CkPrintf ("%d TRACE_BLOCK %s Block::Block(CkMigrateMessage)\n",
+            CkMyPe(),name(thisIndex).c_str());
+#endif
 }
 
 //----------------------------------------------------------------------

@@ -8,6 +8,8 @@
 #ifndef DATA_PARTICLE_DATA_HPP
 #define DATA_PARTICLE_DATA_HPP
 
+#define PARTICLE_ALIGN 16
+
 class ParticleData {
 
   /// @class    ParticleData

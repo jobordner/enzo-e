@@ -23,17 +23,13 @@ public: // interface
 
   virtual ~MsgRefresh();
 
-  /// Copy constructor
-  MsgRefresh(const MsgRefresh & msg_refresh) throw()
-  {
-    ++counter[cello::index_static()]; 
-  };
+  /// No copy constructors
+  MsgRefresh(const MsgRefresh & msg_refresh) throw() = delete;
+  MsgRefresh(const MsgRefresh && msg_refresh) throw() = delete;
 
-  /// Assignment operator
-  MsgRefresh & operator= (const MsgRefresh & data_msg) throw()
-  {
-    return *this;
-  }
+  /// No assignment operators
+  MsgRefresh & operator= (const MsgRefresh & data_msg) throw() = delete;
+  MsgRefresh & operator= (const MsgRefresh && data_msg) throw() = delete;
 
   // Set the new refresh object id
   void set_refresh_id(int id_refresh)
@@ -49,6 +45,9 @@ public: // interface
   void update (Data * data);
 
   void print(const char * message);
+  void summary() const;
+
+  const char * tag() { return tag_;}
 
 public: // static methods
 
@@ -71,6 +70,8 @@ protected: // attributes
   /// Saved Charm++ buffer for deleting after unpack()
   void * buffer_;
 
+  /// Random hex tag for tracking messages for debugging
+  char tag_[TAG_LEN+1];
 };
 
 #endif /* CHARM_MSG_HPP */

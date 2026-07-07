@@ -8,6 +8,8 @@
 #include "cello.hpp"
 #include "enzo.hpp"
 
+// #define TRACE_BALANCE_SYNC
+
 //----------------------------------------------------------------------
 
 EnzoMethodBalance::EnzoMethodBalance()
@@ -64,6 +66,10 @@ void EnzoSimulation::r_method_balance_count(CkReductionMsg * msg)
 {
   /*  PERF_REDUCE_STOP(iperf_reduce_method_balance); */
   int * count_total = (int * )msg->getData();
+#ifdef TRACE_BALANCE_SYNC
+  CkPrintf ("%d TRACE_BALANCE_SYNC set_stop %d\n",
+            CkMyPe(),*count_total + 1);
+#endif
   sync_method_balance_.set_stop(*count_total + 1);
  
   if (CkMyPe() == 0) {
@@ -95,9 +101,21 @@ void EnzoMethodBalance::do_migrate(EnzoBlock * enzo_block)
 
 void EnzoSimulation::p_method_balance_check()
 {
+#ifdef TRACE_BALANCE_SYNC
+  CkPrintf ("%d TRACE_BALANCE_SYNC next %d/%d\n",
+            CkMyPe(),
+            sync_method_balance_.value(),
+            sync_method_balance_.stop());
+#endif
   if (sync_method_balance_.next()) {
 
     sync_method_balance_.reset();
+#ifdef TRACE_BALANCE_SYNC
+  CkPrintf ("%d TRACE_BALANCE_SYNC reset %d/%d\n",
+            CkMyPe(),
+            sync_method_balance_.value(),
+            sync_method_balance_.stop());
+#endif
     enzo::block_array().doneInserting();
     enzo::block_array().p_method_balance_done();
     cello::monitor()->print("Method EnzoMethodBalance", "done migrating");
