@@ -119,7 +119,7 @@ def html_table_row_stop(html):
 
 def html_table_row_next(html,index,max_rows):
     index = index + 1
-    if (index >= max_rows):
+    if (index > max_rows):
         index = 1
         html_table_row_stop(html)
         html_table_row_start(html)
@@ -227,9 +227,8 @@ html_table_row_start(html)
 
 plot_time_total(plt,region_list,html)
 
-index = 1
+index = 2
 max_index = 3
-
 # ----------------------------------------------------------------------
 if os.path.exists('method.data'):
     plot_open(plt,'cumulative method time','cycle','time (s)');
@@ -271,6 +270,27 @@ if os.path.exists('refresh.data'):
     plot_write('plot_refresh_total',html)
     index = html_table_row_next(html,index,max_index)
 
+plot_open(plt,'cumulative refresh message counts','cycle','messages');
+plot_list(plt,glob.glob('msg-count_*data'),scale=1.0)
+plt.legend(loc='upper left',ncols=2)
+#plt.yscale('log')
+plot_write('plot_msg_count',html)
+index = html_table_row_next(html,index,max_index)
+
+plot_open(plt,'cumulative refresh message bytes','cycle','MBytes total');
+plot_list(plt,glob.glob('msg-bytes_*data'))
+plt.legend(loc='upper left',ncols=2)
+#plt.yscale('log')
+plot_write('plot_msg_bytes',html)
+index = html_table_row_next(html,index,max_index)
+
+plot_open(plt,'cumulative average message size','cycle','Average MBytes/message');
+plot_list(plt,glob.glob('msg-sizes_*data'),scale=1.0)
+plt.legend(loc='upper left',ncols=2)
+#plt.yscale('log')
+plot_write('plot_msg_sizes',html)
+index = html_table_row_next(html,index,max_index)
+
 # ----------------------------------------------------------------------
 if os.path.exists('redshift.data'):
     plot_open(plt,'redshift','cycle','redshift');
@@ -289,6 +309,7 @@ if os.path.exists('smp.data'):
     plt.legend(loc='upper left',ncols=3)
 #    plt.yscale('log')
     plot_write('plot_smp_total',html)
+    index = html_table_row_next(html,index,max_index)
 # ----------------------------------------------------------------------
 
 html_table_row_stop(html)
@@ -305,8 +326,7 @@ html_table_row_start(html)
 
 plot_time_cycle(plt,region_list,html)
 
-index = 1
-
+index = 2
 
 # ----------------------------------------------------------------------
 if os.path.exists('method.data'):
@@ -336,6 +356,7 @@ if os.path.exists('adapt.data'):
     index = html_table_row_next(html,index,max_index)
 
 # ----------------------------------------------------------------------
+
 if os.path.exists('refresh.data'):
     plot_open(plt,'per-cycle refresh time','cycle','time (s)');
     [refresh_x_total, refresh_y_total] = plot_total(plt,'refresh.data','refresh',type='cycle')
@@ -344,6 +365,35 @@ if os.path.exists('refresh.data'):
     plot_write('plot_refresh_cycle',html)
     index = html_table_row_next(html,index,max_index)
 
+lsave=l
+msave=m
+ms=10
+l='None'
+m=['>', '^', '<', 'v', 'o', '+', 'x', 's' ]
+plot_open(plt,'per-cycle refresh message counts','cycle','messages');
+plot_list(plt,glob.glob('msg-count_*data'),scale=1.0,type='cycle')
+plt.legend(loc='upper left',ncols=2)
+#plt.yscale('log')
+plot_write('plot_msg_count_cycle',html)
+index = html_table_row_next(html,index,max_index)
+
+plot_open(plt,'per-cycle refresh message bytes','cycle','MBytes total');
+plot_list(plt,glob.glob('msg-bytes_*data'),type='cycle')
+plt.legend(loc='upper left',ncols=2)
+#plt.yscale('log')
+plot_write('plot_msg_bytes_cycle',html)
+index = html_table_row_next(html,index,max_index)
+
+plot_open(plt,'per-cycle average message size','cycle','Average KBytes/message');
+plot_list(plt,glob.glob('msg-sizes-cycle_*data'),scale=1e-3)
+plt.legend(loc='upper left',ncols=2)
+#plt.yscale('log')
+plot_write('plot_msg_sizes_cycle',html)
+index = html_table_row_next(html,index,max_index)
+
+l=lsave
+m=msave
+
 # ----------------------------------------------------------------------
 if os.path.exists('smp.data'):
     plot_open(plt,'per-cycle smp time','cycle','time (s)');
@@ -351,6 +401,7 @@ if os.path.exists('smp.data'):
     plot_list(plt,glob.glob('smp_*data'),type='cycle')
     plt.legend(loc='upper left',ncols=3)
     plot_write('plot_smp_cycle',html)
+    index = html_table_row_next(html,index,max_index)
 # ----------------------------------------------------------------------
 
 html_table_row_stop(html)

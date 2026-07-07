@@ -53,17 +53,18 @@ cd $outdir
 input="input-clean.data"
 grep -v WARNING $input_raw > $input
 
-ADAPT=`      awk '/perf:region adapt/  {print $(NF-2)}' $input | sort | uniq`
-BALANCE_EFF=`awk '/perf:balance eff-/  {print $(NF-1)}' $input | sort | uniq`
-BALANCE_MAX=`awk '/perf:balance max-/  {print $(NF-1)}' $input | sort | uniq`
-MEMORY=`     awk '/perf:region cycle / {print $(NF-1)}' $input | sort | uniq`
-MESH=`       awk '/perf:mesh /         {print $(NF-1)}' $input | sort | uniq`
-METHOD=`     awk '/perf:region method/ {print $(NF-2)}' $input | sort | uniq`
-REDUCE=`     awk '/perf:region reduce/ {print $(NF-2)}' $input | sort | uniq`
-REDSHIFT=`   awk '/Method comoving_expansion/ {print $(NF-1)}' $input | sort | uniq`
-REFRESH=`    awk '/perf:region refresh/{print $(NF-2)}' $input | sort | uniq`
-SMP=`        awk '/perf:region smp/    {print $(NF-2)}' $input | sort | uniq`
-SOLVER=`     awk '/perf:region solver/ {print $(NF-2)}' $input | sort | uniq`
+BALANCE_EFF=`   awk '/perf:balance eff-/  {print $(NF-1)}' $input | sort | uniq`
+BALANCE_MAX=`   awk '/perf:balance max-/  {print $(NF-1)}' $input | sort | uniq`
+MEMORY=`        awk '/perf:region cycle / {print $(NF-1)}' $input | sort | uniq`
+MESH=`          awk '/perf:mesh /         {print $(NF-1)}' $input | sort | uniq`
+REDSHIFT=`      awk '/Method comoving_expansion/ {print $(NF-1)}' $input | sort | uniq`
+REGION_ADAPT=`  awk '/perf:region adapt/  {print $(NF-2)}' $input | sort | uniq`
+REGION_METHOD=` awk '/perf:region method/ {print $(NF-2)}' $input | sort | uniq`
+REGION_REDUCE=` awk '/perf:region reduce/ {print $(NF-2)}' $input | sort | uniq`
+REGION_REFRESH=`awk '/perf:region refresh/{print $(NF-2)}' $input | sort | uniq`
+REGION_SMP=`    awk '/perf:region smp/    {print $(NF-2)}' $input | sort | uniq`
+REGION_SOLVER=` awk '/perf:region solver/ {print $(NF-2)}' $input | sort | uniq`
+REFRESH=`       awk '/perf:refresh / {print $(NF-1)}' $input | sort | uniq`
 
 num_procs=`awk '/CkNumPes/  {print $5}' $input`
 num_nodes=`awk '/CkNumNodes/{print $5}' $input`
@@ -72,37 +73,45 @@ num_nodes=`awk '/CkNumNodes/{print $5}' $input`
 # Generate data files
 # ==============================
 
-echo "nodes $num_nodes procs $num_procs"
 if [[ ! -e "cycle.data" ]]; then
     awk '/Simulation cycle /{if ($NF==0) {t0=$2}; print $NF,($2-t0)}' $input > cycle.data
 fi
 
 
-echo "ADAPT = $ADAPT"
-for adapt in $ADAPT; do
+for adapt in $REGION_ADAPT; do
     if [[ ! -e "$adapt.data" ]]; then
         echo "Generating $adapt.data"
         awk '/Simulation cycle /{c=$NF}; /perf:region '"$adapt"' /{print c,$NF/'"$num_procs"'}' $input > $adapt.data
     fi
 done
 
-echo "REFRESH = $REFRESH"
-for refresh in $REFRESH; do
+for refresh in $REGION_REFRESH; do
     if [[ ! -e "$refresh.data" ]]; then
         echo "Generating $refresh.data"
         awk '/Simulation cycle /{c=$NF}; /perf:region '"$refresh"' /{print c,$NF/'"$num_procs"'}' $input > $refresh.data
     fi
 done
 
-echo "REDUCE = $REDUCE"
-for reduce in $REDUCE; do
+for refresh in $REFRESH; do
+    if [[ ! -e "$refresh.data" ]]; then
+        echo "Generating msg-bytes-$refresh.data"
+        awk '/Simulation cycle /{c=$NF}; /perf:refresh refresh-bytes '"$refresh"' /{print c,$NF}' $input > msg-bytes_$refresh.data
+        echo "Generating msg-count-$refresh.data"
+        awk '/Simulation cycle /{c=$NF}; /perf:refresh refresh-count '"$refresh"' /{print c,$NF}' $input > msg-count_$refresh.data
+        echo "Generating msg-sizes-$refresh.data"
+        awk '/Simulation cycle /{c=$NF}; /perf:refresh refresh-bytes '"$refresh"' /{rb=$NF}; /perf:refresh refresh-count '"$refresh"' /{rc=$NF}; /------------/{if (rc != "") print c,rb/rc}' $input > msg-sizes_$refresh.data
+        echo "Generating msg-sizes-cycle-$refresh.data"
+        awk '/Simulation cycle /{c=$NF}; /perf:refresh refresh-bytes '"$refresh"' /{rb0=rb; rb=$NF}; /perf:refresh refresh-count '"$refresh"' /{rc0=rc; rc=$NF}; /------------/{if ((rb-rb0 > 0) && (rc-rc0 > 0)) print c,(rb-rb0)/(rc-rc0)}' $input > msg-sizes-cycle_$refresh.data
+    fi
+done
+
+for reduce in $REGION_REDUCE; do
     if [[ ! -e "$reduce.data" ]]; then
         echo "Generating $reduce.data"
         awk '/Simulation cycle /{c=$NF}; /perf:region '"$reduce"' /{print c,$NF/'"$num_procs"'}' $input > $reduce.data
     fi
 done
 
-echo "REDSHIFT = $REDSHIFT"
 for redshift in $REDSHIFT; do
     if [[ ! -e "$redshift.data" ]]; then
         echo "Generating $redshift.data"
@@ -110,21 +119,21 @@ for redshift in $REDSHIFT; do
     fi
 done
 
-for smp in $SMP; do
+for smp in $REGION_SMP; do
     if [[ ! -e "$smp.data" ]]; then
         echo "Generating $smp.data"
         awk '/Simulation cycle /{c=$NF}; /perf:region '"$smp"' /{print c,$NF/'"$num_procs"'}' $input > $smp.data
     fi
 done
 
-for method in $METHOD; do
+for method in $REGION_METHOD; do
     if [[ ! -e "$method.data" ]]; then
         echo "Generating $method.data"
         awk '/Simulation cycle /{c=$NF}; /perf:region '"$method"' /{print c,$NF/'"$num_procs"'}' $input > $method.data
     fi
 done
 
-for solver in $SOLVER; do
+for solver in $REGION_SOLVER; do
     if [[ ! -e "$solver.data" ]]; then
         echo "Generating $solver.data"
         awk '/Simulation cycle /{c=$NF}; /perf:region '"$solver"' /{print c,$NF/'"$num_procs"'}' $input > $solver.data

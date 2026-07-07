@@ -11,7 +11,7 @@ while true; do
 
     t=${out##*/}
     awk 'BEGIN{ \
-            CONVFMT="%.3f"; bh=0; b0=-1; bn=-1; c0=-1; cn=-1;nh=-1;nn=-1;np=-1;smp=-1; rnd=0; inp=0; st="X";} \
+            CONVFMT="%.3f"; bh=0; b0=-1; bn=-1; c0=-1; cn=-1;nh=-1;nn=-1;np=-1;smp=-1; rnd=0; inp=0; st=" XX ";} \
     /Input File name /{inp=$NF}; \
     / time-sim / {te=$2; ts=$NF}; \
     / Simulation redshift /{tr=$NF}; \
@@ -25,23 +25,30 @@ while true; do
     /CkNumHosts/{nh=$NF;}; \
     /CkNumNodes/{nn=$NF;}; \
     /CkNumPes/{np=$NF;}; \
-    /END ENZO/{st="O"; }; \
+    /END ENZO/{st=" -- "; }; \
     /CONFIG_SMP_MODE/{if ($NF=="Yes") smp="1"; if ($NF=="no") smp="0"; } \
     /Using randomized message/{rnd=1}; \
-     END{ftr = sprintf ("%.2f",tr); \
-         fts = sprintf ("%.2f",ts); \
-         fte = sprintf ("%.2f",te); \
-         fbh = sprintf ("%.2f",bh/1024./1024./1024.); \
-         fc0 = sprintf ("%d",c0); \
-         fcn = sprintf ("%d",cn); \
-   print st,"( mesh",mr,ms,mb,ml,\
-       ") ( charm",rnd,smp,\
-       ") ( procs",nh,nn,np,\
-       ") ( time",fte,fts,ftr,\
-       ") ( cycles",fc0,fcn,\
-       ") ( blocks",b0,bn,\
-       ") ( gbytes",fbh,\
-       ")",inp};' $out
+     END{ \
+         t_h=int(te/3600); \
+         t_m=int((te%3600)/60); \
+         t_s=int(te%60); \
+         fhms = sprintf ("%02d:%02d:%02d",t_h,t_m,t_s); \
+         f_time = sprintf ("%s %.1f %.2f",fhms,ts,tr); \
+         f_mem = sprintf ("%5.1f GB",bh/1024./1024./1024.); \
+         f_cycle = sprintf ("%d",cn); \
+         f_block = sprintf ("%d",bn); \
+         f_mesh = sprintf ("N%d:%d-L%d",ms,mb,ml); \
+         f_charm = sprintf ("rs%d%d",rnd,smp); \
+         f_proc = sprintf ("%d:%d/%d",nh,nn,np); \
+   print st,mr,\
+       f_mesh,\
+       f_charm,\
+       f_proc,\
+       f_time,\
+       f_cycle,\
+       f_block,\
+       f_mem,\
+       inp};' $out
     shift
 done
 
