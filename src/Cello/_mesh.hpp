@@ -86,14 +86,6 @@ enum adapt_type {
   adapt_refine
 };
 
-/// @enum     DirType
-/// @brief    Specify Send or Recv in iterators, e.g. ItNeighbor,
-///           Needed when restricting refresh within a range of levels
-///           in [level_lower, level_upper) since sends and receives
-///           are not symmetric.
-
-enum class DirType { Unknown, Both, Send, Recv };
-
 /// @enum     RefreshType
 /// @brief    Specify refresh scheduling type for adaptive timestepping:
 ///           "casual" to refresh before every finest level cycle, or

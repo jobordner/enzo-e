@@ -25,6 +25,11 @@ void Block::refresh_start (int id_refresh, int callback)
   // Send field and/or particle data associated with the given refresh
   // object to corresponding neighbors
 
+  if (cello::monitor()->verbose() &&
+      index().is_root() && (state()->cycle() % 100 == 0) ) {
+    refresh->summary();
+  }
+
   if ( refresh->is_active() ) {
 
     ASSERT2 ("Block::refresh_start()",
@@ -107,10 +112,10 @@ void Block::refresh_wait (int id_refresh, int callback)
   // process any existing messages in the refresh message list
 
   for (size_t id_msg=0;
-       id_msg<refresh_msg_list_[id_refresh].size();
+       id_msg<refresh_recv_buffer_[id_refresh].size();
        id_msg++) {
 
-    MsgRefresh * msg = refresh_msg_list_[id_refresh][id_msg];
+    MsgRefresh * msg = refresh_recv_buffer_[id_refresh][id_msg];
 
     // unpack message data into Block data
     msg->update(data());
@@ -121,7 +126,7 @@ void Block::refresh_wait (int id_refresh, int callback)
 
   // clear the message queue
 
-  refresh_msg_list_[id_refresh].resize(0);
+  refresh_recv_buffer_[id_refresh].resize(0);
 
   // and check if we're finished
 
@@ -147,8 +152,8 @@ void Block::refresh_check_done (int id_refresh)
 
     ASSERT2("Block::refresh_wait()",
             "Refresh %d message list has size %lu instead of 0",
-            id_refresh,refresh_msg_list_[id_refresh].size(),
-            (refresh_msg_list_[id_refresh].size() == 0));
+            id_refresh,refresh_recv_buffer_[id_refresh].size(),
+            (refresh_recv_buffer_[id_refresh].size() == 0));
 
     // reset sync counter
     sync->reset();
@@ -190,7 +195,7 @@ void Block::p_refresh_recv (MsgRefresh * msg_refresh)
   } else {
 
     // save message if not ready
-    refresh_msg_list_[id_refresh].push_back(msg_refresh);
+    refresh_recv_buffer_[id_refresh].push_back(msg_refresh);
 
   }
 }
@@ -260,7 +265,7 @@ int Block::refresh_load_field_faces_ (Refresh & refresh)
       neighbor_type == neighbor_tree) {
     // Loop over neighbor leaf Blocks (not necessarily same level)
 
-    ItNeighbor it_neighbor = refresh.it_neighbor (this,DirType::Both);
+    ItNeighbor it_neighbor = refresh.it_neighbor (this);
 
     int if3[3];
     while (it_neighbor.next(if3)) {
@@ -367,10 +372,6 @@ void Block::refresh_load_field_face_
 ( Refresh & refresh,  int face_type,
   Index index_neighbor,  int if3[3], int ic3[3])
 {
-  // create refresh message
-
-  MsgRefresh * msg_refresh = new MsgRefresh;
-
   // create field face
   if (face_type < 0) {
     index_.child(index_.level(),ic3,ic3+1,ic3+2);
@@ -381,13 +382,12 @@ void Block::refresh_load_field_face_
 
   // create data message
   DataMsg * data_msg = new DataMsg;
-  // initialize data message
   data_msg -> set_field_face (field_face,true);
   data_msg -> set_field_data (data()->field_data(),false);
 
   // initialize refresh message
-  msg_refresh->set_refresh_id (refresh.id());
-  msg_refresh->set_data_msg (data_msg);
+  // create refresh message
+  MsgRefresh * msg_refresh = new MsgRefresh(refresh.id(),data_msg);
 
   thisProxy[index_neighbor].p_refresh_recv (msg_refresh);
 
@@ -566,7 +566,7 @@ int Block::refresh_load_coarse_face_
 
       // Create iterator over extra blocks
 
-      ItNeighbor it_extra = refresh.it_neighbor (this,DirType::Both);
+      ItNeighbor it_extra = refresh.it_neighbor (this);
 
       int ef3[3];
       while (it_extra.next(ef3)) {
@@ -769,8 +769,6 @@ void Block::refresh_coarse_send_
  int ifms3[3], int ifps3[3],
  int ifmr3[3], int ifpr3[3])
 {
-  MsgRefresh * msg_refresh = new MsgRefresh;
-
   DataMsg * data_msg = new DataMsg;
 
   const int id_refresh = refresh.id();
@@ -780,8 +778,7 @@ void Block::refresh_coarse_send_
      refresh.field_list_dst(),
      name(index_neighbor));
 
-  msg_refresh->set_refresh_id (id_refresh);
-  msg_refresh->set_data_msg (data_msg);
+  MsgRefresh * msg_refresh = new MsgRefresh(id_refresh,data_msg);
 
   thisProxy[index_neighbor].p_refresh_recv (msg_refresh);
 }
@@ -802,7 +799,7 @@ void Block::refresh_coarse_apply_ (Refresh * refresh)
     if (neighbor_type == neighbor_leaf ||
         neighbor_type == neighbor_tree) {
 
-      ItNeighbor it_neighbor = refresh->it_neighbor (this,DirType::Both);
+      ItNeighbor it_neighbor = refresh->it_neighbor (this);
 
       const int level = this->level();
 
@@ -987,30 +984,40 @@ void Block::particle_send_
              id_refresh,
              (0 <= id_refresh));
 
-    if (p_data && p_data->num_particles(p_descr)>0) {
+    // if (p_data) {
 
-      DataMsg * data_msg = new DataMsg;
-      data_msg ->set_particle_data(p_data,true);
+    //   DataMsg * data_msg = nullptr;
 
-      MsgRefresh * msg_refresh = new MsgRefresh;
-      msg_refresh->set_data_msg (data_msg);
-      msg_refresh->set_refresh_id (id_refresh);
+    //   if (p_data->num_particles(p_descr) > 0) {
+    //     data_msg = new DataMsg;
+    //     data_msg ->set_particle_data(p_data,true);
+    //   }
+
+    //   MsgRefresh * msg_refresh = new MsgRefresh(id_refresh,data_msg);
+
+    //   thisProxy[index].p_refresh_recv (msg_refresh);
+
+    //   if (p_data->num_particles(p_descr) == 0) {
+    //     delete p_data;
+    //   }
+    // }
+
+    if (p_data) {
+
+      DataMsg * data_msg = nullptr;
+
+      if (p_data->num_particles(p_descr) > 0) {
+
+        data_msg = new DataMsg;
+        data_msg ->set_particle_data(p_data,true);
+
+      }
+
+      MsgRefresh * msg_refresh = new MsgRefresh (id_refresh,data_msg);
 
       thisProxy[index].p_refresh_recv (msg_refresh);
-
-    } else if (p_data) {
-
-      MsgRefresh * msg_refresh = new MsgRefresh;
-      msg_refresh->set_data_msg (nullptr);
-      msg_refresh->set_refresh_id (id_refresh);
-
-      thisProxy[index].p_refresh_recv (msg_refresh);
-
-      // assert ParticleData object exits but has no particles
-      delete p_data;
 
     }
-
   }
 }
 
@@ -1107,7 +1114,7 @@ int Block::particle_create_array_neighbors_
 
   const int min_face_rank = refresh->min_face_rank();
 
-  ItNeighbor it_neighbor = refresh->it_neighbor (this,DirType::Both);
+  ItNeighbor it_neighbor = refresh->it_neighbor (this);
 
   int il = 0;
 
@@ -1213,7 +1220,7 @@ void Block::particle_apply_periodic_update_
 
   // Compute position updates for particles crossing periodic boundaries
 
-  ItNeighbor it_neighbor = refresh->it_neighbor (this,DirType::Both);
+  ItNeighbor it_neighbor = refresh->it_neighbor (this);
 
   int il=0;
 
@@ -1447,7 +1454,7 @@ int Block::refresh_load_flux_faces_ (Refresh & refresh)
 
   // Loop over neighbor leaf Blocks (not necessarily same level)
 
-  ItNeighbor it_neighbor = refresh.it_neighbor (this, DirType::Both);
+  ItNeighbor it_neighbor = refresh.it_neighbor (this);
 
   int if3[3];
   while (it_neighbor.next(if3)) {
@@ -1457,9 +1464,7 @@ int Block::refresh_load_flux_faces_ (Refresh & refresh)
     int ic3[3];
     it_neighbor.child(ic3);
 
-    const int level = this->level();
     const int level_face = it_neighbor.face_level();
-
     const int face_type = it_neighbor.face_type();
 
     refresh_load_flux_face_
@@ -1491,8 +1496,8 @@ void Block::refresh_load_flux_face_
 
   // ... copy field ghosts to array using FieldFace object
 
-  const int axis = (if3[0]!=0) ? 0 : (if3[1]!=0) ? 1 : 2;
-  const int face = (if3[axis]==-1) ? 0 : 1;
+  int axis,face;
+  cello::xyz_to_af(axis,face,if3);
 
   // neighbor is coarser
   DataMsg * data_msg = new DataMsg;
@@ -1520,9 +1525,7 @@ void Block::refresh_load_flux_face_
            id_refresh,
            (0 <= id_refresh));
 
-  MsgRefresh * msg_refresh = new MsgRefresh;
-  msg_refresh->set_data_msg (data_msg);
-  msg_refresh->set_refresh_id (id_refresh);
+  MsgRefresh * msg_refresh = new MsgRefresh (id_refresh,data_msg);
 
   thisProxy[index_neighbor].p_refresh_recv (msg_refresh);
 }

@@ -285,6 +285,14 @@ enum type_enum {
 
 enum class MsgType { msg_refine, msg_check };
 
+/// @enum     DirType
+/// @brief    Specify Send or Recv in iterators, e.g. ItNeighbor,
+///           Needed when restricting refresh within a range of levels
+///           in [level_lower, level_upper) since sends and receives
+///           are not symmetric.
+
+enum class DirType { Unknown, Both, Send, Recv };
+
 /// Length of hex message tags used for debugging
 #define TAG_LEN 8
 
@@ -891,11 +899,17 @@ namespace cello {
   inline int index_static()
   { return CkMyPe() % CONFIG_NODE_SIZE; }
 
-  inline void af_to_xyz (int axis, int face, int r3[3])
+  inline void af_to_xyz (int axis, int face, int if3[3])
   {
-    r3[0] = (axis==0) ? 2*face-1 : 0;
-    r3[1] = (axis==1) ? 2*face-1 : 0;
-    r3[2] = (axis==2) ? 2*face-1 : 0;
+    if3[0] = (axis==0) ? 2*face-1 : 0;
+    if3[1] = (axis==1) ? 2*face-1 : 0;
+    if3[2] = (axis==2) ? 2*face-1 : 0;
+  }
+
+  inline void xyz_to_af (int & axis, int & face, const int if3[3])
+  {
+    axis = (if3[0]) ? 0 : (if3[1]) ? 1 : 2;
+    face = (if3[axis] == -1) ? 0 : 1;
   }
 
   /// Return a pointer to the Simulation object on this process

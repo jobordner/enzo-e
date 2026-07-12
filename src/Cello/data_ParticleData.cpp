@@ -885,14 +885,9 @@ int ParticleData::data_size (ParticleDescr * particle_descr) const
 char * ParticleData::save_data (ParticleDescr * particle_descr,
                                 char * buffer) const
 {
-  union {
-    int  * pi;
-    char * pc;
-  };
-
   // NOTE: integers stored first, then char's, to avoid alignment issues
 
-  pc = (char *) buffer;
+  char * pc = (char *) buffer;
 
   SAVE_VECTOR_VECTOR_TYPE(pc,int,particle_count_);
   SAVE_VECTOR_VECTOR_TYPE(pc,char,attribute_align_);
@@ -913,12 +908,7 @@ char * ParticleData::load_data (ParticleDescr * particle_descr,
 {
   // NOTE: integers stored first, then char's, to avoid alignment issues
 
-  union {
-    int  * pi;
-    char * pc;
-  };
-
-  pc = (char *) buffer;
+  char * pc = (char *) buffer;
 
   LOAD_VECTOR_VECTOR_TYPE(pc,int,particle_count_);
   LOAD_VECTOR_VECTOR_TYPE(pc,char,attribute_align_);

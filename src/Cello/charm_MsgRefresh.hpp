@@ -20,6 +20,7 @@ public: // interface
   static long counter[CONFIG_NODE_SIZE];
 
   MsgRefresh() ;
+  MsgRefresh(int id_refresh, DataMsg * data_msg);
 
   virtual ~MsgRefresh();
 
@@ -31,15 +32,8 @@ public: // interface
   MsgRefresh & operator= (const MsgRefresh & data_msg) throw() = delete;
   MsgRefresh & operator= (const MsgRefresh && data_msg) throw() = delete;
 
-  // Set the new refresh object id
-  void set_refresh_id(int id_refresh)
-  { id_refresh_ = id_refresh; }
-
   int id_refresh() const
   { return id_refresh_; }
-
-  // Set the DataMsg object
-  void set_data_msg (DataMsg * data_msg);
 
   /// Update the Data with data stored in this message
   void update (Data * data);

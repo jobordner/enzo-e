@@ -14,7 +14,6 @@ class Box;
 class Prolong;
 class Restrict;
 class ItNeighbor;
-enum class DirType;
 
 class Refresh : public PUP::able {
 
@@ -313,7 +312,7 @@ public: // interface
   { return (all_particles_ || (particle_list_.size() > 0)); }
 
   /// Return the list of particles participating in the Refresh operation
-  std::vector<int> & particle_list() {
+  const std::vector<int> & particle_list() const {
     return particle_list_;
   }
 
@@ -465,7 +464,7 @@ public: // interface
   /// Return the sync object associated with this refresh object
   Sync * sync( Block * block );
 
-  ItNeighbor it_neighbor (Block * block, DirType dir_type);
+  ItNeighbor it_neighbor (Block * block, DirType dir_type = DirType::Both);
 
   //----------------------------------------------------------------------
 

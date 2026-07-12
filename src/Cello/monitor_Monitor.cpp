@@ -20,7 +20,7 @@ Monitor::Monitor()
   : timer_(new Timer),
     mode_(monitor_mode_root),
     group_default_(monitor_mode_all),
-    verbosity_(Verbosity::Medium),
+    verbose_(false),
     include_proc_(true),
     include_time_(true),
     schedule_(nullptr),
@@ -45,12 +45,6 @@ Monitor::~Monitor()
 
 void Monitor::header () const
 {
-
-  ASSERT ("Monitor::header()",
-          "Monitor verbosity is 'Unknown'",
-           (verbosity_ != Verbosity::Unknown));
-
-  if (verbosity_ == Verbosity::None) return;
 
   print ("","==============================================");
   print (""," ");

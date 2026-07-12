@@ -1013,7 +1013,8 @@ protected: // attributes
   std::vector<Refresh*> refresh_;
 
   std::vector < Sync > refresh_sync_list_;
-  std::vector < std::vector <MsgRefresh * > > refresh_msg_list_;
+  std::vector < std::vector <MsgRefresh * > > refresh_recv_buffer_;
+  std::vector < std::vector <MsgRefresh * > > refresh_send_buffer_;
 
   /// Index and total count used for ordering blocks, e.g. for dynamic
   /// load balancing

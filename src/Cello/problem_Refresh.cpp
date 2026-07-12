@@ -291,51 +291,46 @@ bool Refresh::include_history(int face_type) const
 
 void Refresh::summary() const
 {
-  FILE * fp = nullptr;
-  fp = fopen ((std::string("Refresh-")+std::to_string(CkMyPe())+
-               "-" +
-               cello::simulation()->refresh_name(id_refresh_)).c_str(),"a");
-  fprintf (fp,active_?"1 ":"0 ");
   const int ip = CkMyPe();
-  fprintf (fp,"Refresh %d:%s F: ",
-           id_refresh_,cello::simulation()->refresh_name(id_refresh_).c_str());
+  CkPrintf ("Refresh %02d %-25s ",
+           id_refresh_,
+            cello::simulation()->refresh_name(id_refresh_).c_str());
+
+  CkPrintf ("F ");
   std::vector<int> f_src = this->field_list_src();
   std::vector<int> f_dst = this->field_list_dst();
   if (all_fields_) {
-    fprintf (fp,"* ");
-  } else if (f_src.size() == 0) {
-    fprintf (fp,"x ");
+    CkPrintf ("* ");
   } else {
-    for (size_t i=0; i<f_src.size(); i++) {
-      int is=f_src[i];
-      int id=f_dst[i];
-      if (is==id) fprintf (fp,"%d ",is); else fprintf (fp,"%d>%d ",is,id);
-    }
+    CkPrintf ("%02d ",f_src.size());
   }
-  fprintf (fp,"P: ");
+  CkPrintf ("%c ",(f_src==f_dst) ? "=" : "+");
+
+  CkPrintf ("P ");
   if (all_particles_) {
-    fprintf (fp,"* ");
-  } else if (particle_list_.size() == 0) {
-    fprintf (fp,"x ");
+    CkPrintf ("* ");
   } else {
-    for (size_t i=0; i<particle_list_.size(); i++) {
-      fprintf (fp,"%d ",particle_list_[i]);
-    }
+    CkPrintf ("%d ",particle_list().size());
   }
-  fprintf (fp,"fl: %s ",all_fluxes_?"all":"none");
-  fprintf (fp,"g %d mfr %d nbr %d ",
+
+  CkPrintf ("X %d ",all_fluxes_?1:0);
+  CkPrintf ("g %d mfr %d nbr %d ",
             ghost_depth_,min_face_rank_,neighbor_type_);
-  fprintf (fp,"acc %s ",accumulate_?"+":">");
-  fprintf (fp,"sync %d:%d  ",sync_type_,sync_id_);
-  fprintf (fp,"lev %d/%d %d:%d ",level_,root_level_,level_lower_,level_upper_);
-  fprintf (fp,"ats %d ",adaptive_timestep_?1:0);
-  fprintf (fp,"glb %d ",global_);
-  fprintf (fp,"adv: %d ",advanced_time_);
-  fprintf (fp,"ip: %d ",id_prolong_);
-  fprintf (fp,"ir: %d",id_restrict_);
-  fprintf (fp,"\n");
-  fflush(stdout);
-  fclose(fp);
+  CkPrintf ("sync %d:%d ",sync_type_,sync_id_);
+  if (level_upper_ == std::numeric_limits<int>::max()) {
+    CkPrintf ("lev %d/%d %d:* ",
+              level_,root_level_,level_lower_);
+  } else {
+    CkPrintf ("lev %d/%d %d:%d ",
+              level_,root_level_,level_lower_,level_upper_);
+  }
+  CkPrintf ("ats %d ",adaptive_timestep_?1:0);
+  CkPrintf ("gl %d ",global_);
+  CkPrintf ("at %d ",advanced_time_);
+  CkPrintf ("ip %d ",id_prolong_);
+  CkPrintf ("ir %d ",id_restrict_);
+  CkPrintf ("fn %d",final_sync_);
+  CkPrintf ("\n");
 }
 
 //======================================================================

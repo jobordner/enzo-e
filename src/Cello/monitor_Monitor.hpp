@@ -23,8 +23,6 @@ class Timer;
 class Schedule;
 class Monitor {
 
-  enum class Verbosity { Unknown, None, Low, Medium, High };
-
   /// @class    Monitor
   /// @ingroup  Monitor
   /// @brief    [\ref Monitor] User monitoring of simulation execution status
@@ -68,7 +66,7 @@ public: // interface
 
     p | mode_;
     p | group_default_;
-    p | verbosity_;
+    p | verbose_;
     p | include_proc_;
     p | include_time_;
     p | schedule_;
@@ -120,6 +118,11 @@ public: // interface
   void set_include_time (bool include_time)
   { include_time_ = include_time; }
 
+  int verbose() const { return verbose_; }
+
+  void set_verbose (int verbose = true)
+  { verbose_ = verbose; }
+
   const Schedule * schedule() const
   { return schedule_; }
 
@@ -127,9 +130,6 @@ public: // interface
   void print_verbatim (const char * component, const char * buffer) const;
 
 private: // functions
-
-  void set_verbosity_ (Verbosity verbosity)
-  { verbosity_ = verbosity; }
 
   void update_state_ (int cycle, double time)
   { cycle_ = cycle;
@@ -162,8 +162,8 @@ private: // attributes
   /// Whether default is to output all groups or output no groups
   int group_default_;
 
-  /// Verbosity of output 0:none 1:low 2:medium [default] 3:high
-  Verbosity verbosity_;
+  /// Allow extra non-essential output such as for debugging
+  int verbose_;
 
   /// Whether to include process in output
   bool include_proc_;

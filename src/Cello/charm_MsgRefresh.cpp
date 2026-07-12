@@ -29,6 +29,20 @@ MsgRefresh::MsgRefresh()
 
 //----------------------------------------------------------------------
 
+MsgRefresh::MsgRefresh(int id_refresh, DataMsg * data_msg)
+    : CMessage_MsgRefresh(),
+      tag_(),
+      is_local_(true),
+      id_refresh_(id_refresh),
+      data_msg_(data_msg),
+      buffer_(nullptr)
+{
+  cello::hex_string(tag_,TAG_LEN);
+  ++counter[cello::index_static()];
+}
+
+//----------------------------------------------------------------------
+
 MsgRefresh::~MsgRefresh()
 {
   --counter[cello::index_static()];
@@ -36,18 +50,6 @@ MsgRefresh::~MsgRefresh()
   data_msg_ = nullptr;
   CkFreeMsg (buffer_);
   buffer_=nullptr;
-}
-
-//----------------------------------------------------------------------
-
-void MsgRefresh::set_data_msg  (DataMsg * data_msg) 
-{
-  if (data_msg_) {
-    WARNING ("MsgRefresh::set_data_msg()",
-	     "overwriting existing data_msg_");
-    delete data_msg_;
-  }
-  data_msg_ = data_msg;
 }
 
 //----------------------------------------------------------------------
