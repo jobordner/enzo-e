@@ -138,7 +138,6 @@ void Config::pup (PUP::er &p)
   p | monitor_proc;
   p | monitor_time;
   p | monitor_schedule_index;
-  p | monitor_level;
 
   // Output
 
@@ -939,8 +938,6 @@ void Config::read_monitor_ (Parameters * p) throw()
   monitor_verbose = p->value_logical("Monitor:verbose",false);
   monitor_proc    = p->value_logical("Monitor:include_proc", true);
   monitor_time    = p->value_logical("Monitor:include_time",true);
-
-  monitor_level = p->value_string("Monitor:level","medium");
 
   const bool monitor_scheduled =
     (p->type("Monitor:schedule:var") != parameter_unknown);

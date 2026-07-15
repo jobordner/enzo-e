@@ -87,7 +87,7 @@ private: // functions
 
   /// Create named interpolation object
   virtual Prolong * create_prolong_
-  (std::string_view type, Config * config) throw() override;
+  (std::string_view type, Config * config = nullptr) throw() override;
 
   /// Create named restriction object
   virtual Restrict * create_restrict_

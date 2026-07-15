@@ -87,13 +87,12 @@ public: // interface
     method_order_ordering(),
     method_type(),
     monitor_debug(false),
-    monitor_verbose(false),
-    monitor_proc(false),
-    monitor_time(false),
-    monitor_schedule_index(-1),
-    monitor_level(),
     monitor_mute_list(),
     monitor_only_list(),
+    monitor_proc(false),
+    monitor_schedule_index(-1),
+    monitor_time(false),
+    monitor_verbose(false),
     num_output(0),
     output_list(),
     output_type(),
@@ -255,13 +254,12 @@ public: // interface
       method_order_ordering(),
       method_type(),
       monitor_debug(false),
-      monitor_verbose(false),
-      monitor_proc(false),
-      monitor_time(false),
-      monitor_schedule_index(-1),
-      monitor_level(),
       monitor_mute_list(),
       monitor_only_list(),
+      monitor_proc(false),
+      monitor_schedule_index(-1),
+      monitor_time(false),
+      monitor_verbose(false),
       num_output(0),
       output_list(),
       output_type(),
@@ -473,20 +471,18 @@ public: // attributes
   std::vector<int>           method_max_supercycle;
   std::vector<int>           method_schedule_index;
   std::vector<double>        method_courant;
-  std::vector<std::string>  method_order_ordering;
+  std::vector<std::string>   method_order_ordering;
   std::vector<std::string>   method_type;
-
 
   // Monitor
 
   bool                       monitor_debug;
-  bool                       monitor_verbose;
-  bool                       monitor_proc;
-  bool                       monitor_time;
-  int                        monitor_schedule_index;
-  std::string                monitor_level;
   std::vector<std::string>   monitor_mute_list;
   std::vector<std::string>   monitor_only_list;
+  bool                       monitor_proc;
+  int                        monitor_schedule_index;
+  bool                       monitor_time;
+  bool                       monitor_verbose;
 
   // Output
 
@@ -576,8 +572,8 @@ public: // attributes
   std::vector<std::string>   solver_restrict;
   std::vector<std::string>   solver_prolong;
   std::vector<int>           solver_min_level;
-  std::vector<int>           solver_force_global_timestep;
   std::vector<int>           solver_max_level;
+  std::vector<int>           solver_force_global_timestep;
   std::vector<std::string>   solver_field_x;
   std::vector<std::string>   solver_field_b;
 

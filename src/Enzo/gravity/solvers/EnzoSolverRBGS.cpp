@@ -43,6 +43,7 @@ EnzoSolverRBGS::EnzoSolverRBGS
 
     refresh->add_field (ix_);
     refresh->set_min_face_rank(cello::rank() - 1);
+    //    refresh->set_ghost_depth(2);
 
     ScalarDescr * scalar_descr_int = cello::scalar_descr_int();
     i_iter_ = scalar_descr_int->new_value(name_ + ":iter");
@@ -53,6 +54,7 @@ EnzoSolverRBGS::EnzoSolverRBGS
 
     refresh_smooth->add_field (ix_);
     refresh_smooth->set_min_face_rank(cello::rank() - 1);
+    //    refresh_smooth->set_ghost_depth(2);
     refresh_smooth->set_callback(CkIndex_EnzoBlock::p_solver_rbgs_continue());
     refresh_smooth->set_final_sync(true);
   }
@@ -144,6 +146,7 @@ void EnzoSolverRBGS::do_refresh_(Block * block)
   refresh->set_active(is_finest_(block));
   refresh->add_field (ix_);
   refresh->set_min_face_rank(cello::rank() - 1);
+  //  refresh->set_ghost_depth(2);
 
   block->refresh_start
     (ir_smooth_, CkIndex_EnzoBlock::p_solver_rbgs_continue());

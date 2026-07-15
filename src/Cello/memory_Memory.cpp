@@ -54,12 +54,13 @@ void * Memory::allocate ( size_t bytes )
       ((bytes_curr_[0] + bytes) >= (1e9)*limit_gb_)) {
     // WARNING: do not use ERROR or ASSERT since allocates memory, leading to
     //          recursive calls to overloaded operator new 
-    CkPrintf ("%d ERROR: Cannot allocate %ld bytes: limit is %f GB\n",
-	      CkMyPe(), (bytes_curr_[0] + bytes),limit_gb_);
+    CkPrintf ("%d ERROR: Cannot allocate %ld (%ld) bytes: limit is %f GB\n",
+	      CkMyPe(), bytes, (bytes_curr_[0] + bytes),limit_gb_);
     void * array[10];
     size_t size = backtrace(array,10);
     backtrace_symbols_fd(array,size,STDERR_FILENO);
     CmiAbort("MEMORY ALLOCATION ERROR");
+    CkExit(1);
   }
 
   int * buffer = (int *)(std::malloc(bytes + 2*sizeof(int)));

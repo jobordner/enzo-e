@@ -22,6 +22,11 @@ void Block::refresh_start (int id_refresh, int callback)
 {
   Refresh * refresh = cello::refresh(id_refresh);
 
+  if (cello::monitor()->verbose() &&
+      index().is_root() &&
+      (state()->cycle() % 100 == 0))
+    refresh->summary();
+
   PERF_REFRESH_START(refresh);
   Sync * sync = sync_(id_refresh);
 
@@ -402,7 +407,8 @@ void Block::refresh_load_field_face_
   data_msg -> set_field_face (field_face,true);
   data_msg -> set_field_data (data()->field_data(),false);
 
-  MsgRefresh * msg_refresh = new MsgRefresh(refresh->id(),data_msg);
+  // create refresh message
+  MsgRefresh * msg_refresh = new MsgRefresh(data_msg,refresh.id());
 
   thisProxy[index_neighbor].p_refresh_recv (msg_refresh);
 
@@ -803,7 +809,7 @@ void Block::refresh_coarse_send_
      refresh->field_list_src(),
      refresh->field_list_dst());
 
-  MsgRefresh * msg_refresh = new MsgRefresh (id_refresh,data_msg);
+  MsgRefresh * msg_refresh = new MsgRefresh(data_msg,id_refresh);
 
   thisProxy[index_neighbor].p_refresh_recv (msg_refresh);
 
@@ -870,9 +876,15 @@ void Block::refresh_coarse_apply_ (Refresh * refresh)
             bool lpad;
 
             box_r.get_start_size
-              (i3_f,n3_f,BlockType::receive,BlockType::receive,lpad=false);
+              (i3_f,n3_f,
+               BlockType::receive,
+               BlockType::receive,lpad=false);
+
             box_r.get_start_size
-              (i3_c,n3_c,BlockType::receive,BlockType::receive_coarse,lpad=true);
+              (i3_c,n3_c,
+               BlockType::receive,
+               BlockType::receive_coarse,lpad=true);
+
             const int index_field_src = field_list_src[i_f];
             const int index_field_dst = field_list_dst[i_f];
 
@@ -1031,7 +1043,7 @@ void Block::particle_send_
 
       }
 
-      MsgRefresh * msg_refresh = new MsgRefresh (id_refresh,data_msg);
+      MsgRefresh * msg_refresh = new MsgRefresh (data_msg,id_refresh);
 
       thisProxy[index].p_refresh_recv (msg_refresh);
 
@@ -1645,7 +1657,12 @@ void Block::refresh_load_flux_face_
     data_msg -> set_num_face_fluxes(0);
   }
 
-  MsgRefresh * msg_refresh = new MsgRefresh (id_refresh,data_msg);
+  ASSERT1 ("Block::refresh_load_flux_face_()",
+           "id_refresh %d of refresh object is out of range",
+           id_refresh,
+           (0 <= id_refresh));
+
+  MsgRefresh * msg_refresh = new MsgRefresh (data_msg,id_refresh);
 
   thisProxy[index_neighbor].p_refresh_recv (msg_refresh);
 

@@ -19,8 +19,19 @@ public: // interface
 
   static long counter[CONFIG_NODE_SIZE];
 
-  MsgRefresh() ;
-  MsgRefresh(int id_refresh, DataMsg * data_msg);
+  MsgRefresh();
+
+  MsgRefresh (DataMsg * data_msg, int id_refresh)
+    : CMessage_MsgRefresh(),
+      tag_(),
+      is_local_(true),
+      id_refresh_(id_refresh),
+      data_msg_(data_msg),
+      buffer_(nullptr)
+  {
+    cello::hex_string(tag_,TAG_LEN);
+    ++counter[cello::index_static()];
+  }
 
   virtual ~MsgRefresh();
 

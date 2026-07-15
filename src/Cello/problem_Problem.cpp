@@ -264,7 +264,6 @@ void Problem::initialize_prolong(Config * config) throw()
 	  prolong_ptr != nullptr);
 
   prolong_list_.push_back(prolong_ptr);
-
 }
 
 //----------------------------------------------------------------------
