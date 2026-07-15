@@ -12,6 +12,7 @@
 #include "data_State.hpp"
 
 class Data;
+class FluxData;
 class MsgRefresh;
 class MsgRefine;
 class MsgCoarsen;
@@ -606,27 +607,27 @@ public:
   /// Receive a Refresh data message from an adjacent Block
   void p_refresh_recv (MsgRefresh * msg);
 
-  int refresh_load_field_faces_ (Refresh & refresh);
-  
+  int refresh_load_field_faces_ (Refresh * refresh);
+
   /// Scatter particles in ghost zones to neighbors
-  int refresh_load_particle_faces_ (Refresh & refresh, const bool copy = false);
+  int refresh_load_particle_faces_ (Refresh * refresh);
+
+  /// Send flux data to neighbors
+  int refresh_load_flux_faces_ (Refresh * refresh);
 
   /// Deletes all 'out-of-bounds' particles on the block, and for all the in-bounds
   /// particles, sets the 'is_copy' attribute to false
   int delete_non_local_particles_ (int it);
 
-  /// Send flux data to neighbors
-  int refresh_load_flux_faces_ (Refresh & refresh);
-
   void refresh_load_field_face_
-  (Refresh & refresh, int face_type, Index index, int if3[3], int ic3[3]);
+  (Refresh * refresh, int face_type, Index index, int if3[3], int ic3[3]);
   /// Send particles in list to corresponding indices
-  void particle_send_(Refresh & refresh, int nl,Index index_list[],
+  void particle_send_(Refresh * refresh, int nl,Index index_list[],
                       ParticleData * particle_list[]);
   void refresh_load_flux_face_
-  (Refresh & refresh, int face_type, Index index, int if3[3], int ic3[3]);
+  (Refresh * refresh, int face_type, Index index, int if3[3], int ic3[3]);
 
-  void refresh_exit (Refresh & refresh);
+  void refresh_exit (Refresh * refresh);
 
   /// Get restricted data from child when it is deleted
   void p_refresh_child (int n, char a[],int ic3[3]);
@@ -661,23 +662,20 @@ protected:
   /// Handle the special case of refresh on interpolated faces
   /// requiring extra padding
   int refresh_load_coarse_face_
-  (Refresh refresh,  int face_type,
+  (Refresh * refresh,  int face_type,
    Index index_neighbor, int if3[3],int ic3[3]);
 
   /// Send padded array of fields to neighbor for interpolations whose
   /// domains overlap multiple blocks
   void refresh_coarse_send_
   (Index index,
-   Field field, Refresh & refresh,
+   Field field, Refresh * refresh,
    int iam3[3], int iap3[3],
    int ifms3[3], int ifps3[3],
    int ifmr3[3], int ifpr3[3]);
 
   /// Apply prolongation operations on Block
   void refresh_coarse_apply_(Refresh * refresh);
-
-  /// Scatter particles in ghost zones to neighbors
-  int refresh_load_particle_faces_ (Refresh * refresh);
 
   // void refresh_load_field_face_
   // (int face_type, Index index, int if3[3], int ic3[3]);
@@ -903,6 +901,18 @@ protected: // functions
   /// Update boundary conditions
   void update_boundary_ ();
 
+  MsgRefresh * new_msg_refresh_ (Index index, int id_refresh);
+  void new_msg_refresh_ (Index index, int id_refresh, FieldFace *);
+  void new_msg_refresh_ (Index index, int id_refresh,
+                         Field field, Refresh * refresh,
+                         int iam3[3],int iap3[3],
+                         int ifms3[3],int ifps3[3],
+                         int ifmr3[3],int ifpr3[3]);
+  void new_msg_refresh_ (Index index, int id_refresh, ParticleData *);
+  void new_msg_refresh_ (Index index, int id_refresh,
+                         int face_type, int axis, int face, int ic3[3],
+                         FluxData * flux_data);
+
   /// Return the currently-active Refresh object
   Refresh * refresh () throw()
   {  return refresh_.back();  }
@@ -1015,6 +1025,7 @@ protected: // attributes
   std::vector < Sync > refresh_sync_list_;
   std::vector < std::vector <MsgRefresh * > > refresh_recv_buffer_;
   std::vector < std::vector <MsgRefresh * > > refresh_send_buffer_;
+  std::vector < std::vector <Index> >         refresh_send_index_;
 
   /// Index and total count used for ordering blocks, e.g. for dynamic
   /// load balancing

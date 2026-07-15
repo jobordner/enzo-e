@@ -66,6 +66,8 @@ REGION_SMP=`    awk '/perf:region smp/    {print $(NF-2)}' $input | sort | uniq`
 REGION_SOLVER=` awk '/perf:region solver/ {print $(NF-2)}' $input | sort | uniq`
 REFRESH=`       awk '/perf:refresh / {print $(NF-1)}' $input | sort | uniq`
 
+COUNTER=`       awk '/perf:counter / {print $(NF-1)}' $input | sort | uniq`
+
 num_procs=`awk '/CkNumPes/  {print $5}' $input`
 num_nodes=`awk '/CkNumNodes/{print $5}' $input`
 
@@ -105,7 +107,12 @@ for refresh in $REFRESH; do
     fi
 done
 
-for reduce in $REGION_REDUCE; do
+for counter in $COUNTER; do
+     echo "Generating counter-$counter.data"
+     awk '/Simulation cycle /{c=$NF}; /perf:counter '"$counter"' /{print c,$NF}' $input > counter-$counter.data
+done
+
+        for reduce in $REGION_REDUCE; do
     if [[ ! -e "$reduce.data" ]]; then
         echo "Generating $reduce.data"
         awk '/Simulation cycle /{c=$NF}; /perf:region '"$reduce"' /{print c,$NF/'"$num_procs"'}' $input > $reduce.data

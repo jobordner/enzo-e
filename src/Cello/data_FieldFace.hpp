@@ -160,10 +160,10 @@ public: // interface
 
 private: // functions
 
-  const Prolong * prolong_ ()
+  const Prolong * prolong_ () const
   { return refresh_->get_prolong(); }
 
-  const Restrict * restrict_ ()
+  const Restrict * restrict_ () const
   { return refresh_->get_restrict(); }
   
   /// copy data

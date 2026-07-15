@@ -419,6 +419,13 @@ void Block::pup(PUP::er &p)
     for (int i=0; i<len; i++) refresh_send_buffer_[i].clear();
   }
 
+  len=refresh_send_index_.size();
+  p | len;
+  if (up) {
+    refresh_send_index_.resize(len);
+    for (int i=0; i<len; i++) refresh_send_index_[i].clear();
+  }
+  
   p | level_lower_;
   p | level_upper_;
 
@@ -870,6 +877,7 @@ void Block::init_refresh_()
   refresh_sync_list_.resize(count);
   refresh_recv_buffer_.resize(count);
   refresh_send_buffer_.resize(count);
+  refresh_send_index_.resize(count);
   for (int i=0; i<count; i++) {
     refresh_sync_list_[i].reset();
   }

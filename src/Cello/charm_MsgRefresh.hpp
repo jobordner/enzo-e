@@ -32,6 +32,9 @@ public: // interface
   MsgRefresh & operator= (const MsgRefresh & data_msg) throw() = delete;
   MsgRefresh & operator= (const MsgRefresh && data_msg) throw() = delete;
 
+  DataMsg * data_msg ()
+  { return data_msg_; }
+
   int id_refresh() const
   { return id_refresh_; }
 

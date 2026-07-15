@@ -258,7 +258,7 @@ char * Refresh::load_data (char * buffer)
 //----------------------------------------------------------------------
 
 ItNeighbor Refresh::it_neighbor
-(Block * block, DirType dir_type)
+(Block * block, DirType dir_type) const
 {
   int n3[3], p3[3];
   cello::hierarchy()->root_blocks    (n3,n3+1,n3+2);

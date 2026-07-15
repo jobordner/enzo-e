@@ -192,8 +192,7 @@ public: // interface
    int ifms3[3],int ifps3[3],
    int ifmr3[3],int ifpr3[3],
    const std::vector<int> & field_list_src,
-   const std::vector<int> & field_list_dst,
-   std::string debug_block_recv);
+   const std::vector<int> & field_list_dst);
 
   /// Set message scalars from Data object scalars
   void set_scalars ( Data * data);
@@ -227,6 +226,10 @@ public: // interface
   /// Debugging
   void print (std::string, FILE * fp = nullptr) const;
 
+protected: // methods
+
+  void get_num_data_ (int & n_ff, int & n_fa, int & n_pd, int & n_fd) const;
+
 protected: // attributes
 
   /// Field Face Data
@@ -257,7 +260,7 @@ protected: // attributes
   std::vector<FaceFluxes *> face_fluxes_list_;
 
   /// Whether Flux data should be deleted in destructor
-  std::vector<bool> face_fluxes_delete_;
+  std::vector<char> face_fluxes_delete_;
 
   /// Padded coarse array values for prolongation operators that
   /// requiring extra layers of cells around the interpoltaed region

@@ -295,8 +295,8 @@ void EnzoSolverBiCgStab::compute_(EnzoBlock* block) throw() {
   if (is_singular_()) {
 
     std::vector<cello_reduce_type> reduce;
-    reduce.resize(3+1);
     reduce.clear();
+    reduce.resize(3+1);
     reduce[0] = 3;
 
     cello_reduce_type count = 0.0;
@@ -376,8 +376,8 @@ void EnzoSolverBiCgStab::start_2(EnzoBlock* block,
   /// update B and initialize temporary vectors (on leaf blocks only)
 
   std::vector<cello_reduce_type> reduce;
-  reduce.resize(3+1);
   reduce.clear();
+  reduce.resize(3+1);
   reduce[0] = 3;
 
   if (is_finest_(block)) {
@@ -715,8 +715,8 @@ void EnzoSolverBiCgStab::loop_4(EnzoBlock* block) throw() {
   /// compute local contributions to vr0_ = DOT(V, R0)
 
   std::vector<cello_reduce_type> reduce;
-  reduce.resize(3+1);
   reduce.clear();
+  reduce.resize(3+1);
   reduce[0] = 3;
 
   if (is_finest_(block)) {
@@ -955,8 +955,8 @@ void EnzoSolverBiCgStab::loop_10(EnzoBlock* block) throw() {
   }
 
   std::vector<cello_reduce_type> reduce;
-  reduce.resize(5+1);
   reduce.clear();
+  reduce.resize(5+1);
   reduce[0] = 5;
 
   if (is_finest_(block)) {
@@ -1146,8 +1146,8 @@ void EnzoSolverBiCgStab::loop_12(EnzoBlock* block,
   /// beta_n = DOT(R, R0)
 
   std::vector<cello_reduce_type> reduce;
-  reduce.resize(2+1);
   reduce.clear();
+  reduce.resize(2+1);
   reduce[0] = 2;
 
   if (is_finest_(block)) {

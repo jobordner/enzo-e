@@ -453,18 +453,13 @@ public: // interface
   int sync_type() const
   { return sync_type_; }
 
-  // Return the id of the synchronization object (used for debugging
-  // only)
-  int sync_id() const
-  { return sync_id_; }
-
   int sync_exit() const
   { return 3*sync_id_+2; }
 
   /// Return the sync object associated with this refresh object
   Sync * sync( Block * block );
 
-  ItNeighbor it_neighbor (Block * block, DirType dir_type = DirType::Both);
+  ItNeighbor it_neighbor (Block * block, DirType dir_type = DirType::Both) const;
 
   //----------------------------------------------------------------------
 
@@ -568,7 +563,7 @@ public: // interface
   bool include_history(int face_type) const;
 
   /// Whether to bypass final sync
-  int final_sync() { return final_sync_; }
+  int final_sync() const { return final_sync_; }
 
   /// Set whether to bypass final sync
   void set_final_sync (int sync = true)

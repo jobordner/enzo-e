@@ -17,12 +17,13 @@ CkReductionMsg * r_reduce_performance(int n, CkReductionMsg ** msgs)
   long long num_max = ((long long*) (msgs[0]->getData()))[1];
 
   const int length = 2 + num_sum + num_max;
-  std::vector<long long> accum;
   ASSERT1 ("r_reduce_performance",
 	   "Sanity check failed on expected accumulator array %d",
 	   length, (length < MAX_LENGTH_REDUCTION));
-  accum.resize(length);
+
+  std::vector<long long> accum;
   accum.clear();
+  accum.resize(length);
 
   // save length
   accum [0] = num_sum;
@@ -63,13 +64,13 @@ CkReductionMsg * r_reduce_method_debug(int n, CkReductionMsg ** msgs)
 
   cello_reduce_type length = ((cello_reduce_type*) (msgs[0]->getData()))[0];
   int num_fields = (length - 1) / 4;
-  std::vector<cello_reduce_type> accum;
   ASSERT1 ("r_reduce_method_debug",
 	   "Sanity check failed on expected accumulator array %d",
 	   length, (length < MAX_LENGTH_REDUCTION));
 
-  accum.resize(length);
+  std::vector<cello_reduce_type> accum;
   accum.clear();
+  accum.resize(length);
 
   // save length
   accum [0] = num_fields;

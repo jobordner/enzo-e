@@ -25,12 +25,14 @@ while true; do
     /CkNumHosts/{nh=$NF;}; \
     /CkNumNodes/{nn=$NF;}; \
     /CkNumPes/{np=$NF;}; \
-    /END ENZO/{st=" -- "; }; \
+    /BEGIN ENZO/{st=" -X"; }; \
+    /END ENZO/{st=" --"; }; \
     /CONFIG_SMP_MODE/{if ($NF=="Yes") smp="1"; if ($NF=="no") smp="0"; } \
     /Using randomized message/{rnd=1}; \
      END{ \
          t_h=int(te/3600); \
          t_m=int((te%3600)/60); \
+         f_mr = sprintf ("%dD",mr); \
          t_s=int(te%60); \
          fhms = sprintf ("%02d:%02d:%02d",t_h,t_m,t_s); \
          f_time = sprintf ("%s %.1f %.2f",fhms,ts,tr); \
@@ -40,7 +42,8 @@ while true; do
          f_mesh = sprintf ("N%d:%d-L%d",ms,mb,ml); \
          f_charm = sprintf ("rs%d%d",rnd,smp); \
          f_proc = sprintf ("%d:%d/%d",nh,nn,np); \
-   print st,mr,\
+   print st, \
+       f_mr,\
        f_mesh,\
        f_charm,\
        f_proc,\
