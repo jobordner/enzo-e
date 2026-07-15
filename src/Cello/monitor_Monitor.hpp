@@ -37,7 +37,7 @@ class Monitor {
   //----------------------------------------------------------------------
 
 public:
-  
+
   /// Private constructor of the Monitor object [singleton design pattern]
   /// (MADE PUBLIC FOR Parameters::write())
   Monitor();

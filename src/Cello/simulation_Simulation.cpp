@@ -59,9 +59,9 @@ Simulation::Simulation
   sync_restart_created_(),
   sync_restart_next_(),
   refresh_list_(),
-  refresh_type_(RefreshType::Unknown),
   refresh_perf_count_(),
   refresh_perf_bytes_(),
+  refresh_type_(RefreshType::Unknown),
   index_output_(-1),
   num_solver_iter_(),
   max_solver_iter_(),
@@ -134,9 +134,9 @@ Simulation::Simulation()
   sync_restart_created_(),
   sync_restart_next_(),
   refresh_list_(),
-  refresh_type_(RefreshType::Unknown),
   refresh_perf_count_(),
   refresh_perf_bytes_(),
+  refresh_type_(RefreshType::Unknown),
   index_output_(-1),
   num_solver_iter_(),
   max_solver_iter_(),
@@ -196,9 +196,9 @@ Simulation::Simulation (CkMigrateMessage *m)
     sync_restart_created_(),
     sync_restart_next_(),
     refresh_list_(),
-    refresh_type_(RefreshType::Unknown),
     refresh_perf_count_(),
     refresh_perf_bytes_(),
+    refresh_type_(RefreshType::Unknown),
     index_output_(-1),
     num_solver_iter_(),
     max_solver_iter_(),
@@ -308,10 +308,10 @@ void Simulation::pup (PUP::er &p)
   p | schedule_balance_;
 
   p | refresh_list_;
-  p | refresh_type_;
   p | refresh_name_;
   p | refresh_perf_count_;
   p | refresh_perf_bytes_;
+  p | refresh_type_;
 
   PUParray(p,dir_checkpoint_,256);
 
@@ -540,8 +540,7 @@ void Simulation::initialize_performance_() throw()
   }
   // add Refresh performance regions
   perf_refresh_base_rindex_ = p->num_regions();
-  for (int i=0; i<refresh_list_.size(); i++) {
-    Refresh * refresh = cello::refresh(i);
+  for (size_t i=0; i<refresh_list_.size(); i++) {
     std::string region_name = std::string("refresh_") + refresh_name_[i];
     p->new_region(perf_refresh_base_rindex_ + i, region_name);
   }
@@ -645,7 +644,7 @@ void Simulation::initialize_data_descr_() throw()
 	  "Illegal Field:alignment parameter value %d",
 	   alignment,
 	   1 <= alignment );
-	
+
   field_descr_->set_alignment (alignment);
 
   field_descr_->set_padding (config_->field_padding);
@@ -846,7 +845,7 @@ void Simulation::initialize_hierarchy_() throw()
   bool lp3[3] = { false, false, false };
   auto & root_blocks = config_->mesh_root_blocks;
 
-  for (int k = 0; k < cello::num_boundary(); k++) {
+  for (size_t k = 0; k < cello::num_boundary(); k++) {
     cello::boundary(k)->periodicity(lp3);
   }
 
@@ -1126,7 +1125,7 @@ void Simulation::monitor_performance()
   counters_reduce_vector.push_back( hierarchy_->num_particles() );
 
   // Refresh count, fields, particles, bytes sent/received per refresh object
-  for (int i=0; i<refresh_list_.size(); i++) {
+  for (size_t i=0; i<refresh_list_.size(); i++) {
     counters_reduce_vector.push_back (refresh_perf_count_[i]);
     counters_reduce_vector.push_back (refresh_perf_bytes_[i]);
   }
@@ -1221,11 +1220,11 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   const int num_particles = counters_reduce[m++];
   monitor->print("perf:data","num-particles total %lld",num_particles);
 
-  for (int i=0; i<refresh_list_.size(); i++) {
+  for (size_t i=0; i<refresh_list_.size(); i++) {
     long long value;
-    if (value = counters_reduce[m++])
+    if ((value = counters_reduce[m++]))
       monitor->print ("perf:refresh","refresh-count %s %lld",refresh_name_[i].c_str(),value);
-    if (value = counters_reduce[m++])
+    if ((value = counters_reduce[m++]))
       monitor->print
         ("perf:refresh","refresh-bytes %s %lld",refresh_name_[i].c_str(),value);
   }

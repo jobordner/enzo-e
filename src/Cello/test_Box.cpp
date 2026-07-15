@@ -172,7 +172,7 @@ PARALLEL_MAIN_BEGIN
     CkPrintf ("   ic %2d %2d nc %2d %2d if %2d %2d nf %2d %2d\n",
               ic3_e4[0],ic3_e4[1], nc3_e4[0],nc3_e4[1],
               if3_e4[0],if3_e4[1], nf3_e4[0],nf3_e4[1]);
-            
+
     //--------------------------------------------------
     // Linear      ghost = 0: ic  4  4 nc  8  8 if  4  4 nf  8  8
     // Linear      ghost = 1: ic  4  4 nc 10 10 if  4  4 nf  8  8
@@ -208,7 +208,7 @@ PARALLEL_MAIN_BEGIN
 
     int f3_100[3] = {1,0,0};
     int g3_100[3] = {0,0,0};
-    
+
     box100_l0->set_block(BoxType_receive,1,f3_100,g3_100);
     box100_l1->set_block(BoxType_receive,1,f3_100,g3_100);
     box100_l4->set_block(BoxType_receive,1,f3_100,g3_100);

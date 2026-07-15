@@ -1530,6 +1530,7 @@ void EnzoSolverBiCgStab::register_refresh_()
   refresh_post->add_field (ix_);
 
   refresh_post->set_min_face_rank(cello::rank()-1);
+  //  refresh_post->set_ghost_depth(2);
 
   //--------------------------------------------------
 
@@ -1545,6 +1546,7 @@ void EnzoSolverBiCgStab::register_refresh_()
   refresh_loop_3->set_callback(CkIndex_EnzoBlock::p_solver_bicgstab_loop_3());
 
   refresh_loop_3->set_min_face_rank(cello::rank()-1);
+  //  refresh_loop_3->set_ghost_depth(2);
 
   //--------------------------------------------------
 
@@ -1560,5 +1562,6 @@ void EnzoSolverBiCgStab::register_refresh_()
   refresh_loop_9->set_callback(CkIndex_EnzoBlock::p_solver_bicgstab_loop_9());
 
   refresh_loop_9->set_min_face_rank(cello::rank()-1);
+  //  refresh_loop_9->set_ghost_depth(2);
 
 }

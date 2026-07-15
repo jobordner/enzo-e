@@ -45,7 +45,6 @@ Monitor::~Monitor()
 
 void Monitor::header () const
 {
-
   print ("","==============================================");
   print (""," ");
   print ("","  .oooooo.             oooo  oooo");

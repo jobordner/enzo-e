@@ -25,6 +25,7 @@ while true; do
     /CkNumHosts/{nh=$NF;}; \
     /CkNumNodes/{nn=$NF;}; \
     /CkNumPes/{np=$NF;}; \
+    /BEGIN ENZO/{st=" -X "; }; \
     /END ENZO/{st=" -- "; }; \
     /CONFIG_SMP_MODE/{if ($NF=="Yes") smp="1"; if ($NF=="no") smp="0"; } \
     /Using randomized message/{rnd=1}; \

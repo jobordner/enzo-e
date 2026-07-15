@@ -403,9 +403,8 @@ void Block::pup(PUP::er &p)
   }
   p | refresh_sync_list_;
 
-  int len;
+  int len = refresh_recv_buffer_.size();
 
-  len=refresh_recv_buffer_.size();
   p | len;
   if (up) {
     refresh_recv_buffer_.resize(len);
@@ -419,6 +418,13 @@ void Block::pup(PUP::er &p)
     for (int i=0; i<len; i++) refresh_send_buffer_[i].clear();
   }
 
+  len = refresh_send_buffer_.size();
+  p | len;
+  if (up) {
+    refresh_send_buffer_.resize(len);
+    for (int i=0; i<len; i++) refresh_send_buffer_[i].clear();
+  }
+ 
   p | level_lower_;
   p | level_upper_;
 

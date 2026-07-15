@@ -32,6 +32,8 @@ EnzoMethodComovingExpansion::EnzoMethodComovingExpansion
   refresh->add_field("velocity_y");
   refresh->add_field("velocity_z");
 
+  //  refresh->set_ghost_depth (2);
+
   if ( ! comoving_coordinates_ ) {
     WARNING
       ("EnzoMethodComovingExpansion::EnzoMethodComovingExpansion()",

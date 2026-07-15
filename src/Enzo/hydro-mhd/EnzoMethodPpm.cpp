@@ -106,6 +106,7 @@ EnzoMethodPpm::EnzoMethodPpm (bool store_fluxes_for_corrections,
   refresh->add_all_fields("color");
   // note min_face_rank reverts to 0 when EnzoProlong is used
   refresh->set_min_face_rank(0);
+  //  refresh->set_ghost_depth(4);
   
    // PPM parameters initialized in EnzoBlock::initialize()
 }
