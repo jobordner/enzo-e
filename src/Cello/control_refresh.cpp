@@ -408,7 +408,7 @@ void Block::refresh_load_field_face_
   data_msg -> set_field_data (data()->field_data(),false);
 
   // create refresh message
-  MsgRefresh * msg_refresh = new MsgRefresh(data_msg,refresh.id());
+  MsgRefresh * msg_refresh = new MsgRefresh(data_msg,refresh->id());
 
   thisProxy[index_neighbor].p_refresh_recv (msg_refresh);
 
@@ -1065,7 +1065,7 @@ MsgRefresh * Block::new_msg_refresh_ (Index index, int id_refresh)
 
   // ...else create, store, and return if not
   DataMsg * data_msg = new DataMsg;
-  MsgRefresh * msg_refresh = new MsgRefresh (id_refresh,data_msg);
+  MsgRefresh * msg_refresh = new MsgRefresh (data_msg,id_refresh);
   refresh_send_index_ [id_refresh].push_back(index);
   refresh_send_buffer_[id_refresh].push_back(msg_refresh);
   return msg_refresh;

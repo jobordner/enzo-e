@@ -304,7 +304,7 @@ void Refresh::summary() const
   } else {
     CkPrintf ("%02d ",f_src.size());
   }
-  CkPrintf ("%c ",(f_src==f_dst) ? "=" : "+");
+  CkPrintf ("%c ",(f_src==f_dst) ? '=' : '+');
 
   CkPrintf ("P ");
   if (all_particles_) {
