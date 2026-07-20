@@ -250,20 +250,40 @@ void Problem::initialize_stopping(Config * config) throw()
 
 //----------------------------------------------------------------------
 
+int Problem::new_prolong (std::string type) throw()
+{
+  Prolong * prolong_ptr = create_prolong_(type);
+  ASSERT1("Problem::initialize_prolong",
+          "Prolong type %s not recognized",
+          type.c_str(),
+          prolong_ptr != nullptr);
+  prolong_list_.push_back(prolong_ptr);
+  return prolong_list_.size() - 1;
+}
+
+//----------------------------------------------------------------------
+
+int Problem::new_restrict (std::string type) throw()
+{
+  Restrict * restrict_ptr = create_restrict_(type);
+  ASSERT1("Problem::initialize_restrict",
+          "Restrict type %s not recognized",
+          type.c_str(),
+          restrict_ptr != nullptr);
+  restrict_list_.push_back(restrict_ptr);
+  return restrict_list_.size() - 1;
+}
+
+//----------------------------------------------------------------------
+
 void Problem::initialize_prolong(Config * config) throw()
 {
   // default prolongation
+
+  int id_prolong = new_prolong (config->field_prolong);
   ASSERT ("Problem::initialize_prolong()",
           "Initial default prolongation must be added to Problem::prolong_list_ first",
-          (prolong_list_.size() == 0));
-  Prolong * prolong_ptr = create_prolong_(config->field_prolong,config);
-
-  ASSERT1("Problem::initialize_prolong",
-	  "Prolong type %s not recognized",
-	  config->field_prolong.c_str(),
-	  prolong_ptr != nullptr);
-
-  prolong_list_.push_back(prolong_ptr);
+          (id_prolong == 0));
 }
 
 //----------------------------------------------------------------------
@@ -271,19 +291,12 @@ void Problem::initialize_prolong(Config * config) throw()
 void Problem::initialize_restrict(Config * config) throw()
 {
   // default restriction
+
+  const int id_restrict = new_restrict (config->field_restrict);
+
   ASSERT ("Problem::initialize_restrict()",
           "Initial default restriction must be added to Problem::restrict_list_ first",
-          (restrict_list_.size() == 0));
-
-  Restrict * restrict_ptr = create_restrict_(config->field_restrict,config);
-
-  ASSERT1("Problem::initialize_restrict",
-	  "Restrict type %s not recognized",
-	  config->field_restrict.c_str(),
-	  restrict_ptr != nullptr);
-
-  restrict_list_.push_back(restrict_ptr);
-
+          (id_restrict == 0));
 }
 
 //----------------------------------------------------------------------
@@ -765,16 +778,11 @@ Solver * Problem::create_solver_
 
   if (type == "null") {
 
-    Prolong * prolong_ptr = create_prolong_
-      (config->solver_prolong[index_solver],config);
-    Restrict * restrict_ptr = create_restrict_
-      (config->solver_restrict[index_solver],config);
+    const int index_prolong = new_prolong
+      (config->solver_prolong[index_solver]);
+    const int index_restrict = new_restrict
+      (config->solver_restrict[index_solver]);
 
-    const int index_prolong = prolong_list_.size();
-    const int index_restrict = restrict_list_.size();
-    prolong_list_.push_back(prolong_ptr);
-    restrict_list_.push_back(restrict_ptr);
-    
     solver = new SolverNull
       (config->solver_list         [index_solver],
        config->solver_field_x      [index_solver],
@@ -1031,8 +1039,7 @@ Output * Problem::create_output_
 
 //----------------------------------------------------------------------
 
-Prolong * Problem::create_prolong_ ( std::string_view name ,
-                                     Config * config) throw ()
+Prolong * Problem::create_prolong_ ( std::string_view name ) throw ()
 {
   Prolong * prolong_ptr = nullptr;
 
@@ -1058,8 +1065,7 @@ Prolong * Problem::create_prolong_ ( std::string_view name ,
 
 //----------------------------------------------------------------------
 
-Restrict * Problem::create_restrict_ ( std::string_view name ,
-                                       Config * config) throw ()
+Restrict * Problem::create_restrict_ ( std::string_view name ) throw ()
 {
   Restrict * restrict_ptr = nullptr;
 

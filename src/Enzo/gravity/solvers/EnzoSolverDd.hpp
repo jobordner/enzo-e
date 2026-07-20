@@ -52,8 +52,6 @@ public: // interface
        index_solve_coarse_(-1),
        index_solve_domain_(-1),
        index_solve_smooth_(-1),
-       index_prolong_(-1),
-       index_restrict_(-1),
        i_sync_restrict_(-1),
        i_sync_prolong_(-1),
        i_msg_restrict_(),
@@ -205,8 +203,6 @@ protected: // attributes
   int index_solve_coarse_;
   int index_solve_domain_;
   int index_solve_smooth_;
-  int index_prolong_;
-  int index_restrict_;
 
   /// MG scalar id's
   int i_sync_restrict_;

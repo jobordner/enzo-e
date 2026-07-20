@@ -233,6 +233,9 @@ public: // interface
   /// Initialize the units object
   void initialize_units(Config * config ) throw();
 
+  int new_prolong (std::string type) throw();
+  int new_restrict (std::string type) throw();
+
   /// Create named compute object
   virtual Compute *  create_compute
   (std::string_view type,
@@ -300,12 +303,10 @@ protected: // functions
    const Factory * ) throw ();
 
   /// Create named prolongation object
-  virtual Prolong * create_prolong_
-  (std::string_view type, Config * config = nullptr) throw ();
+  virtual Prolong * create_prolong_ (std::string_view type) throw ();
 
   /// Create named restrictation object
-  virtual Restrict * create_restrict_
-  (std::string_view type, Config * config) throw ();
+  virtual Restrict * create_restrict_ (std::string_view type) throw ();
 
   /// Create named units object
   virtual Units * create_units_ (Config * config) throw ();

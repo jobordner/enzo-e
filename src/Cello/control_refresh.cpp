@@ -1047,6 +1047,8 @@ void Block::particle_send_
 
       thisProxy[index].p_refresh_recv (msg_refresh);
 
+      if (data_msg == nullptr) delete p_data;
+
 #endif
 
     }

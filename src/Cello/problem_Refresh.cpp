@@ -111,6 +111,7 @@ const Prolong * Refresh::get_prolong () const
 {
   Prolong * prolong_ptr = (id_prolong_ < cello::num_prolong()) ?
     cello::prolong(id_prolong_) : nullptr;
+
   return prolong_ptr ? prolong_ptr : new ProlongLinear;
 }
 

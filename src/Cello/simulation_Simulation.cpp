@@ -1122,6 +1122,7 @@ void Simulation::monitor_performance()
   counters_reduce_vector.push_back( MsgOrder::counter[in] );
   counters_reduce_vector.push_back( DataMsg::counter[in] );
   counters_reduce_vector.push_back( FieldFace::counter[in] );
+  counters_reduce_vector.push_back( ParticleData::counter[in] );
   counters_reduce_vector.push_back( hierarchy_->num_particles() );
 
   // Refresh count, fields, particles, bytes sent/received per refresh object
@@ -1216,7 +1217,7 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   monitor->print("perf:counter","msg-order %lld",   counters_reduce[m++]);
   monitor->print("perf:counter","data-msg %lld",    counters_reduce[m++]);
   monitor->print("perf:counter","field-face %lld",  counters_reduce[m++]);
-
+  monitor->print("perf:counter","particle-data %lld",counters_reduce[m++]);
   const int num_particles = counters_reduce[m++];
   monitor->print("perf:data","num-particles total %lld",num_particles);
 

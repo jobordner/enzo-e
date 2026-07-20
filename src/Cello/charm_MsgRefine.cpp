@@ -70,7 +70,7 @@ MsgRefine::~MsgRefine()
   --counter[cello::index_static()];
 
   delete data_msg_;
-  data_msg_ = 0;
+  data_msg_ = nullptr;
   CkFreeMsg (buffer_);
   buffer_=nullptr;
 }
@@ -91,10 +91,6 @@ void MsgRefine::set_data_msg  (DataMsg * data_msg)
 
 void * MsgRefine::pack (MsgRefine * msg)
 {
-
-  // WARNING("MsgRefine::pack()",
-  // 	  "message already has a buffer allocated");
-
   if (msg->buffer_ != nullptr) return msg->buffer_;
 
   int size = 0;

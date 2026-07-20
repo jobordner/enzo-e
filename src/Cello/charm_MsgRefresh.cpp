@@ -119,8 +119,8 @@ void MsgRefresh::update (Data * data)
   data_msg_->update(data,is_local_);
 
   if (!is_local_) {
-      CkFreeMsg (buffer_);
-      buffer_ = nullptr;
+    CkFreeMsg (buffer_);
+    buffer_ = nullptr;
   }
 }
 

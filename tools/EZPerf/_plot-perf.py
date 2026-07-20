@@ -291,6 +291,13 @@ plt.legend(loc='upper left',ncols=2)
 plot_write('plot_msg_sizes',html)
 index = html_table_row_next(html,index,max_index)
 
+plot_open(plt,'cumulative undeleted Charm++ messages','cycle','messages');
+plot_list(plt,glob.glob('counter-*data'),scale=1.0)
+plt.legend(loc='upper left',ncols=2)
+#plt.yscale('log')
+plot_write('counter',html)
+index = html_table_row_next(html,index,max_index)
+
 # ----------------------------------------------------------------------
 if os.path.exists('redshift.data'):
     plot_open(plt,'redshift','cycle','redshift');
@@ -391,6 +398,12 @@ plt.legend(loc='upper left',ncols=2)
 plot_write('plot_msg_sizes_cycle',html)
 index = html_table_row_next(html,index,max_index)
 
+plot_open(plt,'per-cycle undeleted Charm++ messages','cycle','messages');
+plot_list(plt,glob.glob('counter-*data'),scale=1.0,type='cycle')
+plt.legend(loc='upper left',ncols=2)
+plot_write('counter_cycle',html)
+index = html_table_row_next(html,index,max_index)
+
 l=lsave
 m=msave
 
@@ -403,7 +416,6 @@ if os.path.exists('smp.data'):
     plot_write('plot_smp_cycle',html)
     index = html_table_row_next(html,index,max_index)
 # ----------------------------------------------------------------------
-
 html_table_row_stop(html)
 
 # ======================================================================

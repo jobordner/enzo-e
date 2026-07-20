@@ -86,12 +86,10 @@ private: // functions
    const Factory * factory) throw() override;
 
   /// Create named interpolation object
-  virtual Prolong * create_prolong_
-  (std::string_view type, Config * config = nullptr) throw() override;
+  virtual Prolong * create_prolong_ (std::string_view type) throw() override;
 
   /// Create named restriction object
-  virtual Restrict * create_restrict_
-  (std::string_view type, Config * config) throw() override;
+  virtual Restrict * create_restrict_ (std::string_view type) throw() override;
 
   /// Create a Units object
   virtual Units *  create_units_ 

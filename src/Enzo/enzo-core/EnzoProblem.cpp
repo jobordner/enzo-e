@@ -364,15 +364,10 @@ Solver * EnzoProblem::create_solver_
     solve_type = solve_unknown;
   }
 
-  Prolong * prolong_ptr = create_prolong_
-    (enzo_config->solver_prolong[index_solver],config);
-  Restrict * restrict_ptr = create_restrict_
-    (enzo_config->solver_restrict[index_solver],config);
-
-  const int index_prolong = prolong_list_.size();
-  const int index_restrict = restrict_list_.size();
-  prolong_list_.push_back(prolong_ptr);
-  restrict_list_.push_back(restrict_ptr);
+  int index_prolong = new_prolong 
+    (enzo_config->solver_prolong[index_solver]);
+  int index_restrict = new_restrict 
+    (enzo_config->solver_restrict[index_solver]);
 
   if (solver_type == "cg") {
 
@@ -673,10 +668,8 @@ Method * EnzoProblem::create_method_
 
   } else if (name == "gravity") {
 
-    // the presence of this extra logic here is undesirable, but it appears
-    // somewhat unavoidable
-
-    std::string solver_name = p_group.value<std::string>("solver","unknown");
+    std::string solver_name =
+      p_group.value<std::string> ("solver","unknown");
 
     int index_solver = enzo_config->solver_index.at(solver_name);
 
@@ -685,11 +678,8 @@ Method * EnzoProblem::create_method_
 	     solver_name.c_str(),
 	     0 <= index_solver && index_solver < enzo_config->num_solvers);
 
-    Prolong * prolong_ptr = create_prolong_
-      (p_group.value<std::string>("prolong","linear"),config);
-
-    const int index_prolong = prolong_list_.size();
-    prolong_list_.push_back(prolong_ptr);
+    int index_prolong = new_prolong
+      (p_group.value<std::string>("prolong","linear"));
 
     method = new EnzoMethodGravity
       (p_group, index_solver, index_prolong,
@@ -808,22 +798,19 @@ Method * EnzoProblem::create_method_
 
 //----------------------------------------------------------------------
 
-Prolong * EnzoProblem::create_prolong_
-( std::string_view  type,
-  Config *     config ) throw ()
+Prolong * EnzoProblem::create_prolong_ ( std::string_view  type) throw ()
 {
 
   Prolong * prolong_ptr = nullptr;
 
-  const EnzoConfig * enzo_config = enzo::config();
-
   if (type == "enzo") {
+    const EnzoConfig * enzo_config = enzo::config();
     prolong_ptr = new EnzoProlong
       (enzo_config->prolong_enzo_type,
        enzo_config->prolong_enzo_positive,
        enzo_config->prolong_enzo_use_linear);
   } else {
-    prolong_ptr = Problem::create_prolong_(type,config);
+    prolong_ptr = Problem::create_prolong_(type);
   }
 
   return prolong_ptr;
@@ -943,12 +930,9 @@ Units * EnzoProblem::create_units_ (  Config * config  ) throw ()
 
 //----------------------------------------------------------------------
 
-Restrict * EnzoProblem::create_restrict_
-(
- std::string_view  type,
- Config * config ) throw ()
+Restrict * EnzoProblem::create_restrict_( std::string_view  type ) throw ()
 {
-  return Problem::create_restrict_(type,config);
+  return Problem::create_restrict_(type);
 }
 
 //----------------------------------------------------------------------
