@@ -285,23 +285,22 @@ Performance::start_region(int id_region, std::string file, int line) throw()
 //----------------------------------------------------------------------
 
 void
-Performance::stop_region(int id_region, std::string file, int line) throw()
+Performance::stop_region(int index_region, std::string file, int line) throw()
 {
 
 #ifdef TRACE_PERFORMANCE
   CkPrintf ("%d TRACE_PERFORMANCE Performance::stop_region (%d,%s) %s:%d\n",CkMyPe(),
-	    id_region,region_name_[id_region].c_str(),file.c_str(),line);
+	    index_region,region_name_[index_region].c_str(),file.c_str(),line);
 #endif
-
-  int index_region = id_region;
 
   --region_multiplicity_[index_region];
 
   if (region_multiplicity_[index_region] < 0) {
-    WARNING3 ("%d Performance::stop_region",
-              "region_multiplicity for region %s is negative %d",
+    WARNING4 ("%d Performance::stop_region",
+              "region_multiplicity for region %d %s is negative %d",
               CkMyPe(),
-              region_name(id_region).c_str(),
+              index_region,
+              region_name_[index_region].c_str(),
               region_multiplicity_[index_region]);
   }
 

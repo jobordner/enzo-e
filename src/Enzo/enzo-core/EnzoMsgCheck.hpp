@@ -114,7 +114,7 @@ public: // interface
   }
 
   void set_adapt (const Adapt & adapt) {
-    int size = adapt.data_size();
+    size_t size = adapt.data_size();
     ASSERT2 ("EnzoMsgCheck::set_adapt()",
              "ADAPT_BUFFER_SIZE %d is too small for Adapt object of size %d",
              sizeof(int)*ADAPT_BUFFER_SIZE,size,

@@ -70,9 +70,11 @@ MsgRefine::~MsgRefine()
   --counter[cello::index_static()];
 
   delete data_msg_;
-  data_msg_ = nullptr;
+  if (!is_local_) {
+    delete adapt_parent_;
+    delete state_;
+  }
   CkFreeMsg (buffer_);
-  buffer_=nullptr;
 }
 
 //----------------------------------------------------------------------
@@ -91,7 +93,13 @@ void MsgRefine::set_data_msg  (DataMsg * data_msg)
 
 void * MsgRefine::pack (MsgRefine * msg)
 {
-  if (msg->buffer_ != nullptr) return msg->buffer_;
+  if (msg->buffer_ != nullptr) {
+    // delete msg only, returning buffer
+    void * buffer = msg->buffer_;
+    msg->buffer_ = nullptr;
+    delete msg;
+    return buffer;
+  }
 
   int size = 0;
 

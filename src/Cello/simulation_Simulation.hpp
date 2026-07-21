@@ -87,7 +87,7 @@ public: // interface
   /// Return the Hierarchy
   Hierarchy * hierarchy() const throw()
   { return hierarchy_; }
-  
+
   /// Return the Parameters
   Parameters * parameters() const throw()
   { return parameters_; }
@@ -562,7 +562,7 @@ protected: // attributes
   /// Refresh scheduling type when using adaptive time-stepping: either
   /// Casual (when needed) or Eager (asap).
   RefreshType refresh_type_;
-  
+
   /// Saved latest checkpoint directory for creating symlink
   char dir_checkpoint_[256];
 

@@ -29,26 +29,44 @@ MsgRefresh::MsgRefresh()
 
 //----------------------------------------------------------------------
 
+MsgRefresh::MsgRefresh (DataMsg * data_msg, int id_refresh)
+  : CMessage_MsgRefresh(),
+    tag_(),
+    is_local_(true),
+    id_refresh_(id_refresh),
+    data_msg_(data_msg),
+    buffer_(nullptr)
+{
+  cello::hex_string(tag_,TAG_LEN);
+  ++counter[cello::index_static()];
+}
+
+//----------------------------------------------------------------------
+
 MsgRefresh::~MsgRefresh()
 {
   --counter[cello::index_static()];
   delete data_msg_;
-  data_msg_ = nullptr;
   CkFreeMsg (buffer_);
-  buffer_=nullptr;
 }
 
 //----------------------------------------------------------------------
 
 void * MsgRefresh::pack (MsgRefresh * msg)
 {
-  if (msg->buffer_ != nullptr) return msg->buffer_;
+  if (msg->buffer_ != nullptr) {
+    // delete msg but leave buffer to return
+    void * buffer = nullptr;
+    std::swap (buffer,msg->buffer_);
+    delete msg;
+    return buffer;
+  }
 
   int size = 0;
 
-  SIZE_SCALAR_TYPE(size,int,msg->id_refresh_);
-  SIZE_OBJECT_PTR_TYPE(size,DataMsg,msg->data_msg_);
-  SIZE_ARRAY_TYPE (size,char,msg->tag_,TAG_LEN+1);
+  SIZE_SCALAR_TYPE     (size, int,     msg->id_refresh_);
+  SIZE_OBJECT_PTR_TYPE (size, DataMsg, msg->data_msg_);
+  SIZE_ARRAY_TYPE      (size, char,    msg->tag_, TAG_LEN+1);
 
   //--------------------------------------------------
   //  2. allocate buffer using CkAllocBuffer()
@@ -64,9 +82,9 @@ void * MsgRefresh::pack (MsgRefresh * msg)
 
   char * pc = buffer;
 
-  SAVE_SCALAR_TYPE(pc,int,msg->id_refresh_);
-  SAVE_OBJECT_PTR_TYPE(pc,DataMsg,msg->data_msg_);
-  SAVE_ARRAY_TYPE (pc,char,msg->tag_,TAG_LEN+1);
+  SAVE_SCALAR_TYPE     (pc, int,     msg->id_refresh_);
+  SAVE_OBJECT_PTR_TYPE (pc, DataMsg, msg->data_msg_);
+  SAVE_ARRAY_TYPE      (pc, char,    msg->tag_, TAG_LEN+1);
 
   delete msg;
 
@@ -99,9 +117,9 @@ MsgRefresh * MsgRefresh::unpack(void * buffer)
 
   char * pc = (char *) buffer;
 
-  LOAD_SCALAR_TYPE(pc,int,msg->id_refresh_);
-  LOAD_OBJECT_PTR_TYPE(pc,DataMsg,msg->data_msg_);
-  LOAD_ARRAY_TYPE (pc,char,msg->tag_,TAG_LEN+1);
+  LOAD_SCALAR_TYPE     (pc, int,     msg->id_refresh_);
+  LOAD_OBJECT_PTR_TYPE (pc, DataMsg, msg->data_msg_);
+  LOAD_ARRAY_TYPE      (pc, char,    msg->tag_,TAG_LEN+1);
 
   // 3. Save the input buffer for freeing later
 

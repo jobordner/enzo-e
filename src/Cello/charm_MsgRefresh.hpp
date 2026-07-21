@@ -21,17 +21,7 @@ public: // interface
 
   MsgRefresh();
 
-  MsgRefresh (DataMsg * data_msg, int id_refresh)
-    : CMessage_MsgRefresh(),
-      tag_(),
-      is_local_(true),
-      id_refresh_(id_refresh),
-      data_msg_(data_msg),
-      buffer_(nullptr)
-  {
-    cello::hex_string(tag_,TAG_LEN);
-    ++counter[cello::index_static()];
-  }
+  MsgRefresh (DataMsg * data_msg, int id_refresh);
 
   virtual ~MsgRefresh();
 

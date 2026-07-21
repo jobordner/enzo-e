@@ -1572,8 +1572,6 @@ int Block::refresh_load_flux_faces_ (Refresh * refresh)
 
   int count = 0;
 
-  const int neighbor_type = neighbor_leaf;
-
   // temporarily change min_face_rank to rank - 1 for flux correction
   int saved_min_refresh_rank = refresh->min_face_rank();
   refresh->set_min_face_rank(cello::rank() - 1);

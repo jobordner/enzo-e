@@ -11,15 +11,70 @@ long DataMsg::counter[CONFIG_NODE_SIZE] = {0};
 
 #define CHECK
 
-// #define TRACE_DATA_MSG
+//----------------------------------------------------------------------
 
-#ifdef TRACE_DATA_MSG
-#   undef TRACE_DATA_MSG
-#   define TRACE_DATA_MSG(MSG) CkPrintf ("%d TRACE_DATA_MSG %p %s\n", \
-                                         CkMyPe(),(void *)this,std::string(MSG).c_str()); fflush(stdout);
-#else
-#   define TRACE_DATA_MSG(MSG) /* ... */
-#endif
+DataMsg::DataMsg() 
+  : field_face_(nullptr),
+    field_face_delete_   (false),
+    field_data_u_(nullptr),
+    field_data_delete_   (false),
+    particle_data_(nullptr),
+    particle_data_delete_(false),
+    face_fluxes_list_(),
+    face_fluxes_delete_(),
+    coarse_field_buffer_(),
+    coarse_field_list_src_(),
+    coarse_field_list_dst_(),
+    scalar_data_long_double_(),
+    scalar_data_double_(),
+    scalar_data_int_(),
+    scalar_data_long_long_(),
+    scalar_data_sync_(),
+    scalar_data_index_()
+{
+  for (int i=0; i<3; i++) {
+    iam3_cf_[i]  =0;
+    iap3_cf_[i]  =0;
+    ifms3_cf_[i]  =0;
+    ifps3_cf_[i]  =0;
+    ifmr3_cf_[i]  =0;
+    ifpr3_cf_[i]  =0;
+  }
+  ++counter[cello::index_static()];
+}
+
+//----------------------------------------------------------------------
+
+DataMsg::~DataMsg()
+{
+  --counter[cello::index_static()];
+
+  if (field_face_delete_) {
+    delete field_face_;
+    field_face_ = nullptr;
+  }
+  if (field_data_delete_) {
+    delete field_data_u_;
+    field_data_u_ = nullptr;
+  }
+  if (particle_data_delete_) {
+    delete particle_data_;
+    particle_data_ = nullptr;
+  }
+
+  for (size_t i=0; i<face_fluxes_list_.size(); i++) {
+    if (face_fluxes_delete_[i]) {
+      delete face_fluxes_list_[i];
+      face_fluxes_list_[i] = nullptr;
+    }
+  }
+  face_fluxes_list_.clear();
+  face_fluxes_delete_.clear();
+  coarse_field_buffer_.clear();
+  coarse_field_list_src_.clear();
+  coarse_field_list_dst_.clear();
+}
+
 //----------------------------------------------------------------------
 
 void DataMsg::set_coarse_array
@@ -131,6 +186,8 @@ void DataMsg::get_num_data_ (int & n_ff, int & n_fa, int & n_pd, int & n_fd) con
   n_pd = (pd) ? pd->data_size(cello::particle_descr()) : 0;
   n_fd = fd.size();
 }
+
+//----------------------------------------------------------------------
 
 int DataMsg::data_size () const
 {
@@ -281,6 +338,7 @@ char * DataMsg::load_data (char * buffer)
 
   // load field face
   if (n_ff > 0) {
+    field_face_delete_ = true;
     field_face_ = new FieldFace;
     pc = field_face_->load_data (pc);
   } else {
@@ -346,7 +404,6 @@ char * DataMsg::load_data (char * buffer)
 
 void DataMsg::update (Data * data, bool is_local, bool is_kept)
 {
-  TRACE_DATA_MSG("update()");
   ParticleData * pd = particle_data_;
   FieldFace    * ff = field_face_;
   char         * fa = field_array_u_;

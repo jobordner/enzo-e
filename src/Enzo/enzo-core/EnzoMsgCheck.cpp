@@ -75,8 +75,13 @@ void EnzoMsgCheck::set_data_msg  (DataMsg * data_msg)
 
 void * EnzoMsgCheck::pack (EnzoMsgCheck * msg)
 {
-  // Return with buffer if already packed
-  if (msg->buffer_ != nullptr) return msg->buffer_;
+  if (msg->buffer_ != nullptr) {
+    // delete msg but leave buffer to return
+    void * buffer = nullptr;
+    std::swap (buffer,msg->buffer_);
+    delete msg;
+    return buffer;
+  }
 
   int size = msg->size_();
 

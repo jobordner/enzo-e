@@ -110,7 +110,7 @@ void EnzoInitialMusic::enforce_block
   Field field = block->data()->field();
 
   static std::map<std::string,int> close_count;
-  
+
   for (size_t index=0; index<field_files_.size(); index++) {
 
     const std::string file_name = field_files_[index];

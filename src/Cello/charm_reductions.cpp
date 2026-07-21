@@ -48,7 +48,7 @@ CkReductionMsg * r_reduce_performance(int n, CkReductionMsg ** msgs)
     }
   }
 
-  return CkReductionMsg::buildNew(length*sizeof(long long),&accum[0]);
+  return CkReductionMsg::buildNew(length*sizeof(long long),accum.data());
 }
 
 //======================================================================
@@ -98,7 +98,7 @@ CkReductionMsg * r_reduce_method_debug(int n, CkReductionMsg ** msgs)
     }
   }
 
-  return CkReductionMsg::buildNew(length*sizeof(cello_reduce_type),&accum[0]);
+  return CkReductionMsg::buildNew(length*sizeof(cello_reduce_type),accum.data());
 }
 
 //======================================================================
@@ -227,18 +227,18 @@ CkReductionMsg * sum_long_double_n(int n, CkReductionMsg ** msgs)
 {
 
   const int N = int(*((long double *) msgs[0]->getData()));
-  
+
   long double * accum = new long double [N+1];
-  
+
   std::fill_n(accum,N+1,0.0);
 
   for (int i=0; i<n; i++) {
 
     ASSERT2("sum_long_double_n()",
-	    "CkReductionMsg actual size %d is different from expected %lu",
-	    msgs[i]->getSize(),(N+1)*sizeof(long double),
+            "CkReductionMsg actual size %d is different from expected %lu",
+            msgs[i]->getSize(),(N+1)*sizeof(long double),
             ((long unsigned)msgs[i]->getSize() == (N+1)*sizeof(long double)));
-    
+
     long double * values = (long double *) msgs[i]->getData();
 
     accum[0] = values[0];

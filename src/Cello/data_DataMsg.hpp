@@ -19,65 +19,8 @@ public: // interface
 
   static long counter[CONFIG_NODE_SIZE];
 
-  DataMsg() 
-    : field_face_(nullptr),
-      field_face_delete_   (false),
-      field_data_u_(nullptr),
-      field_data_delete_   (false),
-      particle_data_(nullptr),
-      particle_data_delete_(false),
-      face_fluxes_list_(),
-      face_fluxes_delete_(),
-      coarse_field_buffer_(),
-      coarse_field_list_src_(),
-      coarse_field_list_dst_(),
-      scalar_data_long_double_(),
-      scalar_data_double_(),
-      scalar_data_int_(),
-      scalar_data_long_long_(),
-      scalar_data_sync_(),
-      scalar_data_index_()
-  {
-    for (int i=0; i<3; i++) {
-      iam3_cf_[i]  =0;
-      iap3_cf_[i]  =0;
-      ifms3_cf_[i]  =0;
-      ifps3_cf_[i]  =0;
-      ifmr3_cf_[i]  =0;
-      ifpr3_cf_[i]  =0;
-    }
-    ++counter[cello::index_static()];
-  }
-
-  ~DataMsg()
-  {
-    --counter[cello::index_static()];
-    
-    if (field_face_delete_) {
-      delete field_face_;
-      field_face_ = nullptr;
-    }
-    if (field_data_delete_) {
-      delete field_data_u_;
-      field_data_u_ = nullptr;
-    }
-    if (particle_data_delete_) {
-      delete particle_data_;
-      particle_data_ = nullptr;
-    }
-    
-    for (size_t i=0; i<face_fluxes_list_.size(); i++) {
-      if (face_fluxes_delete_[i]) {
-        delete face_fluxes_list_[i];
-        face_fluxes_list_[i] = nullptr;
-      }
-    }
-    face_fluxes_list_.clear();
-    face_fluxes_delete_.clear();
-    coarse_field_buffer_.clear();
-    coarse_field_list_src_.clear();
-    coarse_field_list_dst_.clear();
-  }
+  DataMsg(); 
+  ~DataMsg();
 
   /// Copy constructor
   DataMsg(const DataMsg & data_msg) throw()
@@ -86,12 +29,7 @@ public: // interface
   };
 
   /// Assignment operator
-  DataMsg & operator= (const DataMsg & data_msg) throw()
-  {
-    ERROR("DataMsg::operator=()",
-          "This method should not be called");
-    return *this;
-  }
+  DataMsg & operator= (const DataMsg & data_msg) throw() = delete;
 
   void pup(PUP::er &p) {
     WARNING("DataMsg::pup()",
@@ -250,7 +188,7 @@ protected: // attributes
   };
   /// Whether FieldData data should be deleted in destructor
   bool field_data_delete_;
-  
+
   /// Particle data
   ParticleData * particle_data_;
   /// Whether Particle data should be deleted in destructor

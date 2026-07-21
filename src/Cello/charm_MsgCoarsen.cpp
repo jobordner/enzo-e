@@ -90,7 +90,13 @@ void MsgCoarsen::set_data_msg  (DataMsg * data_msg)
 
 void * MsgCoarsen::pack (MsgCoarsen * msg)
 {
-  if (msg->buffer_ != NULL) return msg->buffer_;
+  if (msg->buffer_ != nullptr) {
+    // delete msg but leave buffer to return
+    void * buffer = nullptr;
+    std::swap (buffer,msg->buffer_);
+    delete msg;
+    return buffer;
+  }
 
   int size = 0;
 

@@ -885,7 +885,8 @@ namespace cello {
     //hexadecimal characters
     static const char hex_characters[] =
       {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
-    static std::default_random_engine generator;
+    std::seed_seq seq {1,int(CkMyPe())};
+    static std::mt19937 generator(seq);
     static bool first = true;
     if (first) {
       first = false;
