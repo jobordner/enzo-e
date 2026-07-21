@@ -22,7 +22,7 @@ class MsgInitial : public CMessage_MsgInitial {
 public: // interface
 
   friend class Block;
-  static long counter[CONFIG_NODE_SIZE];
+  static int64_t counter[CONFIG_NODE_SIZE];
 
   MsgInitial();
 

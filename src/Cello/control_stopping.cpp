@@ -427,34 +427,36 @@ void Block::exit_()
 {
   const int in = cello::index_static();
   if (index().is_root()) {
-    if (DataMsg::counter[in] != 0) {
-      CkPrintf ("%d Block::exit_() DataMsg::counter = %ld != 0\n",
+    if (DataMsg::counter[in]) {
+      CkPrintf ("%d Block::exit_() DataMsg::counter = %lld != 0\n",
 		CkMyPe(),DataMsg::counter[in]);
-      CkPrintf ("%d Block::exit_() ParticleData::counter = %ld != 0\n",
+    }
+    if (ParticleData::counter[in]) {
+      CkPrintf ("%d Block::exit_() ParticleData::counter = %lld != 0\n",
 		CkMyPe(),ParticleData::counter[in]);
     }
-    if (FieldFace::counter[in] != 0) {
-      CkPrintf ("%d Block::exit_() FieldFace::counter = %ld != 0\n",
+    if (FieldFace::counter[in]) {
+      CkPrintf ("%d Block::exit_() FieldFace::counter = %lld != 0\n",
 		CkMyPe(),FieldFace::counter[in]);
     }
-    if (MsgCoarsen::counter[in] != 0) {
-      CkPrintf ("%d Block::exit_() MsgCoarsen::counter = %ld != 0\n",
+    if (MsgCoarsen::counter[in]) {
+      CkPrintf ("%d Block::exit_() MsgCoarsen::counter = %lld != 0\n",
 		CkMyPe(),MsgCoarsen::counter[in]);
     }
-    if (MsgInitial::counter[in] != 0) {
-      CkPrintf ("%d Block::exit_() MsgInitial::counter = %ld != 0\n",
+    if (MsgInitial::counter[in]) {
+      CkPrintf ("%d Block::exit_() MsgInitial::counter = %lld != 0\n",
 		CkMyPe(),MsgInitial::counter[in]);
     }
-    if (MsgOutput::counter[in] != 0) {
-      CkPrintf ("%d Block::exit_() MsgOutput::counter = %ld != 0\n",
+    if (MsgOutput::counter[in]) {
+      CkPrintf ("%d Block::exit_() MsgOutput::counter = %lld != 0\n",
 		CkMyPe(),MsgOutput::counter[in]);
     }
-    if (MsgRefine::counter[in] != 0) {
-      CkPrintf ("%d Block::exit_() MsgRefine::counter = %ld != 0\n",
+    if (MsgRefine::counter[in]) {
+      CkPrintf ("%d Block::exit_() MsgRefine::counter = %lld != 0\n",
 		CkMyPe(),MsgRefine::counter[in]);
     }
-    if (MsgRefresh::counter[in] != 0) {
-      CkPrintf ("%d Block::exit_() MsgRefresh::counter = %ld != 0\n",
+    if (MsgRefresh::counter[in]) {
+      CkPrintf ("%d Block::exit_() MsgRefresh::counter = %lld != 0\n",
 		CkMyPe(),MsgRefresh::counter[in]);
     }
   }

@@ -9,5 +9,5 @@
 
 //----------------------------------------------------------------------
 
-long MsgOrder::counter[CONFIG_NODE_SIZE] = {0};
+int64_t MsgOrder::counter[CONFIG_NODE_SIZE] = {0};
 

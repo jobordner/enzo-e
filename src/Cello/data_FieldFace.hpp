@@ -22,7 +22,7 @@ class FieldFace {
 
 public: // interface
 
-  static long counter[CONFIG_NODE_SIZE];
+  static int64_t counter[CONFIG_NODE_SIZE];
 
   FieldFace (int level, int face_type, 
              int if3[3], int ic3[3], int g3[3],

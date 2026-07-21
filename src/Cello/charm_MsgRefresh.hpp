@@ -17,7 +17,7 @@ class MsgRefresh : public CMessage_MsgRefresh {
 
 public: // interface
 
-  static long counter[CONFIG_NODE_SIZE];
+  static int64_t counter[CONFIG_NODE_SIZE];
 
   MsgRefresh();
 

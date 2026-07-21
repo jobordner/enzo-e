@@ -2,6 +2,7 @@
 
 from numpy import *
 import numpy as np
+from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 import glob
@@ -85,20 +86,30 @@ def plot_write(name,html):
     print ("Writing '%s'" % (name))
     plt.savefig(('%s.pdf') % (name), format='pdf')
     plt.savefig(('%s.png') % (name), format='png')
-    html_table_cell_image(html,name + ".png")
+    html_table_cell_image(html,name)
 
 #====================================================================== 
 
 def html_start():
 
+    # Get directory name containing EZPerf directory
+    t1=os.getcwd()
+    i1 = t1.find("/EZPerf")
+    print("i1 = ",i1)
+    t2=t1[:i1]
+    print("t2 = ",t2)
+    i2=t2.rfind("/")
+    print ("i2 = ",i2)
+    run=t2[i2+1:]
+
     html=open('index.html', 'w')
     html.write('<HTML>\n')
     html.write('  <HEAD>\n')
-    html.write('    <link href="cello.css" rel="stylesheet" type="text/css">\n')
+    html.write('    <link href="../cello.css" rel="stylesheet" type="text/css">\n')
     html.write('  </head>\n')
-    html.write('    <title>Enzo-E / Cello EZPerf</title>\n')
+    html.write('    <title>Enzo-E / Cello EZPerf: run.'+run+'</title>\n')
     html.write('    <body>\n')
-    html.write('      <h1>Enzo-E / Cello EZPerf</h1>\n')
+    html.write('      <h1>Enzo-E / Cello EZPerf: run.'+run+'</h1>\n')
     return html
 
 def html_stop(html):
@@ -132,10 +143,12 @@ def html_section_h2(html,name):
 def html_section_h3(html,name):
     html.write('<h3> '+name+' </h3>\n')
 
-def html_table_cell_image(html,image):
+def html_table_cell_image(html,name):
+    image=name+".png"
     html.write('            <td>\n')
     html.write('              <a href="' +image+'"><img width=480 src="'+image+'"></img></a>\n')
-    html.write('            </td>\n')
+    if (Path("../../index-"+name+".html")).is_file():
+        html.write('<center><a href="../../index-'+name+'.html">all</a></center>')
 
 def plot_time_total(plt,region_list,html):
     plot_open(plt,'cumulative times','cycle','time (s)');
@@ -186,7 +199,6 @@ if os.path.exists('smp.data'):
 # ======================================================================
 
 html_section_h2(html,"Memory, blocks, and load balance")
-
 html_table_start(html)
 html_table_row_start(html)
 
