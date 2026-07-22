@@ -283,7 +283,7 @@ public: // virtual functions
   /// Reduction for performance data
   void r_monitor_performance_reduce (CkReductionMsg * msg);
 
-  float timer() { return timer_.value(); }
+  float timer() const;
   
   //--------------------------------------------------
   // Data
@@ -509,9 +509,6 @@ protected: // attributes
 
   /// Problem container object
   Problem * problem_;
-
-  /// Simulation timer
-  Timer timer_;
 
   /// Simulation Performance object
   Performance * performance_;

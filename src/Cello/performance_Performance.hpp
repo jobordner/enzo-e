@@ -140,7 +140,7 @@ public: // interface
 #ifdef CONFIG_USE_PAPI
      ,
      papi_(),
-     papi_counters_(0),
+     papi_counters_(0)
 #endif
 #ifdef CONFIG_USE_PROJECTIONS
      ,
@@ -148,7 +148,8 @@ public: // interface
      projections_schedule_on_(),
      projections_schedule_off_()
 #endif
-  { /* ... */ }
+     , fp_trace_(nullptr) 
+ { /* ... */ }
 
   /// Initialize a Performance object
   Performance(Config *);
@@ -253,6 +254,11 @@ public: // interface
   /// Return counters for a code region
   void region_counters(int index_region, long long * counters) throw();
 
+  void log_start(int cycle, long long bid, const char * type, int id);
+  void log_stop(int cycle, long long bid, const char * type, int id);
+
+  float timer() const { return timer_.value(); }
+
 #ifdef CONFIG_USE_PAPI
   /// Return the associated Papi object
   Papi * papi() { return &papi_; };
@@ -341,6 +347,10 @@ private: // attributes
   Schedule * projections_schedule_on_;
   Schedule * projections_schedule_off_;
 #endif
+
+  FILE * fp_trace_;
+  /// Simulation timer
+  Timer timer_;
 };
 
 #endif /* PERFORMANCE_PERFORMANCE_HPP */

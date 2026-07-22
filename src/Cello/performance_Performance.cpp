@@ -38,8 +38,12 @@ Performance::Performance (Config * config)
   projections_schedule_off_(NULL),
 #endif
   warnings_(config ? config->performance_warnings : false),
-  index_region_current_(iperf_unknown)
+  index_region_current_(iperf_unknown),
+  fp_trace_(nullptr),
+  timer_()
 {
+
+  timer_.start();
 
   const int in = cello::index_static();
 
@@ -82,6 +86,15 @@ Performance::Performance (Config * config)
         config->schedule_list[index_off]);
   }
 #endif
+
+  if (config->performance_trace) {
+
+    if (fp_trace_ == nullptr) {
+      char buffer[80];
+      sprintf (buffer,"PLOG.%d",CkMyPe());
+      fp_trace_ = fopen (buffer,"w");
+    }
+  }
 }
 
 //----------------------------------------------------------------------
@@ -90,7 +103,7 @@ Performance::~Performance()
 {
 #ifdef CONFIG_USE_PAPI
   delete [] papi_counters_;
-  papi_counters_ = NULL;
+  fclose (fp_trace_);
 #endif
 }
 
@@ -349,6 +362,26 @@ Performance::region_counters(int index_region, long long * counters) throw()
 	}
       }
     }
+  }
+}
+
+//----------------------------------------------------------------------
+
+void Performance::log_start(int cycle, long long bid, const char * type, int id)
+{
+  if (fp_trace_) {
+    fprintf (fp_trace_,"[ %d %lld %s %d %.6f\n",
+             cycle, bid, type, id, timer());
+  }
+}
+
+//----------------------------------------------------------------------
+
+void Performance::log_stop(int cycle, long long bid, const char * type, int id)
+{
+  if (fp_trace_) {
+    fprintf (fp_trace_,"] %d %lld %s %d %.6f\n",
+             cycle, bid, type, id, timer());
   }
 }
 

@@ -74,7 +74,7 @@ void * MsgAdapt::pack (MsgAdapt * msg)
   SAVE_SCALAR_TYPE(pc,bool,  msg->can_coarsen_);
   SAVE_SCALAR_TYPE(pc,int,   msg->count_);
   SAVE_ARRAY_TYPE(pc,char,msg->tag_,TAG_LEN+1);
-  
+
   ASSERT2("MsgAdapt::pack()",
 	  "buffer size mismatch %ld allocated %d packed",
 	  (pc - (char*)buffer),size,

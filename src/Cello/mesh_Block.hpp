@@ -368,6 +368,8 @@ public:
     order_next_  = next;
   }
 
+  long long get_index () const { return order_index_; }
+
   void get_order (long long * index,
                   long long * count = 0,
                   Index *     next = 0) const

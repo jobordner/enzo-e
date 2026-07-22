@@ -57,7 +57,7 @@ BALANCE_EFF=`   awk '/perf:balance eff-/  {print $(NF-1)}' $input | sort | uniq`
 BALANCE_MAX=`   awk '/perf:balance max-/  {print $(NF-1)}' $input | sort | uniq`
 MEMORY=`        awk '/perf:region cycle / {print $(NF-1)}' $input | sort | uniq`
 MESH=`          awk '/perf:mesh /         {print $(NF-1)}' $input | sort | uniq`
-REDSHIFT=`      awk '/Method comoving_expansion/ {print $(NF-1)}' $input | sort | uniq`
+REDSHIFT=`      awk '/Simulation redshift / {print $(NF-1)}' $input | sort | uniq`
 REGION_ADAPT=`  awk '/perf:region adapt/  {print $(NF-2)}' $input | sort | uniq`
 REGION_METHOD=` awk '/perf:region method/ {print $(NF-2)}' $input | sort | uniq`
 REGION_REDUCE=` awk '/perf:region reduce/ {print $(NF-2)}' $input | sort | uniq`
@@ -121,7 +121,7 @@ done
 for redshift in $REDSHIFT; do
     if [[ ! -e "$redshift.data" ]]; then
         echo "Generating $redshift.data"
-        awk '/Simulation cycle /{c=$NF}; /comoving_expansion redshift/{print c,$NF}' $input > $redshift.data
+        awk '/Simulation cycle /{c=$NF}; /Simulation redshift/{print c,$NF}' $input > $redshift.data
     fi
 done
 

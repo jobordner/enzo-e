@@ -386,11 +386,11 @@ void Block::performance_projections_update_logging_()
 {
 
 #ifdef CONFIG_USE_PROJECTIONS
-  Simulation * simulation = cello::simulation();
-  bool was_off = (simulation->projections_tracing() == false);
-  bool was_on  = (simulation->projections_tracing() == true);
-  Schedule * schedule_on = simulation->projections_schedule_on();
-  Schedule * schedule_off = simulation->projections_schedule_off();
+  Performance * performance = cello::performance();
+  bool was_off = (performance->projections_tracing() == false);
+  bool was_on  = (performance->projections_tracing() == true);
+  Schedule * schedule_on = performance->projections_schedule_on();
+  Schedule * schedule_off = performance->projections_schedule_off();
   bool turn_on  = schedule_on ?
     schedule_on->write_this_cycle(state()->cycle(),state()->time()) : false;
   bool turn_off = schedule_off ?

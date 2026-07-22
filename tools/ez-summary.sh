@@ -11,7 +11,7 @@ while true; do
 
     t=${out##*/}
     awk 'BEGIN{ \
-            CONVFMT="%.3f"; bh=0; b0=-1; bn=-1; c0=-1; cn=-1;nh=-1;nn=-1;np=-1;smp=-1; rnd=0; inp=0; st=" XX ";} \
+            CONVFMT="%.3f"; bh=0; b0=-1; bn=-1; c0=-1; cn=-1;nh=-1;nn=-1;np=-1;smp=-1; rnd=0; inp=0; st=" XX "; tr=-1} \
     /Input File name /{inp=$NF}; \
     / time-sim / {te=$2; ts=$NF}; \
     / Simulation redshift /{tr=$NF}; \
@@ -32,10 +32,14 @@ while true; do
      END{ \
          t_h=int(te/3600); \
          t_m=int((te%3600)/60); \
-         f_mr = sprintf ("%dD",mr); \
          t_s=int(te%60); \
          fhms = sprintf ("%02d:%02d:%02d",t_h,t_m,t_s); \
-         f_time = sprintf ("%s %.1f %.2f",fhms,ts,tr); \
+         f_mr = sprintf ("%dD",mr); \
+         if (tr == -1) { \
+            f_time = sprintf ("%s %.2f",fhms,ts); \
+         } else { \
+            f_time = sprintf ("%s [%.2f]",fhms,tr); \
+         } \
          f_mem = sprintf ("%5.1f GB",bh/1024./1024./1024.); \
          f_cycle = sprintf ("%d",cn); \
          f_block = sprintf ("%d",bn); \

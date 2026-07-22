@@ -148,7 +148,7 @@ def html_table_cell_image(html,name):
     html.write('            <td>\n')
     html.write('              <a href="' +image+'"><img width=480 src="'+image+'"></img></a>\n')
     if (Path("../../index-"+name+".html")).is_file():
-        html.write('<center><a href="../../index-'+name+'.html">all</a></center>')
+        html.write('<center><a href="../../index-'+name+'.html">this plot all runs</a></center>')
 
 def plot_time_total(plt,region_list,html):
     plot_open(plt,'cumulative times','cycle','time (s)');

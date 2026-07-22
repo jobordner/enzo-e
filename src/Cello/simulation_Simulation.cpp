@@ -38,7 +38,6 @@ Simulation::Simulation
   phase_(phase_unknown),
   config_(&g_config),
   problem_(NULL),
-  timer_(),
   performance_(NULL),
   schedule_balance_(NULL),
   monitor_(NULL),
@@ -114,7 +113,6 @@ Simulation::Simulation()
   phase_(phase_unknown),
   config_(&g_config),
   problem_(NULL),
-  timer_(),
   performance_(NULL),
   schedule_balance_(NULL),
   monitor_(NULL),
@@ -177,7 +175,6 @@ Simulation::Simulation (CkMigrateMessage *m)
     phase_(phase_unknown),
     config_(&g_config),
     problem_(NULL),
-    timer_(),
     performance_(NULL),
     schedule_balance_(NULL),
     monitor_(NULL),
@@ -547,8 +544,6 @@ void Simulation::initialize_performance_() throw()
     std::string region_name = std::string("refresh_") + refresh_name_[i];
     p->new_region(perf_refresh_base_rindex_ + i, region_name);
   }
-
-  timer_.start();
 
 #ifdef CONFIG_USE_PAPI
   for (size_t i=0; i<config_->performance_papi_counters.size(); i++) {
@@ -1004,6 +999,10 @@ void Simulation::p_initialize_state(MsgState * msg)
   delete msg;
 }
 
+float Simulation::timer() const
+{
+  return performance_->timer();
+}
 //======================================================================
 
 void Simulation::data_insert_block(Block * block)

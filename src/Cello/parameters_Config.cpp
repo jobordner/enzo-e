@@ -204,6 +204,7 @@ void Config::pup (PUP::er &p)
   p | performance_warnings;
   p | performance_on_schedule_index;
   p | performance_off_schedule_index;
+  p | performance_trace;
 
   // Physics
 
@@ -1420,6 +1421,8 @@ void Config::read_performance_ (Parameters * p) throw()
 #endif
 
   performance_warnings = p->value_logical("Performance:warnings",false);
+
+  performance_trace = p->value_logical("Performance:trace",false);
 
 #ifdef CONFIG_USE_PROJECTIONS
 

@@ -146,6 +146,7 @@ public: // interface
     performance_warnings(false),
     performance_on_schedule_index(-1),
     performance_off_schedule_index(-1),
+    performance_trace(false),
     num_physics(0),
     physics_list(),
     num_solvers(),
@@ -313,6 +314,7 @@ public: // interface
       performance_warnings(false),
       performance_on_schedule_index(-1),
       performance_off_schedule_index(-1),
+      performance_trace(false),
       num_physics(0),
       physics_list(),
       num_solvers(),
@@ -552,9 +554,10 @@ public: // attributes
   bool                       performance_warnings;
   int                        performance_on_schedule_index;
   int                        performance_off_schedule_index;
+  int                        performance_trace;
 
   // Physics
-  
+
   int                        num_physics;  // number of physics objects
   std::vector<std::string>   physics_list;
 
