@@ -303,12 +303,12 @@ plt.legend(loc='upper left',ncols=2)
 plot_write('plot_msg_sizes',html)
 index = html_table_row_next(html,index,max_index)
 
-plot_open(plt,'cumulative undeleted Charm++ messages','cycle','messages');
-plot_list(plt,glob.glob('counter-*data'),scale=1.0)
-plt.legend(loc='upper left',ncols=2)
-#plt.yscale('log')
-plot_write('counter',html)
-index = html_table_row_next(html,index,max_index)
+# plot_open(plt,'cumulative undeleted Charm++ messages','cycle','messages');
+# plot_list(plt,glob.glob('counter-*data'),scale=1.0)
+# plt.legend(loc='upper left',ncols=2)
+# #plt.yscale('log')
+# plot_write('counter',html)
+# index = html_table_row_next(html,index,max_index)
 
 # ----------------------------------------------------------------------
 if os.path.exists('redshift.data'):
@@ -410,11 +410,11 @@ plt.legend(loc='upper left',ncols=2)
 plot_write('plot_msg_sizes_cycle',html)
 index = html_table_row_next(html,index,max_index)
 
-plot_open(plt,'per-cycle undeleted Charm++ messages','cycle','messages');
-plot_list(plt,glob.glob('counter-*data'),scale=1.0,type='cycle')
-plt.legend(loc='upper left',ncols=2)
-plot_write('counter_cycle',html)
-index = html_table_row_next(html,index,max_index)
+# plot_open(plt,'per-cycle undeleted Charm++ messages','cycle','messages');
+# plot_list(plt,glob.glob('counter-*data'),scale=1.0,type='cycle')
+# plt.legend(loc='upper left',ncols=2)
+# plot_write('counter_cycle',html)
+# index = html_table_row_next(html,index,max_index)
 
 l=lsave
 m=msave
@@ -429,6 +429,22 @@ if os.path.exists('smp.data'):
     index = html_table_row_next(html,index,max_index)
 # ----------------------------------------------------------------------
 html_table_row_stop(html)
+html_table_stop(html)
+
+# ======================================================================
+# Include trace files if available
+
+html_section_h2(html,"Method and refresh traces")
+if os.path.exists('../PLOG'):
+    html_table_start(html)
+    for cycle_dir in glob.glob('../Cycle-*'):
+        html_table_row_start(html)
+        html_table_cell_image(html,cycle_dir+"/trace-method")
+        html_table_cell_image(html,cycle_dir+"/trace-refresh")
+        html_table_cell_image(html,cycle_dir+"/trace-method-sorted")
+        html_table_cell_image(html,cycle_dir+"/trace-refresh-sorted")
+        html_table_row_stop(html)
+    html_table_stop(html)
 
 # ======================================================================
 

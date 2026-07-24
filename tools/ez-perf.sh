@@ -37,6 +37,20 @@ if [ "x$outdir" == "x" ]; then
 fi
 
 # ==============================
+# Create trace files if traces available
+# ==============================
+
+if compgen -G "PLOG.*" > /dev/null ; then
+    cat PLOG.* > PLOG
+    parse-trace.sh
+    for cycle in Cycle-*; do
+        cd $cycle
+        gnuplot $bindir/EZPerf/plot-trace.gnu
+        cd ..
+    done
+fi
+
+# ==============================
 # Create the output directory
 # ==============================
 
