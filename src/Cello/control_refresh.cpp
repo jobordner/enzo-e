@@ -28,7 +28,7 @@ void Block::refresh_start (int id_refresh, int callback)
   // Send field and/or particle data associated with the given refresh
   // object to corresponding neighbors
 
-  if (cello:config()->performance_trace && (state()->cycle() % 100 == 0) ) {
+  if (cello::config()->performance_trace && (state()->cycle() % 100 == 0) ) {
     const int id = refresh->id();
     if (id < 10) {
       const int cycle = state()->cycle();
@@ -266,7 +266,7 @@ void Block::refresh_exit (Refresh * refresh)
 
   }
 
-  if (cello:config()->performance_trace && (state()->cycle() % 100 == 0) ) {
+  if (cello::config()->performance_trace && (state()->cycle() % 100 == 0) ) {
     const int id = refresh->id();
     if (id < 10) {
       const int cycle = state()->cycle();

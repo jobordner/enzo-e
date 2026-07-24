@@ -14,7 +14,7 @@ while true; do
             CONVFMT="%.3f"; bh=0; b0=-1; bn=-1; c0=-1; cn=-1;nh=-1;nn=-1;np=-1;smp=-1; rnd=0; inp=0; st=" XX "; tr=-1} \
     /Input File name /{inp=$NF}; \
     / time-sim / {te=$2; ts=$NF}; \
-    / Simulation redshift /{tr=$NF}; \
+    / redshift /{tr=$NF}; \
     /Parameters  Mesh:root_rank/{mr=$NF}; \
     /Parameters  Mesh:root_blocks/{mb=$(NF-1)}; \
     /Parameters  Mesh:root_size/{ms=$(NF-1)}; \
