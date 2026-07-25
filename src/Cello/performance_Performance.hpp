@@ -254,6 +254,7 @@ public: // interface
   /// Return counters for a code region
   void region_counters(int index_region, long long * counters) throw();
 
+  FILE * fp_trace() { return fp_trace_; }
   void log_start(int cycle, long long bid, const char * type, int id);
   void log_stop(int cycle, long long bid, const char * type, int id);
 

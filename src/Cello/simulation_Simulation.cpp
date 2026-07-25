@@ -554,6 +554,18 @@ void Simulation::initialize_performance_() throw()
 
   p->begin();
 
+  // Write method and region ids and names
+  FILE * fp_trace = p->fp_trace();
+  if (fp_trace) {
+    Problem * problem = this->problem();
+    for (int k=0; k<problem->num_methods(); k++) {
+      fprintf (fp_trace,"#M %d %s\n",k,problem->method(k)->name().c_str());
+    }
+    for (int k=0; k<refresh_count(); k++) {
+      fprintf (fp_trace,"#R %d %s\n",k,refresh_name(k).c_str());
+    }
+  }
+
   PERF_START(iperf_simulation);
 
 }

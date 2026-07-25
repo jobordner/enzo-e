@@ -437,7 +437,7 @@ html_table_stop(html)
 html_section_h2(html,"Method and refresh traces")
 if os.path.exists('../PLOG'):
     html_table_start(html)
-    for cycle_dir in glob.glob('../Cycle-*'):
+    for cycle_dir in sorted(glob.glob('../Cycle-*')):
         html_table_row_start(html)
         html_table_cell_image(html,cycle_dir+"/trace-method")
         html_table_cell_image(html,cycle_dir+"/trace-refresh")
