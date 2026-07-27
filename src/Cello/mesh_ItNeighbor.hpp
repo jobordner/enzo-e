@@ -74,9 +74,11 @@ public:
   bool next (int of3[3]) override
   {
     const bool retval = next_();
-    if (retval) face_(of3);
+    if (retval) face(of3);
     return retval;
   }
+
+  void face(int of3[3]) const ;
 
   /// Return the level of this blocke current face
   int this_level () const
@@ -101,8 +103,6 @@ public:
   bool is_reset() const override;
 
 private: // functions
-
-  void face_(int of3[3]) const ;
 
   /// go to the next face / child
   bool next_();

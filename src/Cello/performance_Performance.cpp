@@ -367,6 +367,12 @@ Performance::region_counters(int index_region, long long * counters) throw()
 
 //----------------------------------------------------------------------
 
+bool Performance::log_scheduled (int cycle, double time) const
+{
+  
+  return (schedule_trace_) && schedule_trace_->write_this_cycle(cycle, time);
+}
+
 void Performance::log_start(int cycle, long long bid, const char * type, int id)
 {
   if (fp_trace_) {

@@ -16,11 +16,62 @@
 #define OLD_MSG_REFRESH
 // #define NEW_MSG_REFRESH
 
+// #define TRACE_REFRESH
+
+#ifdef TRACE_REFRESH
+#   undef TRACE_REFRESH
+#   define TRACE_REFRESH(ID,MSG)                                \
+  if (state()->cycle() > 50) {                                  \
+    CkPrintf ("TRACE_REFRESH %s %d %s\n",                       \
+              name8().c_str(),ID,std::string(MSG).c_str());     \
+  }
+
+#   define TRACE_COUNT(ID,OLD_COUNT,NEW_COUNT)                  \
+  {                                                             \
+    bool do_print = (state()->cycle() > 55 &&                   \
+                     ((OLD_COUNT != NEW_COUNT)                  \
+                      || (this->level() > 0)));                 \
+    if (do_print) {                                             \
+      CkPrintf ("TRACE_COUNT %d %s :%d old %d new %d\n",        \
+                ID, name8().c_str(),__LINE__, OLD_COUNT,        \
+                NEW_COUNT);                                     \
+    }                                                           \
+  }
+#   define TRACE_RECV(INDEX,ID)                         \
+  if (state()->cycle() > 50 &&                          \
+      ( (INDEX).level()>0 || this->level() > 0)) {      \
+    CkPrintf ("TRACE_COMM %d %s < %s :%d recv %s\n",ID, \
+              name8(INDEX).c_str(),name8().c_str(),     \
+              __LINE__,std::string(MSG).c_str());       \
+  }
+#   define TRACE_SEND(INDEX,ID,MSG)                     \
+  if (state()->cycle() > 50 &&                          \
+      ( (INDEX).level()>0 || this->level() > 0)) {      \
+    CkPrintf ("TRACE_COMM %d %s < %s :%d send %s\n",ID, \
+              name8(INDEX).c_str(),name8().c_str(),     \
+              __LINE__,std::string(MSG).c_str());       \
+  }
+#   define TRACE_CALL(INDEX,ID)                         \
+  if (state()->cycle() > 50 &&                          \
+      ( (INDEX).level()>0 || this->level() > 0)) {      \
+    CkPrintf ("TRACE_COMM %d %s < %s :%d call\n",ID, \
+              name8(INDEX).c_str(),name8().c_str(),     \
+              __LINE__);       \
+  }
+#else
+#   define TRACE_REFRESH(ID,MSG) /* ... */
+#   define TRACE_COUNT(ID,OLD_COUNT,NEW_COUNT) /* ... */
+#   define TRACE_RECV(INDEX,ID,MSG) /* ... */
+#   define TRACE_SEND(INDEX,ID,MSG) /* ... */
+#   define TRACE_CALL(INDEX,ID) /* ... */
+#endif
+
 //----------------------------------------------------------------------
 
 void Block::refresh_start (int id_refresh, int callback)
 {
   Refresh * refresh = cello::refresh(id_refresh);
+  TRACE_REFRESH(id_refresh,"01 start");
 
   PERF_REFRESH_START(refresh);
   Sync * sync = sync_(id_refresh);
@@ -28,14 +79,7 @@ void Block::refresh_start (int id_refresh, int callback)
   // Send field and/or particle data associated with the given refresh
   // object to corresponding neighbors
 
-  if (cello::config()->performance_trace && (state()->cycle() % 100 == 0) ) {
-    const int id = refresh->id();
-    if (id < 10) {
-      const int cycle = state()->cycle();
-      long long ind = get_index();
-      cello::performance()->log_start(cycle,ind,"R",id);
-    }
-  }
+  perf_trace_start("R",refresh->id());
 
   if (cello::monitor()->verbose() &&
       index().is_root() && (state()->cycle() % 100 == 0) ) {
@@ -59,26 +103,41 @@ void Block::refresh_start (int id_refresh, int callback)
 
 #ifdef NEW_MSG_REFRESH
 
-    auto & msg_list = refresh_send_buffer_[id_refresh];
+    auto & face_list  = refresh_send_face_[id_refresh];
     auto & ind_list  = refresh_send_index_[id_refresh];
-    const int count = msg_list.size();
+    auto & msg_count = refresh_recv_face_[id_refresh];
+    auto & msg_list = refresh_send_buffer_[id_refresh];
 
     // Send messages
     for (int k=0; k<msg_list.size(); k++) {
       MsgRefresh * msg_refresh = msg_list[k];
       Index index              = ind_list[k];
+      TRACE_CALL(index,refresh->id());
       thisProxy[index].p_refresh_recv (msg_refresh);
     }
 
-    // Clear send queue
-    msg_list.clear();
+    // int count_send = msg_list.size();
+    // int count_recv = msg_count.size();
+    // if (this->level() > 0) {
+    //   for (auto face : msg_count) {
+    //     CkPrintf ("%d %s face send",
+    //               refresh->id(),name8().c_str());
+    //     face.print();
+    //   }
+    // }
+    // TRACE_COUNT(id_refresh,count_send,count_recv);
+    int count = msg_count.size();
+
+    // Clear queues and counts
+    face_list.clear();
     ind_list.clear();
+    msg_count.clear();
+    msg_list.clear();
 
 #else
     const int count = count_field + count_particle + count_flux;
 #endif
 
-    //    CkPrintf ("TRACE_COUNT %d %s %d\n",id_refresh,name8().c_str(),count);
     // Make sure sync counter is not active
     ASSERT4 ("Block::refresh_start()",
              "refresh[%d] sync object %p is active (%d/%d)",
@@ -100,6 +159,7 @@ void Block::refresh_start (int id_refresh, int callback)
 
 void Block::refresh_wait (int id_refresh, int callback)
 {
+  TRACE_REFRESH(id_refresh,"02 wait");
   Refresh * refresh = cello::refresh(id_refresh);
   Sync * sync = sync_(id_refresh);
 
@@ -221,6 +281,7 @@ void Block::p_refresh_recv (MsgRefresh * msg_refresh)
 
 void Block::refresh_exit (Refresh * refresh)
 {
+  TRACE_REFRESH(refresh->id(),"03 exit");
   update_boundary_();
 
   if (refresh->final_sync()) {
@@ -266,14 +327,7 @@ void Block::refresh_exit (Refresh * refresh)
 
   }
 
-  if (cello::config()->performance_trace && (state()->cycle() % 100 == 0) ) {
-    const int id = refresh->id();
-    if (id < 10) {
-      const int cycle = state()->cycle();
-      long long ind = get_index();
-      cello::performance()->log_stop(cycle,ind,"R",id);
-    }
-  }
+  perf_trace_stop("R",refresh->id());
 
   PERF_REFRESH_STOP(refresh);
 }
@@ -313,11 +367,13 @@ int Block::refresh_load_field_faces_ (Refresh * refresh)
       if (pad == 0) {
         refresh_load_field_face_
           (refresh,face_type,index_neighbor,if3,ic3);
+        new_msg_count_(NewFace(thisIndex,index_neighbor),refresh->id());
         ++count;
       } else {
         if (level_face == level_this) {
           refresh_load_field_face_
             (refresh,face_type,index_neighbor,if3,ic3);
+          new_msg_count_(NewFace(thisIndex,index_neighbor),refresh->id());
           ++count;
         } else {
           count += refresh_load_coarse_face_
@@ -327,6 +383,7 @@ int Block::refresh_load_field_faces_ (Refresh * refresh)
           refresh_load_field_face_
             (refresh,face_type,index_neighbor,if3,ic3);
         } else if (level_face > level_this) {
+          new_msg_count_(NewFace(thisIndex,index_neighbor),refresh->id());
           count ++;
         }
 
@@ -352,8 +409,8 @@ int Block::refresh_load_field_faces_ (Refresh * refresh)
           Index index_face = it_face.index();
           int ic3[3] = {0,0,0};
           refresh_load_field_face_ (refresh,0,index_face,if3,ic3);
+          new_msg_count_(NewFace(thisIndex,index_face),refresh->id());
           ++count;
-
         }
       }
     }
@@ -378,6 +435,7 @@ int Block::refresh_load_field_faces_ (Refresh * refresh)
         // counter for expected received face data
         if ((level_block == level_refresh) &&
             (level_face == level_block - 1)) {
+          new_msg_count_(NewFace(thisIndex,index_neighbor),refresh->id());
           ++count;
           // if I'm the coarse neighbor of a level-refreshed block,
           // send face data
@@ -407,6 +465,8 @@ void Block::refresh_load_field_face_
   int g3[3] = {0,0,0};
   FieldFace * field_face = new FieldFace
     (level(), face_type, if3, ic3, g3, refresh,false);
+
+  TRACE_SEND(index_neighbor,refresh->id(),"face");
 
 #ifdef NEW_MSG_REFRESH
 
@@ -502,8 +562,8 @@ int Block::refresh_load_coarse_face_
     } else if (l_recv) {
 
       // only count receives
-      count ++;
-
+      new_msg_count_(NewFace(thisIndex,index_neighbor),refresh->id());
+      ++count;
     }
 
     if (l_send) {
@@ -643,6 +703,8 @@ int Block::refresh_load_coarse_face_
             (tm3,tp3,BlockType::extra,BlockType::extra,lpad = true);
           if (overlap) {
 
+            new_msg_count_(NewFace(thisIndex,index_neighbor),refresh->id());
+            // next try level_extra-level_send
             ++count;
 
             if (level_extra == level) {
@@ -809,6 +871,8 @@ void Block::refresh_coarse_send_
   DataMsg * data_msg = new DataMsg;
 
   const int id_refresh = refresh->id();
+
+  TRACE_SEND(index_neighbor,id_refresh,"coarse");
 
 #ifdef NEW_MSG_REFRESH
 
@@ -995,6 +1059,8 @@ int Block::refresh_load_particle_faces_ (Refresh * refresh)
 
   ParticleData ** particle_array = new ParticleData*[npa];
   ParticleData ** particle_list = new ParticleData*[npa];
+  std::vector<NewFace> face_list;
+  face_list.resize(npa);
   std::fill_n (particle_array,npa,nullptr);
   std::fill_n (particle_list,npa,nullptr);
 
@@ -1004,11 +1070,11 @@ int Block::refresh_load_particle_faces_ (Refresh * refresh)
   // corresponding to neighbors
 
   int nl = particle_load_faces_
-    (npa,particle_list,particle_array, index_list, refresh, copy);
+    (npa,particle_list,particle_array, face_list,index_list, refresh, copy);
 
   // Send particle data to neighbors
 
-  particle_send_(refresh,nl,index_list,particle_list);
+  particle_send_(refresh,nl,index_list,particle_list,face_list);
 
   delete [] particle_array;
   delete [] particle_list;
@@ -1021,7 +1087,8 @@ int Block::refresh_load_particle_faces_ (Refresh * refresh)
 
 void Block::particle_send_
 (Refresh * refresh,
- int nl,Index index_list[], ParticleData * particle_list[])
+ int nl,Index index_list[], ParticleData * particle_list[],
+ std::vector<NewFace> & face_list)
 {
   ParticleDescr * p_descr = cello::particle_descr();
 
@@ -1029,7 +1096,6 @@ void Block::particle_send_
 
     Index index           = index_list[il];
     ParticleData * p_data = particle_list[il];
-
     const int id_refresh = refresh->id();
 
     ASSERT1 ("Block::particle_send_()",
@@ -1038,6 +1104,8 @@ void Block::particle_send_
              (0 <= id_refresh));
 
     if (p_data) {
+
+      TRACE_SEND(index,id_refresh,"particle");
 
 #ifdef NEW_MSG_REFRESH
 
@@ -1060,7 +1128,9 @@ void Block::particle_send_
 
       thisProxy[index].p_refresh_recv (msg_refresh);
 
-      if (data_msg == nullptr) delete p_data;
+      if (data_msg == nullptr) {
+        delete p_data;
+      }
 
 #endif
 
@@ -1070,19 +1140,42 @@ void Block::particle_send_
 
 //----------------------------------------------------------------------
 
+void Block::new_msg_clear_count_ (int id_refresh)
+{
+  refresh_recv_face_[id_refresh].clear();
+}
+
+//----------------------------------------------------------------------
+
+void Block::new_msg_count_ (NewFace new_face, int id_refresh)
+{
+  // Return if index already in recv list...
+  for (auto face: refresh_recv_face_[id_refresh]) {
+    if (face == new_face) return;
+  }
+
+  // ...else add it
+
+  refresh_recv_face_ [id_refresh].push_back(new_face);
+}
+
+//----------------------------------------------------------------------
+
 MsgRefresh * Block::new_msg_refresh_ (Index index, int id_refresh)
 {
   // Return message if it already exists...
-  for (int i=0; i<refresh_send_index_[id_refresh].size(); i++) {
-    if (index == refresh_send_index_[id_refresh][i])
+  NewFace face = NewFace(thisIndex,index);
+  for (int i=0; i<refresh_send_face_[id_refresh].size(); i++) {
+    if (face == refresh_send_face_[id_refresh][i])
       return refresh_send_buffer_[id_refresh][i];
   }
 
   // ...else create, store, and return if not
   DataMsg * data_msg = new DataMsg;
   MsgRefresh * msg_refresh = new MsgRefresh (data_msg,id_refresh);
-  refresh_send_index_ [id_refresh].push_back(index);
+  refresh_send_face_ [id_refresh].push_back(face);
   refresh_send_buffer_[id_refresh].push_back(msg_refresh);
+  refresh_send_index_[id_refresh].push_back(index);
   return msg_refresh;
 }
 
@@ -1120,7 +1213,7 @@ void Block::new_msg_refresh_
 void Block::new_msg_refresh_
 (Index index, int id_refresh, ParticleData * p_data)
 {
-  MsgRefresh * msg_refresh = new_msg_refresh_(index,id_refresh);
+  MsgRefresh * msg_refresh = new_msg_refresh_(index, id_refresh);
 
   DataMsg * data_msg = msg_refresh->data_msg();
 
@@ -1130,6 +1223,8 @@ void Block::new_msg_refresh_
 
     data_msg ->set_particle_data(p_data,true);
 
+  } else {
+    delete p_data;
   }
 }
 
@@ -1164,6 +1259,7 @@ int Block::particle_load_faces_
 (int npa,
  ParticleData * particle_list[],
  ParticleData * particle_array[],
+ std::vector<NewFace> & face_list, 
  Index index_list[],
  Refresh * refresh,
  const bool copy)
@@ -1213,7 +1309,7 @@ int Block::particle_load_faces_
   // periodic boundaries
 
   int nl = particle_create_array_neighbors_
-    (refresh, particle_array,particle_list,index_list);
+    (refresh, particle_array,particle_list,index_list, face_list);
 
   // Scatter particles among particle_data array
 
@@ -1244,7 +1340,8 @@ int Block::particle_create_array_neighbors_
 (Refresh * refresh,
  ParticleData * particle_array[],
  ParticleData * particle_list[],
- Index index_list[])
+ Index index_list[],
+ std::vector<NewFace> & face_list)
 {
   const int rank = cello::rank();
   const int level = this->level();
@@ -1287,6 +1384,7 @@ int Block::particle_create_array_neighbors_
     particle_list[il] = pd;
 
     index_list[il] = it_neighbor.index();
+    face_list[il] = NewFace(thisIndex,index_list[il]);
 
     for (int iz=index_lower[2]; iz<index_upper[2]; iz++) {
       for (int iy=index_lower[1]; iy<index_upper[1]; iy++) {
@@ -1607,6 +1705,7 @@ int Block::refresh_load_flux_faces_ (Refresh * refresh)
     refresh_load_flux_face_
       (refresh,face_type,index_neighbor,if3,ic3);
 
+    new_msg_count_(NewFace(thisIndex,index_neighbor),refresh->id());
     ++count;
 
   }
@@ -1646,6 +1745,8 @@ void Block::refresh_load_flux_face_
            id_refresh,
            (0 <= id_refresh));
 
+
+  TRACE_SEND(index_neighbor,id_refresh,"fluxes");
 
 #ifdef NEW_MSG_REFRESH
 

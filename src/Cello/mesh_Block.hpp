@@ -21,6 +21,7 @@ class Hierarchy;
 class ItFace;
 class ItNeighbor;
 class Method;
+class NewFace;
 class Particle;
 class ParticleData;
 class Refresh;
@@ -624,8 +625,10 @@ public:
   void refresh_load_field_face_
   (Refresh * refresh, int face_type, Index index, int if3[3], int ic3[3]);
   /// Send particles in list to corresponding indices
-  void particle_send_(Refresh * refresh, int nl,Index index_list[],
-                      ParticleData * particle_list[]);
+  void particle_send_(Refresh * refresh,
+                      int nl,Index index_list[],
+                      ParticleData * particle_list[],
+                      std::vector<NewFace> & face_list);
   void refresh_load_flux_face_
   (Refresh * refresh, int face_type, Index index, int if3[3], int ic3[3]);
 
@@ -696,7 +699,8 @@ protected:
   (Refresh * refresh,
    ParticleData * particle_array[],
    ParticleData * particle_list[],
-   Index index_list[]);
+   Index index_list[],
+   std::vector<NewFace> & face_list);
 
   /// Computes updates to positions (dpx[i],dpy[i],dpz[i]) for faces that
   /// cross periodic domain boundaries
@@ -716,14 +720,11 @@ protected:
   void particle_scatter_children_ (ParticleData * particle_list[],
 				   Particle particle_src);
 
-  /// Send particles in list to corresponding indices
-  void particle_send_(int nl,Index index_list[],
-		      ParticleData * particle_list[]);
-
   /// Pack particle type data into arrays and send to neighbors
   int particle_load_faces_ (int npa,
 			    ParticleData * particle_list[],
 			    ParticleData * particle_array[],
+                            std::vector<NewFace> & face_list,
 			    Index index_list[],
 			    Refresh * refresh,
                             const bool copy = false);
@@ -810,6 +811,8 @@ protected:
 
   /// Update projections logging on / off
   void performance_projections_update_logging_();
+  void perf_trace_start(std::string region, int index);
+  void perf_trace_stop(std::string region, int index);
 
 //--------------------------------------------------
   // TESTING
@@ -902,6 +905,9 @@ protected: // functions
 
   /// Update boundary conditions
   void update_boundary_ ();
+
+  void new_msg_count_ (NewFace face, int id_refresh);
+  void new_msg_clear_count_ (int id_refresh);
 
   MsgRefresh * new_msg_refresh_ (Index index, int id_refresh);
   void new_msg_refresh_ (Index index, int id_refresh, FieldFace *);
@@ -1025,9 +1031,11 @@ protected: // attributes
   std::vector<Refresh*> refresh_;
 
   std::vector < Sync > refresh_sync_list_;
-  std::vector < std::vector <MsgRefresh * > > refresh_recv_buffer_;
-  std::vector < std::vector <MsgRefresh * > > refresh_send_buffer_;
-  std::vector < std::vector <Index> >         refresh_send_index_;
+  std::vector < std::vector <NewFace> >        refresh_recv_face_;
+  std::vector < std::vector <MsgRefresh * > >  refresh_recv_buffer_;
+  std::vector < std::vector <NewFace> >        refresh_send_face_;
+  std::vector < std::vector <MsgRefresh * > >  refresh_send_buffer_;
+  std::vector < std::vector <Index> >          refresh_send_index_;
 
   /// Index and total count used for ordering blocks, e.g. for dynamic
   /// load balancing

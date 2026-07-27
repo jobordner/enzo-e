@@ -100,6 +100,7 @@ class FieldFace;
 #include "data_ParticleData.hpp"
 #include "data_Particle.hpp"
 
+#include "data_NewFace.hpp"
 #include "data_Face.hpp"
 #include "data_FaceFluxes.hpp"
 #include "data_FluxData.hpp"

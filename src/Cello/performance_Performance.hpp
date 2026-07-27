@@ -255,6 +255,7 @@ public: // interface
   void region_counters(int index_region, long long * counters) throw();
 
   FILE * fp_trace() { return fp_trace_; }
+  bool log_scheduled (int cycle, double time) const;
   void log_start(int cycle, long long bid, const char * type, int id);
   void log_stop(int cycle, long long bid, const char * type, int id);
 
@@ -278,9 +279,15 @@ public: // interface
 
   Schedule * projections_schedule_off() const
   { return projections_schedule_off_; }
+
 #endif
 
-private: // functions
+  Schedule * schedule_trace() const
+  { return schedule_trace_; }
+  void set_schedule_trace (Schedule * schedule)
+  { schedule_trace_ = schedule; }
+
+  private: // functions
 
   /// Refresh the array of current counter values
   void refresh_counters_() throw();
@@ -350,6 +357,9 @@ private: // attributes
 #endif
 
   FILE * fp_trace_;
+
+  Schedule * schedule_trace_;
+
   /// Simulation timer
   Timer timer_;
 };

@@ -136,12 +136,7 @@ void Block::compute_continue_ ()
 
     TRACE_COMPUTE("applying method",3);
 
-    if (cello::config()->performance_trace && (state()->cycle() % 100 == 0) ) {
-      const int id = index_method_;
-      const int cycle = state()->cycle();
-      long long ind = get_index();
-      cello::performance()->log_start(cycle,ind,"M",id);
-    }
+    perf_trace_start("M",index_method_);
 
     method->compute (this);
 
@@ -160,13 +155,7 @@ void Block::compute_done ()
 
   PERF_METHOD_STOP(method());
 
-  if (cello::config()->performance_trace && (state()->cycle() % 100 == 0) ) {
-    const int id = index_method_;
-    const int cycle = state()->cycle();
-    long long ind = get_index();
-    cello::performance()->log_stop(cycle,ind,"M",id);
-  }
-
+  perf_trace_stop("M",index_method_);
 
   compute_update_method_state_(index_method_);
 

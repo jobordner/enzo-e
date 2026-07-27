@@ -147,6 +147,7 @@ public: // interface
     performance_on_schedule_index(-1),
     performance_off_schedule_index(-1),
     performance_trace(false),
+    performance_trace_schedule_index(-1),
     num_physics(0),
     physics_list(),
     num_solvers(),
@@ -315,6 +316,7 @@ public: // interface
       performance_on_schedule_index(-1),
       performance_off_schedule_index(-1),
       performance_trace(false),
+      performance_trace_schedule_index(-1),
       num_physics(0),
       physics_list(),
       num_solvers(),
@@ -555,6 +557,7 @@ public: // attributes
   int                        performance_on_schedule_index;
   int                        performance_off_schedule_index;
   int                        performance_trace;
+  int                        performance_trace_schedule_index;
 
   // Physics
 

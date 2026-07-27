@@ -7,22 +7,18 @@
 
 #include "data.hpp"
 
-// #define DEBUG_FACE
-
-// #define DEBUG_REFRESH
-
 //======================================================================
 
 int Face::data_size () const
 {
-#ifdef DEBUG_REFRESH
-  CkPrintf ("%d DEBUG_REFRESH Face::data_size()\n",CkMyPe());
-#endif  
   int size = 0;
 
-  size += 3*sizeof(int);  // int ix_,iy_,iz_;
-  size += sizeof(int);    // int axis_;
-  size += sizeof(int);    // int face_;
+  SIZE_SCALAR_TYPE(size,int,ix_);
+  SIZE_SCALAR_TYPE(size,int,iy_);
+  SIZE_SCALAR_TYPE(size,int,iz_);
+
+  SIZE_SCALAR_TYPE(size,int,axis_);
+  SIZE_SCALAR_TYPE(size,int,face_);
 
   return size;
 }
@@ -31,28 +27,14 @@ int Face::data_size () const
 
 char * Face::save_data (char * buffer) const
 {
-#ifdef DEBUG_REFRESH
-  CkPrintf ("%d DEBUG_REFRESH Face::save_data()\n",CkMyPe());
-#endif  
-  union {
-    char  * pc;
-    int   * pi;
-    float * pf;
-  };
+  char * pc = buffer;
 
-  pc = (char *) buffer;
+  SAVE_SCALAR_TYPE(pc,int,ix_);
+  SAVE_SCALAR_TYPE(pc,int,iy_);
+  SAVE_SCALAR_TYPE(pc,int,iz_);
 
-  (*pi++) = ix_;
-  (*pi++) = iy_;
-  (*pi++) = iz_;
-
-  (*pi++) = axis_;
-  (*pi++) = face_;
-  
-  ASSERT2("Face::save_data()",
-	  "Buffer has size %ld but expecting size %d",
-	  (pc-buffer),data_size(),
-	  ((pc-buffer) == data_size()));
+  SAVE_SCALAR_TYPE(pc,int,axis_);
+  SAVE_SCALAR_TYPE(pc,int,face_);
 
   return pc;
 }
@@ -61,28 +43,14 @@ char * Face::save_data (char * buffer) const
 
 char * Face::load_data (char * buffer)
 {
-#ifdef DEBUG_REFRESH
-  CkPrintf ("%d DEBUG_REFRESH Face::load_data()\n",CkMyPe());
-#endif  
-  union {
-    int   * pi;
-    char  * pc;
-    float * pf;
-  };
+  char * pc = buffer;
 
-  pc = (char *) buffer;
+  LOAD_SCALAR_TYPE(pc,int,ix_);
+  LOAD_SCALAR_TYPE(pc,int,iy_);
+  LOAD_SCALAR_TYPE(pc,int,iz_);
 
-  ix_ = (*pi++);
-  iy_ = (*pi++);
-  iz_ = (*pi++);
-
-  axis_ = (*pi++);
-  face_ = (*pi++);
-
-  ASSERT2("Face::load_data()",
-	  "Buffer has size %ld but expecting size %d",
-	  (pc-buffer),data_size(),
-	  ((pc-buffer) == data_size()));
+  LOAD_SCALAR_TYPE(pc,int,axis_);
+  LOAD_SCALAR_TYPE(pc,int,face_);
 
   return pc;
 }
