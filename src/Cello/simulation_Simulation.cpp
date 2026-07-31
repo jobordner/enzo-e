@@ -566,6 +566,19 @@ void Simulation::initialize_performance_() throw()
     }
   }
 
+  const Config * config = cello::config();
+  const int index = config->performance_trace_schedule_index;
+
+  Schedule * schedule = (index == -1) ? nullptr : Schedule::create
+    ( config->schedule_var[index],
+      config->schedule_type[index],
+      config->schedule_start[index],
+      config->schedule_stop[index],
+      config->schedule_step[index],
+      config->schedule_list[index]);
+
+  p->set_schedule_trace( schedule );
+
   PERF_START(iperf_simulation);
 
 }

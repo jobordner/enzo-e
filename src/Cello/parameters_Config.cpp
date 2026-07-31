@@ -205,6 +205,8 @@ void Config::pup (PUP::er &p)
   p | performance_on_schedule_index;
   p | performance_off_schedule_index;
   p | performance_trace;
+  p | performance_trace_stride;
+  p | performance_trace_schedule_index;
 
   // Physics
 
@@ -1422,7 +1424,16 @@ void Config::read_performance_ (Parameters * p) throw()
 
   performance_warnings = p->value_logical("Performance:warnings",false);
 
+  // Performance tracing
   performance_trace = p->value_logical("Performance:trace",false);
+  performance_trace_stride = p->value_integer("Performance:trace_stride",1);
+  if (p->type("Performance:trace_log:schedule:var") != parameter_unknown) {
+    parameter_path_type path;
+    path.push_back("Performance");
+    path.push_back("trace_log");
+    path.push_back("schedule");
+    performance_trace_schedule_index = read_schedule_(p,path,"perf_trace");
+  }
 
 #ifdef CONFIG_USE_PROJECTIONS
 
