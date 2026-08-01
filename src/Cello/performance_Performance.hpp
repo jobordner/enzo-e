@@ -258,6 +258,7 @@ public: // interface
   bool log_scheduled (int cycle, double time) const;
   void log_start(int cycle, long long bid, const char * type, int id);
   void log_stop(int cycle, long long bid, const char * type, int id);
+  void log_flush();
 
   float timer() const { return timer_.value(); }
 

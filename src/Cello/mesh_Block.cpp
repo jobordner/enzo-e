@@ -1195,6 +1195,16 @@ void Block::perf_trace_stop(std::string region, int index)
 
 }
 
+//----------------------------------------------------------------------
+
+void Block::perf_trace_flush()
+{
+  const int cycle = state()->cycle() - 1; // - 1 to flush after start/stop
+  const double time = state()->time();
+  if (cello::performance()->log_scheduled(cycle,time)) {
+    cello::performance()->log_flush();
+  }
+}
 //======================================================================
 
 void Block::determine_boundary_

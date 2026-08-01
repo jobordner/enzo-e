@@ -391,5 +391,14 @@ void Performance::log_stop(int cycle, long long bid, const char * type, int id)
   }
 }
 
+//----------------------------------------------------------------------
+
+void Performance::log_flush()
+{
+  if (fp_trace_) {
+    fflush(fp_trace_);
+  }
+}
+
 //======================================================================
 

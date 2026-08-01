@@ -76,6 +76,8 @@ void Block::r_stopping_compute_timestep(CkReductionMsg * msg)
   /* PERF_REDUCE_STOP(iperf_reduce_stopping); */
   PERF_START(iperf_stopping);
 
+  perf_trace_flush();
+
   ++age_;
 
   double * min_reduce = (double * )msg->getData();
