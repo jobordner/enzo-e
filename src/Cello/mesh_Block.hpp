@@ -810,6 +810,8 @@ protected:
 
   /// Update projections logging on / off
   void performance_projections_update_logging_();
+  void perf_trace_start(std::string region, int index);
+  void perf_trace_stop(std::string region, int index);
 
 //--------------------------------------------------
   // TESTING

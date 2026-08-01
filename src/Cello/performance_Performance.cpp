@@ -101,9 +101,9 @@ Performance::Performance (Config * config)
 
 Performance::~Performance()
 {
+  fclose (fp_trace_);
 #ifdef CONFIG_USE_PAPI
   delete [] papi_counters_;
-  fclose (fp_trace_);
 #endif
 }
 

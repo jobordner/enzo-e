@@ -28,14 +28,7 @@ void Block::refresh_start (int id_refresh, int callback)
   // Send field and/or particle data associated with the given refresh
   // object to corresponding neighbors
 
-  if (cello::config()->performance_trace && (state()->cycle() % 100 == 0) ) {
-    const int id = refresh->id();
-    if (id < 10) {
-      const int cycle = state()->cycle();
-      long long ind = get_index();
-      cello::performance()->log_start(cycle,ind,"R",id);
-    }
-  }
+  perf_trace_start("R",refresh->id());
 
   if (cello::monitor()->verbose() &&
       index().is_root() && (state()->cycle() % 100 == 0) ) {
@@ -266,14 +259,7 @@ void Block::refresh_exit (Refresh * refresh)
 
   }
 
-  if (cello::config()->performance_trace && (state()->cycle() % 100 == 0) ) {
-    const int id = refresh->id();
-    if (id < 10) {
-      const int cycle = state()->cycle();
-      long long ind = get_index();
-      cello::performance()->log_stop(cycle,ind,"R",id);
-    }
-  }
+  perf_trace_stop("R",refresh->id());
 
   PERF_REFRESH_STOP(refresh);
 }

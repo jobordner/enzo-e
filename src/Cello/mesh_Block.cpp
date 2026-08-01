@@ -1170,6 +1170,31 @@ void Block::verify_neighbors()
            (adapt_.num_neighbors() == num_neighbors));
 }
 
+//----------------------------------------------------------------------
+
+void Block::perf_trace_start(std::string region, int index)
+{
+  const int cycle = state()->cycle();
+  const double time = state()->time();
+  if (cello::performance()->log_scheduled(cycle,time)) {
+    long long ind = get_index();
+    cello::performance()->log_start(cycle,ind,region.c_str(),index);
+  }
+}
+
+//----------------------------------------------------------------------
+
+void Block::perf_trace_stop(std::string region, int index)
+{
+  const int cycle = state()->cycle();
+  const double time = state()->time();
+  if (cello::performance()->log_scheduled(cycle,time)) {
+    long long ind = get_index();
+    cello::performance()->log_stop(cycle,ind,region.c_str(),index);
+  }
+
+}
+
 //======================================================================
 
 void Block::determine_boundary_

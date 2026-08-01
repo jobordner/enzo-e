@@ -61,7 +61,7 @@ enum PerfRegionIndex {
   iperf_adapt_recv_child_post,
   iperf_reduce,
   iperf_reduce_stopping,
-  iperf_reduce_adapt,
+  //  iperf_reduce_adapt,
   iperf_reduce_charm,
   iperf_reduce_initialize,
   iperf_reduce_output,

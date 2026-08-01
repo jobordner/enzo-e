@@ -474,7 +474,7 @@ void Simulation::initialize_performance_() throw()
   p->new_region(iperf_refresh_child_post,    "refresh_child_post",in_charm);
 
   p->new_region(iperf_reduce,                "reduce");
-  p->new_region(iperf_reduce_adapt,          "reduce_adapt");
+  //  p->new_region(iperf_reduce_adapt,          "reduce_adapt");
   p->new_region(iperf_reduce_charm,          "reduce_charm");
   p->new_region(iperf_reduce_initialize,     "reduce_initialize");
   p->new_region(iperf_reduce_method_balance, "reduce_method_balance");

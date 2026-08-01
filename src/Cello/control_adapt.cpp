@@ -88,7 +88,7 @@ void Block::adapt_barrier_()
       (CkIndex_Block::r_adapt_next(nullptr), 
        proxy_array());
     adapt_ready_ = true;
-    PERF_REDUCE_START(iperf_reduce_adapt);
+    //    PERF_REDUCE_START(iperf_reduce_adapt);
     contribute(sizeof(int),&changed,CkReduction::sum_int, callback);
   }
 }
@@ -103,7 +103,7 @@ void Block::adapt_barrier_()
 /// adapt_end_().
 void Block::adapt_next_()
 {
-  PERF_REDUCE_STOP(iperf_reduce_adapt);
+  //  PERF_REDUCE_STOP(iperf_reduce_adapt);
   int num_blocks_changed = cello::hierarchy()->num_blocks_changed();
   cello::hierarchy()->set_num_blocks_changed
     (std::max(adapt_changed_,num_blocks_changed));
