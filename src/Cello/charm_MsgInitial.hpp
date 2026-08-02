@@ -42,8 +42,6 @@ public: // interface
     data_values_    = nullptr;
     data_delete_    = true;
     count_           = msg_initial.count_;
-    // new message, so new tag
-    cello::hex_string(tag_,TAG_LEN);
 
     for (int i=0; i<4; i++) {
       n4_[i] = msg_initial.n4_[i];
@@ -59,10 +57,6 @@ public: // interface
 
   /// Copy data from this message into the provided Data object
   void update (Data * data);
-
-  void print (const char * msg);
-
-  const char * tag() { return tag_;}
 
 public: // static methods
 
@@ -147,9 +141,6 @@ protected: // attributes
 
   /// Saved Charm++ buffers for deleting after unpack()
   void * buffer_;
-
-  /// Random hex tag for tracking messages for debugging
-  char tag_[TAG_LEN+1];
 
   /// File dataset size
   int n4_[4];

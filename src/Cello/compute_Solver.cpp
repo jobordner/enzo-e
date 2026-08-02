@@ -150,6 +150,7 @@ void Solver::begin_(Block * block)
 	    block->name().c_str(),index_,name_.c_str());
 #endif  
   block->push_solver(index_);
+  block->perf_trace_start("S",index_);
 }
 
 //----------------------------------------------------------------------
@@ -158,6 +159,7 @@ void Solver::end_(Block * block)
 {
   PERF_SOLVER_STOP(this);
   int index = block->pop_solver();
+  block->perf_trace_stop("S",index);
 #ifdef TRACE_SOLVER  
   if (block->state()->cycle() >= CYCLE)
     CkPrintf ("%s TRACE_SOLVER %d Solver::end_(%s)\n",
@@ -171,7 +173,6 @@ void Solver::end_(Block * block)
   CkCallback(callback_,
 	     CkArrayIndexIndex(block->index()),
 	     block->proxy_array()).send();
-
 }
 
 //----------------------------------------------------------------------

@@ -42,11 +42,6 @@ public: // interface
   /// Update the Data with data stored in this message
   void update (Data * data);
 
-  void print(const char * message);
-  void summary() const;
-
-  const char * tag() { return tag_;}
-
 public: // static methods
 
   /// Pack data to serialize
@@ -67,9 +62,6 @@ protected: // attributes
 
   /// Saved Charm++ buffer for deleting after unpack()
   void * buffer_;
-
-  /// Random hex tag for tracking messages for debugging
-  char tag_[TAG_LEN+1];
 };
 
 #endif /* CHARM_MSG_HPP */

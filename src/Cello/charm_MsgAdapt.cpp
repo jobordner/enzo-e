@@ -48,7 +48,6 @@ void * MsgAdapt::pack (MsgAdapt * msg)
   SIZE_SCALAR_TYPE(size,int,   msg->level_max_);
   SIZE_SCALAR_TYPE(size,bool,  msg->can_coarsen_);
   SIZE_SCALAR_TYPE(size,int,   msg->count_);
-  SIZE_ARRAY_TYPE(size,char,msg->tag_,TAG_LEN+1);
 
   //--------------------------------------------------
   //  2. allocate buffer using CkAllocBuffer()
@@ -73,7 +72,6 @@ void * MsgAdapt::pack (MsgAdapt * msg)
   SAVE_SCALAR_TYPE(pc,int,   msg->level_max_);
   SAVE_SCALAR_TYPE(pc,bool,  msg->can_coarsen_);
   SAVE_SCALAR_TYPE(pc,int,   msg->count_);
-  SAVE_ARRAY_TYPE(pc,char,msg->tag_,TAG_LEN+1);
 
   ASSERT2("MsgAdapt::pack()",
 	  "buffer size mismatch %ld allocated %d packed",
@@ -115,29 +113,10 @@ MsgAdapt * MsgAdapt::unpack(void * buffer)
   LOAD_SCALAR_TYPE(pc,int,   msg->level_max_);
   LOAD_SCALAR_TYPE(pc,bool,  msg->can_coarsen_);
   LOAD_SCALAR_TYPE(pc,int,   msg->count_);
-  LOAD_ARRAY_TYPE(pc,char,msg->tag_,TAG_LEN+1);
 
   // 3. Save the input buffer for freeing later
 
   msg->buffer_ = buffer;
 
   return msg;
-}
-
-//----------------------------------------------------------------------
-
-void MsgAdapt::print (const char * msg)
-{
-  const int ip = CkMyPe();
-  //  CkPrintf ("%d MSG_ADAPT====================\n",ip);
-  CkPrintf ("%d MSG_ADAPT tag %s %p %s\n",ip,msg,(void *)this,tag_);
-  //  CkPrintf ("%d MSG_ADAPT adapt_step %d\n",ip,adapt_step_);
-  //  CkPrintf ("%d MSG_ADAPT ic3        %d %d %d\n",ip,ic3_[0],ic3_[1],ic3_[2]);
-  //  CkPrintf ("%d MSG_ADAPT of3        %d %d %d\n",ip,of3_[0],of3_[1],of3_[2]);
-  //  CkPrintf ("%d MSG_ADAPT level_now  %d\n",ip,level_now_);
-  //  CkPrintf ("%d MSG_ADAPT level_min  %d\n",ip,level_min_);
-  //  CkPrintf ("%d MSG_ADAPT level_max  %d\n",ip,level_max_);
-  //  CkPrintf ("%d MSG_ADAPT can_coarsen %d\n",ip,can_coarsen_);
-  //  CkPrintf ("%d \n",ip);
-  fflush(stdout);
 }

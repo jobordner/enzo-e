@@ -105,7 +105,7 @@ bool Method::is_active(std::shared_ptr<State> state, int level)
   const int level_lower = state->level_lower();
   const int level_upper = state->level_upper();
   return (state->state_type() == State::Type::Global)
-    || ( level_lower <= level )  && ( level < level_upper );
+    || (( level_lower <= level )  && ( level < level_upper ));
 }
 
 //======================================================================

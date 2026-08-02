@@ -38,7 +38,7 @@ double MethodATS::timestep ( Block * block) throw()
 {
   double retval=std::numeric_limits<double>::max();
   const int level = block->level();
-  if (0 <= level && level < dt_level_.size())
+  if (0 <= level && level < int(dt_level_.size()))
     retval = dt_level_[level];
   return retval;
 }

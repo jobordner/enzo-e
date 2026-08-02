@@ -36,14 +36,12 @@ MsgInitial::MsgInitial()
     data_delete_(true),
     count_(false),
     buffer_(nullptr),
-    tag_(),
     n4_(),
     h4_(),
     nx_(0),ny_(0),nz_(0),
     IX_(0),IY_(0),IZ_(0)
 {
   ++counter[cello::index_static()];
-  cello::hex_string(tag_,TAG_LEN);
 }
 
 //----------------------------------------------------------------------
@@ -81,7 +79,6 @@ void * MsgInitial::pack (MsgInitial * msg)
   SIZE_ARRAY_TYPE (size,char,msg->data_values_,msg->data_bytes_);
   SIZE_SCALAR_TYPE(size,int, msg->data_delete_);
   SIZE_SCALAR_TYPE(size,int, msg->count_);
-  SIZE_ARRAY_TYPE (size,char,msg->tag_,TAG_LEN+1);
   SIZE_ARRAY_TYPE (size,int,   msg->n4_,4);
   SIZE_ARRAY_TYPE (size,double,msg->h4_,4);
   SIZE_SCALAR_TYPE(size,int, msg->nx_);
@@ -114,7 +111,6 @@ void * MsgInitial::pack (MsgInitial * msg)
   SAVE_ARRAY_TYPE(pc,char,msg->data_values_,msg->data_bytes_);
   SAVE_SCALAR_TYPE(pc,int,msg->data_delete_);
   SAVE_SCALAR_TYPE(pc,int,msg->count_);
-  SAVE_ARRAY_TYPE(pc,char,msg->tag_,TAG_LEN+1);
   SAVE_ARRAY_TYPE (pc,int,   msg->n4_,4);
   SAVE_ARRAY_TYPE (pc,double,msg->h4_,4);
   SAVE_SCALAR_TYPE(pc,int, msg->nx_);
@@ -167,7 +163,6 @@ MsgInitial * MsgInitial::unpack(void * buffer)
   LOAD_SCALAR_TYPE(pc,int,msg->data_delete_);
   msg->data_delete_ = true;
   LOAD_SCALAR_TYPE(pc,int,msg->count_);
-  LOAD_ARRAY_TYPE(pc,char,msg->tag_,TAG_LEN+1);
   LOAD_ARRAY_TYPE (pc,int,   msg->n4_,4);
   LOAD_ARRAY_TYPE (pc,double,msg->h4_,4);
   LOAD_SCALAR_TYPE(pc,int, msg->nx_);
@@ -196,14 +191,6 @@ void MsgInitial::update (Data * data)
   } 
 }
 
-//----------------------------------------------------------------------
-
-void MsgInitial::print (const char * msg)
-{
-  CkPrintf ("MSG_INITIAL====================\n");
-  CkPrintf ("MSG_INITIAL tag %s %s\n",msg,tag_);
-  CkPrintf ("MSG_INITIAL is_local %d\n",is_local_);
-}
 //----------------------------------------------------------------------
 
 void MsgInitial::set_field_data

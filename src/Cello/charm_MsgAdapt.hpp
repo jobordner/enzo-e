@@ -47,7 +47,6 @@ public: // interface
     count_(count),
     buffer_(nullptr)
   {
-    cello::hex_string(tag_,TAG_LEN); // add new tag for new message
     ic3_[0] = ic3[0];
     ic3_[1] = ic3[1];
     ic3_[2] = ic3[2];
@@ -79,8 +78,6 @@ public: // interface
   MsgAdapt & operator= (const MsgAdapt & data_msg) throw()
   { return *this; }
 
-  const char * tag() { return tag_;}
-
 public: // static methods
 
   /// Pack data to serialize
@@ -89,8 +86,6 @@ public: // static methods
   /// Unpack data to de-serialize
   static MsgAdapt * unpack(void *);
 
-  void print (const char * msg);
-  
 protected: // methods
 
   MsgAdapt() { }
@@ -108,9 +103,6 @@ protected: // attributes
   int count_;
   /// Saved Charm++ buffer for deleting after unpack()
   void * buffer_;
-  /// Random hex tag for tracking messages for debugging
-  char tag_[TAG_LEN+1];
-
 };
 
 #endif /* CHARM_MSG_HPP */

@@ -41,7 +41,6 @@ public: // interface
   {
     ++counter[cello::index_static()];
     copy_(msg_output);
-    cello::hex_string(tag_,TAG_LEN); // add new tag for new message
  };
 
   MsgOutput & operator = (const MsgOutput & msg_output)
@@ -76,8 +75,6 @@ public: // interface
 
   void print (const char * msg);
 
-  const char * tag() { return tag_;}
-
   IoBlock * io_block() { return io_block_; }
 
   std::string block_name() const  { return block_name_; }
@@ -110,10 +107,6 @@ protected: // methods
       block_lower_[i]    = msg_output.block_lower_[i];
       block_upper_[i]    = msg_output.block_upper_[i];
     }
-    // this looks a little funny, but it's correct. The last arg needs to be
-    // TAG_LEN+1 because this->tag is an array of TAG_LEN+1 characters
-    strncpy(tag_,msg_output.tag_,(TAG_LEN+1));
-    tag_[TAG_LEN] = '\0'; // for extra safety
   }
 
 protected: // attributes
@@ -138,9 +131,6 @@ protected: // attributes
 
   /// Saved Charm++ buffers for deleting after unpack()
   void * buffer_;
-
-  /// Random hex tag for tracking messages for debugging
-  char tag_[TAG_LEN+1];
 
   /// Data for the Block
   IoBlock * io_block_;

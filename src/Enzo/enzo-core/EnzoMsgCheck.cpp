@@ -27,7 +27,6 @@ EnzoMsgCheck::EnzoMsgCheck()
     block_lower_(),
     block_upper_(),
     block_size_(),
-    tag_(),
     io_block_(),
     index_this_(),
     index_next_(),
@@ -42,7 +41,6 @@ EnzoMsgCheck::EnzoMsgCheck()
     order_count_(-1)
 {
   ++counter[cello::index_static()];
-  cello::hex_string(tag_,TAG_LEN);
   std::fill_n(adapt_buffer_,ADAPT_BUFFER_SIZE,0.0);
 }
 
@@ -148,7 +146,6 @@ int EnzoMsgCheck::size_()
   SIZE_ARRAY_TYPE(size,double,block_lower_,3);
   SIZE_ARRAY_TYPE(size,double,block_upper_,3);
   SIZE_ARRAY_TYPE(size,int,block_size_,3);
-  SIZE_ARRAY_TYPE(size,char,tag_,TAG_LEN+1);
   SIZE_OBJECT_PTR_TYPE(size,IoEnzoBlock,io_block_);
   SIZE_OBJECT_TYPE(size,index_this_);
   SIZE_OBJECT_TYPE(size,index_next_);
@@ -176,7 +173,6 @@ char * EnzoMsgCheck::save_(char * pc)
   SAVE_ARRAY_TYPE(pc,double,block_lower_,3);
   SAVE_ARRAY_TYPE(pc,double,block_upper_,3);
   SAVE_ARRAY_TYPE(pc,int,block_size_,3);
-  SAVE_ARRAY_TYPE(pc,char,tag_,TAG_LEN+1);
   SAVE_OBJECT_PTR_TYPE(pc,IoEnzoBlock,io_block_);
   SAVE_OBJECT_TYPE(pc,index_this_);
   SAVE_OBJECT_TYPE(pc,index_next_);
@@ -204,7 +200,6 @@ char * EnzoMsgCheck::load_(char * pc)
   LOAD_ARRAY_TYPE(pc,double,block_lower_,3);
   LOAD_ARRAY_TYPE(pc,double,block_upper_,3);
   LOAD_ARRAY_TYPE(pc,int,block_size_,3);
-  LOAD_ARRAY_TYPE(pc,char,tag_,TAG_LEN+1);
   LOAD_OBJECT_PTR_TYPE(pc,IoEnzoBlock,io_block_);
   LOAD_OBJECT_TYPE(pc,index_this_);
   LOAD_OBJECT_TYPE(pc,index_next_);
@@ -287,7 +282,6 @@ void EnzoMsgCheck::del_block()
 void EnzoMsgCheck::print (const char * msg)
 {
   CkPrintf ("%d ENZO_MSG_CHECK====================\n",CkMyPe());
-  CkPrintf ("%d ENZO_MSG_CHECK tag %s %s\n",CkMyPe(),msg,tag_);
   CkPrintf ("%d ENZO_MSG_CHECK is_local %d\n",CkMyPe(),is_local_);
   int v3[3];
   index_this_.values(v3);

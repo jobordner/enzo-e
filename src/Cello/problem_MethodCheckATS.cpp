@@ -68,7 +68,6 @@ void MethodCheckATS::test_field_(Block * block,
                                 int mx, int my, int mz,
                                 int gx, int gy, int gz)
 {
-  cello_float value{0};
   int count_err = 0;
   std::map<std::string,int> region_count;
   std::string region = {"000"};
@@ -89,7 +88,6 @@ void MethodCheckATS::test_field_(Block * block,
           }
           if (error) ++error[i];
           ++count_err;
-          value=array[i];
           region_count[region]++;
         }
       }

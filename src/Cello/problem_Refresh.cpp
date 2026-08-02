@@ -109,7 +109,7 @@ int Refresh::coarse_padding(const Prolong * prolong) const
 
 const Prolong * Refresh::get_prolong () const
 {
-  Prolong * prolong_ptr = (id_prolong_ < cello::num_prolong()) ?
+  Prolong * prolong_ptr = (id_prolong_ < int(cello::num_prolong())) ?
     cello::prolong(id_prolong_) : nullptr;
 
   return prolong_ptr ? prolong_ptr : new ProlongLinear;
@@ -119,7 +119,7 @@ const Prolong * Refresh::get_prolong () const
 
 const Restrict * Refresh::get_restrict () const
 {
-  Restrict * restrict_ptr = (id_restrict_ < cello::num_restrict()) ?
+  Restrict * restrict_ptr = (id_restrict_ < int(cello::num_restrict())) ?
     cello::restrict(id_restrict_) : nullptr;
   return restrict_ptr ? restrict_ptr : new RestrictLinear;
 }
@@ -292,7 +292,6 @@ bool Refresh::include_history(int face_type) const
 
 void Refresh::summary() const
 {
-  const int ip = CkMyPe();
   CkPrintf ("Refresh %02d %-25s ",
            id_refresh_,
             cello::simulation()->refresh_name(id_refresh_).c_str());
@@ -303,7 +302,7 @@ void Refresh::summary() const
   if (all_fields_) {
     CkPrintf ("* ");
   } else {
-    CkPrintf ("%02d ",f_src.size());
+    CkPrintf ("%02u ",f_src.size());
   }
   CkPrintf ("%c ",(f_src==f_dst) ? '=' : '+');
 
@@ -311,7 +310,7 @@ void Refresh::summary() const
   if (all_particles_) {
     CkPrintf ("* ");
   } else {
-    CkPrintf ("%d ",particle_list().size());
+    CkPrintf ("%u ",particle_list().size());
   }
 
   CkPrintf ("X %d ",all_fluxes_?1:0);

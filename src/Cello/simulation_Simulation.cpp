@@ -564,6 +564,9 @@ void Simulation::initialize_performance_() throw()
     for (int k=0; k<refresh_count(); k++) {
       fprintf (fp_trace,"#R %d %s\n",k,refresh_name(k).c_str());
     }
+    for (int k=0; k<problem->num_solvers(); k++) {
+      fprintf (fp_trace,"#S %d %s\n",k,problem->solver(k)->name().c_str());
+    }
   }
 
   const Config * config = cello::config();
@@ -1400,14 +1403,16 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
           "Actual array length %d != expected array length 2 + %d + %d",
           m,num_sum,num_max,
           (m == 2+num_sum+num_max) );
-#ifdef TRACE_PROCESS_MEMORY
+
   Memory * memory = Memory::instance();
+
+#ifdef TRACE_PROCESS_MEMORY
   CkPrintf ("TRACE_PERF proc %d cycle %d bytes curr %lld high %lld highest %lld\n",
             CkMyPe(),cycle_,memory->bytes(),memory->bytes_high(), memory->bytes_highest());
 #endif
 
   delete msg;
 
-  Memory::instance()->reset_high();
+  if (memory) memory->reset_high();
 
 }

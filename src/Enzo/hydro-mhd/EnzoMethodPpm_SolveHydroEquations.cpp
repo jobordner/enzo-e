@@ -120,7 +120,7 @@ int EnzoMethodPpm::SolveHydroEquations
     for (int i=0; i<size; i++) velocity_y[i] = 0.0;
   }
 
-    if (rank >= 3) {
+  if (rank >= 3) {
     velocity_z = (enzo_float *) field.values("velocity_z");
   } else {
     velocity_z = new enzo_float[size];
@@ -375,7 +375,7 @@ int EnzoMethodPpm::SolveHydroEquations
      &ncolor, colorpt, coloff, colindex, &pressure_floor, &density_floor,
      &error, ie_error_x,ie_error_y,ie_error_z,&num_ie_error
      );
-
+  
 #ifdef EXIT_ON_ERROR  
   ASSERT2 ("EnzoMethodPpm::SolveHydroEquations",
            "Error %d in call to ppm_de block %s",error,block.name().c_str(),

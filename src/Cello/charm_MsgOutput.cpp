@@ -24,14 +24,12 @@ MsgOutput::MsgOutput()
     file_(nullptr),
     data_msg_(nullptr),
     buffer_(nullptr),
-    tag_(),
     io_block_(),
     block_name_(),
     block_lower_(),
     block_upper_()
 {
   ++counter[cello::index_static()];
-  cello::hex_string(tag_,TAG_LEN);
 }
 
 //----------------------------------------------------------------------
@@ -49,14 +47,12 @@ MsgOutput::MsgOutput
     file_(file),
     data_msg_(nullptr),
     buffer_(nullptr),
-    tag_(),
     io_block_(),
     block_name_(),
     block_lower_(),
     block_upper_()
 {
   ++counter[cello::index_static()]; 
-  cello::hex_string(tag_,TAG_LEN);
 }
 
 //----------------------------------------------------------------------
@@ -112,8 +108,6 @@ void * MsgOutput::pack (MsgOutput * msg)
   SIZE_STRING_TYPE(size,msg->block_name_);
   SIZE_ARRAY_TYPE(size,double,msg->block_lower_,3);
   SIZE_ARRAY_TYPE(size,double,msg->block_upper_,3);
-  
-  SIZE_ARRAY_TYPE(size,char,msg->tag_,TAG_LEN+1);
 
   int have_io = (msg->io_block_ != nullptr);
   SIZE_SCALAR_TYPE(size,int,have_io);
@@ -154,8 +148,6 @@ void * MsgOutput::pack (MsgOutput * msg)
   SAVE_STRING_TYPE(pc,msg->block_name_);
   SAVE_ARRAY_TYPE(pc,double,msg->block_lower_,3);
   SAVE_ARRAY_TYPE(pc,double,msg->block_upper_,3);
-
-  SAVE_ARRAY_TYPE(pc,char,msg->tag_,TAG_LEN+1);
 
   have_io = (msg->io_block_ != nullptr);
   SAVE_SCALAR_TYPE(pc,int,have_io);
@@ -216,8 +208,6 @@ MsgOutput * MsgOutput::unpack(void * buffer)
   LOAD_STRING_TYPE(pc,msg->block_name_);
   LOAD_ARRAY_TYPE(pc,double,msg->block_lower_,3);
   LOAD_ARRAY_TYPE(pc,double,msg->block_upper_,3);
-
-  LOAD_ARRAY_TYPE(pc,char,msg->tag_,TAG_LEN+1);
 
   int have_io;
   LOAD_SCALAR_TYPE(pc,int,have_io);
@@ -286,7 +276,6 @@ void MsgOutput::del_block()
 void MsgOutput::print (const char * msg)
 {
   CkPrintf ("MSG_OUTPUT====================\n");
-  CkPrintf ("MSG_OUTPUT tag %s %s\n",msg,tag_);
   CkPrintf ("MSG_OUTPUT is_local %d\n",is_local_);
   int v3[3];
   index_send_.values(v3);

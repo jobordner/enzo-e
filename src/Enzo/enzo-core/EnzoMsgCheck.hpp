@@ -36,7 +36,6 @@ public: // interface
   {
     ++counter[cello::index_static()];
     copy_(enzo_msg_check);
-    cello::hex_string(tag_,TAG_LEN); // add new tag for new message
   }
 
   EnzoMsgCheck & operator = (const EnzoMsgCheck & enzo_msg_check)
@@ -67,8 +66,6 @@ public: // interface
   void del_block();
 
   void print (const char * msg);
-
-  const char * tag() { return tag_;}
 
   std::string block_name() const  { return block_name_; }
   int block_level() const  { return block_level_; }
@@ -158,7 +155,6 @@ protected: // methods
       block_upper_[i]    = enzo_msg_check.block_upper_[i];
       block_size_[i]     = enzo_msg_check.block_size_[i];
     }
-    strncpy(tag_,enzo_msg_check.tag_,TAG_LEN);
     io_block_    = enzo_msg_check.io_block_;
     index_this_  = enzo_msg_check.index_this_;
     index_next_  = enzo_msg_check.index_next_;
@@ -189,9 +185,6 @@ protected: // attributes
 
   /// Saved Charm++ buffers for deleting after unpack()
   void * buffer_;
-
-  /// Random hex tag for tracking messages for debugging
-  char tag_[TAG_LEN+1];
 
   /// Data for the Block
   IoEnzoBlock * io_block_;
