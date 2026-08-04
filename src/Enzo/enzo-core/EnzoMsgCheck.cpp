@@ -157,8 +157,8 @@ int EnzoMsgCheck::size_()
   SIZE_STRING_TYPE(size,name_dir_);
   SIZE_SCALAR_TYPE(size,int,index_file_);
   SIZE_ARRAY_TYPE (size,int,adapt_buffer_,ADAPT_BUFFER_SIZE);
-  SIZE_SCALAR_TYPE(size,int,order_index_);
-  SIZE_SCALAR_TYPE(size,int,order_count_);
+  SIZE_SCALAR_TYPE(size,long long,order_index_);
+  SIZE_SCALAR_TYPE(size,long long,order_count_);
   return size;
 }
 
@@ -184,8 +184,8 @@ char * EnzoMsgCheck::save_(char * pc)
   SAVE_STRING_TYPE(pc,name_dir_);
   SAVE_SCALAR_TYPE(pc,int,index_file_);
   SAVE_ARRAY_TYPE (pc,int,adapt_buffer_,ADAPT_BUFFER_SIZE);
-  SAVE_SCALAR_TYPE(pc,int,order_index_);
-  SAVE_SCALAR_TYPE(pc,int,order_count_);
+  SAVE_SCALAR_TYPE(pc,long long,order_index_);
+  SAVE_SCALAR_TYPE(pc,long long,order_count_);
   return pc;
 }
 
@@ -211,8 +211,8 @@ char * EnzoMsgCheck::load_(char * pc)
   LOAD_STRING_TYPE(pc,name_dir_);
   LOAD_SCALAR_TYPE(pc,int,index_file_);
   LOAD_ARRAY_TYPE (pc,int,adapt_buffer_,ADAPT_BUFFER_SIZE);
-  LOAD_SCALAR_TYPE(pc,int,order_index_);
-  LOAD_SCALAR_TYPE(pc,int,order_count_);
+  LOAD_SCALAR_TYPE(pc,long long, order_index_);
+  LOAD_SCALAR_TYPE(pc,long long, order_count_);
   return pc;
 }
 //----------------------------------------------------------------------

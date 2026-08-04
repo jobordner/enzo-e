@@ -387,6 +387,8 @@ target_link_libraries(tester_simulation
 # could be used in the enzo-layer (rather than linking against every
 # individual component)
 
+add_executable(parse-trace parse-trace.cpp)
+
 #==========================
 # Define Unit-Test Binaries
 #==========================

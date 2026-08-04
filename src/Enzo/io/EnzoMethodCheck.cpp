@@ -194,9 +194,8 @@ void IoEnzoWriter::p_write (EnzoMsgCheck * msg_check)
 
   if (thisIndex == 0 && monitor_iter_ &&
       ((is_first || is_last) || ((order_index % monitor_iter_) == 0))) {
-    cello::monitor()->print("Method", "check %d",order_index);
+    cello::monitor()->print("Method", "check %lld",order_index);
   }
-  
   // Write to block list file, opening or closing file as needed
 
   if (is_first) {

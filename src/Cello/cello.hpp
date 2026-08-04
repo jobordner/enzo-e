@@ -428,8 +428,8 @@ enum class InitCycleKind {
 //----------------------------------------------------------------------
 
 #define SIZE_SCALAR_TYPE(COUNT,TYPE,VALUE)      \
-  {						\
-    (COUNT) += sizeof(TYPE);			\
+  {                                             \
+    (COUNT) += sizeof(TYPE);                    \
   }
 
 #define SAVE_SCALAR_TYPE(POINTER,TYPE,VALUE)    \
@@ -442,7 +442,7 @@ enum class InitCycleKind {
 #define LOAD_SCALAR_TYPE(POINTER,TYPE,VALUE)    \
   {                                             \
     size_t n;                                   \
-    memcpy(&(VALUE),(POINTER),n=sizeof(TYPE));	\
+    memcpy(&(VALUE),(POINTER),n=sizeof(TYPE));  \
     (POINTER) += n;                             \
   }
 
@@ -457,7 +457,7 @@ enum class InitCycleKind {
 #define SAVE_ARRAY_TYPE(POINTER,TYPE,ARRAY,SIZE)        \
   {                                                     \
     size_t length = (SIZE);                             \
-    SAVE_SCALAR_TYPE((POINTER),size_t,length);            \
+    SAVE_SCALAR_TYPE((POINTER),size_t,length);          \
     size_t n;                                           \
     memcpy((POINTER),&ARRAY[0],n=length*sizeof(TYPE));	\
     (POINTER) += n;                                     \
@@ -465,7 +465,7 @@ enum class InitCycleKind {
 #define LOAD_ARRAY_TYPE(POINTER,TYPE,ARRAY,SIZE)        \
   {                                                     \
     size_t length = 0;                                  \
-    LOAD_SCALAR_TYPE((POINTER),size_t,length);            \
+    LOAD_SCALAR_TYPE((POINTER),size_t,length);          \
     size_t n;                                           \
     memcpy(&ARRAY[0],(POINTER),n=length*sizeof(TYPE));	\
     (POINTER) += n;                                     \
@@ -481,10 +481,10 @@ enum class InitCycleKind {
 #define SAVE_STRING_TYPE(POINTER,STRING)                        \
   {                                                             \
     size_t n,length = (STRING).size();                          \
-    memcpy((POINTER),&length, n=sizeof(size_t));                  \
-    (POINTER) += n;                                               \
-    memcpy((POINTER),(STRING).data(),n=length*sizeof(char));      \
-    (POINTER) += n;                                               \
+    memcpy((POINTER),&length, n=sizeof(size_t));                \
+    (POINTER) += n;                                             \
+    memcpy((POINTER),(STRING).data(),n=length*sizeof(char));    \
+    (POINTER) += n;                                             \
   }
 
 #define LOAD_STRING_TYPE(POINTER,STRING)                \
@@ -744,7 +744,7 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
 #define SAVE_SET_TYPE(POINTER,TYPE,SET)                                 \
   {                                                                     \
     size_t size = (SET).size();                                         \
-    memcpy((POINTER),&size, sizeof(int));                                 \
+    memcpy((POINTER),&size, sizeof(int));                               \
     (POINTER) += sizeof(int);                                           \
     auto iter = (SET).begin();                                          \
     while (iter != (SET).end()) {                                       \
@@ -757,7 +757,7 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
 #define LOAD_SET_TYPE(POINTER,TYPE,SET)                                 \
   {                                                                     \
     size_t size;                                                        \
-    memcpy(&size, (POINTER), sizeof(int));                                \
+    memcpy(&size, (POINTER), sizeof(int));                              \
     (POINTER) += sizeof(int);                                           \
     for (size_t i=0; i<size; i++) {                                     \
       argument_type<void(TYPE)>::type first;                            \
@@ -784,7 +784,7 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
 #define LOAD_ENUM_CLASS_TYPE(POINTER,TYPE,VALUE)                        \
   {                                                                     \
     int n;                                                              \
-    memcpy(&(VALUE),(POINTER),n=sizeof(std::underlying_type<TYPE>));        \
+    memcpy(&(VALUE),(POINTER),n=sizeof(std::underlying_type<TYPE>));    \
     (POINTER) += n;                                                     \
   }
 

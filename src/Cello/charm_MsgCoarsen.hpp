@@ -83,7 +83,7 @@ protected: // attributes
   /// Mesh connectivity of child block to update parent's
   Adapt * adapt_child_;
   
-  /// MsgRefine-specific attributes
+  /// MsgCoarsen-specific attributes
 
   int num_face_level_;
   int * face_level_;

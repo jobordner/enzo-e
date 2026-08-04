@@ -76,16 +76,16 @@ void DataMsg::add_coarse_array
    const std::vector<int> & field_list_dst)
 {
   const int i = coarse_data_.size();
-  DataMsgCoarse data;
-  coarse_data_.push_back(data);
-
-  coarse_data_[i].init
+  DataMsgCoarse data
     (field,
      iam3, iap3,
      ifms3, ifps3,
      ifmr3, ifpr3,
      field_list_src,
      field_list_dst);
+
+  coarse_data_.push_back(data);
+
 }
 
 //----------------------------------------------------------------------
