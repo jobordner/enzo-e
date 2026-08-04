@@ -124,7 +124,7 @@ public: // interface
   /// ------------------
 
   /// Initialize the  coarse face arrays to send to neighbors
-  void set_coarse_array
+  void add_coarse_array
   (Field field,
    int iam3[3],int iap3[3],
    int ifms3[3],int ifps3[3],
@@ -200,20 +200,8 @@ protected: // attributes
   /// Whether Flux data should be deleted in destructor
   std::vector<char> face_fluxes_delete_;
 
-  /// Padded coarse array values for prolongation operators that
-  /// requiring extra layers of cells around the interpoltaed region
-  std::vector<cello_float> coarse_field_buffer_;
-  /// List of field indices for coarse fields; src / dst for
-  /// accum=true
-  std::vector<int> coarse_field_list_src_;
-  std::vector<int> coarse_field_list_dst_;
-
-  /// loop limits of the coarse-block array section
-  int iam3_cf_[3], iap3_cf_[3];
-  /// loop limits for the sending field
-  int ifms3_cf_[3], ifps3_cf_[3];
-  /// loop limits for the receiving field
-  int ifmr3_cf_[3], ifpr3_cf_[3];
+  /// Coarse array data
+  std::vector<DataMsgCoarse> coarse_data_;
 
   /// Scalar data
   ScalarData<long double> scalar_data_long_double_;

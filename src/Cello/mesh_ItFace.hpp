@@ -52,9 +52,12 @@ public: // interface
   bool next (int of3[3]) override
   {
     const bool retval = next_();
-    if (retval) face_(of3);
+    if (retval) face(of3);
     return retval;
   }
+
+  /// Return the current face through of3[]
+  void face (int of3[3]) const ;
 
   /// Return the level of the current face
   int face_level () const override
@@ -80,9 +83,6 @@ private: // functions
 
   /// Go to the next face if any
   bool next_ ();
-
-  /// Return the current face through of3[]
-  void face_ (int of3[3]) const ;
 
   /// go to the next face
   void increment_();

@@ -403,9 +403,17 @@ void Block::pup(PUP::er &p)
   }
   p | refresh_sync_list_;
 
-  int len = refresh_recv_buffer_.size();
+  int len = 0;
 
+  len=refresh_recv_index_.size();
   p | len;
+  if (up) {
+    refresh_recv_index_.resize(len);
+    for (int i=0; i<len; i++) refresh_recv_index_[i].clear();
+  }
+
+  len = refresh_recv_buffer_.size();
+ p | len;
   if (up) {
     refresh_recv_buffer_.resize(len);
     for (int i=0; i<len; i++) refresh_recv_buffer_[i].clear();
@@ -875,6 +883,7 @@ void Block::init_refresh_()
   const int count = cello::simulation()->refresh_count();
   refresh_sync_list_.resize(count);
   refresh_recv_buffer_.resize(count);
+  refresh_recv_index_.resize(count);
   refresh_send_buffer_.resize(count);
   refresh_send_index_.resize(count);
   for (int i=0; i<count; i++) {
@@ -1178,7 +1187,7 @@ void Block::perf_trace_start(std::string region, int index)
   const double time = state()->time();
   if (cello::performance()->log_scheduled(cycle,time)) {
     long long ind = get_index();
-    cello::performance()->log_start(cycle,ind,region.c_str(),index);
+    cello::performance()->log_start(cycle,name8(),ind,region.c_str(),index);
   }
 }
 
@@ -1190,7 +1199,7 @@ void Block::perf_trace_stop(std::string region, int index)
   const double time = state()->time();
   if (cello::performance()->log_scheduled(cycle,time)) {
     long long ind = get_index();
-    cello::performance()->log_stop(cycle,ind,region.c_str(),index);
+    cello::performance()->log_stop(cycle,name8(),ind,region.c_str(),index);
   }
 
 }

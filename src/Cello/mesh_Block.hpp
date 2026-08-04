@@ -716,10 +716,6 @@ protected:
   void particle_scatter_children_ (ParticleData * particle_list[],
 				   Particle particle_src);
 
-  /// Send particles in list to corresponding indices
-  void particle_send_(int nl,Index index_list[],
-		      ParticleData * particle_list[]);
-
   /// Pack particle type data into arrays and send to neighbors
   int particle_load_faces_ (int npa,
 			    ParticleData * particle_list[],
@@ -907,6 +903,9 @@ protected: // functions
   /// Update boundary conditions
   void update_boundary_ ();
 
+  void new_msg_count_ (Index index, int id_refresh);
+  void new_msg_clear_count_ (int id_refresh);
+
   MsgRefresh * new_msg_refresh_ (Index index, int id_refresh);
   void new_msg_refresh_ (Index index, int id_refresh, FieldFace *);
   void new_msg_refresh_ (Index index, int id_refresh,
@@ -1030,6 +1029,7 @@ protected: // attributes
 
   std::vector < Sync > refresh_sync_list_;
   std::vector < std::vector <MsgRefresh * > > refresh_recv_buffer_;
+  std::vector < std::vector <Index> >         refresh_recv_index_;
   std::vector < std::vector <MsgRefresh * > > refresh_send_buffer_;
   std::vector < std::vector <Index> >         refresh_send_index_;
 

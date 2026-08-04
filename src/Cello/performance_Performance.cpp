@@ -369,25 +369,26 @@ Performance::region_counters(int index_region, long long * counters) throw()
 
 bool Performance::log_scheduled (int cycle, double time) const
 {
-  
   return (schedule_trace_) && schedule_trace_->write_this_cycle(cycle, time);
 }
 
-void Performance::log_start(int cycle, long long bid, const char * type, int id)
+void Performance::log_start(int cycle, const std::string & block_name,
+                            long long bid, const char * type, int id)
 {
   if (fp_trace_) {
-    fprintf (fp_trace_,"[ %d %lld %s %d %.6f\n",
-             cycle, bid, type, id, timer());
+    fprintf (fp_trace_,"[ %d %s %lld %s %d %d %.6f\n",
+             cycle, block_name.c_str(), bid, type, id, CkMyPe(), timer());
   }
 }
 
 //----------------------------------------------------------------------
 
-void Performance::log_stop(int cycle, long long bid, const char * type, int id)
+void Performance::log_stop(int cycle, const std::string & block_name,
+                           long long bid, const char * type, int id)
 {
   if (fp_trace_) {
-    fprintf (fp_trace_,"] %d %lld %s %d %.6f\n",
-             cycle, bid, type, id, timer());
+    fprintf (fp_trace_,"] %d %s %lld %s %d %d %.6f\n",
+             cycle, block_name.c_str(), bid, type, id, CkMyPe(), timer());
   }
 }
 

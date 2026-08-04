@@ -106,6 +106,7 @@ class FieldFace;
 
 #include "data_Data.hpp"
 
+#include "data_DataMsgCoarse.hpp"
 #include "data_DataMsg.hpp"
 
 //  #define DEBUG_FIELD
