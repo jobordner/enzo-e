@@ -363,7 +363,7 @@ void EnzoBlock::p_restart_refine(int ic3[3],int io_reader, int ip)
   DataMsg * data_msg = new DataMsg;
 
   bool is_new;
-  data_msg -> set_field_face (field_face,is_new=false);
+  data_msg -> add_field_face (field_face,is_new=false);
   data_msg -> set_field_data (field_data,is_new=false);
 
   const Factory * factory = cello::simulation()->factory();
@@ -602,7 +602,7 @@ void IoEnzoReader::file_read_block_fields_
     field_face -> set_ghost(true,true,true);
     field_face -> set_refresh(refresh,true);
     bool is_new;
-    data_msg -> set_field_face (field_face,is_new=true);
+    data_msg -> add_field_face (field_face,is_new=true);
     data_msg -> set_field_data (field_data,is_new=true);
   }
   for (int i_f=0; i_f<num_fields; i_f++) {

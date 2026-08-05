@@ -806,7 +806,7 @@ DataMsg * MethodOutput::create_data_msg_ (Block * block)
   // Create data message object to send
   DataMsg * data_msg = new DataMsg;
   if (any_fields) {
-    data_msg -> set_field_face (field_face,true);
+    data_msg -> add_field_face (field_face,true);
     data_msg -> set_field_data (block->data()->field_data(),false);
   }
   if (any_particles) {

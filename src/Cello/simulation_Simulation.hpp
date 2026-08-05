@@ -436,12 +436,6 @@ protected: // functions
 
   void deallocate_() throw();
 
-  Schedule * create_schedule_(std::string var,
-			      std::string type,
-			      double start,
-			      double stop,
-			      double step);
-
   void create_checkpoint_link() {
     if (CkMyPe() == 0) {
       CkPrintf ("creating symlink %s -> %s\n",

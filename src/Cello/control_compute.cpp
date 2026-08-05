@@ -126,6 +126,8 @@ void Block::compute_continue_ ()
   Method * method = this->method();
 
   PERF_METHOD_START(method);
+  perf_trace_start("M",index_method_);
+
   const bool is_scheduled = method->is_scheduled(this);
   const bool is_active = method->is_active(state(),level());
 
@@ -135,8 +137,6 @@ void Block::compute_continue_ ()
 	    index_method_,method); fflush(stdout);
 
     TRACE_COMPUTE("applying method",3);
-
-    perf_trace_start("M",index_method_);
 
     method->compute (this);
 

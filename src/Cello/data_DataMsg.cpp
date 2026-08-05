@@ -14,17 +14,19 @@ int64_t DataMsg::counter[CONFIG_NODE_SIZE] = {0};
 //----------------------------------------------------------------------
 
 DataMsg::DataMsg() 
-  : field_face_(nullptr),
-    field_face_delete_   (false),
-    field_data_u_(nullptr),
+  : field_face_list_(),
+    field_face_delete_(),
+    field_array_list_(),
+    field_data_(nullptr),
     field_data_delete_   (false),
     particle_data_(nullptr),
     particle_data_delete_(false),
     face_fluxes_list_(),
     face_fluxes_delete_(),
-    coarse_field_buffer_(),
-    coarse_field_list_src_(),
-    coarse_field_list_dst_(),
+    // coarse_field_buffer_(),
+    // coarse_field_list_src_(),
+    // coarse_field_list_dst_(),
+    coarse_data_(),
     scalar_data_long_double_(),
     scalar_data_double_(),
     scalar_data_int_(),
@@ -32,15 +34,10 @@ DataMsg::DataMsg()
     scalar_data_sync_(),
     scalar_data_index_()
 {
-  for (int i=0; i<3; i++) {
-    iam3_cf_[i]  =0;
-    iap3_cf_[i]  =0;
-    ifms3_cf_[i]  =0;
-    ifps3_cf_[i]  =0;
-    ifmr3_cf_[i]  =0;
-    ifpr3_cf_[i]  =0;
-  }
   ++counter[cello::index_static()];
+  field_array_list_.clear();
+  field_face_list_.clear();
+  field_face_delete_.clear();
 }
 
 //----------------------------------------------------------------------
@@ -49,13 +46,15 @@ DataMsg::~DataMsg()
 {
   --counter[cello::index_static()];
 
-  if (field_face_delete_) {
-    delete field_face_;
-    field_face_ = nullptr;
+  for (size_t k=0; k<field_face_delete_.size(); k++) {
+    if (field_face_delete_[k]) {
+      delete field_face_list_[k];
+      field_face_list_[k] = nullptr;
+    }
   }
   if (field_data_delete_) {
-    delete field_data_u_;
-    field_data_u_ = nullptr;
+    delete field_data_;
+    field_data_ = nullptr;
   }
   if (particle_data_delete_) {
     delete particle_data_;
@@ -70,82 +69,29 @@ DataMsg::~DataMsg()
   }
   face_fluxes_list_.clear();
   face_fluxes_delete_.clear();
-  coarse_field_buffer_.clear();
-  coarse_field_list_src_.clear();
-  coarse_field_list_dst_.clear();
 }
 
 //----------------------------------------------------------------------
 
-void DataMsg::set_coarse_array
-  (Field field,
-   int iam3[3], int iap3[3],
-   int ifms3[3], int ifps3[3],
-   int ifmr3[3], int ifpr3[3],
-   const std::vector<int> & field_list_src,
-   const std::vector<int> & field_list_dst)
+void DataMsg::add_coarse_array
+(Field field,
+ int iam3[3], int iap3[3],
+ int ifms3[3], int ifps3[3],
+ int ifmr3[3], int ifpr3[3],
+ const std::vector<int> & field_list_src,
+ const std::vector<int> & field_list_dst)
 {
-  for (int i=0; i<3; i++) {
-    iam3_cf_[i] = iam3[i];
-    iap3_cf_[i] = iap3[i];
-    ifms3_cf_[i] = ifms3[i];
-    ifps3_cf_[i] = ifps3[i];
-    ifmr3_cf_[i] = ifmr3[i];
-    ifpr3_cf_[i] = ifpr3[i];
-  }
-  coarse_field_list_src_ = field_list_src;
-  coarse_field_list_dst_ = field_list_dst;
+  const int i = coarse_data_.size();
+  DataMsgCoarse data
+    (field,
+     iam3, iap3,
+     ifms3, ifps3,
+     ifmr3, ifpr3,
+     field_list_src,
+     field_list_dst);
 
-  const int nf3[3] = {(ifps3[0] - ifms3[0]),
-                      (ifps3[1] - ifms3[1]),
-                      (ifps3[2] - ifms3[2])};
-  const int na3[3] = {(iap3[0] - iam3[0]),
-                      (iap3[1] - iam3[1]),
-                      (iap3[2] - iam3[2])};
-  const int nf = field_list_src.size();
-  const int na = na3[0]*na3[1]*na3[2];
+  coarse_data_.push_back(data);
 
-#ifdef CHECK
-  ASSERT2 ("DataMsg::set_coarse_array",
-           "field_list_src %d and field_list_dst %d must be the same size",
-           field_list_src.size(),
-           field_list_dst.size(),
-           (field_list_src.size() == field_list_dst.size()));
-#endif
-
-  coarse_field_buffer_.resize(nf*na);
-  std::fill(coarse_field_buffer_.begin(),coarse_field_buffer_.end(),0.0);
-  for (int i_f=0; i_f<nf; i_f++) {
-    const int index_field = coarse_field_list_src_[i_f];
-    cello_float * coarse_field = coarse_field_buffer_.data() + i_f*na;
-    // get Field dimensions
-    int mfx,mfy,mfz;
-    field.dimensions(index_field,&mfx,&mfy,&mfz);
-    // get field values
-    cello_float * field_values = (cello_float *)field.values(index_field);
-    // determine starting offset for field
-    const int if0 = ifms3[0] + mfx*(ifms3[1] + mfy*ifms3[2]);
-    // compute cell width ratio r
-    const float r = nf3[0] / na3[0];
-    const cello_float rr = (r==1) ? 1.0 : 1.0/cello::num_children();
-#ifdef CHECK
-    ASSERT1 ("DataMsg::set_coarse_array",
-             "Field-to-coarse array axis ratio r=%g is not 1.0 or 2.0",
-             r, (r==1.0 || r==2.0));
-#endif
-    int rd = r;
-    // compute constant factor v for r!=1
-
-    for (int kz=0; kz<nf3[2]; kz++) {
-      for (int ky=0; ky<nf3[1]; ky++) {
-        for (int kx=0; kx<nf3[0]; kx++) {
-          int ka = (kx/rd) + na3[0]*((ky/rd) + na3[1]*(kz/rd));
-          int kf = if0 + kx + mfx*(ky + mfy*kz);
-          coarse_field[ka] += rr*field_values[kf];
-        }
-      }
-    }
-  }
 }
 
 //----------------------------------------------------------------------
@@ -174,68 +120,39 @@ void DataMsg::update_scalars ( Data * data)
 
 //----------------------------------------------------------------------
 
-void DataMsg::get_num_data_ (int & n_ff, int & n_fa, int & n_pd, int & n_fd) const
-{
-  Field field (cello::field_descr(), field_data_u_);
-  FieldFace    * ff = field_face_;
-  ParticleData * pd = particle_data_;
-  auto & fd = face_fluxes_list_;
-
-  n_ff = (ff) ? ff->data_size() : 0;
-  n_fa = (ff) ? ff->num_bytes_array(field) : 0;
-  n_pd = (pd) ? pd->data_size(cello::particle_descr()) : 0;
-  n_fd = fd.size();
-}
-
-//----------------------------------------------------------------------
-
 int DataMsg::data_size () const
 {
   //--------------------------------------------------
   //  1. determine buffer size (must be consistent with #3)
   //--------------------------------------------------
 
-  int n_ff,n_fa,n_pd,n_fd;
-  get_num_data_ (n_ff,n_fa,n_pd,n_fd);
-
   int size = 0;
 
-  SIZE_SCALAR_TYPE(size,int,n_ff);
-  SIZE_SCALAR_TYPE(size,int,n_fa);
   SIZE_SCALAR_TYPE(size,int,n_pd);
-  SIZE_SCALAR_TYPE(size,int,n_fd);
 
-  size += n_ff;
-  size += n_fa;
+  // sizes of field faces
+  SIZE_VECTOR_OBJECT_PTR_TYPE(size,FieldFace,field_face_list_);
+
+  // sizes of field arrays
+  Field field (cello::field_descr(), field_data_);
+  for (auto * ff : field_face_list_) {
+    // size of array length
+    int n_fa;
+    SIZE_SCALAR_TYPE(size,int,n_fa);
+    // size of array
+    size += ff->num_bytes_array(field);
+  }
+
+  // size of particle data
+  int n_pd;
+  n_pd = (particle_data_) ?
+    particle_data_->data_size(cello::particle_descr()) : 0;
   size += n_pd;
 
-  if (n_fd > 0) {
-    SIZE_VECTOR_TYPE(size,char,face_fluxes_delete_);
-    SIZE_VECTOR_OBJECT_PTR_TYPE(size,FaceFluxes,face_fluxes_list_);
-  }
+  SIZE_VECTOR_TYPE(size,char,face_fluxes_delete_);
+  SIZE_VECTOR_OBJECT_PTR_TYPE(size,FaceFluxes,face_fluxes_list_);
 
-  // Coarse array for interpolation
-
-  const int nax=iap3_cf_[0]-iam3_cf_[0];
-  const int nay=iap3_cf_[1]-iam3_cf_[1];
-  const int naz=iap3_cf_[2]-iam3_cf_[2];
-  const int na = nax*nay*naz;
-
-  SIZE_SCALAR_TYPE(size,int,na);  // coarse array size (0 if none)
-
-  if (na > 0) {
-
-    SIZE_VECTOR_TYPE(size,int,coarse_field_list_src_);
-    SIZE_VECTOR_TYPE(size,int,coarse_field_list_dst_);
-    SIZE_VECTOR_TYPE(size,cello_float,coarse_field_buffer_);
-
-    SIZE_ARRAY_TYPE(size,int,iam3_cf_,3);
-    SIZE_ARRAY_TYPE(size,int,iap3_cf_,3);
-    SIZE_ARRAY_TYPE(size,int,ifms3_cf_,3);
-    SIZE_ARRAY_TYPE(size,int,ifps3_cf_,3);
-    SIZE_ARRAY_TYPE(size,int,ifmr3_cf_,3);
-    SIZE_ARRAY_TYPE(size,int,ifpr3_cf_,3);
-  }
+  SIZE_VECTOR_OBJECT_TYPE(size,DataMsgCoarse,coarse_data_);
 
   SIZE_OBJECT_TYPE(size,scalar_data_long_double_);
   SIZE_OBJECT_TYPE(size,scalar_data_double_);
@@ -253,56 +170,37 @@ char * DataMsg::save_data (char * buffer) const
 {
   char * pc = buffer;
 
-  int n_ff,n_fa,n_pd,n_fd;
-  get_num_data_ (n_ff,n_fa,n_pd,n_fd);
-
-  SAVE_SCALAR_TYPE(pc,int,n_ff);
-  SAVE_SCALAR_TYPE(pc,int,n_fa);
-  SAVE_SCALAR_TYPE(pc,int,n_pd);
-  SAVE_SCALAR_TYPE(pc,int,n_fd);
-
   // save field face
-  if (n_ff > 0) {
-    pc = field_face_->save_data (pc);
-  }
+  SAVE_VECTOR_OBJECT_PTR_TYPE(pc,FieldFace,field_face_list_);
+  
   // save field array
-  Field field (cello::field_descr(), field_data_u_);
-  if (n_ff > 0 && n_fa > 0) {
-    field_face_->face_to_array(field,pc);
-    pc += n_fa;
+  Field field (cello::field_descr(), field_data_);
+  for (auto * ff : field_face_list_) {
+    // save array size
+    const int n_ff = ff->num_bytes_array(field);
+    SAVE_SCALAR_TYPE(pc,int,n_ff);
+    // save array
+    ff->face_to_array(field,pc);
+    pc += n_ff;
   }
+
   // save particle data
+  int n_pd;
+  n_pd = (particle_data_) ?
+    particle_data_->data_size(cello::particle_descr()) : 0;
+  SAVE_SCALAR_TYPE(pc,int,n_pd);
+
   if (n_pd > 0) {
     pc = particle_data_->save_data(cello::particle_descr(),pc);
   }
+
   // save fluxes
-  if (n_fd > 0) {
-    SAVE_VECTOR_TYPE(pc,char,face_fluxes_delete_);
-    SAVE_VECTOR_OBJECT_PTR_TYPE(pc,FaceFluxes,face_fluxes_list_);
-  }
+  SAVE_VECTOR_TYPE(pc,char,face_fluxes_delete_);
+  SAVE_VECTOR_OBJECT_PTR_TYPE(pc,FaceFluxes,face_fluxes_list_);
 
   // Coarse face array for interpolation
 
-  const int nax=iap3_cf_[0]-iam3_cf_[0];
-  const int nay=iap3_cf_[1]-iam3_cf_[1];
-  const int naz=iap3_cf_[2]-iam3_cf_[2];
-  const int na = nax*nay*naz;
-
-  SAVE_SCALAR_TYPE(pc,int,na);
-
-  if (na > 0) {
-
-    SAVE_VECTOR_TYPE(pc,int,coarse_field_list_src_);
-    SAVE_VECTOR_TYPE(pc,int,coarse_field_list_dst_);
-    SAVE_VECTOR_TYPE(pc,cello_float,coarse_field_buffer_);
-
-    SAVE_ARRAY_TYPE(pc,int,iam3_cf_,3);
-    SAVE_ARRAY_TYPE(pc,int,iap3_cf_,3);
-    SAVE_ARRAY_TYPE(pc,int,ifms3_cf_,3);
-    SAVE_ARRAY_TYPE(pc,int,ifps3_cf_,3);
-    SAVE_ARRAY_TYPE(pc,int,ifmr3_cf_,3);
-    SAVE_ARRAY_TYPE(pc,int,ifpr3_cf_,3);
-  }
+  SAVE_VECTOR_OBJECT_TYPE(pc,DataMsgCoarse,coarse_data_);
 
   SAVE_OBJECT_TYPE(pc,scalar_data_long_double_);
   SAVE_OBJECT_TYPE(pc,scalar_data_double_);
@@ -324,36 +222,25 @@ char * DataMsg::save_data (char * buffer) const
 
 char * DataMsg::load_data (char * buffer)
 {
-  // 2. De-serialize message data from input buffer into the allocated
-  // message (must be consistent with pack())
-
   char * pc = buffer;
 
-  int n_ff,n_fa,n_pd,n_fd;
-
-  LOAD_SCALAR_TYPE(pc,int,n_ff);
-  LOAD_SCALAR_TYPE(pc,int,n_fa);
-  LOAD_SCALAR_TYPE(pc,int,n_pd);
-  LOAD_SCALAR_TYPE(pc,int,n_fd);
-
   // load field face
-  if (n_ff > 0) {
-    field_face_delete_ = true;
-    field_face_ = new FieldFace;
-    pc = field_face_->load_data (pc);
-  } else {
-    field_face_ = nullptr;
-  }
+  LOAD_VECTOR_OBJECT_PTR_TYPE(pc,FieldFace,field_face_list_);
 
-  // load field array
-  if (n_fa > 0) {
-    field_array_u_ = pc;
-    pc += n_fa;
-  } else {
-    field_array_u_ = nullptr;
+  for (auto * ff: field_face_list_) {
+    // load array size
+    int n_ff;
+    LOAD_SCALAR_TYPE(pc,int,n_ff);
+    // load array
+    field_face_delete_.push_back(true);
+    field_array_list_.push_back(pc);
+    pc += n_ff;
   }
 
   // load particle data
+  int n_pd;
+  LOAD_SCALAR_TYPE(pc,int,n_pd);
+
   if (n_pd > 0) {
     particle_data_delete_ = true;
     ParticleData * pd = particle_data_ = new ParticleData;
@@ -362,34 +249,15 @@ char * DataMsg::load_data (char * buffer)
   } else {
     particle_data_ = nullptr;
   }
-  // load flux data
-  if (n_fd > 0) {
 
-    LOAD_VECTOR_TYPE(pc,char,face_fluxes_delete_);
-    LOAD_VECTOR_OBJECT_PTR_TYPE(pc,FaceFluxes,face_fluxes_list_);
-
-    for (int i=0; i<n_fd; i++) {
-      face_fluxes_delete_[i] = true;
-    }
+  LOAD_VECTOR_TYPE(pc,char,face_fluxes_delete_);
+  LOAD_VECTOR_OBJECT_PTR_TYPE(pc,FaceFluxes,face_fluxes_list_);
+  for (auto & ffd : face_fluxes_delete_) {
+    ffd = true;
   }
 
-  int na;
-  LOAD_SCALAR_TYPE(pc,int,na);
-
-  if (na > 0) {
-
-    LOAD_VECTOR_TYPE(pc,int,coarse_field_list_src_);
-    LOAD_VECTOR_TYPE(pc,int,coarse_field_list_dst_);
-    LOAD_VECTOR_TYPE(pc,cello_float,coarse_field_buffer_);
-
-    LOAD_ARRAY_TYPE(pc,int,iam3_cf_,3);
-    LOAD_ARRAY_TYPE(pc,int,iap3_cf_,3);
-    LOAD_ARRAY_TYPE(pc,int,ifms3_cf_,3);
-    LOAD_ARRAY_TYPE(pc,int,ifps3_cf_,3);
-    LOAD_ARRAY_TYPE(pc,int,ifmr3_cf_,3);
-    LOAD_ARRAY_TYPE(pc,int,ifpr3_cf_,3);
-  }
-
+  LOAD_VECTOR_OBJECT_TYPE(pc,DataMsgCoarse,coarse_data_);
+ 
   LOAD_OBJECT_TYPE(pc,scalar_data_long_double_);
   LOAD_OBJECT_TYPE(pc,scalar_data_double_);
   LOAD_OBJECT_TYPE(pc,scalar_data_int_);
@@ -405,8 +273,6 @@ char * DataMsg::load_data (char * buffer)
 void DataMsg::update (Data * data, bool is_local, bool is_kept)
 {
   ParticleData * pd = particle_data_;
-  FieldFace    * ff = field_face_;
-  char         * fa = field_array_u_;
 
   // Update particles
 
@@ -426,13 +292,15 @@ void DataMsg::update (Data * data, bool is_local, bool is_kept)
 
   // Update fields
 
-  if (ff != nullptr && fa != nullptr) {
+  for (size_t k=0; k<field_face_list_.size(); k++) {
+    FieldFace * ff = field_face_list_[k];
+    char * fa = field_array_list_[k];
 
     Field field_dst = data->field();
 
     if (is_local) {
 
-      Field field_src(cello::field_descr(),field_data_u_);
+      Field field_src(cello::field_descr(),field_data_);
 
       ff->face_to_face(field_src, field_dst);
 
@@ -447,9 +315,9 @@ void DataMsg::update (Data * data, bool is_local, bool is_kept)
     }
   }
 
-  if (ff != nullptr) {
-    delete field_face_;
-    field_face_ = nullptr;
+  for ( auto & ff : field_face_list_) {
+    delete ff;
+    ff = nullptr;
   }
 
   // Update fluxes
@@ -467,46 +335,8 @@ void DataMsg::update (Data * data, bool is_local, bool is_kept)
       }
     }
   }
-
-  // Updated coarse array
-  const int na3[3] =
-    {(iap3_cf_[0] - iam3_cf_[0]),
-     (iap3_cf_[1] - iam3_cf_[1]),
-     (iap3_cf_[2] - iam3_cf_[2])};
-  
-  const int na = na3[0]*na3[1]*na3[2];
-
-  if (na>0) {
-
-    const int na3[3] =
-      {(iap3_cf_[0] - iam3_cf_[0]),
-       (iap3_cf_[1] - iam3_cf_[1]),
-       (iap3_cf_[2] - iam3_cf_[2])};
-    
-    const int nf = coarse_field_list_dst_.size();
-    
-    for (int i_f=0; i_f<nf; i_f++) {
-
-      Field field = data->field();
-      const int index_field = coarse_field_list_dst_[i_f];
-      int m3_c[3];
-      field.coarse_dimensions(index_field,m3_c,m3_c+1,m3_c+2);
-      const int ic0 = iam3_cf_[0] + m3_c[0]*(iam3_cf_[1] + m3_c[1]*iam3_cf_[2]);
-
-      cello_float * coarse_buffer = coarse_field_buffer_.data() + i_f*na;
-      cello_float * coarse_field =
-        (cello_float *) field.coarse_values(index_field);
-
-      for (int kz=0; kz<na3[2]; kz++) {
-        for (int ky=0; ky<na3[1]; ky++) {
-          for (int kx=0; kx<na3[0]; kx++) {
-            const int kb = kx + na3[0]*(ky +  na3[1]*kz);
-            const int kc = ic0 + kx + m3_c[0]*(ky + m3_c[1]*kz);
-            coarse_field[kc] = coarse_buffer[kb];
-          }
-        }
-      }
-    }
+  for (auto & coarse_data : coarse_data_) {
+    coarse_data.update (data);
   }
 }
 
@@ -519,47 +349,31 @@ void DataMsg::print (std::string message_str, FILE * fp_in) const
   FILE * fp = fp_in ? fp_in : stdout;
   
   fprintf (fp,"%s DATA_MSG %p\n",message,(void*)this);
-  fprintf (fp,"%s DATA_MSG field_face_    = %p\n",
-            message,(void*)field_face_);
-  fprintf (fp,"%s DATA_MSG field_data_u_    = %p\n",
-            message,(void*)field_data_u_);
+  for ( auto * ff : field_face_list_) {
+    fprintf (fp,"%s DATA_MSG field_face_    = %p\n",
+             message,(void*)ff);
+  }
+  for ( auto fd : field_face_delete_) {
+    fprintf (fp,"%s DATA_MSG field_face_delete_ = %d\n",
+             message,fd?1:0);
+  }
+  fprintf (fp,"%s DATA_MSG field_data_    = %p\n",
+           message,(void*)field_data_);
   fprintf (fp,"%s DATA_MSG particle_data_ = %p\n",
-            message,(void*)particle_data_);
+           message,(void*)particle_data_);
   if (particle_data_) {
     fprintf (fp,"%s DATA_MSG num-particles = %d\n",
-              message,particle_data_->num_particles(cello::particle_descr()));
+             message,particle_data_->num_particles(cello::particle_descr()));
   }
   fprintf (fp,"%s DATA_MSG particle_data_delete_ = %d\n",
-            message,particle_data_delete_?1:0);
+           message,particle_data_delete_?1:0);
   fprintf (fp,"%s DATA_MSG |face_fluxes_list_| = %lu\n",
-            message,face_fluxes_list_.size());
+           message,face_fluxes_list_.size());
   fprintf (fp,"%s DATA_MSG |face_fluxes_delete_| = %lu\n",
-            message,face_fluxes_delete_.size());
-  fprintf (fp,"%s DATA_MSG field_face_delete_ = %d\n",
-            message,field_face_delete_?1:0);
+           message,face_fluxes_delete_.size());
   fprintf (fp,"%s DATA_MSG field_data_delete_ = %d\n",
-            message,field_data_delete_?1:0);
-  fprintf (fp,"%s DATA_MSG coarse_field_buffer_.sum = %f\n", message,
-            std::accumulate(coarse_field_buffer_.begin(),coarse_field_buffer_.end(),0.0));
-  fprintf (fp,"%s DATA_MSG coarse_field_list_src_.sum = %d\n", message,
-            std::accumulate
-            (coarse_field_list_src_.begin(),
-             coarse_field_list_src_.end(),0));
-  fprintf (fp,"%s DATA_MSG coarse_field_list_dst_.sum = %d\n", message,
-            std::accumulate
-            (coarse_field_list_dst_.begin(),
-             coarse_field_list_dst_.end(),0));
-  fprintf (fp,"%s DATA_MSG coarse iam3_cf_   = %d %d %d\n",
-            message,iam3_cf_[0],iam3_cf_[1],iam3_cf_[2]);
-  fprintf (fp,"%s DATA_MSG coarse iap3_cf_   = %d %d %d\n",
-            message,iap3_cf_[0],iap3_cf_[1],iap3_cf_[2]);
-  fprintf (fp,"%s DATA_MSG coarse ifms3_cf_   = %d %d %d\n",
-            message,ifms3_cf_[0],ifms3_cf_[1],ifms3_cf_[2]);
-  fprintf (fp,"%s DATA_MSG coarse ifps3_cf_   = %d %d %d\n",
-            message,ifps3_cf_[0],ifps3_cf_[1],ifps3_cf_[2]);
-  fprintf (fp,"%s DATA_MSG coarse ifmr3_cf_   = %d %d %d\n",
-            message,ifmr3_cf_[0],ifmr3_cf_[1],ifmr3_cf_[2]);
-  fprintf (fp,"%s DATA_MSG coarse ifpr3_cf_   = %d %d %d\n",
-            message,ifpr3_cf_[0],ifpr3_cf_[1],ifpr3_cf_[2]);
-
+           message,field_data_delete_?1:0);
+  for (auto & coarse_data : coarse_data_) {
+    coarse_data.print(message_str,fp_in);
+  }
 }

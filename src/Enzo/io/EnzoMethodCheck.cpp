@@ -194,9 +194,8 @@ void IoEnzoWriter::p_write (EnzoMsgCheck * msg_check)
 
   if (thisIndex == 0 && monitor_iter_ &&
       ((is_first || is_last) || ((order_index % monitor_iter_) == 0))) {
-    cello::monitor()->print("Method", "check %d",order_index);
+    cello::monitor()->print("Method", "check %lld",order_index);
   }
-  
   // Write to block list file, opening or closing file as needed
 
   if (is_first) {
@@ -621,7 +620,7 @@ DataMsg * EnzoBlock::create_data_msg_ ()
   DataMsg *   data_msg   = new DataMsg;
   if (any_fields) {
     FieldData * field_data = data()->field_data();
-    data_msg -> set_field_face (field_face,true);
+    data_msg -> add_field_face (field_face,true);
     data_msg -> set_field_data (field_data,false);
   }
   if (any_particles) {

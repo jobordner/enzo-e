@@ -198,57 +198,12 @@ MsgRefine * MsgRefine::unpack(void * buffer)
 
 void MsgRefine::update (Data * data)
 {
-
-  if (data_msg_ == nullptr) return;
-
-  Simulation * simulation  = cello::simulation();
-  FieldDescr * field_descr = cello::field_descr();
-
-  Field field_dst = data->field();
-
-  FieldData    * fd = data_msg_->field_data();
-  ParticleData * pd = data_msg_->particle_data();
-  FieldFace    * ff = data_msg_->field_face();
-  char         * fa = data_msg_->field_array();
-
-  if (pd != nullptr) {
-
-    // Insert new particles
-
-    Particle particle = data->particle();
-
-    int count = 0;
-    for (int it=0; it<particle.num_types(); it++) {
-      count += particle.gather (it, 1, &pd);
-    }
-    simulation->data_insert_particles(count);
-
-    data_msg_->delete_particle_data();
-  }
-
-  if (fa != nullptr) {
-
-    if (is_local_) {
-
-      Field field_src(field_descr,fd);
-      ff->face_to_face(field_src, field_dst);
-
-      delete ff;
-
-    } else { // ! is_local_
-
-      // Invert face since incoming not outgoing
-
-      ff->invert_face();
-
-      ff->array_to_face(fa,field_dst);
-    }
-  }
-
-  // Update scalar data
+  // return if no data to update
+  if (data_msg_ == NULL) return;
+  const bool is_kept = false;
+  data_msg_->update(data,is_local_,is_kept);
   data_msg_->update_scalars(data);
-
-  if (! is_local_) {
+  if (!is_local_) {
     CkFreeMsg (buffer_);
     buffer_ = nullptr;
   }

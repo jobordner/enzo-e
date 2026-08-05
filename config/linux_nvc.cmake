@@ -6,13 +6,10 @@ if(NOT __processedUserDefaults)
   message(STATUS "Loading machine configuration for generic Linux machine with NVIDIA compilers.\n")
 
   # Setting compilers
-  set(CMAKE_CXX_COMPILER nvc++ CACHE STRING "")
+  set(CMAKE_CXX_COMPILER nvcc CACHE STRING "")
   set(CMAKE_C_COMPILER nvcc CACHE STRING "")
-
-##  set(CMAKE_Fortran_COMPILER nvfortran CACHE STRING "")
-##  set(CMAKE_Fortran_FLAGS "-Mextend " CACHE STRING "Default Fortran flags")
-
   set(CMAKE_Fortran_COMPILER gfortran CACHE STRING "")
+
   set(CMAKE_Fortran_FLAGS "-ffixed-line-length-132" CACHE STRING "Default Fortran flags")
 
   set(__ARCH_C_OPT_FLAGS "-O3 -g")  ### WORKS
@@ -43,7 +40,6 @@ if(NOT __processedUserDefaults)
  else()
 
   if (USE_DOUBLE_PREC)
-###    string(APPEND CMAKE_Fortran_FLAGS " -r8")
     string(APPEND CMAKE_Fortran_FLAGS " -fdefault-real-8 -fdefault-double-8")
   endif()
 

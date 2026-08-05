@@ -96,12 +96,7 @@ void * MsgInitial::pack (MsgInitial * msg)
 
   // serialize message data into buffer 
 
-  union {
-    char * pc;
-    int  * pi;
-  };
-
-  pc = buffer;
+  char * pc = buffer;
 
   SAVE_STRING_TYPE(pc,msg->data_type_);
   SAVE_STRING_TYPE(pc,msg->data_name_);
@@ -146,12 +141,7 @@ MsgInitial * MsgInitial::unpack(void * buffer)
 
   // de-serialize message data from input buffer into allocated message
 
-  union {
-    char   * pc;
-    int    * pi;
-  };
-
-  pc = (char *) buffer;
+  char * pc = (char *) buffer;
 
   LOAD_STRING_TYPE(pc,msg->data_type_);
   LOAD_STRING_TYPE(pc,msg->data_name_);

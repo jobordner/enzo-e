@@ -256,8 +256,10 @@ public: // interface
 
   FILE * fp_trace() { return fp_trace_; }
   bool log_scheduled (int cycle, double time) const;
-  void log_start(int cycle, long long bid, const char * type, int id);
-  void log_stop(int cycle, long long bid, const char * type, int id);
+  void log_start(int cycle, const std::string & name,
+                 long long bid, const char * type, int id);
+  void log_stop(int cycle,  const std::string & name,
+                long long bid, const char * type, int id);
   void log_flush();
 
   float timer() const { return timer_.value(); }
