@@ -13,8 +13,8 @@
 #include "charm_simulation.hpp"
 #include "charm_mesh.hpp"
 
-#define OLD_MSG_REFRESH
-// #define NEW_MSG_REFRESH
+// #define OLD_MSG_REFRESH
+#define NEW_MSG_REFRESH
 
 #ifdef OLD_MSG_REFRESH
 #   define COUNT(INDEX) ++count;
@@ -59,7 +59,6 @@ void Block::refresh_start (int id_refresh, int callback)
 
 #ifdef NEW_MSG_REFRESH
 
-    auto & msg_list = refresh_send_buffer_[id_refresh];
     auto & ind_list  = refresh_send_index_[id_refresh];
     auto & msg_count = refresh_recv_index_[id_refresh];
     auto & msg_list = refresh_send_buffer_[id_refresh];
@@ -422,7 +421,7 @@ void Block::refresh_load_field_face_
   // create data message
   DataMsg * data_msg = new DataMsg;
   // initialize data message
-  data_msg -> set_field_face (field_face,true);
+  data_msg -> add_field_face (field_face,true);
   data_msg -> set_field_data (data()->field_data(),false);
 
   // create refresh message
@@ -815,8 +814,6 @@ void Block::refresh_coarse_send_
  int ifms3[3], int ifps3[3],
  int ifmr3[3], int ifpr3[3])
 {
-  DataMsg * data_msg = new DataMsg;
-
   const int id_refresh = refresh->id();
 
 #ifdef NEW_MSG_REFRESH
@@ -826,6 +823,7 @@ void Block::refresh_coarse_send_
 
 #else
 
+  DataMsg * data_msg = new DataMsg;
   data_msg->add_coarse_array
     (field, iam3,iap3,ifms3,ifps3,ifmr3,ifpr3,
      refresh->field_list_src(),
@@ -1138,7 +1136,7 @@ void Block::new_msg_refresh_
 
   DataMsg * data_msg = msg_refresh->data_msg();
 
-  data_msg -> set_field_face (field_face,true);
+  data_msg -> add_field_face (field_face,true);
   data_msg -> set_field_data (data()->field_data(),false);
 }
 

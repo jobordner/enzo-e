@@ -256,54 +256,10 @@ MsgCoarsen * MsgCoarsen::unpack(void * buffer)
 
 void MsgCoarsen::update (Data * data)
 {
-
+  // return if no data to update
   if (data_msg_ == NULL) return;
-
-  FieldDescr * field_descr = cello::field_descr();
- 
-  Field field_dst = data->field();
-
-  FieldData    * fd = data_msg_->field_data();
-  ParticleData * pd = data_msg_->particle_data();
-  FieldFace    * ff = data_msg_->field_face();
-  char         * fa = data_msg_->field_array();
-
-  if (pd != NULL) {
-
-    // Insert new particles 
-
-    Particle particle = data->particle();
-    
-    for (int it=0; it<particle.num_types(); it++) {
-      particle.gather (it, 1, &pd);
-    }
-    
-    // Don't delete particle data if local--done by child Block::data_
-    // destructor()
-    if (!is_local_) {
-      data_msg_->delete_particle_data();
-    }
-  }
-
-  if (fa != NULL) {
-
-    if (is_local_) {
-
-      Field field_src(field_descr,fd);
-      ff->face_to_face(field_src, field_dst);
-
-      delete ff;
-
-    } else { // ! is_local_
-
-      // Invert face since incoming not outgoing
-
-      ff->invert_face();
-
-      ff->array_to_face(fa,field_dst);
-
-    }
-  }
+  const bool is_kept = false;
+  data_msg_->update(data,is_local_,is_kept);
 
   if (!is_local_) {
     CkFreeMsg (buffer_);

@@ -620,7 +620,7 @@ DataMsg * EnzoBlock::create_data_msg_ ()
   DataMsg *   data_msg   = new DataMsg;
   if (any_fields) {
     FieldData * field_data = data()->field_data();
-    data_msg -> set_field_face (field_face,true);
+    data_msg -> add_field_face (field_face,true);
     data_msg -> set_field_data (field_data,false);
   }
   if (any_particles) {

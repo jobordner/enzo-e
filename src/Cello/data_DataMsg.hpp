@@ -19,13 +19,13 @@ public: // interface
 
   static int64_t counter[CONFIG_NODE_SIZE];
 
-  DataMsg(); 
+  DataMsg();
   ~DataMsg();
 
   /// Copy constructor
   DataMsg(const DataMsg & data_msg) throw()
   {
-    ++counter[cello::index_static()]; 
+    ++counter[cello::index_static()];
   };
 
   /// Assignment operator
@@ -40,63 +40,52 @@ public: // interface
   /// FIELD DATA
   /// --------------------
 
-  /// Return the FieldFace
-  FieldFace * field_face () 
-  {
-    return field_face_;
-  }
-
   /// Set the FieldFace object
-  void set_field_face  (FieldFace * field_face, bool is_new) 
+  void add_field_face  (FieldFace * field_face, bool is_new)
   {
-    field_face_ = field_face; 
-    field_face_delete_ = is_new;
+    field_face_list_.  push_back(field_face);
+    field_face_delete_.push_back(is_new);
   }
-
-  /// Return the serialized FieldFace array
-  char * field_array () 
-  { return field_array_u_; }
-
-
-  /// Return the FieldData
-  FieldData * field_data () 
-  { return field_data_u_; }
 
   /// Set the FieldData object
-  void set_field_data    (FieldData * field_data, bool is_new) 
+  void set_field_data    (FieldData * field_data, bool is_new)
   {
-    field_data_u_ = field_data;
+    field_data_ = field_data;
     field_data_delete_ = is_new;
   }
+
+  /// Return the FieldData
+  FieldData * field_data ()
+  { return field_data_; }
 
   /// --------------------
   /// PARTICLE DATA
   /// --------------------
-  
+
   /// Return the ParticleData
-  ParticleData * particle_data () 
+  ParticleData * particle_data ()
   { return particle_data_; }
 
   /// Set the ParticleData object
-  void set_particle_data  (ParticleData * particle_data, bool is_new) 
+  void set_particle_data  (ParticleData * particle_data, bool is_new)
   {
-    particle_data_ = particle_data; 
+    particle_data_        = particle_data;
     particle_data_delete_ = is_new;
   }
 
   /// Delete the ParticleData object
-  void delete_particle_data  () 
-  { 
+  void delete_particle_data  ()
+  {
     delete particle_data_;
-    particle_data_ = nullptr; 
+    particle_data_ = nullptr;
   }
 
   /// --------------------
   /// FLUX DATA
   /// --------------------
-  
+
   /// Return the ith FaceFluxes
-  FaceFluxes * face_fluxes (unsigned i) 
+  FaceFluxes * face_fluxes (unsigned i)
   { return face_fluxes_list_[i]; }
 
   /// Return the number of FaceFluxes
@@ -110,12 +99,12 @@ public: // interface
       face_fluxes_delete_.resize(i);
     }
   }
-  
+
   /// Set the FaceFluxes object
-  void set_face_fluxes  (unsigned i, FaceFluxes * face_fluxes, bool is_new) 
+  void set_face_fluxes  (unsigned i, FaceFluxes * face_fluxes, bool is_new)
   {
     set_num_face_fluxes(i+1);
-    face_fluxes_list_[i] = face_fluxes; 
+    face_fluxes_list_[i] = face_fluxes;
     face_fluxes_delete_[i] = is_new;
   }
 
@@ -134,7 +123,7 @@ public: // interface
 
   /// Set message scalars from Data object scalars
   void set_scalars ( Data * data);
-  
+
   /// Update data object scalars from message scalars
   void update_scalars ( Data * data);
 
@@ -164,28 +153,17 @@ public: // interface
   /// Debugging
   void print (std::string, FILE * fp = nullptr) const;
 
-protected: // methods
-
-  void get_num_data_ (int & n_ff, int & n_fa, int & n_pd, int & n_fd) const;
-
 protected: // attributes
 
   /// Field Face Data
-  FieldFace * field_face_;
-
+  std::vector<FieldFace *> field_face_list_;
   /// Whether FieldFace data should be deleted in destructor
-  bool field_face_delete_;
+  std::vector<int> field_face_delete_;
+  /// Packed field_face data if not local
+  std::vector<char *> field_array_list_;
+  /// Field data if local
+  FieldData * field_data_;
 
-  /// Field data
-  union {
-
-    /// Field data if local
-    FieldData * field_data_u_;
-
-    /// packed source field data if remote
-    char * field_array_u_;
-
-  };
   /// Whether FieldData data should be deleted in destructor
   bool field_data_delete_;
 

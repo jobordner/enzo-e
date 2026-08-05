@@ -14,9 +14,10 @@ int64_t DataMsg::counter[CONFIG_NODE_SIZE] = {0};
 //----------------------------------------------------------------------
 
 DataMsg::DataMsg() 
-  : field_face_(nullptr),
-    field_face_delete_   (false),
-    field_data_u_(nullptr),
+  : field_face_list_(),
+    field_face_delete_(),
+    field_array_list_(),
+    field_data_(nullptr),
     field_data_delete_   (false),
     particle_data_(nullptr),
     particle_data_delete_(false),
@@ -34,6 +35,9 @@ DataMsg::DataMsg()
     scalar_data_index_()
 {
   ++counter[cello::index_static()];
+  field_array_list_.clear();
+  field_face_list_.clear();
+  field_face_delete_.clear();
 }
 
 //----------------------------------------------------------------------
@@ -42,13 +46,15 @@ DataMsg::~DataMsg()
 {
   --counter[cello::index_static()];
 
-  if (field_face_delete_) {
-    delete field_face_;
-    field_face_ = nullptr;
+  for (size_t k=0; k<field_face_delete_.size(); k++) {
+    if (field_face_delete_[k]) {
+      delete field_face_list_[k];
+      field_face_list_[k] = nullptr;
+    }
   }
   if (field_data_delete_) {
-    delete field_data_u_;
-    field_data_u_ = nullptr;
+    delete field_data_;
+    field_data_ = nullptr;
   }
   if (particle_data_delete_) {
     delete particle_data_;
@@ -68,12 +74,12 @@ DataMsg::~DataMsg()
 //----------------------------------------------------------------------
 
 void DataMsg::add_coarse_array
-  (Field field,
-   int iam3[3], int iap3[3],
-   int ifms3[3], int ifps3[3],
-   int ifmr3[3], int ifpr3[3],
-   const std::vector<int> & field_list_src,
-   const std::vector<int> & field_list_dst)
+(Field field,
+ int iam3[3], int iap3[3],
+ int ifms3[3], int ifps3[3],
+ int ifmr3[3], int ifpr3[3],
+ const std::vector<int> & field_list_src,
+ const std::vector<int> & field_list_dst)
 {
   const int i = coarse_data_.size();
   DataMsgCoarse data
@@ -114,46 +120,37 @@ void DataMsg::update_scalars ( Data * data)
 
 //----------------------------------------------------------------------
 
-void DataMsg::get_num_data_ (int & n_ff, int & n_fa, int & n_pd, int & n_fd) const
-{
-  Field field (cello::field_descr(), field_data_u_);
-  FieldFace    * ff = field_face_;
-  ParticleData * pd = particle_data_;
-  auto & fd = face_fluxes_list_;
-
-  n_ff = (ff) ? ff->data_size() : 0;
-  n_fa = (ff) ? ff->num_bytes_array(field) : 0;
-  n_pd = (pd) ? pd->data_size(cello::particle_descr()) : 0;
-  n_fd = fd.size();
-}
-
-//----------------------------------------------------------------------
-
 int DataMsg::data_size () const
 {
   //--------------------------------------------------
   //  1. determine buffer size (must be consistent with #3)
   //--------------------------------------------------
 
-  int n_ff,n_fa,n_pd,n_fd;
-  get_num_data_ (n_ff,n_fa,n_pd,n_fd);
-
   int size = 0;
 
-  SIZE_SCALAR_TYPE(size,int,n_ff);
-  SIZE_SCALAR_TYPE(size,int,n_fa);
   SIZE_SCALAR_TYPE(size,int,n_pd);
-  SIZE_SCALAR_TYPE(size,int,n_fd);
 
-  size += n_ff;
-  size += n_fa;
-  size += n_pd;
+  // sizes of field faces
+  SIZE_VECTOR_OBJECT_PTR_TYPE(size,FieldFace,field_face_list_);
 
-  if (n_fd > 0) {
-    SIZE_VECTOR_TYPE(size,char,face_fluxes_delete_);
-    SIZE_VECTOR_OBJECT_PTR_TYPE(size,FaceFluxes,face_fluxes_list_);
+  // sizes of field arrays
+  Field field (cello::field_descr(), field_data_);
+  for (auto * ff : field_face_list_) {
+    // size of array length
+    int n_fa;
+    SIZE_SCALAR_TYPE(size,int,n_fa);
+    // size of array
+    size += ff->num_bytes_array(field);
   }
 
+  // size of particle data
+  int n_pd;
+  n_pd = (particle_data_) ?
+    particle_data_->data_size(cello::particle_descr()) : 0;
+  size += n_pd;
+
+  SIZE_VECTOR_TYPE(size,char,face_fluxes_delete_);
+  SIZE_VECTOR_OBJECT_PTR_TYPE(size,FaceFluxes,face_fluxes_list_);
 
   SIZE_VECTOR_OBJECT_TYPE(size,DataMsgCoarse,coarse_data_);
 
@@ -173,33 +170,33 @@ char * DataMsg::save_data (char * buffer) const
 {
   char * pc = buffer;
 
-  int n_ff,n_fa,n_pd,n_fd;
-  get_num_data_ (n_ff,n_fa,n_pd,n_fd);
-
-  SAVE_SCALAR_TYPE(pc,int,n_ff);
-  SAVE_SCALAR_TYPE(pc,int,n_fa);
-  SAVE_SCALAR_TYPE(pc,int,n_pd);
-  SAVE_SCALAR_TYPE(pc,int,n_fd);
-
   // save field face
-  if (n_ff > 0) {
-    pc = field_face_->save_data (pc);
-  }
+  SAVE_VECTOR_OBJECT_PTR_TYPE(pc,FieldFace,field_face_list_);
+  
   // save field array
-  Field field (cello::field_descr(), field_data_u_);
-  if (n_ff > 0 && n_fa > 0) {
-    field_face_->face_to_array(field,pc);
-    pc += n_fa;
+  Field field (cello::field_descr(), field_data_);
+  for (auto * ff : field_face_list_) {
+    // save array size
+    const int n_ff = ff->num_bytes_array(field);
+    SAVE_SCALAR_TYPE(pc,int,n_ff);
+    // save array
+    ff->face_to_array(field,pc);
+    pc += n_ff;
   }
+
   // save particle data
+  int n_pd;
+  n_pd = (particle_data_) ?
+    particle_data_->data_size(cello::particle_descr()) : 0;
+  SAVE_SCALAR_TYPE(pc,int,n_pd);
+
   if (n_pd > 0) {
     pc = particle_data_->save_data(cello::particle_descr(),pc);
   }
+
   // save fluxes
-  if (n_fd > 0) {
-    SAVE_VECTOR_TYPE(pc,char,face_fluxes_delete_);
-    SAVE_VECTOR_OBJECT_PTR_TYPE(pc,FaceFluxes,face_fluxes_list_);
-  }
+  SAVE_VECTOR_TYPE(pc,char,face_fluxes_delete_);
+  SAVE_VECTOR_OBJECT_PTR_TYPE(pc,FaceFluxes,face_fluxes_list_);
 
   // Coarse face array for interpolation
 
@@ -225,36 +222,25 @@ char * DataMsg::save_data (char * buffer) const
 
 char * DataMsg::load_data (char * buffer)
 {
-  // 2. De-serialize message data from input buffer into the allocated
-  // message (must be consistent with pack())
-
   char * pc = buffer;
 
-  int n_ff,n_fa,n_pd,n_fd;
-
-  LOAD_SCALAR_TYPE(pc,int,n_ff);
-  LOAD_SCALAR_TYPE(pc,int,n_fa);
-  LOAD_SCALAR_TYPE(pc,int,n_pd);
-  LOAD_SCALAR_TYPE(pc,int,n_fd);
-
   // load field face
-  if (n_ff > 0) {
-    field_face_delete_ = true;
-    field_face_ = new FieldFace;
-    pc = field_face_->load_data (pc);
-  } else {
-    field_face_ = nullptr;
-  }
+  LOAD_VECTOR_OBJECT_PTR_TYPE(pc,FieldFace,field_face_list_);
 
-  // load field array
-  if (n_fa > 0) {
-    field_array_u_ = pc;
-    pc += n_fa;
-  } else {
-    field_array_u_ = nullptr;
+  for (auto * ff: field_face_list_) {
+    // load array size
+    int n_ff;
+    LOAD_SCALAR_TYPE(pc,int,n_ff);
+    // load array
+    field_face_delete_.push_back(true);
+    field_array_list_.push_back(pc);
+    pc += n_ff;
   }
 
   // load particle data
+  int n_pd;
+  LOAD_SCALAR_TYPE(pc,int,n_pd);
+
   if (n_pd > 0) {
     particle_data_delete_ = true;
     ParticleData * pd = particle_data_ = new ParticleData;
@@ -263,15 +249,11 @@ char * DataMsg::load_data (char * buffer)
   } else {
     particle_data_ = nullptr;
   }
-  // load flux data
-  if (n_fd > 0) {
 
-    LOAD_VECTOR_TYPE(pc,char,face_fluxes_delete_);
-    LOAD_VECTOR_OBJECT_PTR_TYPE(pc,FaceFluxes,face_fluxes_list_);
-
-    for (int i=0; i<n_fd; i++) {
-      face_fluxes_delete_[i] = true;
-    }
+  LOAD_VECTOR_TYPE(pc,char,face_fluxes_delete_);
+  LOAD_VECTOR_OBJECT_PTR_TYPE(pc,FaceFluxes,face_fluxes_list_);
+  for (auto & ffd : face_fluxes_delete_) {
+    ffd = true;
   }
 
   LOAD_VECTOR_OBJECT_TYPE(pc,DataMsgCoarse,coarse_data_);
@@ -291,8 +273,6 @@ char * DataMsg::load_data (char * buffer)
 void DataMsg::update (Data * data, bool is_local, bool is_kept)
 {
   ParticleData * pd = particle_data_;
-  FieldFace    * ff = field_face_;
-  char         * fa = field_array_u_;
 
   // Update particles
 
@@ -312,13 +292,15 @@ void DataMsg::update (Data * data, bool is_local, bool is_kept)
 
   // Update fields
 
-  if (ff != nullptr && fa != nullptr) {
+  for (size_t k=0; k<field_face_list_.size(); k++) {
+    FieldFace * ff = field_face_list_[k];
+    char * fa = field_array_list_[k];
 
     Field field_dst = data->field();
 
     if (is_local) {
 
-      Field field_src(cello::field_descr(),field_data_u_);
+      Field field_src(cello::field_descr(),field_data_);
 
       ff->face_to_face(field_src, field_dst);
 
@@ -333,9 +315,9 @@ void DataMsg::update (Data * data, bool is_local, bool is_kept)
     }
   }
 
-  if (ff != nullptr) {
-    delete field_face_;
-    field_face_ = nullptr;
+  for ( auto & ff : field_face_list_) {
+    delete ff;
+    ff = nullptr;
   }
 
   // Update fluxes
@@ -356,7 +338,6 @@ void DataMsg::update (Data * data, bool is_local, bool is_kept)
   for (auto & coarse_data : coarse_data_) {
     coarse_data.update (data);
   }
- 
 }
 
 //----------------------------------------------------------------------
@@ -368,26 +349,30 @@ void DataMsg::print (std::string message_str, FILE * fp_in) const
   FILE * fp = fp_in ? fp_in : stdout;
   
   fprintf (fp,"%s DATA_MSG %p\n",message,(void*)this);
-  fprintf (fp,"%s DATA_MSG field_face_    = %p\n",
-            message,(void*)field_face_);
-  fprintf (fp,"%s DATA_MSG field_data_u_    = %p\n",
-            message,(void*)field_data_u_);
+  for ( auto * ff : field_face_list_) {
+    fprintf (fp,"%s DATA_MSG field_face_    = %p\n",
+             message,(void*)ff);
+  }
+  for ( auto fd : field_face_delete_) {
+    fprintf (fp,"%s DATA_MSG field_face_delete_ = %d\n",
+             message,fd?1:0);
+  }
+  fprintf (fp,"%s DATA_MSG field_data_    = %p\n",
+           message,(void*)field_data_);
   fprintf (fp,"%s DATA_MSG particle_data_ = %p\n",
-            message,(void*)particle_data_);
+           message,(void*)particle_data_);
   if (particle_data_) {
     fprintf (fp,"%s DATA_MSG num-particles = %d\n",
-              message,particle_data_->num_particles(cello::particle_descr()));
+             message,particle_data_->num_particles(cello::particle_descr()));
   }
   fprintf (fp,"%s DATA_MSG particle_data_delete_ = %d\n",
-            message,particle_data_delete_?1:0);
+           message,particle_data_delete_?1:0);
   fprintf (fp,"%s DATA_MSG |face_fluxes_list_| = %lu\n",
-            message,face_fluxes_list_.size());
+           message,face_fluxes_list_.size());
   fprintf (fp,"%s DATA_MSG |face_fluxes_delete_| = %lu\n",
-            message,face_fluxes_delete_.size());
-  fprintf (fp,"%s DATA_MSG field_face_delete_ = %d\n",
-            message,field_face_delete_?1:0);
+           message,face_fluxes_delete_.size());
   fprintf (fp,"%s DATA_MSG field_data_delete_ = %d\n",
-            message,field_data_delete_?1:0);
+           message,field_data_delete_?1:0);
   for (auto & coarse_data : coarse_data_) {
     coarse_data.print(message_str,fp_in);
   }
