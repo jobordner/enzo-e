@@ -3,19 +3,23 @@
 # Second to set dependent options (e.g., also depending on defaults set in the main CMakeLists.txt)
 if(NOT __processedUserDefaults)
 
-  message(STATUS "Loading machine configuration for generic Linux machine with GCC stack.\n")
+  message(STATUS "Loading machine configuration for generic Linux machine with NVIDIA compilers.\n")
 
   # Setting compilers
   set(CMAKE_CXX_COMPILER nvc++ CACHE STRING "")
   set(CMAKE_C_COMPILER nvcc CACHE STRING "")
-  set(CMAKE_Fortran_COMPILER nvfortran CACHE STRING "")
-  set(CMAKE_Fortran_FLAGS "-Mextend " CACHE STRING "Default Fortran flags")
 
-  set(__ARCH_C_OPT_FLAGS "-O3 -Mnounroll -g")  ### WORKS
+##  set(CMAKE_Fortran_COMPILER nvfortran CACHE STRING "")
+##  set(CMAKE_Fortran_FLAGS "-Mextend " CACHE STRING "Default Fortran flags")
+
+  set(CMAKE_Fortran_COMPILER gfortran CACHE STRING "")
+  set(CMAKE_Fortran_FLAGS "-ffixed-line-length-132" CACHE STRING "Default Fortran flags")
+
+  set(__ARCH_C_OPT_FLAGS "-O3 -g")  ### WORKS
   #  set(__ARCH_C_OPT_FLAGS "-O3 -g")  ### BROKEN
 #  set(__ARCH_C_OPT_FLAGS "-O0 -g")
-#  set(CMAKE_C_FLAGS_RELEASE "${__ARCH_C_OPT_FLAGS}")
-#  set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g ${__ARCH_C_OPT_FLAGS}")
+  set(CMAKE_C_FLAGS_RELEASE "${__ARCH_C_OPT_FLAGS}")
+  set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g ${__ARCH_C_OPT_FLAGS}")
   set(CMAKE_CXX_FLAGS_RELEASE "${__ARCH_C_OPT_FLAGS}")
   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g ${__ARCH_C_OPT_FLAGS}")
 
@@ -36,10 +40,11 @@ if(NOT __processedUserDefaults)
   # Mark done
   set(__processedUserDefaults ON)
 
-else()
+ else()
 
   if (USE_DOUBLE_PREC)
-    string(APPEND CMAKE_Fortran_FLAGS " -r8")
+###    string(APPEND CMAKE_Fortran_FLAGS " -r8")
+    string(APPEND CMAKE_Fortran_FLAGS " -fdefault-real-8 -fdefault-double-8")
   endif()
 
 endif()
