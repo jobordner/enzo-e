@@ -884,7 +884,7 @@ FieldMsg * EnzoSolverMg0::pack_residual_(EnzoBlock * enzo_block) throw()
   int ic3[3];
   enzo_block->index().child
     (enzo_block->level(),&ic3[0],&ic3[1],&ic3[2],min_level_);
-  return field.pack_msg
+  return field.pack_field_msg
     (ir_, -1, enzo_block->level(), index_prolong_, index_restrict_, ic3);
 }
 
@@ -894,7 +894,7 @@ void EnzoSolverMg0::unpack_residual_
 (EnzoBlock * enzo_block,FieldMsg * msg) throw()
 {
   Field field = enzo_block->data()->field();
-  field.unpack_msg
+  field.unpack_field_msg
     (msg, ib_, -1, enzo_block->level(), index_prolong_, index_restrict_);
 }
 
@@ -904,7 +904,7 @@ FieldMsg * EnzoSolverMg0::pack_correction_
 (EnzoBlock * enzo_block, int ic3[3]) throw()
 {
   Field field = enzo_block->data()->field();
-  return  field.pack_msg
+  return  field.pack_field_msg
     (ix_, +1, enzo_block->level(), index_prolong_, index_restrict_, ic3);
 }
 
@@ -914,7 +914,7 @@ void EnzoSolverMg0::unpack_correction_
 (EnzoBlock * enzo_block, FieldMsg * msg) throw()
 {
   Field field = enzo_block->data()->field();
-  field.unpack_msg
+  field.unpack_field_msg
     (msg, ic_, +1, enzo_block->level(), index_prolong_, index_restrict_);
 }
 

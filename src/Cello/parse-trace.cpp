@@ -154,8 +154,9 @@ int main ()
   int ip=0;
   double time = 0;
   std::string filename;
-  for (auto & file : file_list) printf ("files: %s %d\n",file.first.c_str(),
-                                        file.second.is_open());
+  for (auto & file : file_list)
+    printf ("files: %s %d\n",file.first.c_str(),
+            file.second.is_open());
 
   for (const Field & field: field_list) {
     if (k % 2 == 0) {

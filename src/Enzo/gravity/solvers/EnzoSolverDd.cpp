@@ -436,7 +436,7 @@ FieldMsg * EnzoSolverDd::pack_field_(EnzoBlock * enzo_block,
 				     int * ic3)
 {
   Field field = enzo_block->data()->field();
-  return field.pack_msg
+  return field.pack_field_msg
     (index_field, face_type, enzo_block->level(),
      index_prolong_, index_restrict_, ic3);
 }
@@ -450,7 +450,7 @@ void EnzoSolverDd::unpack_field_
  int face_type)
 {
   Field field = enzo_block->data()->field();
-  field.unpack_msg
+  field.unpack_field_msg
     (msg, index_field, face_type, enzo_block->level(),
      index_prolong_, index_restrict_);
 }

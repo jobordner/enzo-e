@@ -23,9 +23,6 @@ DataMsg::DataMsg()
     particle_data_delete_(false),
     face_fluxes_list_(),
     face_fluxes_delete_(),
-    // coarse_field_buffer_(),
-    // coarse_field_list_src_(),
-    // coarse_field_list_dst_(),
     coarse_data_(),
     scalar_data_long_double_(),
     scalar_data_double_(),
@@ -46,11 +43,10 @@ DataMsg::~DataMsg()
 {
   --counter[cello::index_static()];
 
-  for (size_t k=0; k<field_face_delete_.size(); k++) {
-    if (field_face_delete_[k]) {
-      delete field_face_list_[k];
-      field_face_list_[k] = nullptr;
-    }
+  int k=0;
+  for ( auto fd : field_face_delete_) {
+    if (fd) delete field_face_list_[k];
+    ++k;
   }
   if (field_data_delete_) {
     delete field_data_;
@@ -61,14 +57,11 @@ DataMsg::~DataMsg()
     particle_data_ = nullptr;
   }
 
-  for (size_t i=0; i<face_fluxes_list_.size(); i++) {
-    if (face_fluxes_delete_[i]) {
-      delete face_fluxes_list_[i];
-      face_fluxes_list_[i] = nullptr;
-    }
+  k=0;
+  for ( auto & ffd : face_fluxes_delete_ ) {
+    if (ffd) delete face_fluxes_list_[k];
+    ++k;
   }
-  face_fluxes_list_.clear();
-  face_fluxes_delete_.clear();
 }
 
 //----------------------------------------------------------------------

@@ -1207,7 +1207,7 @@ char * FieldData::load_data (FieldDescr * field_descr,
 
 //----------------------------------------------------------------------
 
-FieldMsg * FieldData::pack_msg_
+FieldMsg * FieldData::pack_field_msg_
 (FieldDescr * field_descr,
  int index_field, int refresh_type, int level,
  int index_prolong, int index_restrict,  int ic3[3])
@@ -1249,7 +1249,7 @@ FieldMsg * FieldData::pack_msg_
 
 //----------------------------------------------------------------------
 
-void FieldData::unpack_msg_
+void FieldData::unpack_field_msg_
 (FieldDescr * field_descr,
  FieldMsg * msg, int index_field, int refresh_type, int level,
  int index_prolong, int index_restrict)
@@ -1279,6 +1279,24 @@ void FieldData::unpack_msg_
   delete field_face;
 
   delete msg;
+}
+
+//----------------------------------------------------------------------
+
+DataMsg * FieldData::pack_data_msg_
+(FieldDescr * field_descr,
+ int index_field, int refresh_type, int level,
+ int index_prolong, int index_restrict,  int ic3[3])
+{
+}
+
+//----------------------------------------------------------------------
+
+void FieldData::unpack_data_msg_
+(FieldDescr * field_descr,
+ DataMsg * msg, int index_field, int refresh_type, int level,
+ int index_prolong, int index_restrict)
+{
 }
 
 //======================================================================

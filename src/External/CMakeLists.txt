@@ -1,6 +1,6 @@
 
 
-add_library(pngwriter SHARED
+add_library(pngwriter 
   pngwriter.cpp
   pngconf.h
   pngwriter.h

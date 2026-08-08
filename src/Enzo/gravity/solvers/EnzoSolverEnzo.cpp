@@ -583,7 +583,7 @@ FieldMsg * EnzoSolverEnzo::pack_field_(EnzoBlock * enzo_block,
 				     int * ic3)
 {
   Field field = enzo_block->data()->field();
-  return field.pack_msg
+  return field.pack_field_msg
     (index_field, refresh_type, enzo_block->level(),
      index_prolong_, index_restrict_, ic3);
 }
@@ -597,7 +597,7 @@ void EnzoSolverEnzo::unpack_field_
  int refresh_type)
 {
   Field field = enzo_block->data()->field();
-  field.unpack_msg
+  field.unpack_field_msg
     (msg, index_field, refresh_type, enzo_block->level(), index_prolong_, index_restrict_);
 }
 

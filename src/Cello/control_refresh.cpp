@@ -1010,18 +1010,18 @@ int Block::refresh_load_particle_faces_ (Refresh * refresh)
   // Sort particles that have left the Block into 4x4x4 array
   // corresponding to neighbors
 
-  int nl = particle_load_faces_
+  int count = particle_load_faces_
     (npa,particle_list,particle_array, index_list, refresh, copy);
 
   // Send particle data to neighbors
 
-  particle_send_(refresh,nl,index_list,particle_list);
+  particle_send_(refresh,count,index_list,particle_list);
 
   delete [] particle_array;
   delete [] particle_list;
   delete [] index_list;
 
-  return nl;
+  return count;
 }
 
 //----------------------------------------------------------------------
@@ -1032,9 +1032,11 @@ void Block::particle_send_
 {
   ParticleDescr * p_descr = cello::particle_descr();
 
+  int count = 0; // dummy counter for old msg refresh
   for (int il=0; il<nl; il++) {
 
     Index index           = index_list[il];
+    COUNT(index);
     ParticleData * p_data = particle_list[il];
 
     const int id_refresh = refresh->id();

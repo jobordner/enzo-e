@@ -259,6 +259,7 @@ void MsgCoarsen::update (Data * data)
   // return if no data to update
   if (data_msg_ == NULL) return;
   const bool is_kept = false;
+
   data_msg_->update(data,is_local_,is_kept);
 
   if (!is_local_) {

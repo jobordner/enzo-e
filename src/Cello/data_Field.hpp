@@ -475,21 +475,40 @@ public: // interface
   // FieldMsg Message packing and unpacking
   //--------------------------------------------------
 
-  FieldMsg * pack_msg
+  FieldMsg * pack_field_msg
   (int index_field, int refresh_type, int level,
    int index_prolong, int index_restrict, int ic3[3])
   {
-    return field_data_->pack_msg_
+    return field_data_->pack_field_msg_
       ( field_descr_,
         index_field,refresh_type, level,
         index_prolong, index_restrict, ic3);
   };
 
-  void unpack_msg
+  void unpack_field_msg
   (FieldMsg * msg, int index_field, int refresh_type, int level,
    int index_prolong, int index_restrict)
   {
-    field_data_->unpack_msg_
+    field_data_->unpack_field_msg_
+      ( field_descr_, msg, index_field, refresh_type, level,
+        index_prolong, index_restrict);
+  }
+
+  DataMsg * pack_data_msg
+  (int index_field, int refresh_type, int level,
+   int index_prolong, int index_restrict, int ic3[3])
+  {
+    return field_data_->pack_data_msg_
+      ( field_descr_,
+        index_field,refresh_type, level,
+        index_prolong, index_restrict, ic3);
+  };
+
+  void unpack_data_msg
+  (DataMsg * msg, int index_field, int refresh_type, int level,
+   int index_prolong, int index_restrict)
+  {
+    field_data_->unpack_data_msg_
       ( field_descr_, msg, index_field, refresh_type, level,
         index_prolong, index_restrict);
   }

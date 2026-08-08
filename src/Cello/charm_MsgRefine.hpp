@@ -8,8 +8,6 @@
 #ifndef CHARM_MSG_REFINE_HPP
 #define CHARM_MSG_REFINE_HPP
 
-// #define DEBUG_MSG_REFINE
-
 #include "cello.hpp"
 
 class Adapt;
@@ -44,19 +42,12 @@ public: // interface
   /// Copy constructor
   MsgRefine(const MsgRefine & data_msg) throw()
   {
-#ifdef DEBUG_MSG_REFINE  
-    CkPrintf ("%d %s:%d DEBUG_MSG_REFINE creating %p(%p)\n",CkMyPe(),__FILE__,__LINE__,this,&data_msg);
-#endif  
     ++counter[cello::index_static()]; 
   };
 
   /// Assignment operator
   MsgRefine & operator= (const MsgRefine & data_msg) throw()
   {
-#ifdef DEBUG_MSG_REFINE  
-  CkPrintf ("%d %s:%d DEBUG_MSG_REFINE assigning %p = %p\n",CkMyPe(),__FILE__,__LINE__,
-	    this,&data_msg);
-#endif  
     return *this;
   }
 
