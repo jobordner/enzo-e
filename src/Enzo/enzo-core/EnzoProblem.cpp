@@ -626,6 +626,11 @@ Method * EnzoProblem::create_method_
     method = new EnzoMethodHeat(p_group);
     skip_auto_courant = true;
 
+  // } else if (name == "heat_cu") {
+
+  //   method = new EnzoMethodHeatCU(p_group);
+  //   skip_auto_courant = true;
+
 #ifdef CONFIG_USE_GRACKLE
 
   } else if (name == "grackle") {

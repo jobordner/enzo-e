@@ -9,6 +9,7 @@
 add_library(Enzo_assorted
   assorted.hpp
   EnzoMethodHeat.cpp EnzoMethodHeat.hpp
+#  EnzoMethodHeatCU.cu EnzoMethodHeatCU.cuh
   EnzoMethodM1Closure.cpp EnzoMethodM1Closure.hpp
   EnzoMethodTurbulence.cpp EnzoMethodTurbulence.hpp
 )

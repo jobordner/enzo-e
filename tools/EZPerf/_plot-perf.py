@@ -143,6 +143,9 @@ def html_section_h2(html,name):
 def html_section_h3(html,name):
     html.write('<h3> '+name+' </h3>\n')
 
+def html_table_cell_label(html,name):
+    html.write (" <th> " + name + " </th> ")
+
 def html_table_cell_image(html,name):
     image=name+".png"
     html.write('            <td>\n')
@@ -434,17 +437,47 @@ html_table_stop(html)
 # ======================================================================
 # Include trace files if available
 
+max_index = 4
 html_section_h2(html,"Method and refresh traces")
 if os.path.exists('../PLOG'):
-    html_table_start(html)
     for cycle_dir in sorted(glob.glob('../Cycle-*')):
+        html_section_h3(html,"Cycle "+cycle_dir[9:])
+        html_table_start(html)
+        index = 1
+
         html_table_row_start(html)
-        html_table_cell_image(html,cycle_dir+"/trace-method")
-        html_table_cell_image(html,cycle_dir+"/trace-refresh")
-        html_table_cell_image(html,cycle_dir+"/trace-method-sorted")
-        html_table_cell_image(html,cycle_dir+"/trace-refresh-sorted")
+        html_table_cell_label(html,"")
+        index = html_table_row_next(html,index,max_index)
+        html_table_cell_label(html,"Method")
+        index = html_table_row_next(html,index,max_index)
+        html_table_cell_label(html,"Refresh")
+        index = html_table_row_next(html,index,max_index)
+        html_table_cell_label(html,"Solver")
+        index = html_table_row_next(html,index,max_index)
         html_table_row_stop(html)
-    html_table_stop(html)
+
+        html_table_row_start(html)
+        html_table_cell_label(html,"By block")
+        index = html_table_row_next(html,index,max_index)
+        html_table_cell_image(html,cycle_dir+"/trace-method-block")
+        index = html_table_row_next(html,index,max_index)
+        html_table_cell_image(html,cycle_dir+"/trace-refresh-block")
+        index = html_table_row_next(html,index,max_index)
+        html_table_cell_image(html,cycle_dir+"/trace-solver-block")
+        index = html_table_row_next(html,index,max_index)
+        html_table_row_stop(html)
+
+        html_table_row_start(html)
+        html_table_cell_label(html,"By pe")
+        index = html_table_row_next(html,index,max_index)
+        html_table_cell_image(html,cycle_dir+"/trace-method-proc")
+        index = html_table_row_next(html,index,max_index)
+        html_table_cell_image(html,cycle_dir+"/trace-refresh-proc")
+        index = html_table_row_next(html,index,max_index)
+        html_table_cell_image(html,cycle_dir+"/trace-solver-proc")
+        index = html_table_row_next(html,index,max_index)
+        html_table_row_stop(html)
+        html_table_stop(html)
 
 # ======================================================================
 

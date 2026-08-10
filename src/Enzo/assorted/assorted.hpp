@@ -33,6 +33,7 @@
 //----------------------------------------------------------------------
 
 #include "assorted/EnzoMethodHeat.hpp"
+// #include "assorted/EnzoMethodHeatCU.cuh"
 #include "assorted/EnzoMethodM1Closure.hpp"
 #include "assorted/EnzoMethodTurbulence.hpp"
 
