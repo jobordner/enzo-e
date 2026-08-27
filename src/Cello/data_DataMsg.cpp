@@ -74,7 +74,6 @@ void DataMsg::add_coarse_array
  const std::vector<int> & field_list_src,
  const std::vector<int> & field_list_dst)
 {
-  const int i = coarse_data_.size();
   DataMsgCoarse data
     (field,
      iam3, iap3,
@@ -84,7 +83,6 @@ void DataMsg::add_coarse_array
      field_list_dst);
 
   coarse_data_.push_back(data);
-
 }
 
 //----------------------------------------------------------------------
@@ -121,6 +119,7 @@ int DataMsg::data_size () const
 
   int size = 0;
 
+  int n_pd;
   SIZE_SCALAR_TYPE(size,int,n_pd);
 
   // sizes of field faces
@@ -137,7 +136,6 @@ int DataMsg::data_size () const
   }
 
   // size of particle data
-  int n_pd;
   n_pd = (particle_data_) ?
     particle_data_->data_size(cello::particle_descr()) : 0;
   size += n_pd;
@@ -220,7 +218,7 @@ char * DataMsg::load_data (char * buffer)
   // load field face
   LOAD_VECTOR_OBJECT_PTR_TYPE(pc,FieldFace,field_face_list_);
 
-  for (auto * ff: field_face_list_) {
+  for (size_t k=0; k<field_face_list_.size(); k++) {
     // load array size
     int n_ff;
     LOAD_SCALAR_TYPE(pc,int,n_ff);
@@ -286,9 +284,8 @@ void DataMsg::update (Data * data, bool is_local, bool is_kept)
   // Update fields
 
   for (size_t k=0; k<field_face_list_.size(); k++) {
-    FieldFace * ff = field_face_list_[k];
-    char * fa = field_array_list_[k];
 
+    FieldFace * ff = field_face_list_[k];
     Field field_dst = data->field();
 
     if (is_local) {
@@ -300,9 +297,9 @@ void DataMsg::update (Data * data, bool is_local, bool is_kept)
     } else { // ! is_local
 
       // invert face since incoming not outgoing
-
       ff->invert_face();
 
+      char * fa = field_array_list_[k];
       ff->array_to_face(fa,field_dst);
 
     }

@@ -305,7 +305,7 @@ public: // virtual functions
   void data_delete_particles(int64_t count) ;
 
   void set_checkpoint(char * checkpoint)
-  { strncpy (dir_checkpoint_,checkpoint,255);}
+  { strncpy (dir_checkpoint_,checkpoint,256);}
 
   void set_solver_iter(int is, int iter)
   {

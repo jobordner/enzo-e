@@ -302,7 +302,7 @@ void Refresh::summary() const
   if (all_fields_) {
     CkPrintf ("* ");
   } else {
-    CkPrintf ("%02u ",f_src.size());
+    CkPrintf ("%02lu ",f_src.size());
   }
   CkPrintf ("%c ",(f_src==f_dst) ? '=' : '+');
 
@@ -310,7 +310,7 @@ void Refresh::summary() const
   if (all_particles_) {
     CkPrintf ("* ");
   } else {
-    CkPrintf ("%u ",particle_list().size());
+    CkPrintf ("%lu ",particle_list().size());
   }
 
   CkPrintf ("X %d ",all_fluxes_?1:0);

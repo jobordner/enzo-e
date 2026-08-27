@@ -91,11 +91,11 @@ void MethodOrderHilbert::compute_continue(Block * block)
 }
 
 //======================================================================
-void MethodOrderHilbert::send_weight(Block * block, int weight_child, bool self)
+void MethodOrderHilbert::send_weight(Block * block, long long weight_child, bool self)
 {
   // update own weight
   // if not at finest level, send weight to parent
-  int weight = *pweight_(block);
+  long long weight = *pweight_(block);
   int ic3[3] = {0,0,0};
   if (self) {
     recv_weight(block,ic3,0,true);
@@ -133,7 +133,7 @@ void MethodOrderHilbert::send_weight(Block * block, int weight_child, bool self)
 
 //----------------------------------------------------------------------
 
-void Block::p_method_order_hilbert_weight(int ic3[3], int weight, Index index_child)
+void Block::p_method_order_hilbert_weight(int ic3[3], long long weight, Index index_child)
 {
   static_cast<MethodOrderHilbert*>
     (this->method())->recv_weight(this, ic3,weight,false);
@@ -142,7 +142,7 @@ void Block::p_method_order_hilbert_weight(int ic3[3], int weight, Index index_ch
 //----------------------------------------------------------------------
 
 void MethodOrderHilbert::recv_weight
-(Block * block, int ic3[3], int weight, bool self)
+(Block * block, int ic3[3], long long weight, bool self)
 {
   TRACE_ORDER_BLOCK("recv_weight",block);
   // Update children weight if needed
@@ -160,11 +160,11 @@ void MethodOrderHilbert::recv_weight
 }
 
 void MethodOrderHilbert::send_index
-(Block * block, int index_parent, int count, bool self)
+(Block * block, long long index_parent, long long count, bool self)
 {
   *pcount_(block) = count;
   if (!block->is_leaf()) {
-    int index = *pindex_(block) + 1;
+    long long index = *pindex_(block) + 1;
 
     int children[cello::num_children()];
     hilbert_children(block, children);
@@ -182,18 +182,18 @@ void MethodOrderHilbert::send_index
   }
 }
 
-void Block::p_method_order_hilbert_index(int index, int count)
+void Block::p_method_order_hilbert_index(long long index, long long count)
 {
   static_cast<MethodOrderHilbert*>
     (this->method())->recv_index(this, index, count, false);
 }
 
 void MethodOrderHilbert::recv_index
-(Block * block, int index, int count, bool self)
+(Block * block, long long index, long long count, bool self)
 {
   {
     char buffer[80];
-    sprintf (buffer,"recv_index %d %d\n",index,count);
+    sprintf (buffer,"recv_index %lld %lld\n",index,count);
     TRACE_ORDER_BLOCK(buffer,block);
   }
   if (!self) {
@@ -209,7 +209,7 @@ void MethodOrderHilbert::recv_index
   if (psync_index_(block)->next()) {
     {
       char buffer[80];
-      sprintf (buffer,"complete %d %d\n",index,count);
+      sprintf (buffer,"complete %lld %lld\n",index,count);
       TRACE_ORDER_BLOCK(buffer,block);
     } 
     send_index(block,index, count, false);

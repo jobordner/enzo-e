@@ -399,12 +399,6 @@ void EnzoMethodGravity::compute_accelerations (EnzoBlock * enzo_block) throw()
   EnzoComputeAcceleration compute_acceleration(cello::rank(), order_);
 
   if (is_supercycle_accelerations() ) {
-    enzo_float * ax =      (enzo_float*) field.values ("acceleration_x");
-    enzo_float * ay =      (enzo_float*) field.values ("acceleration_y");
-    enzo_float * az =      (enzo_float*) field.values ("acceleration_z");
-    enzo_float * ax_curr = (enzo_float*) field.values ("acceleration_x_curr");
-    enzo_float * ay_curr = (enzo_float*) field.values ("acceleration_y_curr");
-    enzo_float * az_curr = (enzo_float*) field.values ("acceleration_z_curr");
 
     if (is_solve_cycle_(enzo_block)) {
 
@@ -454,26 +448,18 @@ double EnzoMethodGravity::timestep (Block * block) throw()
 
 double EnzoMethodGravity::timestep_ (Block * block) throw()
 {
-  Field field = block->data()->field();
-
-  enzo_float * ax = (enzo_float*) field.values ("acceleration_x");
-  enzo_float * ay = (enzo_float*) field.values ("acceleration_y");
-  enzo_float * az = (enzo_float*) field.values ("acceleration_z");
-
-  const int rank = cello::rank();
-
-  enzo_float dt = std::numeric_limits<enzo_float>::max();
-
   double hx,hy,hz;
   block->cell_width(&hx,&hy,&hz);
 
-  double mean_cell_width;
+  const int rank = cello::rank();
 
+  double mean_cell_width;
   if (rank == 1) mean_cell_width = hx;
   if (rank == 2) mean_cell_width = sqrt(hx*hy);
   if (rank == 3) mean_cell_width = cbrt(hx*hy*hz);
 
   EnzoPhysicsCosmology * cosmology = enzo::cosmology();
+
   if (cosmology) {
     enzo_float cosmo_a = 1.0;
     enzo_float cosmo_dadt = 0.0;
@@ -497,6 +483,12 @@ double EnzoMethodGravity::timestep_ (Block * block) throw()
   double a_mag_2_max = 0.0;
   double a_mag_2;
 
+  Field field = block->data()->field();
+
+  enzo_float * ax = (enzo_float*) field.values ("acceleration_x");
+  enzo_float * ay = (enzo_float*) field.values ("acceleration_y");
+  enzo_float * az = (enzo_float*) field.values ("acceleration_z");
+
   int mx,my,mz;
   int gx,gy,gz;
   field.dimensions (0,&mx,&my,&mz);
@@ -516,7 +508,8 @@ double EnzoMethodGravity::timestep_ (Block * block) throw()
   }
 
   const double a_mag_max = sqrt(a_mag_2_max);
-  dt = sqrt(mean_cell_width / (a_mag_max + epsilon)) ;
+
+  enzo_float dt = sqrt(mean_cell_width / (a_mag_max + epsilon)) ;
 
   return 0.5*dt;
 }

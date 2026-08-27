@@ -1,13 +1,16 @@
 #!/bin/bash
 
+# Creat PLOG
 cat PLOG.* >PLOG
+
+# Initialize variables
 CYCLES=`awk '/\[/{print $2}' PLOG | sort | uniq`
 REGIONS=`awk '/\[/{print $5}' PLOG | sort | uniq`
-METHOD_NUM=(`awk '/#M/{print $2}' PLOG.0`)
-METHOD_NAME=(`awk '/#M/{print $3}' PLOG.0`)
-SOLVER_NUM=(`awk '/#S/{print $2}' PLOG.0`)
-SOLVER_NAME=(`awk '/#S/{print $3}' PLOG.0`)
-REFRESH_NUM=(`awk '/#R/{print $2}' PLOG.0`)
+  METHOD_NUM=(`awk '/#M/{print $2}' PLOG.0`)
+ METHOD_NAME=(`awk '/#M/{print $3}' PLOG.0`)
+  SOLVER_NUM=(`awk '/#S/{print $2}' PLOG.0`)
+ SOLVER_NAME=(`awk '/#S/{print $3}' PLOG.0`)
+ REFRESH_NUM=(`awk '/#R/{print $2}' PLOG.0`)
 REFRESH_NAME=(`awk '/#R/{print $3}' PLOG.0`)
 
 if [[ "x`which parse-trace`" == "x" ]]; then
@@ -15,10 +18,13 @@ if [[ "x`which parse-trace`" == "x" ]]; then
     exit 1
 fi
 
+# Call parse-trace to generate data files
 parse-trace
 
+# For each cycle
 for c in $CYCLES; do
 
+    # Create cycle directory
     cycle_dir=`printf "Cycle-%04d" $c`
     mkdir $cycle_dir
 

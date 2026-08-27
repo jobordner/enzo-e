@@ -533,8 +533,6 @@ Compute * EnzoProblem::create_compute
 
   TRACE1("EnzoProblem::create_compute %s",name.c_str());
 
-  const EnzoConfig * enzo_config = enzo::config();
-
   if (name == "temperature") {
 
     compute = new EnzoComputeTemperature(enzo::fluid_props(),

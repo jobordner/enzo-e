@@ -261,10 +261,11 @@ PARALLEL_MAIN_BEGIN
   }
 
   // Print initial baseline memory usage
-
+#ifdef CONFIG_USE_MEMORY
   Memory * memory = Memory::instance();
   monitor_->print("Memory","bytes %ld bytes_high %ld",
 		  memory->bytes(), memory->bytes_high());
+#endif
 
 #ifdef CONFIG_USE_PAPI
   int retval = PAPI_library_init(PAPI_VER_CURRENT);

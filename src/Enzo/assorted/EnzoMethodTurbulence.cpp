@@ -91,8 +91,6 @@ void EnzoMethodTurbulence::compute ( Block * block) throw()
 
   Field field = block->data()->field();
 
-  const EnzoConfig * enzo_config = enzo::config();
-
   EnzoComputeTemperature compute_temperature(enzo::fluid_props(),
                                              comoving_coordinates_);
 

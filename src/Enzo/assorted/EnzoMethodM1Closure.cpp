@@ -643,9 +643,6 @@ void EnzoMethodM1Closure::inject_photons ( EnzoBlock * enzo_block, int igroup ) 
       double iy = (int) std::floor((yp - ym) / hy) + gy;
       double iz = (int) std::floor((zp - zm) / hz) + gz;
 
-      // now get index of this cell
-      int i = INDEX(ix,iy,iz,mx,my);
-
       // deposit photons
       double pmass_cgs = pmass[ipdm]*enzo_units->mass();
 
@@ -665,6 +662,10 @@ void EnzoMethodM1Closure::inject_photons ( EnzoBlock * enzo_block, int igroup ) 
         double plum_cgs = plum[ipdL] * munit * lunit * lunit/ (tunit * tunit * tunit);
         dN = get_radiation_custom(enzo_block, E_mean, pmass_cgs, plum_cgs, 
                                   dt, 1/cell_volume, igroup);
+      } else {
+        ERROR1 ("EnzoMethodM1Closure::inject_photons()",
+                "Invalid radiation_spectrum value \"%s\" != \"blackbody\" or \"custom\"",
+                radiation_spectrum.c_str());
       }
       dN *= f_esc / Nunit; // put back into code units
     
@@ -1024,12 +1025,16 @@ double EnzoMethodM1Closure::sigma_vernier (double energy, int type) throw()
     P = 2.963;
     yw = y0 = y1 = 0.0;
     break;
-  
     // H2I (Lyman-Werner band)
   case 3:
     e_th = 11.18;
     e_max = 13.60;
     sigma0 = 3.71;
+    break; 
+  default:
+    ERROR1 ("EnzoMethodM1Closure::sigma_vernier()",
+            "Invalid value type %d not between 0 and 3",
+            type);
     break; 
   }
 
@@ -1630,8 +1635,8 @@ void EnzoMethodM1Closure::call_inject_photons(EnzoBlock * enzo_block) throw()
     }
 
     for (int i=0; i<N_groups; i++) {
-      double E_lower = (this->energy_lower_)[i];
-      double E_upper = (this->energy_upper_)[i];
+      // double E_lower = (this->energy_lower_)[i];
+      // double E_upper = (this->energy_upper_)[i];
       double energy = (this->energy_mean_)[i]; // eV
       *(scalar.value( scalar.index( eps_string(i) ))) = energy*enzo_constants::erg_eV; // erg
       
@@ -1728,8 +1733,6 @@ void EnzoMethodM1Closure::set_global_averages(EnzoBlock * enzo_block, CkReductio
 
 void EnzoMethodM1Closure::call_solve_transport_eqn(EnzoBlock * enzo_block) throw()
 {
-  EnzoUnits * enzo_units = enzo::units();
-
   int N_groups = this->N_groups_;
   double clight = this->clight_frac_ * enzo_constants::clight;
 
@@ -1773,7 +1776,6 @@ void EnzoMethodM1Closure::sum_group_fields(EnzoBlock * enzo_block) throw()
   field.ghost_depth(0,&gx, &gy, &gz);
 
   const int m = mx*my*mz;
-  EnzoUnits * enzo_units  = enzo::units();
   
   enzo_float * N  = (enzo_float *) field.values("photon_density");
   enzo_float * Fx = (enzo_float *) field.values("flux_x");

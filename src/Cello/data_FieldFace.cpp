@@ -8,6 +8,7 @@
 #include "cello.hpp"
 #include "data.hpp"
 
+// #define BOX_RECV_GHOSTS
 //----------------------------------------------------------------------
 
 // #define CONFIG_SMP_MODE
@@ -164,13 +165,16 @@ void FieldFace::face_to_array ( Field field,char * array) throw()
     field.size(n3,n3+1,n3+2);
     Box box (cello::rank(),n3,g3);
     box.set_centering(c3);
+
+#ifdef BOX_RECV_GHOSTS
     const int g = std::max(2,refresh_->ghost_depth());
     int rg3[3] = {
       cello::rank() >= 1 ? g : 0,
       cello::rank() >= 2 ? g : 0,
       cello::rank() >= 3 ? g : 0
     };
-    //    box.set_recv_ghosts(rg3);
+    box.set_recv_ghosts(rg3);
+#endif
 
     set_box_(&box);
 
@@ -258,13 +262,16 @@ void FieldFace::array_to_face (char * array, Field field) throw()
     bool invert;
     set_box_(&box,invert=true);
     box.set_centering(c3);
+
+#ifdef BOX_RECV_GHOSTS
     const int g = std::max(2,refresh_->ghost_depth());
     int rg3[3] = {
       cello::rank() >= 1 ? g : 0,
       cello::rank() >= 2 ? g : 0,
       cello::rank() >= 3 ? g : 0
     };
-    //    box.set_recv_ghosts(rg3);
+    box.set_recv_ghosts(rg3);
+#endif
 
     box_adjust_accumulate_(&box,accumulate,g3);
 
@@ -361,13 +368,16 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
     Box box (cello::rank(),n3,g3);
     set_box_(&box);
     box.set_centering(c3);
+
+#ifdef BOX_RECV_GHOSTS
     const int g = std::max(2,refresh_->ghost_depth());
     int rg3[3] = {
       cello::rank() >= 1 ? g : 0,
       cello::rank() >= 2 ? g : 0,
       cello::rank() >= 3 ? g : 0
     };
-    //    box.set_recv_ghosts(rg3);
+    box.set_recv_ghosts(rg3);
+#endif
 
     box_adjust_accumulate_(&box,accumulate,g3);
 
@@ -475,13 +485,16 @@ int FieldFace::num_bytes_array(Field field) throw()
     Box box (cello::rank(),n3,g3);
     set_box_(&box);
     box.set_centering(c3);
+
+#ifdef BOX_RECV_GHOSTS
     const int g = std::max(2,refresh_->ghost_depth());
     int rg3[3] = {
       cello::rank() >= 1 ? g : 0,
       cello::rank() >= 2 ? g : 0,
       cello::rank() >= 3 ? g : 0
     };
-    //    box.set_recv_ghosts(rg3);
+    box.set_recv_ghosts(rg3);
+#endif
 
     box_adjust_accumulate_(&box,accumulate,g3);
 
@@ -618,10 +631,6 @@ template<class T> size_t FieldFace::store_
 
   ghost_4 = (float *) ghost;
   array_4 = (float *) array;
-
-  int im = i3[0] + m3[0]*(i3[1] + m3[1]*i3[2]);
-
-  int iaccumulate = accumulate ? 1 : 0;
 
   if (accumulate) {
     // add values
@@ -919,13 +928,16 @@ void FieldFace::time_interpolate_
     Box box (cello::rank(),n3,g3);
     set_box_(&box,invert);
     box.set_centering(c3);
+
+#ifdef BOX_RECV_GHOSTS
     const int g = std::max(2,refresh_->ghost_depth());
     int rg3[3] = {
       cello::rank() >= 1 ? g : 0,
       cello::rank() >= 2 ? g : 0,
       cello::rank() >= 3 ? g : 0
     };
-    //    box.set_recv_ghosts(rg3);
+    box.set_recv_ghosts(rg3);
+#endif
 
     box_adjust_accumulate_(&box,accumulate,g3);
 

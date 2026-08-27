@@ -1043,11 +1043,11 @@ void EnzoLevelArray::apply_inference()
 
   //    allocate buffer
   int n = 0;
-  SIZE_VECTOR_TYPE(n,ObjectSphere,sphere_list);
+  SIZE_VECTOR_OBJECT_TYPE(n,ObjectSphere,sphere_list);
   //    initialize buffer
   char * buffer = new char [n];
   char *pc = buffer;
-  SAVE_VECTOR_TYPE(pc,ObjectSphere,sphere_list);
+  SAVE_VECTOR_OBJECT_TYPE(pc,ObjectSphere,sphere_list);
 
   //    Send data to leaf blocks via base-level block
   Index index_block = get_block_index_();
@@ -1081,7 +1081,7 @@ void EnzoMethodInference::update ( Block * block, int n, char * buffer, int il3[
 
   std::vector<ObjectSphere> sphere_list;
   char *pc = buffer;
-  LOAD_VECTOR_TYPE(pc,ObjectSphere,sphere_list);
+  LOAD_VECTOR_OBJECT_TYPE(pc,ObjectSphere,sphere_list);
 
   Index index_block = block->index();
   const int level = block->level();

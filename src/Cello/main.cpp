@@ -70,7 +70,7 @@ void Main::exit_()
 
   const int in = cello::index_static();
   if (EnzoMsgCheck::counter[in]) {
-    CkPrintf ("%d Main::exit_() EnzoMsgCheck::counter = %lld != 0\n",
+    CkPrintf ("%d Main::exit_() EnzoMsgCheck::counter = %" PRId64 " != 0\n",
               CkMyPe(),EnzoMsgCheck::counter[in]);
   }
 

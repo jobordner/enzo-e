@@ -276,8 +276,8 @@ public: /// entry methods
   const auto state() const
   { return std::dynamic_pointer_cast<EnzoState> (state_); }
 
-  virtual void print() const {
-    FILE *fp = fopen ((std::string("EB-")+name_).c_str(),"a");
+  virtual void print(FILE * fp = nullptr) const override {
+    if (!fp) fp = fopen ((std::string("EB-")+name_).c_str(),"a");
     fprintf (fp,"PRINT_ENZO_BLOCK name = %s\n",name().c_str());
     fprintf (fp,"PRINT_ENZO_BLOCK redshift = %g\n",state()->redshift());
     fprintf (fp,"PRINT_ENZO_BLOCK GridLeftEdge[] = %g %g %g\n",GridLeftEdge[0],GridLeftEdge[1],GridLeftEdge[2]);

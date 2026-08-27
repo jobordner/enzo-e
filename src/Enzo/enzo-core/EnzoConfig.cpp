@@ -23,82 +23,54 @@ EnzoConfig::EnzoConfig() throw ()
   physics_fluid_props_eos_variant(),
   physics_fluid_props_fluid_floor_config(),
   physics_fluid_props_mol_weight(0.0),
+  // EnzoInitialAccretionTest
+  initial_accretion_test_gas_density(0.0),
+  initial_accretion_test_gas_pressure(0.0),
+  initial_accretion_test_gas_radial_velocity(0.0),
+  initial_accretion_test_sink_mass(0.0),
+  // EnzoInitialBBTest
+  initial_bb_test_angular_rotation_velocity(0.0),
+  initial_bb_test_external_density(0.0),
+  initial_bb_test_fluctuation_amplitude(0.0),
+  initial_bb_test_mean_density(0.0),
+  initial_bb_test_nominal_sound_speed(0.0),
+  initial_bb_test_truncation_radius(0.0),
   // EnzoInitialBCenter
   initial_bcenter_update_etot(false),
   // EnzoInitialBurkertBodenheimer
-  initial_burkertbodenheimer_rank(0),
-  initial_burkertbodenheimer_radius_relative(0.0),
-  initial_burkertbodenheimer_particle_ratio(0.0),
-  initial_burkertbodenheimer_mass(0.0),
-  initial_burkertbodenheimer_temperature(0.0),
   initial_burkertbodenheimer_densityprofile(1),
-  initial_burkertbodenheimer_rotating(true),
+  initial_burkertbodenheimer_mass(0.0),
   initial_burkertbodenheimer_outer_velocity(-1),
-  // EnzoInitialCosmology
-  initial_cosmology_temperature(0.0),
-  // EnzoInitialCollapse
-  initial_collapse_rank(0),
-  initial_collapse_radius_relative(0.0),
-  initial_collapse_particle_ratio(0.0),
+  initial_burkertbodenheimer_particle_ratio(0.0),
+  initial_burkertbodenheimer_radius_relative(0.0),
+  initial_burkertbodenheimer_rank(0),
+  initial_burkertbodenheimer_rotating(true),
+  initial_burkertbodenheimer_temperature(0.0),
+// EnzoInitialCollapse
   initial_collapse_mass(0.0),
+  initial_collapse_particle_ratio(0.0),
+  initial_collapse_radius_relative(0.0),
+  initial_collapse_rank(0),
   initial_collapse_temperature(0.0),
-  // EnzoInitialHdf5
-  initial_hdf5_max_level(),
-  initial_hdf5_format(),
+// EnzoInitialCosmology
+  initial_cosmology_temperature(0.0),
+// EnzoInitialHdf5
   initial_hdf5_blocking(),
-  initial_hdf5_monitor_iter(),
-  initial_hdf5_field_files(),
-  initial_hdf5_field_datasets(),
-  initial_hdf5_field_names(),
   initial_hdf5_field_coords(),
+  initial_hdf5_field_datasets(),
+  initial_hdf5_field_files(),
   initial_hdf5_field_levels(),
-  initial_hdf5_particle_files(),
-  initial_hdf5_particle_datasets(),
-  initial_hdf5_particle_coords(),
-  initial_hdf5_particle_types(),
+  initial_hdf5_field_names(),
+  initial_hdf5_format(),
+  initial_hdf5_max_level(),
+  initial_hdf5_monitor_iter(),
   initial_hdf5_particle_attributes(),
+  initial_hdf5_particle_coords(),
+  initial_hdf5_particle_datasets(),
+  initial_hdf5_particle_files(),
   initial_hdf5_particle_levels(),
-  // EnzoInitialMusic
-  initial_music_field_files(),
-  initial_music_field_datasets(),
-  initial_music_field_names(),
-  initial_music_field_coords(),
-  initial_music_particle_files(),
-  initial_music_particle_datasets(),
-  initial_music_particle_coords(),
-  initial_music_particle_types(),
-  initial_music_particle_attributes(),
-  initial_music_throttle_internode(),
-  initial_music_throttle_intranode(),
-  initial_music_throttle_node_files(),
-  initial_music_throttle_close_count(),
-  initial_music_throttle_group_size(),
-  initial_music_throttle_seconds_stagger(),
-  initial_music_throttle_seconds_delay(),
-  // EnzoInitialPm
-  initial_pm_field(""),
-  initial_pm_mpp(0.0),
-  initial_pm_level(0),
-  // EnzoInitialSedov[23]
-  initial_sedov_rank(0),
-  initial_sedov_radius_relative(0.0),
-  initial_sedov_pressure_in(0.0),
-  initial_sedov_pressure_out(0.0),
-  initial_sedov_density(0.0),
-  // EnzoInitialSedovRandom
-  initial_sedov_random_half_empty(false),
-  initial_sedov_random_grackle_cooling(false),
-  initial_sedov_random_max_blasts(0),
-  initial_sedov_random_radius_relative(0.0),
-  initial_sedov_random_pressure_in(0.0),
-  initial_sedov_random_pressure_out(0.0),
-  initial_sedov_random_density(0.0),
-  initial_sedov_random_te_multiplier(0),
-  // EnzoInitialTurbulence
-  initial_turbulence_density(0.0),
-  initial_turbulence_pressure(0.0),
-  initial_turbulence_temperature(0.0),
-  // EnzoInitialIsolatedGalaxy
+  initial_hdf5_particle_types(),
+// EnzoInitialIsolatedGalaxy
   initial_IG_analytic_velocity(false),
   initial_IG_disk_mass(42.9661),            // Gas disk mass in code units
   initial_IG_disk_metal_fraction(1.0E-10),         // Gas disk metal fraction
@@ -121,54 +93,82 @@ EnzoConfig::EnzoConfig() throw ()
   initial_IG_stellar_bulge(false),
   initial_IG_stellar_disk(false),
   initial_IG_use_gas_particles(false),      // Set up gas by depositing baryonic particles to grid
-  // EnzoMethodCheck
-  method_check_num_files(1),
-  method_check_dir(),
-  method_check_monitor_iter(0),
-  method_check_include_ghosts(false),
-  // EnzoInitialMergeSinksTest
+// EnzoInitialMergeSinksTest
   initial_merge_sinks_test_particle_data_filename(""),
-  // EnzoInitialAccretionTest
-  initial_accretion_test_sink_mass(0.0),
-  initial_accretion_test_gas_density(0.0),
-  initial_accretion_test_gas_pressure(0.0),
-  initial_accretion_test_gas_radial_velocity(0.0),
-  // EnzoInitialBBTest
-  initial_bb_test_mean_density(0.0),
-  initial_bb_test_fluctuation_amplitude(0.0),
-  initial_bb_test_truncation_radius(0.0),
-  initial_bb_test_nominal_sound_speed(0.0),
-  initial_bb_test_angular_rotation_velocity(0.0),
-  initial_bb_test_external_density(0.0),
-  // EnzoMethodGravity
-  method_gravity_type_super(),
-  // EnzoMethodInference
-  method_inference_level_base(0),
-  method_inference_level_array(0),
-  method_inference_level_infer(0),
+// EnzoInitialMusic
+  initial_music_field_coords(),
+  initial_music_field_datasets(),
+  initial_music_field_files(),
+  initial_music_field_names(),
+  initial_music_particle_attributes(),
+  initial_music_particle_coords(),
+  initial_music_particle_datasets(),
+  initial_music_particle_files(),
+  initial_music_particle_types(),
+  initial_music_throttle_close_count(),
+  initial_music_throttle_group_size(),
+  initial_music_throttle_internode(),
+  initial_music_throttle_intranode(),
+  initial_music_throttle_node_files(),
+  initial_music_throttle_seconds_delay(),
+  initial_music_throttle_seconds_stagger(),
+// EnzoInitialPm
+  initial_pm_field(""),
+  initial_pm_level(0),
+  initial_pm_mpp(0.0),
+// EnzoInitialSedov[23]
+  initial_sedov_density(0.0),
+  initial_sedov_pressure_in(0.0),
+  initial_sedov_pressure_out(0.0),
+  initial_sedov_radius_relative(0.0),
+  initial_sedov_rank(0),
+// EnzoInitialSedovRandom
+  initial_sedov_random_density(0.0),
+  initial_sedov_random_grackle_cooling(false),
+  initial_sedov_random_half_empty(false),
+  initial_sedov_random_max_blasts(0),
+  initial_sedov_random_pressure_in(0.0),
+  initial_sedov_random_pressure_out(0.0),
+  initial_sedov_random_radius_relative(0.0),
+  initial_sedov_random_te_multiplier(0),
+// EnzoInitialTurbulence
+  initial_turbulence_density(0.0),
+  initial_turbulence_pressure(0.0),
+  initial_turbulence_temperature(0.0),
+// EnzoMethodCheck
+  method_check_dir(),
+  method_check_include_ghosts(false),
+  method_check_monitor_iter(0),
+  method_check_num_files(1),
+// EnzoMethodInference
   method_inference_field_group(),
+  method_inference_level_array(0),
+  method_inference_level_base(0),
+  method_inference_level_infer(0),
   method_inference_overdensity_threshold(0),
-  // EnzoMethodTurbulence
+// EnzoMethodGravity
+  method_gravity_type_super(),
+// EnzoMethodTurbulence
   method_turbulence_edot(0.0),
   method_turbulence_mach_number(0.0),
-  /// EnzoProlong
-  prolong_enzo_type(),
+/// EnzoProlong
   prolong_enzo_positive(true),
+  prolong_enzo_type(),
   prolong_enzo_use_linear(false),
-  /// EnzoSolverMg0
-  solver_pre_smooth(),
-  solver_post_smooth(),
-  solver_last_smooth(),
+/// EnzoSolvers
+  solver_block_solve(),
+  solver_coarse_level(),
   solver_coarse_solve(),
   solver_domain_solve(),
-  solver_root_solve(),
-  solver_block_solve(),
-  solver_weight(),
-  solver_restart_cycle(),
-  /// EnzoSolver<Krylov>
-  solver_precondition(),
-  solver_coarse_level(),
   solver_is_unigrid(),
+  solver_last_smooth(),
+  solver_post_smooth(),
+  solver_precondition(),
+  solver_pre_smooth(),
+  solver_restart_cycle(),
+  solver_root_solve(),
+  solver_weight(),
+/// Stopping
   stopping_redshift()
 
 {
@@ -342,8 +342,8 @@ void EnzoConfig::pup (PUP::er &p)
 
   p | method_turbulence_edot;
 
-  p | prolong_enzo_type;
   p | prolong_enzo_positive;
+  p | prolong_enzo_type;
   p | prolong_enzo_use_linear;
 
   p | solver_pre_smooth;
@@ -900,8 +900,6 @@ void EnzoConfig::read_method_inference_(Parameters* p)
   method_inference_level_base =  p->value_integer (path,"level_base");
   method_inference_level_array = p->value_integer (path,"level_array");
   method_inference_level_infer = p->value_integer (path,"level_infer");
-
-  const int rank = p->value_integer("Mesh:root_rank",0);
 
   method_inference_field_group = p->value_string  (path,"field_group");
 

@@ -140,8 +140,6 @@ void EnzoBlock::pup(PUP::er &p)
 
 void EnzoBlock::write(FILE * fp) throw ()
 {
-  const int in = cello::index_static();
-
   // Grid
 
   fprintf (fp,"EnzoBlock: GridDimension %d %d %d\n",
@@ -296,7 +294,7 @@ void EnzoBlock::instantiate_children() throw()
     std::vector<int> face_level;
     face_level.resize(27);
     const int o = 27*IC3(ic3);
-    for (int i=0; i<face_level.size(); i++) {
+    for (size_t i=0; i<face_level.size(); i++) {
       face_level[i] = child_face_level_curr_[o+i];
     }
     int face_type;

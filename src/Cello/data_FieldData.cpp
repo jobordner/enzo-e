@@ -156,7 +156,6 @@ char * FieldData::values
  int id_field, int index_history ) throw ()
 {
   char * values = nullptr;
-  int id_save = id_field;
 
   if (id_field >= 0) {
 
@@ -256,6 +255,7 @@ std::shared_ptr<T[]> FieldData::values_at (const FieldDescr * field_descr,
       return v;
     }
   }
+  return nullptr;
 }
 
 template std::shared_ptr<double[]>
@@ -922,7 +922,7 @@ void FieldData::png (const FieldDescr * field_descr,
                      double min, double max)
 {
   int mx,my,mz;
-  const int m = dimensions(field_descr,id_field,&mx,&my,&mz);
+  dimensions(field_descr,id_field,&mx,&my,&mz);
   int gx,gy,gz;
   field_descr->ghost_depth (id_field,&gx,&gy,&gz);
 
@@ -1279,24 +1279,6 @@ void FieldData::unpack_field_msg_
   delete field_face;
 
   delete msg;
-}
-
-//----------------------------------------------------------------------
-
-DataMsg * FieldData::pack_data_msg_
-(FieldDescr * field_descr,
- int index_field, int refresh_type, int level,
- int index_prolong, int index_restrict,  int ic3[3])
-{
-}
-
-//----------------------------------------------------------------------
-
-void FieldData::unpack_data_msg_
-(FieldDescr * field_descr,
- DataMsg * msg, int index_field, int refresh_type, int level,
- int index_prolong, int index_restrict)
-{
 }
 
 //======================================================================

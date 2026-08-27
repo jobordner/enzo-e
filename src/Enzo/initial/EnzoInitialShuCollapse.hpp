@@ -26,13 +26,14 @@ EnzoInitialShuCollapse(int cycle, double time, ParameterGroup p) throw();
   /// CHARM++ migration constructor
   EnzoInitialShuCollapse(CkMigrateMessage *m)
     : Initial (m),
+      center_{},
+      drift_velocity_{},
       truncation_radius_(0.0),
       nominal_sound_speed_(0.0),
       instability_parameter_(0.0),
+      external_density_(0.0),
       central_sink_exists_(false),
-      central_sink_mass_(0.0),
-      center_{},
-      drift_velocity_{}
+      central_sink_mass_(0.0)
   {}
 
   /// CHARM++ Pack / Unpack function

@@ -352,7 +352,6 @@ void EnzoMethodGrackle::compute_ ( Block * block) throw()
 #ifndef CONFIG_USE_GRACKLE
   ERROR("EnzoMethodGrackle::compute_", "Enzo-E isn't linked to grackle");
 #else
-  const EnzoConfig * enzo_config = enzo::config();
   if (cello::is_initial_cycle(InitCycleKind::fresh_or_noncharm_restart)) {
     bool nohydro = ( (enzo::problem()->method("ppm") == nullptr) |
                      (enzo::problem()->method("mhd_vlct") == nullptr) |

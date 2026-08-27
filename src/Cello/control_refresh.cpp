@@ -64,7 +64,7 @@ void Block::refresh_start (int id_refresh, int callback)
     auto & msg_list = refresh_send_buffer_[id_refresh];
 
     // Send messages
-    for (int k=0; k<msg_list.size(); k++) {
+    for (size_t k=0; k<msg_list.size(); k++) {
       MsgRefresh * msg_refresh = msg_list[k];
       Index index              = ind_list[k];
       thisProxy[index].p_refresh_recv (msg_refresh);
@@ -77,7 +77,9 @@ void Block::refresh_start (int id_refresh, int callback)
     msg_list.clear();
 
 #else
+
     const int count = count_field + count_particle + count_flux;
+
 #endif
 
     //    CkPrintf ("TRACE_COUNT %d %s %d\n",id_refresh,name8().c_str(),count);
@@ -375,7 +377,6 @@ int Block::refresh_load_field_faces_ (Refresh * refresh)
 
         Index index_neighbor = it_neighbor.index();
         const int level_face = it_neighbor.face_level();
-        int pad = refresh->coarse_padding(refresh->get_prolong());
         // if refreshing this level and neighbor is coarse, increment
         // counter for expected received face data
         if ((level_block == level_refresh) &&
@@ -845,9 +846,7 @@ void Block::refresh_coarse_apply_ (Refresh * refresh)
   if (pad > 0) {
 
     const Prolong * prolong_ptr = refresh->get_prolong();
-    const int min_face_rank = refresh->min_face_rank();
     const int neighbor_type = refresh->neighbor_type();
-    const int root_level    = refresh->root_level();
 
     if (neighbor_type == neighbor_leaf ||
         neighbor_type == neighbor_tree) {
@@ -1030,9 +1029,9 @@ void Block::particle_send_
 (Refresh * refresh,
  int nl,Index index_list[], ParticleData * particle_list[])
 {
-  ParticleDescr * p_descr = cello::particle_descr();
-
-  int count = 0; // dummy counter for old msg refresh
+#ifdef OLD_MSG_REFRESH
+  int count = 0;
+#endif
   for (int il=0; il<nl; il++) {
 
     Index index           = index_list[il];
@@ -1100,7 +1099,7 @@ void Block::new_msg_count_ (Index new_index, int id_refresh)
 MsgRefresh * Block::new_msg_refresh_ (Index index, int id_refresh)
 {
   // Return message if it already exists...
-  for (int i=0; i<refresh_send_index_[id_refresh].size(); i++) {
+  for (size_t i=0; i<refresh_send_index_[id_refresh].size(); i++) {
     if (index == refresh_send_index_[id_refresh][i])
       return refresh_send_buffer_[id_refresh][i];
   }
@@ -1276,9 +1275,6 @@ int Block::particle_create_array_neighbors_
  Index index_list[])
 {
   const int rank = cello::rank();
-  const int level = this->level();
-
-  const int min_face_rank = refresh->min_face_rank();
 
   ItNeighbor it_neighbor = refresh->it_neighbor (this);
 
@@ -1286,8 +1282,6 @@ int Block::particle_create_array_neighbors_
 
   int if3[3];
   for (il=0; it_neighbor.next(if3); il++) {
-
-    const int level_face = it_neighbor.face_level();
 
     int ic3[3] = {0,0,0};
 
@@ -1375,10 +1369,7 @@ void Block::particle_determine_periodic_update_
 void Block::particle_apply_periodic_update_
 (int nl, ParticleData * particle_list[], Refresh * refresh)
 {
-
   const int rank = cello::rank();
-  const int level = this->level();
-  const int min_face_rank = refresh->min_face_rank();
 
   std::vector<double> dpx(nl,0.0);
   std::vector<double> dpy(nl,0.0);
@@ -1392,8 +1383,6 @@ void Block::particle_apply_periodic_update_
 
   int if3[3];
   while (it_neighbor.next(if3)) {
-
-    const int level_face = it_neighbor.face_level();
 
     int ic3[3];
     it_neighbor.child(ic3);
@@ -1630,7 +1619,6 @@ int Block::refresh_load_flux_faces_ (Refresh * refresh)
     int ic3[3];
     it_neighbor.child(ic3);
 
-    const int level_face = it_neighbor.face_level();
     const int face_type = it_neighbor.face_type();
 
     refresh_load_flux_face_

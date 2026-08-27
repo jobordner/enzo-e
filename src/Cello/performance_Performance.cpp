@@ -172,17 +172,23 @@ Performance::refresh_counters_() throw()
   }
 #endif
 
-  Memory * memory = Memory::instance();
-
   const int in = cello::index_static();
 
   counter_values_[perf_cindex_time]          = time_real_()-time_start[in];
   // MEMORY
+#ifdef CONFIG_USE_MEMORY
+  Memory * memory = Memory::instance();
+
   counter_values_[perf_cindex_mem_bytes]         = memory->bytes();
   counter_values_[perf_cindex_mem_bytes_high]    = memory->bytes_high();
   counter_values_[perf_cindex_mem_bytes_highest] = memory->bytes_highest();
   counter_values_[perf_cindex_mem_bytes_available] = memory->bytes_available();
-
+#else
+  counter_values_[perf_cindex_mem_bytes]         = 0;
+  counter_values_[perf_cindex_mem_bytes_high]    = 0;
+  counter_values_[perf_cindex_mem_bytes_highest] = 0;
+  counter_values_[perf_cindex_mem_bytes_available] = 0;
+#endif
 }
 
 //----------------------------------------------------------------------

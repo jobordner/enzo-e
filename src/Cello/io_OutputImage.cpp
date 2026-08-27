@@ -48,8 +48,10 @@ OutputImage::OutputImage(int index,
 : Output(index,factory),
   image_data_(NULL),
   image_mesh_(NULL),
+  op_reduce_(reduce_unknown),
+  mesh_color_type_(mesh_color_unknown),
+  image_color_scalar_(""),
   color_particle_attribute_(color_particle_attribute),
-  image_history_(image_history),
   axis_(axis),
   use_min_max_(use_min_max),
   min_value_(min_value),
@@ -61,7 +63,8 @@ OutputImage::OutputImage(int index,
   include_ghost_(ghost),
   min_level_(min_level),
   max_level_(max_level),
-  leaf_only_(leaf_only)
+  leaf_only_(leaf_only),
+  image_history_(image_history)
 {
   int root_size[3] =
     {root_size_in[0], root_size_in[1], root_size_in[2]};

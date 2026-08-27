@@ -430,6 +430,10 @@ enum class InitCycleKind {
 #define SIZE_SCALAR_TYPE(COUNT,TYPE,VALUE)      \
   {                                             \
     (COUNT) += sizeof(TYPE);                    \
+    ASSERT2("SIZE_SCALAR_TYPE",                 \
+            "Size mismatch %d != %d",           \
+            sizeof(TYPE), sizeof(VALUE),        \
+            (sizeof(TYPE) == sizeof(VALUE)) );  \
   }
 
 #define SAVE_SCALAR_TYPE(POINTER,TYPE,VALUE)    \

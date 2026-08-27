@@ -48,7 +48,6 @@ public: // interface
       physics_fluid_props_fluid_floor_config(),
       physics_fluid_props_mol_weight(0.0),
 
-
       //--------------------
       // INITIAL [sorted]
       //--------------------
@@ -87,28 +86,23 @@ public: // interface
       // EnzoInitialHdf5
       initial_hdf5_blocking(),
       initial_hdf5_field_coords(),
-      initial_hdf5_field_levels(),
       initial_hdf5_field_datasets(),
       initial_hdf5_field_files(),
+      initial_hdf5_field_levels(),
       initial_hdf5_field_names(),
       initial_hdf5_format(),
       initial_hdf5_max_level(),
       initial_hdf5_monitor_iter(),
       initial_hdf5_particle_attributes(),
-      initial_hdf5_particle_levels(),
       initial_hdf5_particle_coords(),
       initial_hdf5_particle_datasets(),
       initial_hdf5_particle_files(),
+      initial_hdf5_particle_levels(),
       initial_hdf5_particle_types(),
       //   AE: Maybe these values (and those in cpp) don't matter
       //       are they overwritten by the read-in (even when not found in param file)?
       // EnzoInitialIsolatedGalaxy
       initial_IG_analytic_velocity(false),
-      initial_IG_include_recent_SF(false),
-      initial_IG_live_dm_halo(false),
-      initial_IG_stellar_bulge(false),
-      initial_IG_stellar_disk(false),
-      initial_IG_use_gas_particles(false),       //
       initial_IG_disk_mass(42.9661),            // Gas disk mass in code units
       initial_IG_disk_metal_fraction(1.0E-10),         // Gas disk metal fraction
       initial_IG_disk_temperature(1e4),         // Gas disk temperature in K
@@ -118,6 +112,8 @@ public: // interface
       initial_IG_gas_halo_metal_fraction(1.0E-10),      // Gas halo metal fraction
       initial_IG_gas_halo_radius(1.0),           // Gas halo maximum radius in code units
       initial_IG_gas_halo_temperature(1e4),      // Gas halo initial temperature
+      initial_IG_include_recent_SF(false),
+      initial_IG_live_dm_halo(false),
       initial_IG_recent_SF_bin_size(5.0),
       initial_IG_recent_SF_end(0.0),
       initial_IG_recent_SF_seed(12345),
@@ -125,6 +121,9 @@ public: // interface
       initial_IG_recent_SF_start(-100.0),
       initial_IG_scale_height(0.00343218),      // Gas disk scale height in code units
       initial_IG_scale_length(0.0343218),       // Gas disk scale length in code units
+      initial_IG_stellar_bulge(false),
+      initial_IG_stellar_disk(false),
+      initial_IG_use_gas_particles(false),       //
       // EnzoInitialMergeSinksTest
       initial_merge_sinks_test_particle_data_filename(""),
       // EnzoInitialMusic
@@ -148,11 +147,12 @@ public: // interface
       initial_pm_field(""),
       initial_pm_level(0),
       initial_pm_mpp(0.0),
-      initial_sedov_density(0.0),
       // EnzoInitialSedovArray[23]
+      initial_sedov_density(0.0),
       initial_sedov_pressure_in(0.0),
       initial_sedov_pressure_out(0.0),
       initial_sedov_radius_relative(0.0),
+      initial_sedov_rank(0),
       // EnzoInitialSedovRandom
       initial_sedov_random_density(0.0),
       initial_sedov_random_grackle_cooling(false),
@@ -162,7 +162,6 @@ public: // interface
       initial_sedov_random_pressure_out(0.0),
       initial_sedov_random_radius_relative(0.0),
       initial_sedov_random_te_multiplier(0),
-      initial_sedov_rank(0),
       // EnzoInitialTurbulence
       initial_turbulence_density(0.0),
       initial_turbulence_pressure(0.0),
@@ -173,41 +172,40 @@ public: // interface
       //--------------------
 
       // EnzoMethodCheck
-      method_check_num_files(1),
-      method_check_ordering("order_morton"),
       method_check_dir(),
       method_check_monitor_iter(0),
+      method_check_num_files(1),
+      method_check_ordering("order_morton"),
       // EnzoMethodCheckGravity
       method_check_gravity_particle_type(),
+      /// EnzoMethodInference
+      method_inference_field_group(),
+      method_inference_level_array(0),
+      method_inference_level_base(0),
+      method_inference_level_infer(0),
+      method_inference_overdensity_threshold(0),
       // EnzoMethodGravity
       method_gravity_type_super(),
       // EnzoMethodTurbulence
       method_turbulence_edot(0.0),
       method_turbulence_mach_number(0.0),
-      /// EnzoMethodInference
-      method_inference_level_base(0),
-      method_inference_level_array(0),
-      method_inference_level_infer(0),
-      method_inference_field_group(),
-      method_inference_overdensity_threshold(0),
       // EnzoProlong
-      prolong_enzo_type(),
       prolong_enzo_positive(true),
+      prolong_enzo_type(),
       prolong_enzo_use_linear(false),
-      // EnzoSolverMg0
-      solver_pre_smooth(),
-      solver_post_smooth(),
-      solver_last_smooth(),
+      // EnzoSolvers
+      solver_block_solve(),
+      solver_coarse_level(),
       solver_coarse_solve(),
       solver_domain_solve(),
-      solver_root_solve(),
-      solver_block_solve(),
-      solver_weight(),
-      solver_restart_cycle(),
-      // EnzoSolver<Krylov>
-      solver_precondition(),
-      solver_coarse_level(),
       solver_is_unigrid(),
+      solver_last_smooth(),
+      solver_post_smooth(),
+      solver_precondition(),
+      solver_pre_smooth(),
+      solver_restart_cycle(),
+      solver_root_solve(),
+      solver_weight(),
       // EnzoStopping
       stopping_redshift()
 
@@ -288,126 +286,6 @@ public: // attributes
   EnzoFluidFloorConfig       physics_fluid_props_fluid_floor_config;
   double                     physics_fluid_props_mol_weight;
 
-  /// EnzoInitialBCenter;
-  bool                       initial_bcenter_update_etot;
-
-  /// EnzoInitialBurkertBodenheimer
-  int                        initial_burkertbodenheimer_rank;
-  int                        initial_burkertbodenheimer_array[3];
-  double                     initial_burkertbodenheimer_radius_relative;
-  double                     initial_burkertbodenheimer_particle_ratio;
-  double                     initial_burkertbodenheimer_mass;
-  double                     initial_burkertbodenheimer_temperature;
-  int                        initial_burkertbodenheimer_densityprofile;
-  bool                       initial_burkertbodenheimer_rotating;
-  double                     initial_burkertbodenheimer_outer_velocity;
-
-  /// EnzoInitialCosmology;
-  double                     initial_cosmology_temperature;
-
-  /// EnzoInitialCollapse
-  int                        initial_collapse_rank;
-  int                        initial_collapse_array[3];
-  double                     initial_collapse_radius_relative;
-  double                     initial_collapse_particle_ratio;
-  double                     initial_collapse_mass;
-  double                     initial_collapse_temperature;
-
-  /// EnzoInitialHdf5
-
-  int                         initial_hdf5_max_level;
-  std::string                 initial_hdf5_format;
-  int                         initial_hdf5_blocking[3];
-  int                         initial_hdf5_monitor_iter;
-  std::vector < std::string > initial_hdf5_field_files;
-  std::vector < std::string > initial_hdf5_field_datasets;
-  std::vector < std::string > initial_hdf5_field_names;
-  std::vector < std::string > initial_hdf5_field_coords;
-  std::vector < int >         initial_hdf5_field_levels;
-  std::vector < std::string > initial_hdf5_particle_files;
-  std::vector < std::string > initial_hdf5_particle_datasets;
-  std::vector < std::string > initial_hdf5_particle_coords;
-  std::vector < std::string > initial_hdf5_particle_types;
-  std::vector < std::string > initial_hdf5_particle_attributes;
-  std::vector < int >         initial_hdf5_particle_levels;
-
-  /// EnzoInitialMusic
-
-  std::vector < std::string > initial_music_field_files;
-  std::vector < std::string > initial_music_field_datasets;
-  std::vector < std::string > initial_music_field_names;
-  std::vector < std::string > initial_music_field_coords;
-  std::vector < std::string > initial_music_particle_files;
-  std::vector < std::string > initial_music_particle_datasets;
-  std::vector < std::string > initial_music_particle_coords;
-  std::vector < std::string > initial_music_particle_types;
-  std::vector < std::string > initial_music_particle_attributes;
-  bool                        initial_music_throttle_internode;
-  bool                        initial_music_throttle_intranode;
-  bool                        initial_music_throttle_node_files;
-  int                         initial_music_throttle_close_count;
-  int                         initial_music_throttle_group_size;
-  double                      initial_music_throttle_seconds_stagger;
-  double                      initial_music_throttle_seconds_delay;
-
-  /// EnzoInitialPm
-  std::string                initial_pm_field;
-  double                     initial_pm_mpp;
-  int                        initial_pm_level;
-
-  /// EnzoInitialSedovArray[23]
-  int                        initial_sedov_rank;
-  int                        initial_sedov_array[3];
-  double                     initial_sedov_radius_relative;
-  double                     initial_sedov_pressure_in;
-  double                     initial_sedov_pressure_out;
-  double                     initial_sedov_density;
-
-  /// EnzoInitialSedovRandom
-  int                        initial_sedov_random_array[3];
-  bool                       initial_sedov_random_half_empty;
-  bool                       initial_sedov_random_grackle_cooling;
-  int                        initial_sedov_random_max_blasts;
-  double                     initial_sedov_random_radius_relative;
-  double                     initial_sedov_random_pressure_in;
-  double                     initial_sedov_random_pressure_out;
-  double                     initial_sedov_random_density;
-  int                        initial_sedov_random_te_multiplier;
-
-  /// EnzoInitialTurbulence
-  double                     initial_turbulence_density;
-  double                     initial_turbulence_pressure;
-  double                     initial_turbulence_temperature;
-
-  /// EnzoInitialIsolatedGalaxy
-  bool                       initial_IG_analytic_velocity;
-  bool                       initial_IG_include_recent_SF;
-  bool                       initial_IG_live_dm_halo;
-  bool                       initial_IG_stellar_bulge;
-  bool                       initial_IG_stellar_disk;
-  bool                       initial_IG_use_gas_particles;
-  double                     initial_IG_bfield[3];
-  double                     initial_IG_center_position[3];
-  double                     initial_IG_disk_mass;
-  double                     initial_IG_disk_metal_fraction;
-  double                     initial_IG_disk_temperature;
-  double                     initial_IG_gas_fraction;
-  double                     initial_IG_gas_halo_density;
-  double                     initial_IG_gas_halo_mass;
-  double                     initial_IG_gas_halo_metal_fraction;
-  double                     initial_IG_gas_halo_radius;
-  double                     initial_IG_gas_halo_temperature;
-  double                     initial_IG_recent_SF_bin_size;
-  double                     initial_IG_recent_SF_end;
-  double                     initial_IG_recent_SF_SFR;
-  double                     initial_IG_recent_SF_start;
-  double                     initial_IG_scale_height;
-  double                     initial_IG_scale_length;
-  int                        initial_IG_recent_SF_seed;
-
-  // EnzoInitialMergeSinksTest
-  std::string                initial_merge_sinks_test_particle_data_filename;
-
   // EnzoInitialAccretionTest
   double                     initial_accretion_test_gas_density;
   double                     initial_accretion_test_gas_pressure;
@@ -426,53 +304,168 @@ public: // attributes
   double                     initial_bb_test_nominal_sound_speed;
   double                     initial_bb_test_truncation_radius;
 
+  /// EnzoInitialBCenter;
+  bool                       initial_bcenter_update_etot;
+
+  /// EnzoInitialBurkertBodenheimer
+  int                        initial_burkertbodenheimer_array[3];
+  int                        initial_burkertbodenheimer_densityprofile;
+  double                     initial_burkertbodenheimer_mass;
+  double                     initial_burkertbodenheimer_outer_velocity;
+  double                     initial_burkertbodenheimer_particle_ratio;
+  double                     initial_burkertbodenheimer_radius_relative;
+  int                        initial_burkertbodenheimer_rank;
+  bool                       initial_burkertbodenheimer_rotating;
+  double                     initial_burkertbodenheimer_temperature;
+
+  /// EnzoInitialCollapse
+  int                        initial_collapse_array[3];
+  double                     initial_collapse_mass;
+  double                     initial_collapse_particle_ratio;
+  double                     initial_collapse_radius_relative;
+  int                        initial_collapse_rank;
+  double                     initial_collapse_temperature;
+
+  /// EnzoInitialCosmology;
+  double                     initial_cosmology_temperature;
+
+  /// EnzoInitialHdf5
+
+  int                         initial_hdf5_blocking[3];
+  std::vector < std::string > initial_hdf5_field_coords;
+  std::vector < std::string > initial_hdf5_field_datasets;
+  std::vector < std::string > initial_hdf5_field_files;
+  std::vector < int >         initial_hdf5_field_levels;
+  std::vector < std::string > initial_hdf5_field_names;
+  std::string                 initial_hdf5_format;
+  int                         initial_hdf5_max_level;
+  int                         initial_hdf5_monitor_iter;
+  std::vector < std::string > initial_hdf5_particle_attributes;
+  std::vector < std::string > initial_hdf5_particle_coords;
+  std::vector < std::string > initial_hdf5_particle_datasets;
+  std::vector < std::string > initial_hdf5_particle_files;
+  std::vector < int >         initial_hdf5_particle_levels;
+  std::vector < std::string > initial_hdf5_particle_types;
+
+  /// EnzoInitialIsolatedGalaxy
+  bool                       initial_IG_analytic_velocity;
+  double                     initial_IG_bfield[3];
+  double                     initial_IG_center_position[3];
+  double                     initial_IG_disk_mass;
+  double                     initial_IG_disk_metal_fraction;
+  double                     initial_IG_disk_temperature;
+  double                     initial_IG_gas_fraction;
+  double                     initial_IG_gas_halo_density;
+  double                     initial_IG_gas_halo_mass;
+  double                     initial_IG_gas_halo_metal_fraction;
+  double                     initial_IG_gas_halo_radius;
+  double                     initial_IG_gas_halo_temperature;
+  bool                       initial_IG_include_recent_SF;
+  bool                       initial_IG_live_dm_halo;
+  double                     initial_IG_recent_SF_bin_size;
+  double                     initial_IG_recent_SF_end;
+  int                        initial_IG_recent_SF_seed;
+  double                     initial_IG_recent_SF_SFR;
+  double                     initial_IG_recent_SF_start;
+  double                     initial_IG_scale_height;
+  double                     initial_IG_scale_length;
+  bool                       initial_IG_stellar_bulge;
+  bool                       initial_IG_stellar_disk;
+  bool                       initial_IG_use_gas_particles;
+
+  // EnzoInitialMergeSinksTest
+  std::string                initial_merge_sinks_test_particle_data_filename;
+
+  /// EnzoInitialMusic
+
+  std::vector < std::string > initial_music_field_coords;
+  std::vector < std::string > initial_music_field_datasets;
+  std::vector < std::string > initial_music_field_files;
+  std::vector < std::string > initial_music_field_names;
+  std::vector < std::string > initial_music_particle_attributes;
+  std::vector < std::string > initial_music_particle_coords;
+  std::vector < std::string > initial_music_particle_datasets;
+  std::vector < std::string > initial_music_particle_files;
+  std::vector < std::string > initial_music_particle_types;
+  int                         initial_music_throttle_close_count;
+  int                         initial_music_throttle_group_size;
+  bool                        initial_music_throttle_internode;
+  bool                        initial_music_throttle_intranode;
+  bool                        initial_music_throttle_node_files;
+  double                      initial_music_throttle_seconds_delay;
+  double                      initial_music_throttle_seconds_stagger;
+
+  /// EnzoInitialPm
+  std::string                initial_pm_field;
+  int                        initial_pm_level;
+  double                     initial_pm_mpp;
+
+  /// EnzoInitialSedovArray[23]
+  int                        initial_sedov_array[3];
+  double                     initial_sedov_density;
+  double                     initial_sedov_pressure_in;
+  double                     initial_sedov_pressure_out;
+  double                     initial_sedov_radius_relative;
+  int                        initial_sedov_rank;
+
+  /// EnzoInitialSedovRandom
+  int                        initial_sedov_random_array[3];
+  double                     initial_sedov_random_density;
+  bool                       initial_sedov_random_grackle_cooling;
+  bool                       initial_sedov_random_half_empty;
+  int                        initial_sedov_random_max_blasts;
+  double                     initial_sedov_random_pressure_in;
+  double                     initial_sedov_random_pressure_out;
+  double                     initial_sedov_random_radius_relative;
+  int                        initial_sedov_random_te_multiplier;
+
+  /// EnzoInitialTurbulence
+  double                     initial_turbulence_density;
+  double                     initial_turbulence_pressure;
+  double                     initial_turbulence_temperature;
+
   //--------------------
   // EnzoMethod
   //--------------------
 
   /// EnzoMethodCheck
+  std::vector<std::string>   method_check_dir;
+  bool                       method_check_include_ghosts;
+  int                        method_check_monitor_iter;
   int                        method_check_num_files;
   std::string                method_check_ordering;
-  std::vector<std::string>   method_check_dir;
-  int                        method_check_monitor_iter;
-  bool                       method_check_include_ghosts;
 
   /// EnzoMethodCheckGravity
   std::string                method_check_gravity_particle_type;
 
+  /// EnzoMethodInference
+  std::string                method_inference_field_group;
+  int                        method_inference_level_array;
+  int                        method_inference_level_base;
+  int                        method_inference_level_infer;
+  float                      method_inference_overdensity_threshold;
+
   /// EnzoMethodGravity
   std::string                method_gravity_type_super;
-
-  /// EnzoMethodInference
-  int                        method_inference_level_base;
-  int                        method_inference_level_array;
-  int                        method_inference_level_infer;
-  std::string                method_inference_field_group;
-  float                      method_inference_overdensity_threshold;
 
   /// EnzoMethodTurbulence
   double                     method_turbulence_edot;
   double                     method_turbulence_mach_number;
 
-  std::string                prolong_enzo_type;
   bool                       prolong_enzo_positive;
+  std::string                prolong_enzo_type;
   bool                       prolong_enzo_use_linear;
 
   ///==============
   /// EnzoSolverMg0
   ///==============
 
-  /// Solver index for multigrid pre-smoother
+ /// Solver index for block solver (enzo solver)
+  std::vector<int>           solver_block_solve;
 
-  std::vector<int>           solver_pre_smooth;
+  /// Mg0 coarse grid solver
 
-  /// Solver index for multigrid post-smoother
-
-  std::vector<int>           solver_post_smooth;
-
-  /// Solver index for multigrid "last"-smoother
-
-  std::vector<int>           solver_last_smooth;
+  std::vector<int>           solver_coarse_level;
 
   /// Solver index for multigrid coarse solver
 
@@ -482,29 +475,34 @@ public: // attributes
 
   std::vector<int>           solver_domain_solve;
 
-  /// Solver index for root solver (enzo solver)
-  std::vector<int>           solver_root_solve;
+  std::vector<int>           solver_is_unigrid;
 
- /// Solver index for block solver (enzo solver)
-  std::vector<int>           solver_block_solve;
+  /// Solver index for multigrid "last"-smoother
 
-  /// Weighting factor for smoother
+  std::vector<int>           solver_last_smooth;
 
-  std::vector<double>        solver_weight;
+  /// Solver index for multigrid post-smoother
+
+  std::vector<int>           solver_post_smooth;
+
+  /// Solver index for Krylov solver preconditioner
+  std::vector<int>           solver_precondition;
+
+  /// solver index for multigrid pre-smoother
+
+  std::vector<int>           solver_pre_smooth;
 
   /// Whether to start the iterative solver using the previous solution
 
   std::vector<int>           solver_restart_cycle;
 
-  /// EnzoSolver<Krylov>
+  /// Solver index for root solver (enzo solver)
 
-  /// Solver index for Krylov solver preconditioner
-  std::vector<int>           solver_precondition;
+  std::vector<int>           solver_root_solve;
 
-  /// Mg0 coarse grid solver
+  /// Weighting factor for smoother
 
-  std::vector<int>           solver_coarse_level;
-  std::vector<int>           solver_is_unigrid;
+  std::vector<double>        solver_weight;
 
   /// Stop at specified redshift for cosmology
   double                     stopping_redshift;

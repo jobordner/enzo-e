@@ -89,9 +89,6 @@ void Factory::create_block_array
   TRACE7("Factory::create_block_array(na(%d %d %d) n(%d %d %d) num_field_data %d)",
 	 nbx,nby,nbz,nx,ny,nz,num_field_data);
 
-  int    cycle = 0;
-  double time  = 0.0;
-  double dt    = 0.0;
   std::vector<int> face_level;
   face_level.clear();
 
@@ -158,9 +155,6 @@ void Factory::create_subblock_array
     if (nby > 1) nby = ceil(0.5*nby);
     if (nbz > 1) nbz = ceil(0.5*nbz);
 
-    int    cycle = 0;
-    double time  = 0.0;
-    double dt    = 0.0;
     std::vector<int> face_level;
     face_level.clear();
 

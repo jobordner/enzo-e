@@ -38,9 +38,9 @@ const char * phase_name[] = {
 
 Block::Block ()
   : CBase_Block(),
+    data_(nullptr),
+    child_data_(nullptr),
     index_(thisIndex),
-    data_(NULL),
-    child_data_(NULL),
     level_next_(0),
     state_(new State (0, 0.0, 0.0, false)),
     index_initial_(0),
@@ -49,26 +49,35 @@ Block::Block ()
     sync_count_(),
     sync_max_(),
     adapt_(),
+    child_face_level_curr_(),
     child_face_level_curr_count_(),
+    child_face_level_next_(),
     child_face_level_next_count_(),
     count_coarsen_(0),
     adapt_step_(0),
     adapt_ready_(false),
     adapt_balanced_(false),
     adapt_changed_(0),
+    adapt_msg_list_(),
     coarsened_(false),
     is_leaf_((thisIndex.level() >= 0)),
     age_(0),
     ip_next_(-1),
     name_(""),
+    name8_(""),
     index_method_(0),
     index_solver_(),
     refresh_(),
-    level_lower_(-1),
-    level_upper_(-1),
+    refresh_sync_list_(),
+    refresh_recv_buffer_(),
+    refresh_recv_index_(),
+    refresh_send_buffer_(),
+    refresh_send_index_(),
     order_index_(0),
     order_count_(1),
-    order_next_()
+    order_next_(),
+    level_lower_(-1),
+    level_upper_(-1)
 {
 #ifdef TRACE_BLOCK
   CkPrintf ("%d TRACE_BLOCK %s Block::Block()\n",
@@ -95,9 +104,9 @@ Block::Block (CkMigrateMessage *m)
 
 Block::Block ( MsgType msg_type )
   : CBase_Block(),
+    data_(nullptr),
+    child_data_(nullptr),
     index_(thisIndex),
-    data_(NULL),
-    child_data_(NULL),
     level_next_(0),
     state_(new State (0, 0.0, 0.0, false)),
     index_initial_(0),
@@ -107,12 +116,15 @@ Block::Block ( MsgType msg_type )
     sync_max_(),
     adapt_(),
     child_face_level_curr_(),
+    child_face_level_curr_count_(),
     child_face_level_next_(),
+    child_face_level_next_count_(),
     count_coarsen_(0),
     adapt_step_(0),
     adapt_ready_(false),
     adapt_balanced_(false),
     adapt_changed_(0),
+    adapt_msg_list_(),
     coarsened_(false),
     is_leaf_((thisIndex.level() >= 0)),
     age_(0),
@@ -122,11 +134,16 @@ Block::Block ( MsgType msg_type )
     index_method_(0),
     index_solver_(),
     refresh_(),
-    level_lower_(-1),
-    level_upper_(-1),
+    refresh_sync_list_(),
+    refresh_recv_buffer_(),
+    refresh_recv_index_(),
+    refresh_send_buffer_(),
+    refresh_send_index_(),
     order_index_(0),
     order_count_(1),
-    order_next_()
+    order_next_(),
+    level_lower_(-1),
+    level_upper_(-1)
 {
 #ifdef TRACE_BLOCK
   CkPrintf ("%d TRACE_BLOCK %s Block::Block(MsgType)\n",  CkMyPe(),name(thisIndex).c_str());
@@ -209,8 +226,6 @@ void Block::init_refine_
 
   Simulation * simulation = cello::simulation();
 
-  Monitor * monitor = (simulation != NULL) ? simulation->monitor() : NULL;
-
   int ibx,iby,ibz;
   index.array(&ibx,&iby,&ibz);
 
@@ -227,7 +242,7 @@ void Block::init_refine_
 
   data_->allocate(index.level());
 
-  child_data_ = NULL;
+  child_data_ = nullptr;
 
   sync_coarsen_.reset();
   sync_coarsen_.set_stop(cello::num_children());
@@ -335,7 +350,7 @@ void Block::initialize()
 
   if (! initial_new) {
     if (cello::is_initial_cycle(state_->cycle(),InitCycleKind::fresh) && level() <= 0) {
-      CkCallback callback (CkIndex_Block::r_end_initialize(NULL), thisProxy);
+      CkCallback callback (CkIndex_Block::r_end_initialize(nullptr), thisProxy);
       contribute(0,0,CkReduction::concat,callback);
     }
   }
@@ -354,16 +369,16 @@ void Block::pup(PUP::er &p)
   if (up) data_ = new Data;
   p | *data_;
 
-  // child_data_ may be NULL
-  bool allocated=(child_data_ != NULL);
+  // child_data_ may be nullptr
+  bool allocated=(child_data_ != nullptr);
   p|allocated;
   if (allocated) {
     if (up) child_data_=new Data;
-    // child_data_ guaranteed to be non-NULL: adding check for
+    // child_data_ guaranteed to be non-nullptr: adding check for
     // Coverity static analysis
     if (child_data_) p|*child_data_;
   } else {
-    child_data_ = NULL;
+    child_data_ = nullptr;
   }
 
   p | index_;
@@ -399,7 +414,7 @@ void Block::pup(PUP::er &p)
 
   if (up) {
     Simulation * simulation = cello::simulation();
-    if (simulation != NULL) simulation->data_insert_block(this);
+    if (simulation != nullptr) simulation->data_insert_block(this);
   }
   p | refresh_sync_list_;
 
@@ -498,7 +513,6 @@ ItNeighbor Block::it_neighbor (Index index,
 
 Method * Block::method () throw ()
 {
-  Problem * problem = cello::problem();
   return (index_method_ < cello::num_method()) ?
     cello::method(index_method_) : nullptr;
 }
@@ -507,9 +521,7 @@ Method * Block::method () throw ()
 
 Initial * Block::initial () throw ()
 {
-  Problem * problem = cello::problem();
-  Initial * initial = problem->initial(index_initial_);
-  return initial;
+  return cello::problem()->initial(index_initial_);
 }
 
 //----------------------------------------------------------------------
@@ -535,9 +547,7 @@ int Block::pop_solver() throw()
 
 Solver * Block::solver () throw ()
 {
-  Problem * problem = cello::problem();
-  Solver * solver = problem->solver(index_solver());
-  return solver;
+  return cello::problem()->solver(index_solver());
 }
 
 //----------------------------------------------------------------------
@@ -705,7 +715,7 @@ void Block::initial_begin()
   } else {
 
     // Apply initial conditions
-    for (int k=0; k<cello::num_initial(); k++) {
+    for (size_t k=0; k<cello::num_initial(); k++) {
       cello::initial(k)->enforce_block(this,cello::hierarchy());
     }
   }
@@ -716,8 +726,6 @@ void Block::initial_begin()
 Block::~Block()
 {
   Simulation * simulation = cello::simulation();
-
-  Monitor * monitor = simulation ? simulation->monitor() : NULL;
 
   const int level = this->level();
 
@@ -1250,7 +1258,7 @@ void Block::update_boundary_ ()
 
   determine_boundary_(is_boundary,&fxm,&fxp,&fym,&fyp,&fzm,&fzp);
 
-  for (int k=0; k<cello::num_boundary(); k++) {
+  for (size_t k=0; k<cello::num_boundary(); k++) {
     Boundary * boundary = cello::boundary(k);
     // Update boundaries
     if ( fxm ) boundary->enforce(this,face_lower,axis_x);

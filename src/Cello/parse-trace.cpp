@@ -168,8 +168,7 @@ int main ()
   std::map<int,int> blocks_per_cycle;
   if (! l_have_ib) {
     for (const Field & field: field_list) {
-      if (field.region_name == "M" && field.region_id == 0 &&
-          field.cycle == cycle_list[0]) {
+      if (field.region_name == "M" && field.region_id == 0) {
         blocks_per_cycle[field.cycle]++;
       }
     }

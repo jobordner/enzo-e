@@ -54,10 +54,10 @@ public: // interface
 
   void compute_continue( Block * block);
   void compute_complete( Block * block);
-  void send_weight(Block * block, int weight, bool self);
-  void recv_weight(Block * block, int ic3[3], int weight, bool self);
-  void send_index(Block * block, int index, int count, bool self);
-  void recv_index(Block * block, int index, int count, bool self);
+  void send_weight(Block * block, long long weight, bool self);
+  void recv_weight(Block * block, int ic3[3], long long weight, bool self);
+  void send_index(Block * block, long long index, long long count, bool self);
+  void recv_index(Block * block, long long index, long long count, bool self);
 
 public: // virtual methods
   

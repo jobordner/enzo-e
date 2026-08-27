@@ -262,7 +262,7 @@ int Block::adapt_compute_desired_level_(int level_maximum)
   int level = this->level();
   int level_desired = level;
 
-  for (int k=0; k<cello::num_refine(); k++) {
+  for (size_t k=0; k<cello::num_refine(); k++) {
 
     Schedule * schedule = cello::refine(k)->schedule();
 

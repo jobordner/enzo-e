@@ -150,7 +150,7 @@ module mesh {
 
     entry void r_method_order_hilbert_continue(CkReductionMsg * msg);
     entry void r_method_order_hilbert_complete(CkReductionMsg * msg);
-    entry void p_method_order_hilbert_weight(int ic3[3], int weight, Index index);
+    entry void p_method_order_hilbert_weight(int ic3[3], long long weight, Index index);
     entry void p_method_order_hilbert_index(int index, int count);
 
     entry void p_method_output_next(MsgOutput *);

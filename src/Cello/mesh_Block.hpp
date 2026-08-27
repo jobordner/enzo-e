@@ -643,8 +643,8 @@ public:
 
   void r_method_order_hilbert_continue(CkReductionMsg * msg);
   void r_method_order_hilbert_complete(CkReductionMsg * msg);
-  void p_method_order_hilbert_weight(int ic3[3], int weight, Index index);
-  void p_method_order_hilbert_index(int index, int count);
+  void p_method_order_hilbert_weight(int ic3[3], long long weight, Index index);
+  void p_method_order_hilbert_index(long long index, long long count);
 
   void p_method_output_next (MsgOutput * msg);
   void p_method_output_write (MsgOutput * msg);

@@ -219,8 +219,6 @@ void EnzoFactory::create_block
 
   CProxy_EnzoBlock enzo_block_array = (CProxy_EnzoBlock) block_array;
 
-  const int rank = cello::rank();
-
   MsgRefine * msg = new MsgRefine 
     (index,
      nx,ny,nz,

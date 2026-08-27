@@ -103,7 +103,6 @@ void EnzoMethodComovingExpansion::compute ( Block * block) throw()
 
       /* If we can, compute the pressure at the mid-point.
       	 We can, because we will always have an old baryon field now. */
-      const int in = cello::index_static();
       enzo_float gamma = enzo::fluid_props()->gamma();
 
       // hard-code hydromethod for PPM for now

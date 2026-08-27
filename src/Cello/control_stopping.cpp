@@ -138,9 +138,8 @@ void Block::stopping_update_method_state_
 {
   // update Method states for supercycling
 
-  for (int k=0; k<dt_method.size(); k++) {
+  for (size_t k=0; k<dt_method.size(); k++) {
     const int max_super = cello::method(k)->max_supercycle();
-    const double max_dt_method = dt_global*max_super;
     const double ratio = dt_method[k] / dt_global;
     const int desired_super = int(std::floor(ratio));
     const int allowed_super = std::min(desired_super,max_super);
@@ -179,7 +178,7 @@ double Block::stopping_dt_global_
   // adjust timestep dt to align with any scheduled output times
   double time_curr = state_->time();
 
-  for (int k=0; k<cello::num_output(); k++) {
+  for (size_t k=0; k<cello::num_output(); k++) {
     Schedule * schedule = cello::output(k)->schedule();
     dt_global = schedule->update_timestep(time_curr,dt_global);
   }
@@ -246,7 +245,7 @@ std::vector<double> Block::stopping_dt_level_
   }
 
   // adjust level timesteps to align with any scheduled output times
-  for (int k=0; k<cello::num_output(); k++) {
+  for (size_t k=0; k<cello::num_output(); k++) {
     Schedule * schedule = cello::output(k)->schedule();
     int level = 0;
     for (auto & dt : dt_level) {
@@ -430,35 +429,35 @@ void Block::exit_()
   const int in = cello::index_static();
   if (index().is_root()) {
     if (DataMsg::counter[in]) {
-      CkPrintf ("%d Block::exit_() DataMsg::counter = %lld != 0\n",
+      CkPrintf ("%d Block::exit_() DataMsg::counter = %" PRId64 " != 0\n",
 		CkMyPe(),DataMsg::counter[in]);
     }
     if (ParticleData::counter[in]) {
-      CkPrintf ("%d Block::exit_() ParticleData::counter = %lld != 0\n",
+      CkPrintf ("%d Block::exit_() ParticleData::counter = %" PRId64 " != 0\n",
 		CkMyPe(),ParticleData::counter[in]);
     }
     if (FieldFace::counter[in]) {
-      CkPrintf ("%d Block::exit_() FieldFace::counter = %lld != 0\n",
+      CkPrintf ("%d Block::exit_() FieldFace::counter = %" PRId64 " != 0\n",
 		CkMyPe(),FieldFace::counter[in]);
     }
     if (MsgCoarsen::counter[in]) {
-      CkPrintf ("%d Block::exit_() MsgCoarsen::counter = %lld != 0\n",
+      CkPrintf ("%d Block::exit_() MsgCoarsen::counter = %" PRId64 " != 0\n",
 		CkMyPe(),MsgCoarsen::counter[in]);
     }
     if (MsgInitial::counter[in]) {
-      CkPrintf ("%d Block::exit_() MsgInitial::counter = %lld != 0\n",
+      CkPrintf ("%d Block::exit_() MsgInitial::counter = %" PRId64 " != 0\n",
 		CkMyPe(),MsgInitial::counter[in]);
     }
     if (MsgOutput::counter[in]) {
-      CkPrintf ("%d Block::exit_() MsgOutput::counter = %lld != 0\n",
+      CkPrintf ("%d Block::exit_() MsgOutput::counter = %" PRId64 " != 0\n",
 		CkMyPe(),MsgOutput::counter[in]);
     }
     if (MsgRefine::counter[in]) {
-      CkPrintf ("%d Block::exit_() MsgRefine::counter = %lld != 0\n",
+      CkPrintf ("%d Block::exit_() MsgRefine::counter = %" PRId64 " != 0\n",
 		CkMyPe(),MsgRefine::counter[in]);
     }
     if (MsgRefresh::counter[in]) {
-      CkPrintf ("%d Block::exit_() MsgRefresh::counter = %lld != 0\n",
+      CkPrintf ("%d Block::exit_() MsgRefresh::counter = %" PRId64 " != 0\n",
 		CkMyPe(),MsgRefresh::counter[in]);
     }
   }

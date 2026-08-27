@@ -335,16 +335,6 @@ public: // interface
    FieldMsg *, int index_field, int refresh_type, int level,
    int index_prolong, int index_restrict);
 
-  DataMsg * pack_data_msg_
-  (FieldDescr * field_descr,
-   int index_field, int refresh_type, int level,
-   int index_prolong, int index_restrict, int ic3[3]);
-
-  void unpack_data_msg_
-  (FieldDescr * field_descr,
-   DataMsg *, int index_field, int refresh_type, int level,
-   int index_prolong, int index_restrict);
-
   //--------------------------------------------------
 private: // functions
   //--------------------------------------------------
