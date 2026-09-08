@@ -40,8 +40,6 @@ public: // interface
     num_neighbors_total_(0),
     block_vec_(),
     num_particles_(0), 
-    num_zones_total_(0), 
-    num_zones_real_(0),
     block_array_()
   {
     for (int axis=0; axis<3; axis++) {
@@ -183,14 +181,6 @@ public: // interface
   /// Increment (decrement) number of particles
   void increment_particle_count(int64_t count);
 
-  /// Increment (decrement) number of real_zones
-  void increment_real_zone_count(int64_t count)
-  { num_zones_real_ += count; }
-
-  /// Increment (decrement) number of total_zones
-  void increment_total_zone_count(int64_t count)
-  { num_zones_total_ += count; }
-
   /// Return the number of blocks on this process
   size_t num_blocks() const throw()
   {  return num_blocks_;  }
@@ -215,8 +205,18 @@ public: // interface
   void set_blocks_global(int level, int num_blocks) throw()
   { num_blocks_level_global_[level-min_level_] = num_blocks; }
 
+  void set_blocks_global(int num_blocks) throw()
+  { num_blocks_global_ = num_blocks; }
+
   int num_neighbors_local() const { return num_neighbors_local_; }
   int num_neighbors_total() const { return num_neighbors_total_; }
+
+  void set_neighbors_local(int num) {
+    num_neighbors_local_ = num;
+  }
+  void set_neighbors_total(int num) {
+    num_neighbors_total_= num;
+  }
 
   void increment_neighbors(int num_neighbors_local, int num_neighbors_total)
   {
@@ -236,14 +236,6 @@ public: // interface
   /// Return the number of particles on this process
   int64_t num_particles() const throw()
   {  return num_particles_;  }
-
-  /// Return the number of real zones on this process
-  int64_t num_zones_real() const throw()
-  {  return num_zones_real_;  }
-
-  /// Return the number of total zones on this process
-  int64_t num_zones_total() const throw()
-  {  return num_zones_total_;  }
 
   CProxy_Block new_block_proxy (bool allocate_data) throw();
 
@@ -272,6 +264,27 @@ public: // interface
   const Factory * factory () const throw()
   { return factory_; }
 
+  void print () const
+  {
+    CkPrintf ("num_blocks_ %d\n",num_blocks_);
+    CkPrintf ("num_blocks_global_ %d\n",num_blocks_global_);
+    CkPrintf ("num_blocks_changed_ %d\n",num_blocks_changed_);
+    int k=0;
+    for (auto num_blocks : num_blocks_level_) {
+      CkPrintf ("   num_blocks_level %d %d\n",k,num_blocks_level_[k]);
+      k++;
+    }
+    k=0;
+    for (auto num_blocks : num_blocks_level_global_) {
+      CkPrintf ("   num_blocks_level_global %d %d\n",k,num_blocks_level_global_[k]);
+      k++;
+    }
+    CkPrintf ("num_neighbors_local_ %lld\n",num_neighbors_local_);
+    CkPrintf ("num_neighbors_total_ %lld\n",num_neighbors_total_);
+    CkPrintf ("num_particles_ %lld\n",num_particles_);
+    CkPrintf ("num_blocks_node %lld\n",Hierarchy::num_blocks_node);
+    CkPrintf ("num_particles_node %lld\n",num_particles_node);
+  }
 protected: // attributes
 
   /// Factory for creating Simulations, Hierarchies, Patches and Blocks
@@ -321,12 +334,6 @@ protected: // attributes
   /// Current number of particles on this process
   int64_t num_particles_;
 
-  /// Current number of total_zones on this process
-  int64_t num_zones_total_; 
-
-  /// Current number of real_zones on this process
-  int64_t num_zones_real_; 
-  
   /// Array of Blocks 
   CProxy_Block block_array_;
 

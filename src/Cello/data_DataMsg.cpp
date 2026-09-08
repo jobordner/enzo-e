@@ -7,9 +7,31 @@
 
 #include "data.hpp"
 
+//----------------------------------------------------------------------
 int64_t DataMsg::counter[CONFIG_NODE_SIZE] = {0};
+//----------------------------------------------------------------------
 
-#define CHECK
+//----------------------------------------------------------------------
+#define ENABLE_SMP_NODE_LOCK
+//----------------------------------------------------------------------
+
+#if defined(CONFIG_SMP_MODE) and defined(ENABLE_SMP_NODE_LOCK)
+static CmiNodeLock node_lock_data_msg;
+void mutex_init_data_msg()
+{ node_lock_data_msg = CmiCreateLock(); }
+#   define SMP_NODE_LOCK   CmiLock(node_lock_data_msg);
+#   define SMP_NODE_UNLOCK CmiUnlock(node_lock_data_msg);
+#else
+void mutex_init_data_msg() { }
+#   define SMP_NODE_LOCK   /* ... */
+#   define SMP_NODE_UNLOCK /* ... */
+#endif
+
+#ifdef ENABLE_SMP_LOCK
+#ifdef CONFIG_SMP_MODE
+static CmiNodeLock node_lock_data_msg;
+#endif
+#endif
 
 //----------------------------------------------------------------------
 
@@ -101,12 +123,20 @@ void DataMsg::set_scalars ( Data * data)
 
 void DataMsg::update_scalars ( Data * data)
 {
+  PERF_SMP_START(iperf_smp_data_msg);
+
+  SMP_NODE_LOCK;
+
   *data->scalar_data_long_double() = scalar_data_long_double_;
   *data->scalar_data_double() = scalar_data_double_;
   *data->scalar_data_int() = scalar_data_int_;
   *data->scalar_data_long_long() = scalar_data_long_long_;
   *data->scalar_data_sync() = scalar_data_sync_;
   *data->scalar_data_index() = scalar_data_index_;
+
+  SMP_NODE_UNLOCK;
+
+  PERF_SMP_STOP(iperf_smp_data_msg);
 }
 
 //----------------------------------------------------------------------
@@ -263,6 +293,10 @@ char * DataMsg::load_data (char * buffer)
 
 void DataMsg::update (Data * data, bool is_local, bool is_kept)
 {
+  PERF_SMP_START(iperf_smp_data_msg);
+
+  SMP_NODE_LOCK;
+
   ParticleData * pd = particle_data_;
 
   // Update particles
@@ -328,6 +362,10 @@ void DataMsg::update (Data * data, bool is_local, bool is_kept)
   for (auto & coarse_data : coarse_data_) {
     coarse_data.update (data);
   }
+
+  SMP_NODE_UNLOCK;
+
+  PERF_SMP_STOP(iperf_smp_data_msg);
 }
 
 //----------------------------------------------------------------------

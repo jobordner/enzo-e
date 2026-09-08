@@ -13,15 +13,9 @@
 #include "charm_simulation.hpp"
 #include "charm_mesh.hpp"
 
-// #define OLD_MSG_REFRESH
-#define NEW_MSG_REFRESH
+//----------------------------------------------------------------------
 
-#ifdef OLD_MSG_REFRESH
-#   define COUNT(INDEX) ++count;
-#endif
-#ifdef NEW_MSG_REFRESH
-#   define COUNT(INDEX) new_msg_count_(INDEX,refresh->id());
-#endif
+#define COUNT(INDEX) msg_count_(INDEX,refresh->id());
 
 //----------------------------------------------------------------------
 
@@ -47,17 +41,15 @@ void Block::refresh_start (int id_refresh, int callback)
     ASSERT2 ("Block::refresh_start()",
              "%s refresh[%d] state is not inactive",
              name().c_str(),id_refresh,
-             (sync->state() == RefreshState::INACTIVE));
+             (sync->state() == RefreshState::Inactive));
 
-    sync->set_state(RefreshState::ACTIVE);
+    sync->set_state(RefreshState::Active);
 
     // Pack data returning counts
 
     const int count_field =    refresh_load_field_faces_ (refresh);
     const int count_particle = refresh_load_particle_faces_ (refresh);
     const int count_flux =     refresh_load_flux_faces_ (refresh);
-
-#ifdef NEW_MSG_REFRESH
 
     auto & ind_list  = refresh_send_index_[id_refresh];
     auto & msg_count = refresh_recv_index_[id_refresh];
@@ -76,13 +68,6 @@ void Block::refresh_start (int id_refresh, int callback)
     msg_count.clear();
     msg_list.clear();
 
-#else
-
-    const int count = count_field + count_particle + count_flux;
-
-#endif
-
-    //    CkPrintf ("TRACE_COUNT %d %s %d\n",id_refresh,name8().c_str(),count);
     // Make sure sync counter is not active
     ASSERT4 ("Block::refresh_start()",
              "refresh[%d] sync object %p is active (%d/%d)",
@@ -112,7 +97,8 @@ void Block::refresh_wait (int id_refresh, int callback)
           id_refresh,
           (refresh->is_active()));
 
-  // make sure the callback parameter matches that in the refresh object
+  // make sure the callback parameter matches that in the refresh
+  // object
 
   ASSERT3("Block::refresh_wait()",
           "Refresh[%d] mismatch between refresh %d and parameter %d callbacks",
@@ -124,21 +110,18 @@ void Block::refresh_wait (int id_refresh, int callback)
   ASSERT1("Block::refresh_wait()",
           "Refresh[%d] not in 'active' state",
           id_refresh,
-          (sync->state() == RefreshState::ACTIVE) );
+          (sync->state() == RefreshState::Active) );
 
   // tell refresh we're ready to start processing messages
 
-  sync->set_state(RefreshState::READY);
+  sync->set_state(RefreshState::Ready);
 
   // process any existing messages in the refresh message list
 
-  for (size_t id_msg=0;
-       id_msg<refresh_recv_buffer_[id_refresh].size();
-       id_msg++) {
-
-    MsgRefresh * msg = refresh_recv_buffer_[id_refresh][id_msg];
+  for (auto * msg : refresh_recv_buffer_[id_refresh]) {
 
     // unpack message data into Block data
+
     msg->update(data());
 
     delete msg;
@@ -164,10 +147,10 @@ void Block::refresh_check_done (int id_refresh)
   ASSERT1("Block::refresh_check_done()",
           "Refresh[%d] must not be in inactive state",
           id_refresh,
-          (sync->state() != RefreshState::INACTIVE) );
+          (sync->state() != RefreshState::Inactive) );
 
   if ( (sync->stop()==0) ||
-       (sync->is_done() && (sync->state() == RefreshState::READY))) {
+       (sync->is_done() && (sync->state() == RefreshState::Ready))) {
 
     // Make sure incoming message queue is empty
 
@@ -181,7 +164,7 @@ void Block::refresh_check_done (int id_refresh)
     sync->set_stop(0);
     // reset refresh state to inactive
 
-    sync->set_state(RefreshState::INACTIVE);
+    sync->set_state(RefreshState::Inactive);
 
     // complete any outstanding data operations (e.g. multi-block
     // interpolations)
@@ -201,9 +184,10 @@ void Block::p_refresh_recv (MsgRefresh * msg_refresh)
   const int id_refresh = msg_refresh->id_refresh();
   Sync * sync = sync_(id_refresh);
 
-  if (sync->state() == RefreshState::READY) {
+  if (sync->state() == RefreshState::Ready) {
 
     // unpack message data into Block data if ready
+
     msg_refresh->update(data());
 
     delete msg_refresh;
@@ -311,15 +295,11 @@ int Block::refresh_load_field_faces_ (Refresh * refresh)
         refresh_load_field_face_
           (refresh,face_type,index_neighbor,if3,ic3);
         COUNT(index_neighbor);
-        // new_msg_count_(index_neighbor,refresh->id());
-        // ++count;
       } else {
         if (level_face == level_this) {
           refresh_load_field_face_
             (refresh,face_type,index_neighbor,if3,ic3);
           COUNT(index_neighbor);
-          // ++count;
-          // new_msg_count_(index_neighbor,refresh->id());
         } else {
           count += refresh_load_coarse_face_
             (refresh,face_type,index_neighbor,if3,ic3);
@@ -328,8 +308,6 @@ int Block::refresh_load_field_faces_ (Refresh * refresh)
           refresh_load_field_face_
             (refresh,face_type,index_neighbor,if3,ic3);
         } else if (level_face > level_this) {
-          // new_msg_count_(index_neighbor,refresh->id());
-          // count ++;
           COUNT(index_neighbor);
         }
 
@@ -355,8 +333,6 @@ int Block::refresh_load_field_faces_ (Refresh * refresh)
           Index index_face = it_face.index();
           int ic3[3] = {0,0,0};
           refresh_load_field_face_ (refresh,0,index_face,if3,ic3);
-          // new_msg_count_(index_face,refresh->id());
-          // ++count;
           COUNT(index_face);
         }
       }
@@ -382,8 +358,6 @@ int Block::refresh_load_field_faces_ (Refresh * refresh)
         if ((level_block == level_refresh) &&
             (level_face == level_block - 1)) {
           COUNT(index_neighbor);
-          // ++count;
-          // new_msg_count_(index_neighbor,refresh->id());
           // if I'm the coarse neighbor of a level-refreshed block,
           // send face data
         } else if ((level_block == level_refresh - 1) &&
@@ -413,24 +387,7 @@ void Block::refresh_load_field_face_
   FieldFace * field_face = new FieldFace
     (level(), face_type, if3, ic3, g3, refresh,false);
 
-#ifdef NEW_MSG_REFRESH
-
-  new_msg_refresh_(index_neighbor,refresh->id(),field_face);
-
-#else
-
-  // create data message
-  DataMsg * data_msg = new DataMsg;
-  // initialize data message
-  data_msg -> add_field_face (field_face,true);
-  data_msg -> set_field_data (data()->field_data(),false);
-
-  // create refresh message
-  MsgRefresh * msg_refresh = new MsgRefresh(data_msg,refresh->id());
-
-  thisProxy[index_neighbor].p_refresh_recv (msg_refresh);
-
-#endif
+  msg_refresh_(index_neighbor,refresh->id(),field_face);
 
 }
 
@@ -508,8 +465,6 @@ int Block::refresh_load_coarse_face_
 
       // only count receives
       COUNT(index_neighbor);
-      // new_msg_count_(index_neighbor,refresh->id());
-      // count ++;
 
     }
 
@@ -651,8 +606,6 @@ int Block::refresh_load_coarse_face_
           if (overlap) {
 
             COUNT(index_neighbor);
-            // new_msg_count_(index_neighbor,refresh->id());
-            // ++count;
 
             if (level_extra == level) {
 
@@ -817,24 +770,9 @@ void Block::refresh_coarse_send_
 {
   const int id_refresh = refresh->id();
 
-#ifdef NEW_MSG_REFRESH
-
-  new_msg_refresh_(index_neighbor,id_refresh, field, refresh,
+  msg_refresh_(index_neighbor,id_refresh, field, refresh,
                    iam3,iap3,ifms3,ifps3,ifmr3,ifpr3);
 
-#else
-
-  DataMsg * data_msg = new DataMsg;
-  data_msg->add_coarse_array
-    (field, iam3,iap3,ifms3,ifps3,ifmr3,ifpr3,
-     refresh->field_list_src(),
-     refresh->field_list_dst());
-
-  MsgRefresh * msg_refresh = new MsgRefresh(data_msg,id_refresh);
-
-  thisProxy[index_neighbor].p_refresh_recv (msg_refresh);
-
-#endif
 }
 
 //----------------------------------------------------------------------
@@ -1029,9 +967,6 @@ void Block::particle_send_
 (Refresh * refresh,
  int nl,Index index_list[], ParticleData * particle_list[])
 {
-#ifdef OLD_MSG_REFRESH
-  int count = 0;
-#endif
   for (int il=0; il<nl; il++) {
 
     Index index           = index_list[il];
@@ -1047,30 +982,7 @@ void Block::particle_send_
 
     if (p_data) {
 
-#ifdef NEW_MSG_REFRESH
-
-      new_msg_refresh_(index,id_refresh,p_data);
-
-#else
-
-      DataMsg * data_msg = nullptr;
-
-      ParticleDescr * p_descr = cello::particle_descr();
-
-      if (p_data->num_particles(p_descr) > 0) {
-
-        data_msg = new DataMsg;
-        data_msg ->set_particle_data(p_data,true);
-
-      }
-
-      MsgRefresh * msg_refresh = new MsgRefresh (data_msg,id_refresh);
-
-      thisProxy[index].p_refresh_recv (msg_refresh);
-
-      if (data_msg == nullptr) delete p_data;
-
-#endif
+      msg_refresh_(index,id_refresh,p_data);
 
     }
   }
@@ -1078,14 +990,14 @@ void Block::particle_send_
 
 //----------------------------------------------------------------------
 
-void Block::new_msg_clear_count_ (int id_refresh)
+void Block::msg_clear_count_ (int id_refresh)
 {
   refresh_recv_index_[id_refresh].clear();
 }
 
 //----------------------------------------------------------------------
 
-void Block::new_msg_count_ (Index new_index, int id_refresh)
+void Block::msg_count_ (Index new_index, int id_refresh)
 {
   // Return if index already in recv list...
   for (auto index: refresh_recv_index_[id_refresh]) {
@@ -1096,7 +1008,7 @@ void Block::new_msg_count_ (Index new_index, int id_refresh)
 }
 //----------------------------------------------------------------------
 
-MsgRefresh * Block::new_msg_refresh_ (Index index, int id_refresh)
+MsgRefresh * Block::msg_refresh_ (Index index, int id_refresh)
 {
   // Return message if it already exists...
   for (size_t i=0; i<refresh_send_index_[id_refresh].size(); i++) {
@@ -1114,13 +1026,13 @@ MsgRefresh * Block::new_msg_refresh_ (Index index, int id_refresh)
 
 //----------------------------------------------------------------------
 
-void Block::new_msg_refresh_ (Index index, int id_refresh,
-                              Field field, Refresh * refresh,
-                              int iam3[3],int iap3[3],
-                              int ifms3[3],int ifps3[3],
-                              int ifmr3[3],int ifpr3[3] )
+void Block::msg_refresh_ (Index index, int id_refresh,
+                          Field field, Refresh * refresh,
+                          int iam3[3],int iap3[3],
+                          int ifms3[3],int ifps3[3],
+                          int ifmr3[3],int ifpr3[3] )
 {
-  MsgRefresh * msg_refresh = new_msg_refresh_(index,id_refresh);
+  MsgRefresh * msg_refresh = msg_refresh_(index,id_refresh);
   DataMsg * data_msg = msg_refresh->data_msg();
   data_msg->add_coarse_array
     (field, iam3,iap3,ifms3,ifps3,ifmr3,ifpr3,
@@ -1130,10 +1042,10 @@ void Block::new_msg_refresh_ (Index index, int id_refresh,
 
 //----------------------------------------------------------------------
 
-void Block::new_msg_refresh_
+void Block::msg_refresh_
 (Index index, int id_refresh, FieldFace * field_face)
 {
-  MsgRefresh * msg_refresh = new_msg_refresh_(index,id_refresh);
+  MsgRefresh * msg_refresh = msg_refresh_(index,id_refresh);
 
   DataMsg * data_msg = msg_refresh->data_msg();
 
@@ -1143,10 +1055,10 @@ void Block::new_msg_refresh_
 
 //----------------------------------------------------------------------
 
-void Block::new_msg_refresh_
+void Block::msg_refresh_
 (Index index, int id_refresh, ParticleData * p_data)
 {
-  MsgRefresh * msg_refresh = new_msg_refresh_(index,id_refresh);
+  MsgRefresh * msg_refresh = msg_refresh_(index,id_refresh);
 
   DataMsg * data_msg = msg_refresh->data_msg();
 
@@ -1163,11 +1075,11 @@ void Block::new_msg_refresh_
 
 //----------------------------------------------------------------------
 
-void Block::new_msg_refresh_ (Index index, int id_refresh,
-                              int face_type, int axis, int face,
-                              int ic3[3], FluxData * flux_data)
+void Block::msg_refresh_ (Index index, int id_refresh,
+                          int face_type, int axis, int face,
+                          int ic3[3], FluxData * flux_data)
 {
-  MsgRefresh * msg_refresh = new_msg_refresh_(index,id_refresh);
+  MsgRefresh * msg_refresh = msg_refresh_(index,id_refresh);
 
   DataMsg * data_msg = msg_refresh->data_msg();
   
@@ -1625,8 +1537,6 @@ int Block::refresh_load_flux_faces_ (Refresh * refresh)
       (refresh,face_type,index_neighbor,if3,ic3);
 
     COUNT(index_neighbor);
-    // ++count;
-    // new_msg_count_(index_neighbor,refresh->id());
   }
 
   // restore originial min_face_rank
@@ -1664,38 +1574,6 @@ void Block::refresh_load_flux_face_
            id_refresh,
            (0 <= id_refresh));
 
-
-#ifdef NEW_MSG_REFRESH
-
-  new_msg_refresh_(index_neighbor,id_refresh,
+  msg_refresh_(index_neighbor,id_refresh,
                    face_type,axis,face,ic3,flux_data);
-
-#else
-
-  DataMsg * data_msg = new DataMsg;
-  const bool is_new = true;
-  if (face_type < 0) {
-    // neighbor is coarser
-    const int nf = flux_data->num_fields();
-    data_msg -> set_num_face_fluxes(nf);
-    for (int i=0; i<nf; i++) {
-      FaceFluxes * face_fluxes = new FaceFluxes
-        (*flux_data->block_fluxes(axis,face,i));
-      face_fluxes->coarsen(ic3[0],ic3[1],ic3[2],cello::rank());
-      data_msg -> set_face_fluxes (i,face_fluxes, is_new);
-    }
-  } else {
-    data_msg -> set_num_face_fluxes(0);
-  }
-
-  ASSERT1 ("Block::refresh_load_flux_face_()",
-           "id_refresh %d of refresh object is out of range",
-           id_refresh,
-           (0 <= id_refresh));
-
-  MsgRefresh * msg_refresh = new MsgRefresh (data_msg,id_refresh);
-
-  thisProxy[index_neighbor].p_refresh_recv (msg_refresh);
-
-#endif
 }

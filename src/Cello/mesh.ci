@@ -18,6 +18,8 @@ module mesh {
   initnode void mutex_init_hierarchy();
   initnode void mutex_init_initial_value();
   initnode void mutex_init_field_face();
+  initnode void mutex_init_data_msg();
+  initnode void mutex_init_msg_refresh();
 
   readonly int MsgAdapt::counter[CONFIG_NODE_SIZE];
   readonly int MsgCoarsen::counter[CONFIG_NODE_SIZE];
@@ -63,6 +65,7 @@ module mesh {
   PUPable MethodNull;
   PUPable MethodOrder;
   PUPable MethodOrderHilbert;
+  PUPable MethodOrderRotate;
   PUPable MethodOutput;
   PUPable MethodRefresh;
   PUPable MethodTrace;

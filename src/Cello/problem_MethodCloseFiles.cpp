@@ -36,11 +36,11 @@ MethodCloseFiles::MethodCloseFiles(ParameterGroup p) throw()
 
 void MethodCloseFiles::compute( Block * block) throw()
 {
+  PERF_SMP_START(iperf_smp_method_close_files);
 #ifdef CONFIG_SMP_MODE
   const bool is_first_cycle = (block->state()->cycle() == cello::config()->initial_cycle);
   if (is_first_cycle) {
     throttle_stagger_();
-    PERF_SMP_START(iperf_smp_method_close_files);
     CmiLock(MethodCloseFiles::node_lock);
     for (auto it=FileHdf5::file_list.begin();
          it!=FileHdf5::file_list.end(); ++it) {
@@ -55,7 +55,6 @@ void MethodCloseFiles::compute( Block * block) throw()
       FileHdf5::file_list.erase(it);
     }
     CmiUnlock(MethodCloseFiles::node_lock);
-    PERF_SMP_STOP(iperf_smp_method_close_files);
   }
 
   block->compute_done(); 
@@ -63,6 +62,7 @@ void MethodCloseFiles::compute( Block * block) throw()
   ERROR("MethodCloseFiles::compute()",
         "\"close_files\" method can hang if CONFIG_SMP_MODE is not defined (smp=0)");
 #endif
+  PERF_SMP_STOP(iperf_smp_method_close_files);
 
 }
 

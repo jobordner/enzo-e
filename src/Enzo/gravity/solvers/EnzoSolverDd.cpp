@@ -23,6 +23,20 @@
 #include "Enzo/enzo.hpp"
 #include "Enzo/gravity/gravity.hpp"
 
+// #define TRACE_REDUCE
+
+#ifdef TRACE_REDUCE
+#   define TRACE_REDUCE_START(BLOCK,TYPE) \
+  CkPrintf ("TRACE_REDUCE %s start %s\n",BLOCK->name8().c_str(), \
+            std::string(TYPE).c_str());
+#   define TRACE_REDUCE_STOP(BLOCK,TYPE) \
+  CkPrintf ("TRACE_REDUCE %s stop  %s\n",BLOCK->name8().c_str(), \
+            std::string(TYPE).c_str());
+#else
+#   define TRACE_REDUCE_START(BLOCK,TYPE) /* ... */
+#   define TRACE_REDUCE_STOP(BLOCK,TYPE)  /* ... */
+#endif
+
 //======================================================================
 
 EnzoSolverDd::EnzoSolverDd
@@ -96,7 +110,7 @@ void EnzoSolverDd::apply ( std::shared_ptr<Matrix> A, Block * block) throw()
     std::fill_n ((enzo_float*) field.values("X_copy"), m, 0.0);
 
   // Check that component solvers are of the correct type
-ASSERT2("EnzoSolverDd::apply()",
+  ASSERT2("EnzoSolverDd::apply()",
 	  "Coarse solver %s type %s != solve_level",
 	  cello::solver(index_solve_coarse_)->name().c_str(),
 	  solve_string[cello::solver(index_solve_coarse_)->solve_type()],
@@ -175,10 +189,9 @@ void EnzoSolverDd::restrict_send(EnzoBlock * enzo_block) throw()
   int ic3[3];
   index.child(level,&ic3[0],&ic3[1],&ic3[2],min_level_);
 
-  FieldMsg * msg = pack_field_(enzo_block,ib_,-1,ic3);
-
   // Send packed field to parent
   Index index_parent = enzo_block->index().index_parent(min_level_);
+  FieldMsg * msg = pack_field_(enzo_block,index_parent,ib_,-1,ic3);
   enzo::block_array()[index_parent].p_solver_dd_restrict_recv(msg);
 }
 
@@ -237,6 +250,7 @@ void EnzoBlock::p_solver_dd_solve_coarse()
   CkCallback callback(CkIndex_EnzoBlock::r_solver_dd_barrier(NULL),
 		      enzo::block_array());
   PERF_REDUCE_START(iperf_reduce_solver_dd);
+  TRACE_REDUCE_START(this,"dd-barrier");
   contribute(callback);
 }
 
@@ -244,6 +258,7 @@ void EnzoBlock::p_solver_dd_solve_coarse()
 
 void EnzoBlock::r_solver_dd_barrier(CkReductionMsg * msg)
 {
+  TRACE_REDUCE_STOP(this,"dd-barrier");
   PERF_REDUCE_STOP(iperf_reduce_solver_dd);
   static_cast<EnzoSolverDd*> (solver())->do_prolong(this);
   delete msg;
@@ -285,9 +300,9 @@ void EnzoSolverDd::prolong_send_(EnzoBlock * enzo_block) throw()
 
     while (it_child.next(ic3)) {
 
-      FieldMsg * msg = pack_field_(enzo_block,ixc_,+1,ic3);
-
       Index index_child = enzo_block->index().index_child(ic3,min_level_);
+
+      FieldMsg * msg = pack_field_(enzo_block,index_child,ixc_,+1,ic3);
 
       enzo::block_array()[index_child].p_solver_dd_prolong_recv(msg);
 
@@ -377,6 +392,7 @@ void EnzoSolverDd::continue_after_domain_solve(EnzoBlock * enzo_block) throw()
   CkCallback callback(CkIndex_EnzoBlock::r_solver_dd_end(NULL),
 		      enzo::block_array());
   PERF_REDUCE_START(iperf_reduce_solver_dd);
+  TRACE_REDUCE_START(enzo_block,"dd-domain");
   enzo_block->contribute(callback);
 }
 
@@ -384,6 +400,7 @@ void EnzoSolverDd::continue_after_domain_solve(EnzoBlock * enzo_block) throw()
 
 void EnzoBlock::r_solver_dd_end(CkReductionMsg * msg)
 {
+  TRACE_REDUCE_STOP(this,"dd-domain");
   PERF_REDUCE_STOP(iperf_reduce_solver_dd);
   static_cast<EnzoSolverDd*> (solver())->call_last_smoother(this);
   delete msg;
@@ -430,10 +447,12 @@ void EnzoSolverDd::end (Block* block) throw ()
 
 //======================================================================
 
-FieldMsg * EnzoSolverDd::pack_field_(EnzoBlock * enzo_block,
-				     int index_field,
-				     int face_type,
-				     int * ic3)
+FieldMsg * EnzoSolverDd::pack_field_
+(EnzoBlock * enzo_block,
+ Index index_send,
+ int index_field,
+ int face_type,
+ int * ic3)
 {
   Field field = enzo_block->data()->field();
   return field.pack_field_msg

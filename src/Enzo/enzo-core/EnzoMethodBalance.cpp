@@ -10,6 +10,21 @@
 
 // #define TRACE_BALANCE_SYNC
 
+// #define TRACE_BALANCE
+
+//----------------------------------------------------------------------
+
+#ifdef TRACE_BALANCE
+#   undef TRACE_BALANCE
+#   define TRACE_BALANCE(BLOCK,MSG) \
+  CkPrintf ("TRACE_BALANCE %s %s\n",BLOCK->name8().c_str(),std::string(MSG).c_str());
+#   define TRACE_BALANCE_SIM(SIM,MSG) \
+  CkPrintf ("TRACE_BALANCE %d %s\n",CkMyPe(),std::string(MSG).c_str());
+#else
+#   define TRACE_BALANCE(BLOCK,MSG) /* ... */
+#   define TRACE_BALANCE_SIM(SIM,MSG) /* ... */
+#endif
+
 //----------------------------------------------------------------------
 
 EnzoMethodBalance::EnzoMethodBalance()
@@ -36,9 +51,13 @@ void EnzoMethodBalance::pup (PUP::er &p)
 
 void EnzoMethodBalance::compute ( Block * block) throw()
 {
+  TRACE_BALANCE (block,"1 compute");
   // Output that we're calling the load balancer
-  if (block->index().is_root())
-    cello::monitor()->print("Method EnzoMethodBalance", "entering Cello load-balancer");
+  if (block->index().is_root()) {
+    cello::monitor()->print
+      ("Method EnzoMethodBalance",
+       "entering Cello load-balancer");
+  }
 
   long long index, count;
   block->get_order (&index,&count);
@@ -64,6 +83,7 @@ void EnzoMethodBalance::compute ( Block * block) throw()
 
 void EnzoSimulation::r_method_balance_count(CkReductionMsg * msg)
 {
+  TRACE_BALANCE_SIM (this,"2 count");
   /*  PERF_REDUCE_STOP(iperf_reduce_method_balance); */
   int * count_total = (int * )msg->getData();
 #ifdef TRACE_BALANCE_SYNC
@@ -83,6 +103,7 @@ void EnzoSimulation::r_method_balance_count(CkReductionMsg * msg)
 
 void EnzoBlock::p_method_balance_migrate()
 {
+  TRACE_BALANCE (this,"3 migrate");
 #ifdef TRACE_BALANCE
   CkPrintf ("TRACE_BALANCE 5 p_method_balance_migrate() calling do_migrate()\n");
   fflush(stdout);
@@ -101,6 +122,7 @@ void EnzoMethodBalance::do_migrate(EnzoBlock * enzo_block)
 
 void EnzoSimulation::p_method_balance_check()
 {
+  TRACE_BALANCE_SIM (this,"4 check");
 #ifdef TRACE_BALANCE_SYNC
   CkPrintf ("%d TRACE_BALANCE_SYNC next %d/%d\n",
             CkMyPe(),
@@ -129,6 +151,7 @@ void EnzoBlock::p_method_balance_done()
 
 void EnzoMethodBalance::done(EnzoBlock * enzo_block)
 {
+  TRACE_BALANCE(enzo_block,"5 done");
   enzo_block->set_ip_next(-1);
   enzo_block->compute_done();
 }

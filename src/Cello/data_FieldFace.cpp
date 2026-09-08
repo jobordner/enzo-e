@@ -11,11 +11,23 @@
 // #define BOX_RECV_GHOSTS
 //----------------------------------------------------------------------
 
-// #define CONFIG_SMP_MODE
+#define ENABLE_SMP_NODE_LOCK
 
-static CmiNodeLock field_face_node_lock;
+//----------------------------------------------------------------------
+
+// Define node lock defines
+
+#if defined(CONFIG_SMP_MODE) and defined(ENABLE_SMP_NODE_LOCK)
+static CmiNodeLock node_lock_f2f;
 void mutex_init_field_face()
-{  field_face_node_lock = CmiCreateLock(); }
+{  node_lock_f2f = CmiCreateLock(); }
+#   define SMP_NODE_LOCK   CmiLock(node_lock_f2f);
+#   define SMP_NODE_UNLOCK CmiUnlock(node_lock_f2f);
+#else
+void mutex_init_field_face() { }
+#   define SMP_NODE_LOCK   /* ... */
+#   define SMP_NODE_UNLOCK /* ... */
+#endif
 
 //======================================================================
 
@@ -231,6 +243,9 @@ void FieldFace::face_to_array ( Field field,char * array) throw()
 
 void FieldFace::array_to_face (char * array, Field field) throw()
 {
+  PERF_SMP_START(iperf_smp_field_face);
+  SMP_NODE_LOCK;
+
   size_t index_array = 0;
 
   auto field_list_src = refresh_->field_list_src(level_,face_type_);
@@ -335,6 +350,10 @@ void FieldFace::array_to_face (char * array, Field field) throw()
   // (note invert_face parameter is set since at receiving end)
 
   time_interpolate_(field,field_list_dst,true);
+
+  SMP_NODE_UNLOCK;
+
+  PERF_SMP_STOP(iperf_smp_field_face);
 }
 
 //----------------------------------------------------------------------
@@ -344,10 +363,9 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
   auto field_list_src = refresh_->field_list_src(level_,face_type_);
   auto field_list_dst = refresh_->field_list_dst(level_,face_type_);
 
-#ifdef CONFIG_SMP_MODE
   PERF_SMP_START(iperf_smp_field_face);
-  CmiLock(field_face_node_lock);
-#endif
+
+  SMP_NODE_LOCK;
 
   int n3[3];
   field_src.size (n3,n3+1,n3+2);
@@ -451,10 +469,9 @@ void FieldFace::face_to_face (Field field_src, Field field_dst)
 
   time_interpolate_(field_dst,field_list_dst);
 
-#ifdef CONFIG_SMP_MODE
-  CmiUnlock(field_face_node_lock);
+  SMP_NODE_UNLOCK;
+
   PERF_SMP_STOP(iperf_smp_field_face);
-#endif  
 }
 
 //----------------------------------------------------------------------

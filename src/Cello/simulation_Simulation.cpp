@@ -498,12 +498,14 @@ void Simulation::initialize_performance_() throw()
   p->new_region(iperf_reduce_stopping,       "reduce_stopping");
 
 #ifdef CONFIG_SMP_MODE
-  p->new_region(iperf_smp,                     "smp");
-  p->new_region(iperf_smp_field_face,          "smp_field_face");
-  p->new_region(iperf_smp_hierarchy,           "smp_hierarchy");
+  p->new_region(iperf_smp,                   "smp");
+  p->new_region(iperf_smp_data_msg,          "smp_data_msg");
+  p->new_region(iperf_smp_field_face,        "smp_field_face");
+  p->new_region(iperf_smp_hierarchy,         "smp_hierarchy");
   p->new_region(iperf_smp_initial_music,     "smp_initial_music");
   p->new_region(iperf_smp_initial_value,     "smp_initial_value");
   p->new_region(iperf_smp_method_close_files,"smp_method_close_files");
+  p->new_region(iperf_smp_msg_refresh,       "smp_msg_refresh");
   p->new_region(iperf_smp_solver_bcg,        "smp_solver_bcg");
 #endif
   p->new_region(iperf_method,                "method");
@@ -927,7 +929,7 @@ void Simulation::initialize_block_array_() throw()
   }
 
   // Create the root-level blocks for level = 0
-  hierarchy_->create_block_array ();
+  hierarchy_->create_block_array ();  
 
   // Create the "sub-root" blocks if min_level < 0
   if (hierarchy_->min_level() < 0) {
@@ -1191,7 +1193,6 @@ void Simulation::monitor_performance()
   // Block neighbor metrics
   counters_reduce_vector.push_back( hierarchy_->num_neighbors_local() );
   counters_reduce_vector.push_back( hierarchy_->num_neighbors_total() );
-  hierarchy_->clear_num_neighbors();
 
   // Save number of summed metrics
   counters_reduce_vector[0] = counters_reduce_vector.size() - 2;
@@ -1278,7 +1279,6 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   for (int i=hierarchy_->min_level(); i<=hierarchy_->max_level(); i++) {
     const long long num_blocks_level = counters_reduce[m++];
     hierarchy()->set_blocks_global(i,num_blocks_level);
-
     if (i>=0) {
       monitor->print("perf:mesh","blocks-level_%d %lld",
                      i,num_blocks_level);
@@ -1305,6 +1305,7 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
               "num_blocks_total %lld does not match computed value %lld",
               num_total_blocks,num_blocks_total);
   }
+  hierarchy()->set_blocks_global(num_blocks_total);
 
   const int num_regions  = performance_->num_regions();
   const int num_counters =  performance_->num_counters();
@@ -1382,10 +1383,17 @@ void Simulation::r_monitor_performance_reduce(CkReductionMsg * msg)
   }
 
   // Number of block neighbors local and total
-  monitor->print ("perf:balance","num_neighbors_local %lld",
+  monitor->print ("perf:balance","num-neighbors-local %lld",
                   num_neighbors_local);
+  if (CkMyPe() == 0)
+    hierarchy()->set_neighbors_local(num_neighbors_local);
+
   monitor->print ("perf:balance","num-neighbors-total %lld",
                   num_neighbors_total);
+
+  if (CkMyPe() == 0)
+    hierarchy()->set_neighbors_total(num_neighbors_total);
+
   monitor->print ("perf:balance","eff-neighbors-local %f",
                   1.0*num_neighbors_local/num_neighbors_total);
 

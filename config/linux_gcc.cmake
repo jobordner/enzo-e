@@ -15,6 +15,7 @@ if(NOT __processedUserDefaults)
   set(CMAKE_Fortran_FLAGS "-ffixed-line-length-132" CACHE STRING "Default Fortran flags")
 
   set(__ARCH_C_OPT_FLAGS "-O3 -g")
+  #  -fsanitize=thread
   #  -fsanitize=address -fsanitize=leak -Wall -Wshadow -Wconversion -Wpedantic
   set(CMAKE_C_FLAGS_RELEASE "${__ARCH_C_OPT_FLAGS}")
   set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g ${__ARCH_C_OPT_FLAGS}")
