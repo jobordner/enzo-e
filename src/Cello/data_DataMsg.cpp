@@ -132,7 +132,7 @@ int DataMsg::data_size () const
     int n_fa;
     SIZE_SCALAR_TYPE(size,int,n_fa);
     // size of array
-    size += ff->num_bytes_array(field);
+    size += sizeof(cello_float) * ff->num_elements_array(field);
   }
 
   // size of particle data
@@ -168,10 +168,10 @@ char * DataMsg::save_data (char * buffer) const
   Field field (cello::field_descr(), field_data_);
   for (auto * ff : field_face_list_) {
     // save array size
-    const int n_ff = ff->num_bytes_array(field);
+    const int n_ff = sizeof(cello_float)*ff->num_elements_array(field);
     SAVE_SCALAR_TYPE(pc,int,n_ff);
     // save array
-    ff->face_to_array(field,pc);
+    ff->face_to_array(field,(cello_float*)pc);
     pc += n_ff;
   }
 
@@ -224,7 +224,7 @@ char * DataMsg::load_data (char * buffer)
     LOAD_SCALAR_TYPE(pc,int,n_ff);
     // load array
     field_face_delete_.push_back(true);
-    field_array_list_.push_back(pc);
+    field_array_list_.push_back((cello_float*)pc);
     pc += n_ff;
   }
 
@@ -278,7 +278,6 @@ void DataMsg::update (Data * data, bool is_local, bool is_kept)
     }
     if (is_kept)
       cello::simulation()->data_insert_particles(count);
-
   }
 
   // Update fields
@@ -299,7 +298,7 @@ void DataMsg::update (Data * data, bool is_local, bool is_kept)
       // invert face since incoming not outgoing
       ff->invert_face();
 
-      char * fa = field_array_list_[k];
+      cello_float * fa = field_array_list_[k];
       ff->array_to_face(fa,field_dst);
 
     }

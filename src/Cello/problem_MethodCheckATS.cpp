@@ -24,10 +24,10 @@ void MethodCheckATS::compute( Block * block) throw()
     int gx,gy,gz;
     field.dimensions  (it,&mx,&my,&mz);
     field.ghost_depth (it,&gx,&gy,&gz);
-    cello_float * array_curr = (cello_float *) field.values(it);
-    cello_float * array_prev = (cello_float *) field.values(it,1);
-    cello_float * error_curr = (cello_float *) field.values(error_curr_);
-    cello_float * error_prev = (cello_float *) field.values(error_prev_);
+    cello_float * array_curr = field.values(it);
+    cello_float * array_prev = field.values(it,1);
+    cello_float * error_curr = field.values(error_curr_);
+    cello_float * error_prev = field.values(error_prev_);
 
     // Set field = (time + dt)
     const double time_curr = block->state()->time(level);
@@ -99,7 +99,7 @@ void MethodCheckATS::test_field_(Block * block,
   
 bool MethodCheckATS::compare_ (const cello_float & a, const cello_float & b) const
 {
-  const double mach = cello::machine_epsilon(precision_default);
+  const double mach = std::numeric_limits<cello_float>::epsilon();
   return ((a != b) &&
           (cello::err_rel(a,b) > TOL*mach));
 }

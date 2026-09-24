@@ -495,7 +495,7 @@ void DataLoader::check_cosmology_(File * file) const
       file->file_read_scalar(&omega_m, "omega_m", &type);
       file->file_read_scalar(&omega_v, "omega_v", &type);
       file->file_read_scalar(&vfact, "vfact", &type);
-      double roundoff = cello::machine_epsilon(precision_single);
+      double roundoff = std::numeric_limits<float>::epsilon();
       ASSERT2("EnzoInitialHdf5",
               "Mismatch in cosmology H0: parameter file %g I.C.'s %g",
               cosmo->hubble_constant_now(),h0,

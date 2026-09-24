@@ -62,7 +62,7 @@ public: // interface
   virtual std::string name () const { return "unknown"; }
 
   /// Clear the output field to the default coarsen (-1)
-  void * initialize_output_(FieldData * field_data);
+  cello_float * initialize_output_(FieldData * field_data);
 
   /// Return the Schedule object pointer
   Schedule * schedule() throw() 

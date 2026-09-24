@@ -182,7 +182,7 @@ class FieldFace;
     double sum_abs = 0.0;                                               \
     for (int ib=0; ib<nb; ib++) {                                       \
       int np = particle.num_particles(it,ib);                           \
-      enzo_float * array = (enzo_float *) particle.attribute_array(it,ia,ib); \
+      cello_float * array = (cello_float *) particle.attribute_array(it,ia,ib); \
       for (int ip=0; ip<np; ip++) {                                     \
         sum_abs += std::abs(array[ip]);                                 \
       }                                                                 \

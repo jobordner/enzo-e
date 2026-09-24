@@ -31,6 +31,9 @@
 
 #define CHARM_ENZO
 
+// #define _GNU_SOURCE
+// #include <fenv.h>
+
 #include "test.hpp"
 #include "enzo.hpp"
 #include "main.hpp"
@@ -159,6 +162,8 @@ static Args parse_args_(int argc, char** argv) {
 //----------------------------------------------------------------------
 PARALLEL_MAIN_BEGIN
 {
+
+  //   feenableexcept(FE_INVALID | FE_DIVBYZERO | FE_OVERFLOW);
 
   // Initialize parallelization
 

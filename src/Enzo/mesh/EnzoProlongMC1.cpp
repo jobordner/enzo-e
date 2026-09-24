@@ -38,9 +38,8 @@ void EnzoProlongMC1::pup (PUP::er &p)
 //----------------------------------------------------------------------
 
 void EnzoProlongMC1::apply 
-( precision_type precision,
-  void *       values_f, int nd3_f[3], int im3_f[3], int n3_f[3],
-  const void * values_c, int nd3_c[3], int im3_c[3], int n3_c[3],
+( cello_float *       values_f, int nd3_f[3], int im3_f[3], int n3_f[3],
+  const cello_float * values_c, int nd3_c[3], int im3_c[3], int n3_c[3],
   bool accumulate) const
 {
   apply_( (enzo_float * )       values_f, nd3_f, im3_f, n3_f,

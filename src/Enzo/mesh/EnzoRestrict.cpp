@@ -25,9 +25,8 @@ void EnzoRestrict::pup (PUP::er &p)
 //----------------------------------------------------------------------
 
 int EnzoRestrict::apply 
-( precision_type precision,
-  void *       values_c, int nd3_c[3], int im3_c[3],  int n3_c[3],
-  const void * values_f, int nd3_f[3], int im3_f[3],  int n3_f[3],
+( cello_float *       values_c, int nd3_c[3], int im3_c[3],  int n3_c[3],
+  const cello_float * values_f, int nd3_f[3], int im3_f[3],  int n3_f[3],
   bool accumulate) const
 {
   return apply_( (enzo_float *)       values_c, nd3_c, im3_c, n3_c,

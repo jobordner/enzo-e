@@ -92,11 +92,6 @@ public: // interface
   { field_descr_->set_ghost_depth(id,gx,gy,gz); }
 
 
-  /// Set precision for a field
-  void set_precision(int id, int precision)
-    throw()
-  { field_descr_->set_precision(id,precision); }
-
   /// Insert a new field
   int insert_permanent(const std::string & name) throw()
   { return field_descr_->insert_permanent(name); }
@@ -152,18 +147,6 @@ public: // interface
   int  ghost_depth(int id, int * gx = 0, int * gy = 0, int * gz = 0) const
     throw()
   { return field_descr_->ghost_depth(id,gx,gy,gz); }
-
-  /// Return precision of given field
-  int precision(int id) const throw()
-  { return field_descr_->precision(id); }
-
-  /// Return the data type of a given field
-  int data_type(int id) const throw()
-  { return field_descr_->data_type(id); }
-
-  /// Number of bytes per element required by the given field
-  int bytes_per_element(int id) const throw()
-  { return field_descr_->bytes_per_element(id); }
 
   /// Whether the field is permanent
   bool is_permanent (int id_field) const throw()
@@ -264,18 +247,18 @@ public: // interface
 
   /// Return array for the corresponding field, which may or may not
   /// contain ghosts depending on if they're allocated
-  char * values (int id_field, int index_history=0) throw ()
+  cello_float * values (int id_field, int index_history=0) throw ()
   { return field_data_->values(field_descr_,id_field,index_history); }
 
-  char * values (std::string name, int index_history=0) throw ()
+  cello_float * values (std::string name, int index_history=0) throw ()
   { return field_data_->values(field_descr_,name,index_history); }
 
   /// Return array for the corresponding field, which may or may not
   /// contain ghosts depending on if they're allocated
-  const char * values (int id_field, int index_history=0) const throw ()
+  const cello_float * values (int id_field, int index_history=0) const throw ()
   { return field_data_->values(field_descr_,id_field,index_history); }
 
-  const char * values (std::string name, int index_history=0) const throw ()
+  const cello_float * values (std::string name, int index_history=0) const throw ()
   { return field_data_->values(field_descr_,name,index_history); }
 
   template <class T>
@@ -322,11 +305,11 @@ public: // interface
   { return field_data_->view<T>(field_descr_,name,choice,index_history); }
 
   /// Return array for the corresponding coarse field
-  char * coarse_values (int id_field) throw ()
+  cello_float * coarse_values (int id_field) throw ()
   { return field_data_->coarse_values (field_descr_,id_field); }
 
   /// Return array for the corresponding coarse field
-  const char * coarse_values (int id_field) const throw ()
+  const cello_float * coarse_values (int id_field) const throw ()
   { return field_data_->coarse_values (field_descr_,id_field); }
 
   /// Return a CelloView that acts as a view of the corresponding coarse field
@@ -348,22 +331,22 @@ public: // interface
 
   /// Return array for the corresponding field, which does not contain
   /// ghosts whether they're allocated or not
-  char * unknowns (int id_field, int index_history=0) throw ()
+  cello_float * unknowns (int id_field, int index_history=0) throw ()
   { return field_data_->unknowns(field_descr_,id_field,index_history); }
 
-  char * unknowns (std::string name, int index_history=0) throw ()
+  cello_float * unknowns (std::string name, int index_history=0) throw ()
   { return field_data_->unknowns(field_descr_,name,index_history); }
 
-  const char * unknowns (int id_field, int index_history=0) const throw ()
+  const cello_float * unknowns (int id_field, int index_history=0) const throw ()
   { return field_data_->unknowns(field_descr_,id_field,index_history); }
 
-  const char * unknowns (std::string name, int index_history=0) const throw ()
+  const cello_float * unknowns (std::string name, int index_history=0) const throw ()
   { return field_data_->unknowns(field_descr_,name,index_history); }
 
   /// Return raw pointer to the array of all fields.  Const since
-  /// otherwise dangerous due to varying field sizes, precisions,
+  /// otherwise dangerous due to varying field sizes,
   /// padding and alignment
-  const char * permanent ()  const throw () 
+  const cello_float * permanent ()  const throw () 
   { return field_data_->permanent(); }
 
   /// Return width of cells along each dimension
@@ -444,15 +427,10 @@ public: // interface
   bool ghosts_allocated() const throw ()
   { return field_data_->ghosts_allocated(); }
 
-  /// Return the number of elements (nx,ny,nz) along each axis, and total
-  /// number of bytes n
-  int field_size (int id, int *nx=0, int *ny=0, int *nz=0) const throw()
-  { return field_data_->field_size(field_descr_,id,nx,ny,nz); }
-
   /// Return the number of elements (nx,ny,nz) along each axis for
   /// a coarse field
-  void coarse_dimensions (int id_field, int *nx=0, int *ny=0, int *nz=0) const throw()
-  { field_data_->coarse_dimensions (field_descr_,id_field, nx,ny,nz); }
+  int coarse_dimensions (int id_field, int *nx=0, int *ny=0, int *nz=0) const throw()
+  { return field_data_->coarse_dimensions (field_descr_,id_field, nx,ny,nz); }
 
   //--------------------------------------------------
   /// Return the number of bytes required to serialize the data object
@@ -495,11 +473,6 @@ public: // interface
   }
 
   //---------------------------------------------------------------------
-
-  /// Print basic field characteristics for debugging
-  void print (const char * message,
-	      bool use_file = false) const throw()
-  { field_data_->print(field_descr_,message,use_file); }
 
   void png (const std::string & file_name,
             int id_field, int nx, int ny,

@@ -90,7 +90,7 @@ module mesh {
   PUPable Units;
 
   message FieldMsg {
-    char a[];
+     cello_float a[];
   };
   message MsgAdapt;
   message MsgCoarsen;
@@ -212,7 +212,7 @@ module mesh {
     entry void p_refresh_recv (MsgRefresh * msg);
 
     entry void p_refresh_child
-      (int n, char a[n], int ic3[3]);
+      (int n, cello_float a[n], int ic3[3]);
 
   };
 

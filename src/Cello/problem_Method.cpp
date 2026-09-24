@@ -156,8 +156,8 @@ void Method::super_shift_fields_(Block * block )
 
     const int id_field_curr = super_field_curr_[id_super];
     const int id_field_prev = super_field_prev_[id_super];
-    cello_float * values_curr = (cello_float*) field.values (id_field_curr);
-    cello_float * values_prev = (cello_float*) field.values (id_field_prev);
+    cello_float * values_curr = field.values (id_field_curr);
+    cello_float * values_prev = field.values (id_field_prev);
     ASSERT1("EnzoMethodGravity::super_save_field_()",
            "field_[curr|prev] fields not defined for id_super = %d",
             id_super,
@@ -190,8 +190,8 @@ void Method::super_save_fields_(Block * block )
 
     const int id_field_curr = super_field_curr_[id_super];
     const int id_field      = super_field_[id_super];
-    cello_float * values_curr = (cello_float*) field.values (id_field_curr);
-    cello_float * values      = (cello_float*) field.values (id_field);
+    cello_float * values_curr = field.values (id_field_curr);
+    cello_float * values      = field.values (id_field);
     ASSERT1("EnzoMethodGravity::super_shift_field_()",
            "field_[curr|prev] fields not defined for id_super = %d",
             id_super,
@@ -237,9 +237,9 @@ void Method::super_extrapolate_fields_(Block * block, double time )
     const int id_field_prev = super_field_prev_[id_super];
 
     Field field = block->data()->field();
-    cello_float * values      = (cello_float*) field.values (id_field);
-    cello_float * values_curr = (cello_float*) field.values (id_field_curr);
-    cello_float * values_prev = (cello_float*) field.values (id_field_prev);
+    cello_float * values      = field.values (id_field);
+    cello_float * values_curr = field.values (id_field_curr);
+    cello_float * values_prev = field.values (id_field_prev);
 
     ASSERT1("Method::super_extrapolate_fields_()",
             "Missing field %d", id_field, values);

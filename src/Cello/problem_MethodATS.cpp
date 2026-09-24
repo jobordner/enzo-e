@@ -16,7 +16,7 @@ void MethodATS::compute( Block * block) throw()
 
     Field field = block->data()->field();
     int it = field.field_id(field_name_);
-    cello_float * array_curr = (cello_float *) field.values(it);
+    cello_float * array_curr = field.values(it);
 
     int mx,my,mz;
     int gx,gy,gz;

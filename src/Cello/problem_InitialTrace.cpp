@@ -163,16 +163,12 @@ void InitialTrace::density_placement_
 
   did = field.field_id( (field_ == "") ? "density" : field_);
 
-  const bool is_single = (field.precision(did) == precision_single);
-
   field.dimensions  (did,&mx,&my,&mz);
   field.size           (&nx,&ny,&nz);
   field.ghost_depth (did,&gx,&gy,&gz);
 
-  union { float * de4; double * de8; };
-
   // union so initializes de4 as well
-  de8 = (double *) field.values(did);
+  cello_float * de_array = field.values(did);
 
   // Get cell widths hx,hy,hz
 
@@ -206,8 +202,8 @@ void InitialTrace::density_placement_
     for (int iy=gy; iy<ny+gy; iy++) {
       for (int ix=gx; ix<nx+gx; ix++) {
 	int id = ix + mx*(iy + my*iz);
-	double de = (is_single ? de4[id] : de8[id]);
-	double m = de *(hx*hy*hz);
+	cello_float de = de_array[id];
+	cello_float m = de *(hx*hy*hz);
 	ms[ims] = ms[ims-1] + m;
 	xs[ims-1] = xm + (ix-gx)*hx;
 	ys[ims-1] = ym + (iy-gy)*hy;

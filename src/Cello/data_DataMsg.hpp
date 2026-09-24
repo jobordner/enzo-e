@@ -160,7 +160,7 @@ protected: // attributes
   /// Whether FieldFace data should be deleted in destructor
   std::vector<int> field_face_delete_;
   /// Packed field_face data if not local
-  std::vector<char *> field_array_list_;
+  std::vector<cello_float *> field_array_list_;
   /// Field data if local
   FieldData * field_data_;
 

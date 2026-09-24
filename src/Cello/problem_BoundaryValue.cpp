@@ -161,114 +161,56 @@ void BoundaryValue::enforce
     const std::vector<std::string>& field_list = cur_pair.second;
     for (const std::string& field_name : field_list) {
 
-      int nx,ny,nz;
-      field.size(&nx,&ny,&nz);
-
       int index_field = field.field_id(field_name);
       int gx,gy,gz;
       field.ghost_depth(index_field,&gx,&gy,&gz);
 
       int cx,cy,cz;
       field.centering(index_field, &cx,&cy,&cz);
+      int mx,my,mz;
+      field.dimensions(index_field,&mx,&my,&mz);
 
-      int ndx=nx+2*gx+cx;
-      int ndy=ny+2*gy+cy;
-      int ndz=nz+2*gz+cz;
-
-      double * x = new double [ndx];
-      double * y = new double [ndy];
-      double * z = new double [ndz];
+      double * x = new double [mx];
+      double * y = new double [my];
+      double * z = new double [mz];
 
       data->field_cell_faces(x,y,z,gx,gy,gz,cx,cy,cz);
 
-      void * array = field.values(index_field);
-
-      precision_type precision = field.precision(index_field);
+      cello_float * array = field.values(index_field);
 
       int ix0=0 ,iy0=0,iz0=0;
 
-      nx = ndx;
-      ny = ndy;
-      nz = ndz;
-
-      if (axis == axis_x) nx=gx;
-      if (axis == axis_y) ny=gy;
-      if (axis == axis_z) nz=gz;
+      const int nx = (axis == axis_x) ? gx : mx;
+      const int ny = (axis == axis_y) ? gy : my;
+      const int nz = (axis == axis_z) ? gz : mz;
 
       if (face == face_upper) {
-	if (axis == axis_x) ix0 = ndx - gx;
-	if (axis == axis_y) iy0 = ndy - gy;
-	if (axis == axis_z) iz0 = ndz - gz;
+	if (axis == axis_x) ix0 = mx - gx;
+	if (axis == axis_y) iy0 = my - gy;
+	if (axis == axis_z) iz0 = mz - gz;
       }
 
-      int i0=ix0 + ndx*(iy0 + ndy*iz0);
+      int i0=ix0 + mx*(iy0 + my*iz0);
 
       bool * mask = 0;
 
       if (mask_ != nullptr) mask = new bool [nx*ny*nz];
 
-      switch (precision) {
-      case precision_single:
-	{
-	  float * temp = 0;
-	  if (mask_ != nullptr) {
-	    temp = (float *)array;
-	    array = new float [ndx*ndy*ndz];
-	  }
-	  
-	  value.evaluate((float *)array+i0, t,
-                         ndx,nx,x+ix0,
-                         ndy,ny,y+iy0,
-                         ndz,nz,z+iz0);
-	  if (mask_ != nullptr) {
-	    for (int i=0; i<ndx*ndy*ndz; i++) ((float *)temp)[i]=((float *)array)[i];
-	    delete [] ((float*)array);
-	    array = temp;
-	  }
-	}
-       	break;
-      case precision_double:
-	{
-	  double * temp = 0;
-	  if (mask_ != nullptr) {
-	    temp = (double *)array;
-	    array = new double [ndx*ndy*ndz];
-	  }
-	  value.evaluate((double *)array+i0, t,
-                         ndx,nx,x+ix0,
-                         ndy,ny,y+iy0,
-                         ndz,nz,z+iz0);
-	  if (mask_ != nullptr) {
-	    for (int i=0; i<ndx*ndy*ndz; i++) ((double *)temp)[i]=((double *)array)[i];
-	    delete [] ((double *)array);
-	    array = temp;
-	  }
-	}
-       	break;
-      case precision_extended64:
-      case precision_extended80:
-      case precision_extended96:
-      case precision_quadruple:
-	{
-	  long double * temp = 0;
-	  if (mask_ != nullptr) {
-	    temp = (long double *)array;
-	    array = new long double [ndx*ndy*ndz];
-	  }
-	  value.evaluate((long double *)array+i0, t,
-                         ndx,nx,x+ix0,
-                         ndy,ny,y+iy0,
-                         ndz,nz,z+iz0);
-	  if (mask_ != nullptr) {
-	    for (int i=0; i<ndx*ndy*ndz; i++) 
-	      ((long double *)temp)[i]=((long double *)array)[i];
-	    delete [] ((long double *)array);
-	    array = temp;
-	  }
-	}
-       	break;
+      cello_float * temp = 0;
+      if (mask_ != nullptr) {
+        temp = array;
+        array = new cello_float [mx*my*mz];
       }
-
+      value.evaluate(array+i0, t,
+                     mx,nx,x+ix0,
+                     my,ny,y+iy0,
+                     mz,nz,z+iz0);
+      if (mask_ != nullptr) {
+        for (int i=0; i<mx*my*mz; i++)
+          temp[i]=(array)[i];
+        delete [] array;
+        array = temp;
+      }
       delete [] x;
       delete [] y;
       delete [] z;
@@ -276,24 +218,3 @@ void BoundaryValue::enforce
     } // for field_name in cur_pair.fields
   } // for cur_pair in pairs_
 }
-
-//----------------------------------------------------------------------
-
-template <class T>
-void BoundaryValue::copy_(T * field, double * value,
-			  int ndx, int ndy, int ndz,
-			  int nx,  int ny,  int nz,
-			  int ix0, int iy0, int iz0) const throw()
-{
-  for (int ix=ix0; ix<ix0+nx; ix++) {
-    for (int iy=iy0; iy<iy0+ny; iy++) {
-      for (int iz=iz0; iz<iz0+nz; iz++) {
-	int iv = (ix-ix0) + nx*((iy-iy0) + ny*(iz-iz0));
-	int ib = ix + ndx*(iy + ndy*(iz));
-	field[ib] = (T) value[iv];
-      }
-    }
-  }
-}
-
-//----------------------------------------------------------------------

@@ -5,8 +5,6 @@
 // /// @date     2013-04-23
 // /// @brief    Implementation of Enzo RefineMass class
 
-// #define DEBUG_REFINE
-
 #include "Enzo/mesh/mesh.hpp"
 #include "Enzo/enzo.hpp"
 #include "Cello/charm_simulation.hpp"
@@ -29,20 +27,7 @@ EnzoRefineMass::EnzoRefineMass
     mass_ratio_(0.0),
     level_exponent_(level_exponent)
 
-    // ENZO Cosmology
-    //      MinimumMassForRefinement[i] = CosmologySimulationOmegaBaryonNow/
-    //                                    OmegaMatterNow;
-    //      if (CellFlaggingMethod[i] == 4)
-    //        MinimumMassForRefinement[i] = CosmologySimulationOmegaCDMNow/
-    //                                      OmegaMatterNow;
-    //
-    //      MinimumMassForRefinement[i] *= MinimumOverDensityForRefinement[i];
-    //      for (dim = 0; dim < MetaData.TopGridRank; dim++)
-    //        MinimumMassForRefinement[i] *=
-    //          (DomainRightEdge[dim]-DomainLeftEdge[dim])/
-    //          float(MetaData.TopGridDims[dim]);
 {
-
   EnzoPhysicsCosmology * cosmology = enzo::cosmology();
 
   if (cosmology) {
@@ -90,148 +75,38 @@ int EnzoRefineMass::apply ( Block * block ) throw ()
   field.dimensions (id_field, &mx,&my,&mz);
   field.ghost_depth(id_field, &gx,&gy,&gz);
 
-  precision_type precision = field.precision(id_field);
-
   //  int num_fields = field_descr->field_count();
 
   bool all_coarsen = true;
   bool any_refine = false;
 
-  union {
-    float *       rho4;
-    double *      rho8;
-    long double * rho16;
-  };
-  union {
-    float *       out4;
-    double *      out8;
-    long double * out16;
-  };
-
-  rho4 = (float *) field.values(id_field);
-  out4 = (float*) initialize_output_(field.field_data());
+  cello_float * rho = field.values(id_field);
+  cello_float * out = initialize_output_(field.field_data());
 
   double vol = hx*hy*hz;
 
-  switch (precision) {
-  case precision_single:
-    if (out4) {
-      for (int iz=gz; iz<mz-gz; iz++) {
-        for (int iy=gy; iy<my-gy; iy++) {
-          for (int ix=gx; ix<mx-gx; ix++) {
-            int i = ix + mx*(iy + my*iz);
-            double mass = vol*rho4[i];
-            if      (mass < mass_max_coarsen) out4[i] = -1;
-            else if (mass < mass_min_refine)  out4[i] =  0;
-            else                              out4[i] = +1;
-          }
-        }
-      }
-    }
-#ifdef DEBUG_REFINE
-    {
-      double min =  1e10;
-      double max = -min;
-      double sum = 0.0;
-#endif
-      for (int iz=gz; iz<mz-gz; iz++) {
-        for (int iy=gy; iy<my-gy; iy++) {
-          for (int ix=gx; ix<mx-gx; ix++) {
-            int i = ix + mx*(iy + my*iz);
-            double mass = vol*rho4[i];
-#ifdef DEBUG_REFINE
-            min = std::min(min,mass);
-            max = std::max(max,mass);
-            sum += mass;
-#endif
-            if (mass > mass_min_refine)  any_refine  = true;
-            if (mass > mass_max_coarsen) all_coarsen = false;
-          }
-        }
-      }
-#ifdef DEBUG_REFINE
-      double sum2= 0.0;
-      for (int i=0; i<mx*my*mz; i++) sum2 += vol*rho4[i];
-      CkPrintf ("DEBUG_REFINE_MASS %s sum (%18.15g) [%18.15g]\n",
-                name_.c_str(),sum,sum2);
-      CkPrintf ("DEBUG_REFINE_MASS %s refine %18.15g\n",
-                name_.c_str(),mass_min_refine);
-    }
-#endif
-    break;
-  case precision_double:
-    if (out8) {
-      for (int iz=gz; iz<mz-gz; iz++) {
-        for (int iy=gy; iy<my-gy; iy++) {
-          for (int ix=gx; ix<mx-gx; ix++) {
-            int i = ix + mx*(iy + my*iz);
-            double mass = vol*rho8[i];
-            if      (mass < mass_max_coarsen) out8[i] = -1;
-            else if (mass < mass_min_refine)  out8[i] =  0;
-            else                              out8[i] = +1;
-          }
-        }
-      }
-    }
-#ifdef DEBUG_REFINE
-    {
-      double min = 1e10;
-      double max = -min;
-      double sum = 0.0;
-#endif
-      for (int iz=gz; iz<mz-gz; iz++) {
-        for (int iy=gy; iy<my-gy; iy++) {
-          for (int ix=gx; ix<mx-gx; ix++) {
-            int i = ix + mx*(iy + my*iz);
-            double mass = vol*rho8[i];
-#ifdef DEBUG_REFINE
-            min = std::min(min,mass);
-            max = std::max(max,mass);
-            sum += mass;
-#endif        
-            if (mass > mass_min_refine)  any_refine  = true;
-            if (mass > mass_max_coarsen) all_coarsen = false;
-          }
-        }
-      }
-#ifdef DEBUG_REFINE
-      double sum2= 0.0;
-      for (int i=0; i<mx*my*mz; i++) sum2 += vol*rho8[i];
-      CkPrintf ("DEBUG_REFINE %s %18.15g %18.15g %d %d\n",
-                name_.c_str(),sum,sum2,any_refine,all_coarsen);
-    }
-#endif
-    break;
-  case precision_quadruple:
-    if (out16) {
-      for (int iz=gz; iz<mz-gz; iz++) {
-        for (int iy=gy; iy<my-gy; iy++) {
-          for (int ix=gx; ix<mx-gx; ix++) {
-            int i = ix + mx*(iy + my*iz);
-            long double mass = vol*rho16[i];
-            if      (mass < mass_max_coarsen) out16[i] = -1;
-            else if (mass < mass_min_refine)  out16[i] =  0;
-            else                              out16[i] = +1;
-          }
-        }
-      }
-    }
+  if (out) {
     for (int iz=gz; iz<mz-gz; iz++) {
       for (int iy=gy; iy<my-gy; iy++) {
         for (int ix=gx; ix<mx-gx; ix++) {
           int i = ix + mx*(iy + my*iz);
-          long double mass = vol*rho16[i];
-          if (mass > mass_min_refine)  any_refine  = true;
-          if (mass > mass_max_coarsen) all_coarsen = false;
+          double mass = vol*rho[i];
+          if      (mass < mass_max_coarsen) out[i] = -1;
+          else if (mass < mass_min_refine)  out[i] =  0;
+          else                              out[i] = +1;
         }
       }
     }
-    break;
-  default:
-    ERROR2("EnzoRefineMass::apply",
-           "Unknown precision %d for field %d",
-           precision,0);
-    break;
+  }
+  for (int iz=gz; iz<mz-gz; iz++) {
+    for (int iy=gy; iy<my-gy; iy++) {
+      for (int ix=gx; ix<mx-gx; ix++) {
+        int i = ix + mx*(iy + my*iz);
+        double mass = vol*rho[i];
+        if (mass > mass_min_refine)  any_refine  = true;
+        if (mass > mass_max_coarsen) all_coarsen = false;
+      }
+    }
   }
 
   int adapt_result =

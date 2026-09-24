@@ -621,7 +621,7 @@ void IoEnzoReader::file_read_block_fields_
     field.dimensions(index_field,&mx,&my,&mz);
     field.ghost_depth(index_field,&gx,&gy,&gz);
 
-    char * buffer = field.values(field_name);
+    char * buffer = (char * ) field.values(field_name);
 
     file_read_dataset_
       (buffer, type_data, mx,my,mz,m4);

@@ -31,9 +31,8 @@ public: // interface
 
   /// Prolong coarse Field values to fine values
   virtual void apply
-  ( precision_type precision,
-    void *       values_f, int nd3_f[3], int im3_f[3], int n3_f[3],
-    const void * values_c, int nd3_c[3], int im3_c[3], int n3_c[3],
+  ( cello_float *       values_f, int nd3_f[3], int im3_f[3], int n3_f[3],
+    const cello_float * values_c, int nd3_c[3], int im3_c[3], int n3_c[3],
     bool accumulate = false) const override;
 
   /// Return the name identifying the prolongation operator
@@ -57,12 +56,6 @@ public: // interface
   }
   
 private: // functions
-
-  template <class T>  
-  void apply_
-  ( T *       values_f, int nd3_f[3], int im3_f[3], int n3_f[3],
-    const T * values_c, int nd3_c[3], int im3_c[3], int n3_c[3],
-    bool accumulate = false) const;
 
 private: // attributes
 

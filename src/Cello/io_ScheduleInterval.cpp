@@ -85,7 +85,7 @@ bool ScheduleInterval::write_this_cycle ( int cycle, double time) throw()
 
   if (! active_) return false;
 
-  const double tol = 2*cello::machine_epsilon(precision_single);
+  const double tol = 2*std::numeric_limits<cello_float>::epsilon();
 
   switch (type_) {
 

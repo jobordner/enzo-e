@@ -157,9 +157,9 @@ void EnzoBondiHoyleSinkParticle::set_bondi_hoyle_radius_() throw()
 void EnzoBondiHoyleSinkParticle::set_v_inf_2_() throw()
 {
   Field field = block_->data()->field();
-  enzo_float * vx = (enzo_float*) field.values("velocity_x");
-  enzo_float * vy = (enzo_float*) field.values("velocity_y");
-  enzo_float * vz = (enzo_float*) field.values("velocity_z");
+  enzo_float * vx = field.values("velocity_x");
+  enzo_float * vy = field.values("velocity_y");
+  enzo_float * vz = field.values("velocity_z");
 
   v_inf_2_ =
     (vx[host_cell_1d_index_] - pvx_) * (vx[host_cell_1d_index_] - pvx_) +
@@ -176,11 +176,11 @@ void EnzoBondiHoyleSinkParticle::set_c_s_inf_2_() throw()
   Field field = block_->data()->field();
 
   // Get pointers to density, velocity and total energy fields
-  const enzo_float * density     = (enzo_float*) field.values("density");
-  const enzo_float * vx          = (enzo_float*) field.values("velocity_x");
-  const enzo_float * vy          = (enzo_float*) field.values("velocity_y");
-  const enzo_float * vz          = (enzo_float*) field.values("velocity_z");
-  const enzo_float * specific_te = (enzo_float*) field.values("total_energy");
+  const enzo_float * density     = field.values("density");
+  const enzo_float * vx          = field.values("velocity_x");
+  const enzo_float * vy          = field.values("velocity_y");
+  const enzo_float * vz          = field.values("velocity_z");
+  const enzo_float * specific_te = field.values("total_energy");
 
   EnzoPhysicsFluidProps* fluid_props = enzo::fluid_props();
 
@@ -188,15 +188,12 @@ void EnzoBondiHoyleSinkParticle::set_c_s_inf_2_() throw()
   // then the simulation evolves a "specific internal energy" field.
   const bool dual_energy = ! fluid_props->dual_energy_config().is_disabled();
   const enzo_float * specific_ie_field
-    = dual_energy ? (enzo_float*) field.values("internal_energy") : nullptr;
+    = dual_energy ? field.values("internal_energy") : nullptr;
 
   // Get pointers to magnetic field values if they exist.
-  enzo_float * bx =
-    field.is_field("bfield_x") ? (enzo_float*) field.values("bfield_x") : nullptr;
-  enzo_float * by =
-    field.is_field("bfield_y") ? (enzo_float*) field.values("bfield_y") : nullptr;
-  enzo_float * bz =
-    field.is_field("bfield_z") ? (enzo_float*) field.values("bfield_z") : nullptr;
+  enzo_float * bx = field.values("bfield_x");
+  enzo_float * by = field.values("bfield_y");
+  enzo_float * bz = field.values("bfield_z");
 
   // Copy host_cell_1d_index_ into a new const int called `i` for make code less verbose
   const int i = host_cell_1d_index_;
@@ -351,7 +348,7 @@ void EnzoBondiHoyleSinkParticle::set_accretion_rate_() throw()
 {
   // Get pointer to density field data
   Field field = block_->data()->field();
-  enzo_float * density = (enzo_float*) field.values("density");
+  enzo_float * density = field.values("density");
 
   // Compute the weighted mean density
   double weighted_mean_density = 0.0;
@@ -402,9 +399,9 @@ void EnzoBondiHoyleSinkParticle::compute_relative_velocity_
   field.ghost_depth(0, &gx, &gy, &gz);
 
   // Get pointers to the gas velocity fields
-  enzo_float * vx_gas_field  = (enzo_float*) field.values("velocity_x");
-  enzo_float * vy_gas_field  = (enzo_float*) field.values("velocity_y");
-  enzo_float * vz_gas_field  = (enzo_float*) field.values("velocity_z");
+  enzo_float * vx_gas_field  = field.values("velocity_x");
+  enzo_float * vy_gas_field  = field.values("velocity_y");
+  enzo_float * vz_gas_field  = field.values("velocity_z");
 
   // Use linear interpolation to compute gas velocity at position (`x`,`y`,`z`).
   // Partially copied from EnzoMethodPmDeposit
@@ -555,7 +552,7 @@ void EnzoBondiHoyleSinkParticle::compute(double density_threshold,
 
   // Get pointer to density field data
   Field field = block_->data()->field();
-  enzo_float * density = (enzo_float*) field.values("density");
+  enzo_float * density = field.values("density");
 
   // Loop over cells in accretion zone
   for (int i = 0; i < n_cells; i++){

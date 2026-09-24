@@ -36,21 +36,12 @@ public: // virtual functions
   /// Restrict coarse Field values to the child block (icx,icy,icz)
 
   virtual int apply 
-  ( precision_type precision,
-    void *       values_c, int nd3_c[3], int im3_c[3],  int n3_c[3],
-    const void * values_f, int nd3_f[3], int im3_f[3],  int n3_f[3],
+  ( cello_float *       values_c, int nd3_c[3], int im3_c[3],  int n3_c[3],
+    const cello_float * values_f, int nd3_f[3], int im3_f[3],  int n3_f[3],
     bool accumulate = false) const override;
 
   /// Return the name identifying the restrict operator
   virtual std::string name () const override { return "linear"; }
-
-private: // functions
-
-  template<class T>
-  int apply_
-  ( T *       values_c, int nd3_c[3], int im3_c[3], int n3_c[3],
-    const T * values_f, int nd3_f[3], int im3_f[3], int n3_f[3],
-    bool accumulate = false) const;
 
 private: // attributes
 

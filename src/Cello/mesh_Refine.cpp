@@ -33,28 +33,19 @@ void Refine::set_schedule (Schedule * schedule) throw()
 
 //----------------------------------------------------------------------
 
-void * Refine::initialize_output_(FieldData * field_data)
+cello_float * Refine::initialize_output_(FieldData * field_data)
 {
-  void * output = 0;
+  cello_float * output = nullptr;
   const bool do_output = output_ != "";
 
   if (do_output) {
-    
+
     Field field (cello::field_descr(),field_data);
-    
+
     const int id_output = field.field_id(output_);
     output = field.values(id_output);
-    int mx,my,mz;
-    field.dimensions(id_output,&mx,&my,&mz);
-    const int m = mx*my*mz;
-    precision_type precision = field.precision(id_output);
-    if (precision == precision_single) {
-      for (int i=0; i<m; i++) ((float*)output)[i] = -1;
-    }  else if (precision == precision_double) {
-      for (int i=0; i<m; i++) ((double*)output)[i] = -1;
-    }  else if (precision == precision_quadruple) {
-      for (int i=0; i<m; i++) ((long double*)output)[i] = -1;
-    }
+    const int m = field.dimensions(id_output);
+    std::fill_n(output,m,-1.0);
   }
   return output;
 }

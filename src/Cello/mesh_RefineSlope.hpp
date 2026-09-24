@@ -46,17 +46,6 @@ public: // interface
 
   virtual std::string name () const { return "slope"; };
 
-private: // functions
-
-  template <class T>
-  void evaluate_block_(T * array,  T * output,
-		       int ndx, int ndy, int ndz,
-		       int gx, int gy, int gz,
-		       bool * any_refine,
-		       bool * all_coarsen, 
-		       int rank, 
-		       double * h3);
-
 private: // attributes
 
   /// List of field id's

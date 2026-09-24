@@ -78,7 +78,7 @@ Field
 Fields and their properties are defined using the :p:`Field` parameter
 group.  All fields must be explicitly defined using the :p:`list` Field
 parameter, and must match the names expected by the respective
-Methods.  Properties include the number of ghost zones, precision, and whether a
+Methods.  Properties include the number of ghost zones, and whether a
 field is centered or lies on some face, edge, or corner.  Some
 performance-related parameters are available as well, including
 alignment in memory, and memory padding between fields.

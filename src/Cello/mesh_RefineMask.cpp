@@ -76,25 +76,15 @@ int RefineMask::apply ( Block * block ) throw ()
   const int level_block = block->level();
 
   if (output_ != "") {
-    void * output = initialize_output_(field.field_data());
-    float  * output_float  = (float*) output;
-    double * output_double = (double*)output;
+    cello_float * output = initialize_output_(field.field_data());
 
-    precision_type precision = field.precision (field.field_id(output_));
-    
     for (int ix=0; ix<nx; ix++) {
       for (int iy=0; iy<ny; iy++) {
 	for (int iz=0; iz<nz; iz++) {
 	  int i=ix + nx*(iy + ny*iz);
-	  if (precision == precision_single) {
-	    if (v[i] <  level_block) output_float[i] = -1;
-	    if (v[i] == level_block) output_float[i] =  0;
-	    if (v[i] >  level_block) output_float[i] = +1;
-	  } else if (precision == precision_double) {
-	    if (v[i] <  level_block) output_double[i] = -1;
-	    if (v[i] == level_block) output_double[i] =  0;
-	    if (v[i] >  level_block) output_double[i] = +1;
-	  }
+	    if (v[i] <  level_block) output[i] = -1;
+	    if (v[i] == level_block) output[i] =  0;
+	    if (v[i] >  level_block) output[i] = +1;
 	}
       }
     }

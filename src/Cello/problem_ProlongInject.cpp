@@ -19,43 +19,9 @@ ProlongInject::ProlongInject() throw()
 //----------------------------------------------------------------------
 
 void ProlongInject::apply 
-( precision_type precision,
-  void *       values_f, int nd3_f[3], int im3_f[3], int n3_f[3],
-  const void * values_c, int nd3_c[3], int im3_c[3], int n3_c[3],
+( cello_float *       values_f, int nd3_f[3], int im3_f[3], int n3_f[3],
+  const cello_float * values_c, int nd3_c[3], int im3_c[3], int n3_c[3],
   bool accumulate) const
-{
-  switch (precision)  {
-
-  case precision_single:
-
-    apply_(       (float *) values_f, nd3_f, im3_f, n3_f,
-			 (const float *) values_c, nd3_c, im3_c, n3_c,
-			 accumulate);
-
-    break;
-
-  case precision_double:
-
-    apply_(       (double *) values_f, nd3_f, im3_f, n3_f,
-			 (const double *) values_c, nd3_c, im3_c, n3_c,
-			 accumulate);
-
-    break;
-
-  default:
-
-    ERROR1 ("ProlongInject::apply()", "Unknown precision %d", precision);
-
-  }
-}
-
-//----------------------------------------------------------------------
-
-template <class T>
-void ProlongInject::apply_
-(       T * values_f, int nd3_f[3], int im3_f[3], int n3_f[3],
-        const T * values_c, int nd3_c[3], int im3_c[3], int n3_c[3],
-        bool accumulate) const
 {
   int rank = (nd3_f[2] > 1) ? 3 : ( (nd3_f[1] > 1) ? 2 : 1 );
 
@@ -79,7 +45,7 @@ void ProlongInject::apply_
 
 	int i_c = ix0_c + ix_c;
 	int i_f = ix0_f + ix_f;
-	  
+
 	values_f[i_f] = values_c[i_c];
 
       }

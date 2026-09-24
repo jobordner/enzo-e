@@ -375,7 +375,7 @@ int EnzoMethodPpm::SolveHydroEquations
      &ncolor, colorpt, coloff, colindex, &pressure_floor, &density_floor,
      &error, ie_error_x,ie_error_y,ie_error_z,&num_ie_error
      );
-  
+
 #ifdef EXIT_ON_ERROR  
   ASSERT2 ("EnzoMethodPpm::SolveHydroEquations",
            "Error %d in call to ppm_de block %s",error,block.name().c_str(),

@@ -22,10 +22,9 @@ ProlongLinear::ProlongLinear() throw()
 
 //----------------------------------------------------------------------
 
-void ProlongLinear::apply 
-( precision_type precision,
-  void *       values_f, int mf3[3], int of3[3], int nf3[3],
-  const void * values_c, int mc3[3], int oc3[3], int nc3[3],
+void ProlongLinear::apply
+( cello_float *       values_f, int mf3[3], int of3[3], int nf3[3],
+  const cello_float * values_c, int mc3[3], int oc3[3], int nc3[3],
   bool accumulate) const
 {
   TRACE6("ProlongLinear fine   %d:%d %d:%d %d:%d",
@@ -48,41 +47,6 @@ void ProlongLinear::apply
   CkPrintf("TRACE_PROLONG oc %d %d %d\n", oc3[0],oc3[1],oc3[2]);
   CkPrintf ("\n");
 #endif
-
-  switch (precision)  {
-
-  case precision_single:
-
-    apply_((float *)       values_f, mf3, of3, nf3,
-           (const float *) values_c, mc3, oc3, nc3,
-           accumulate);
-
-    break;
-
-  case precision_double:
-
-    apply_((double *)       values_f, mf3, of3, nf3,
-           (const double *) values_c, mc3, oc3, nc3,
-           accumulate);
-
-    break;
-
-  default:
-
-    ERROR1 ("ProlongLinear::apply()",
-            "Unknown precision %d",
-            precision);
-  }
-}
-
-//----------------------------------------------------------------------
-
-template <class T>
-void ProlongLinear::apply_
-(  T * values_f, int mf3[3], int of3[3], int nf3[3],
-   const T * values_c, int mc3[3], int oc3[3], int nc3[3],
-   bool accumulate) const
-{
   const int dcx = 1;
   const int dcy = mc3[0];
   const int dcz = mc3[0]*mc3[1];
@@ -106,7 +70,7 @@ void ProlongLinear::apply_
 
   // adjustment if coarse ghost cells available
   // NOTE:1 if ghosts not available , 0 if ghosts available
-  
+
   int gcx = (nf3[0]==2*nc3[0]) ? 1 : 0;
   int gcy = (nf3[1]==2*nc3[1]) ? 1 : 0;
   int gcz = (nf3[2]==2*nc3[2]) ? 1 : 0;
@@ -117,8 +81,8 @@ void ProlongLinear::apply_
 #endif
 
   const int mf = mf3[0]*mf3[1]*mf3[2];
-  
-  T * temp_f = (accumulate) ? (new T [mf]) : values_f;
+
+  cello_float * temp_f = (accumulate) ? (new cello_float [mf]) : values_f;
 
   if (rank == 1) {
 
@@ -141,8 +105,8 @@ void ProlongLinear::apply_
         wx[1] -= 4*gcx;
       }
 
-      T wx0 = 0.25*wx[ ifx&1];
-      T wx1 = 0.25*wx[~ifx&1];
+      cello_float wx0 = 0.25*wx[ ifx&1];
+      cello_float wx1 = 0.25*wx[~ifx&1];
 
       int i_c = (ocx+icx) ;
       int i_f = (ofx+ifx) ;
@@ -156,7 +120,7 @@ void ProlongLinear::apply_
     const int ofy = of3[1];
     const int ocy = oc3[1];
     const int nfy = nf3[1];
-    
+
     for (int ify = 0; ify<nfy; ify++) {
 
       int icy = ((ify+1) >> 1) - gcy;
@@ -172,8 +136,8 @@ void ProlongLinear::apply_
         wy[1] -= 4*gcy;
       }
 
-      T wy0 = 0.25*wy[ ify&1];
-      T wy1 = 0.25*wy[~ify&1];
+      cello_float wy0 = 0.25*wy[ ify&1];
+      cello_float wy1 = 0.25*wy[~ify&1];
 
       const int ofx = of3[0];
       const int ocx = oc3[0];
@@ -197,8 +161,8 @@ void ProlongLinear::apply_
           wx[1] -= 4*gcx;
         }
 
-        T wx0 = 0.25*wx[ ifx&1];
-        T wx1 = 0.25*wx[~ifx&1];
+        cello_float wx0 = 0.25*wx[ ifx&1];
+        cello_float wx1 = 0.25*wx[~ifx&1];
 
         int i_c = (ocx+icx) + mcx * ( (ocy+icy) );
         int i_f = (ofx+ifx) + mfx * ( (ofy+ify) );
@@ -232,8 +196,8 @@ void ProlongLinear::apply_
         wz[1] -= 4*gcz;
       }
 
-      T wz0 = 0.25*wz[ ifz&1];
-      T wz1 = 0.25*wz[~ifz&1];
+      cello_float wz0 = 0.25*wz[ ifz&1];
+      cello_float wz1 = 0.25*wz[~ifz&1];
 
       const int ofy = of3[1];
       const int ocy = oc3[1];
@@ -254,8 +218,8 @@ void ProlongLinear::apply_
           wy[1] -= 4*gcy;
         }
 
-        T wy0 = 0.25*wy[ ify&1];
-        T wy1 = 0.25*wy[~ify&1];
+        cello_float wy0 = 0.25*wy[ ify&1];
+        cello_float wy1 = 0.25*wy[~ify&1];
 
         const int ofx = of3[0];
         const int ocx = oc3[0];
@@ -281,8 +245,8 @@ void ProlongLinear::apply_
             wx[1] -= 4*gcx;
           }
 
-          T wx0 = 0.25*wx[ ifx&1];
-          T wx1 = 0.25*wx[~ifx&1];
+          cello_float wx0 = 0.25*wx[ ifx&1];
+          cello_float wx1 = 0.25*wx[~ifx&1];
 
           int i_c = (ocx+icx) + mcx*( (ocy+icy) + mcy*(ocz+icz) );
           int i_f = (ofx+ifx) + mfx*( (ofy+ify) + myf*(ofz+ifz) );
@@ -334,7 +298,7 @@ void ProlongLinear::apply_
       }
     }
   }
-  
+
   favg/=fcount;
   cavg/=ccount;
   if (accumulate == 1) {
@@ -351,7 +315,7 @@ void ProlongLinear::apply_
               //            mf3[0],mf3[1],mf3[2],
               fmin,favg,fmax);
   }
-#endif        
+#endif
 
   if (accumulate) {
     int i0 = of3[0] + mf3[0]*(of3[1] + mf3[1]*of3[2]);

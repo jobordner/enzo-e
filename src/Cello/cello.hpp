@@ -10,7 +10,6 @@
 ///
 /// This file includes system includes; defines global template functions
 /// such as MIN(), MAX(), and INDEX(); and global enumerated types.
-/// It also initializes precision-related defines, including default_precision
 /// Some global functions and constants are define with cello namespace,
 /// sich as cello:pi and cello::err_rel(), etc.
 
@@ -226,6 +225,9 @@ typedef long double cello_float;
 #  error "Must define one of CONFIG_PRECISION_[SINGLE|DOUBLE|QUAD]"
 #endif
 
+//----------------------------------------------------------------------
+// Precision defines
+//----------------------------------------------------------------------
 /// @enum type_enum
 /// @brief list of known scalar types, including ints as well as floats, used for Field types and Particle attributes
 enum type_enum {
@@ -283,6 +285,7 @@ enum type_enum {
 #   error Multiple CONFIG_PRECISION_[SINGLE|DOUBLE|QUAD] defined
 #endif
 
+//----------------------------------------------------------------------
 enum class MsgType { msg_refine, msg_check };
 
 /// @enum     DirType
@@ -807,7 +810,6 @@ namespace cello {
   const double pi = 3.14159265358979324;
 
   // precision functions
-  double machine_epsilon     (int);
   template <class T>
   T err_rel (const T & a, const T & b)
   {  return (a != 0.0) ? fabs((a - b) / a) : fabs(a-b);  }
@@ -860,8 +862,6 @@ namespace cello {
       }
     }
   }
-
-  int digits_max(int precision);
 
   // type_enum functions (prefered)
   extern bool type_is_float(int type);

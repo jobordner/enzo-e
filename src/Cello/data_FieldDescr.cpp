@@ -83,9 +83,6 @@ void FieldDescr::set_history (int history) throw()
 
         history_id_[i] = ih;
 
-        // set precision
-        set_precision (ih, precision(ip));
-
         // set ghost zones
         int gx,gy,gz;
         ghost_depth(ip,&gx,&gy,&gz);
@@ -135,9 +132,9 @@ int FieldDescr::ghost_depth
     int gd[3] = {
       std::max(std::get<0>(ghost_depth_.at(id_field)),
                ghost_depth_default_[0]),
-      std::max(std::get<0>(ghost_depth_.at(id_field)),
+      std::max(std::get<1>(ghost_depth_.at(id_field)),
                ghost_depth_default_[1]),
-      std::max(std::get<0>(ghost_depth_.at(id_field)),
+      std::max(std::get<2>(ghost_depth_.at(id_field)),
                ghost_depth_default_[2])
     };
     if (gx) (*gx) = gd[0];
@@ -209,34 +206,10 @@ int FieldDescr::insert_(const std::string & field_name,
   
   // Initialize attributes with default values
 
-  int precision = default_precision;
-
-  precision_.  push_back(precision);
   centering_.  push_back(std::tuple<int,int,int>(0,0,0));
   ghost_depth_.push_back(std::tuple<int,int,int>(-1,-1,-1));
 
   return id;
-}
-
-//----------------------------------------------------------------------
-
-void FieldDescr::set_precision(int id_field, int precision) throw()
-{
-  if ( ! cello::is_precision_supported (precision) ) {
-    WARNING1("FieldDescr::set_precision","precision \"%s\" is not supported",
-	         cello::precision_name[precision]);
-  }
-  if (id_field >= 0) {
-    precision_.at(id_field) = 
-      (precision == precision_default) ? default_precision : precision;
-  }
-}
-
-//----------------------------------------------------------------------
-
-int FieldDescr::bytes_per_element(int id_field) const throw()
-{
-  return cello::sizeof_precision (precision(id_field));
 }
 
 //----------------------------------------------------------------------
@@ -281,7 +254,6 @@ void FieldDescr::copy_(const FieldDescr & field_descr) throw()
   groups_    = field_descr.groups_;
   alignment_ = field_descr.alignment_;
   padding_   = field_descr.padding_;
-  precision_ = field_descr.precision_;
   centering_ = field_descr.centering_;
   ghost_depth_ = field_descr.ghost_depth_;
   for (int i=0; i<3; i++) {

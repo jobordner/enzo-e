@@ -206,7 +206,7 @@ void Block::init_refine_
  int nx, int ny, int nz,
  int num_field_blocks,
  int num_adapt_steps,
- int narray, char * array, int face_type,
+ int narray, cello_float * array, int face_type,
  const std::vector<int> & face_level,
  Adapt * adapt,
  State * state)
@@ -737,7 +737,7 @@ Block::~Block()
     index_.child(level,ic3,ic3+1,ic3+2);
 
     int n;
-    char * array;
+    cello_float * array;
     int if3[3]={0,0,0};
     int g3[3]={0,0,0};
     Refresh * refresh = new Refresh;
@@ -778,7 +778,7 @@ Block::~Block()
 void Block::p_refresh_child
 (
  int    n,
- char * buffer,
+ cello_float * array,
  int    ic3[3]
  )
 {
@@ -795,7 +795,7 @@ void Block::p_refresh_child
   // Adjust level for child block
   field_face->set_level (level()+1);
 
-  field_face -> array_to_face (buffer, data()->field());
+  field_face -> array_to_face (array, data()->field());
   delete field_face;
   PERF_STOP(iperf_refresh_child);
 }

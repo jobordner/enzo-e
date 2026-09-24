@@ -104,29 +104,6 @@ namespace enzo_field_adaptor_detail {
     inline const enzo_float* ptr_grackle(const std::string& name) const noexcept
     {
       int id_field = field_.field_id(name);
-
-      bool correct_prec;
-      switch (field_.precision(id_field)){
-        case precision_default:
-          correct_prec = true;
-          break;
-        case precision_single:
-          correct_prec = std::is_same<enzo_float, float>::value;
-          break;
-        case precision_double:
-          correct_prec = std::is_same<enzo_float, double>::value;
-          break;
-        case precision_quadruple:
-          correct_prec = std::is_same<enzo_float, long double>::value;
-          break;
-        default:
-          correct_prec = false;
-      }
-
-      if ((id_field >= 0) && !correct_prec){
-        ERROR1("BlockWrapper::ptr_grackle",
-               "%s doesn't have default precision", name.c_str());
-      }
       return (const enzo_float*)field_.values(id_field, index_history_);
     }
 

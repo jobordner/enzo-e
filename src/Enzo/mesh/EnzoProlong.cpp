@@ -59,9 +59,8 @@ void EnzoProlong::pup (PUP::er &p)
 //----------------------------------------------------------------------
 
 void EnzoProlong::apply 
-( precision_type precision,
-  void *       values_f, int m3_f[3], int o3_f[3], int n3_f[3],
-  const void * values_c, int m3_c[3], int o3_c[3], int n3_c[3],
+( cello_float *       values_f, int m3_f[3], int o3_f[3], int n3_f[3],
+  const cello_float * values_c, int m3_c[3], int o3_c[3], int n3_c[3],
   bool accumulate) const
 {
   if (!accumulate) {
@@ -82,8 +81,7 @@ void EnzoProlong::apply
         o3_c[i]+=1;
       }
       prolong_linear.apply
-        (precision,
-         values_f,m3_f,o3_f,n3_f,
+        (values_f,m3_f,o3_f,n3_f,
          values_c,m3_c,o3_c,n3_c,accumulate);
       for (int i=0; i<cello::rank(); i++) {
         n3_c[i]+=2;
@@ -101,8 +99,7 @@ void EnzoProlong::apply
 
     ProlongLinear prolong_linear;
     prolong_linear.apply
-      (precision,
-       values_f,m3_f,o3_f,n3_f,
+      (values_f,m3_f,o3_f,n3_f,
        values_c,m3_c,o3_c,n3_c,accumulate);
   }
 

@@ -330,8 +330,8 @@ void OutputImage::write_block ( const Block *  block ) throw()
       // add block contribution to image
 
       cello_float * field_values = (include_ghost_) ?
-        (cello_float *) field.values ( index_field,image_history_) :
-        (cello_float *) field.unknowns(index_field,image_history_);
+        field.values ( index_field,image_history_) :
+        field.unknowns(index_field,image_history_);
 
       double factor = (nb3[IZ] > 1) ? 1.0 / pow(2.0,1.0*level) : 1.0;
       if (rank >= 2 && (std::abs(dm3[IZ] - dp3[IZ]) < h3[IZ])) factor = 1.0;

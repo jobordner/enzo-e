@@ -140,8 +140,15 @@ void Block::stopping_update_method_state_
 
   for (size_t k=0; k<dt_method.size(); k++) {
     const int max_super = cello::method(k)->max_supercycle();
-    const double ratio = dt_method[k] / dt_global;
-    const int desired_super = int(std::floor(ratio));
+    double ratio;
+    int desired_super;
+    if (dt_method[k] != std::numeric_limits<double>::max()) {
+      ratio = dt_method[k] / dt_global;
+      desired_super = int(std::floor(ratio));
+    } else { // dt_method[k] is maximum double
+      ratio = dt_method[k];
+      desired_super = std::numeric_limits<int>::max();
+    }
     const int allowed_super = std::min(desired_super,max_super);
     State::MethodState & method_state = state_->method(k);
     const int step = method_state.step();

@@ -17,7 +17,7 @@
 
 /// @def      CLOSE
 /// @brief    Local definition for testing whether two scalars are close
-#define MACH_EPS cello::machine_epsilon(default_precision)
+#define MACH_EPS std::numeric_limits<cello_float>::epsilon();
 #define CLOSE(a,b) ( cello::err_rel(a,b) < 2*MACH_EPS )
 
 //----------------------------------------------------------------------

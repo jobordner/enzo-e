@@ -79,7 +79,6 @@ void Config::pup (PUP::er &p)
   PUParray(p,field_ghost_depth,3);
   p | field_padding;
   p | field_history;
-  p | field_precision;
   p | field_prolong;
   p | field_restrict;
   p | field_group_list;
@@ -599,19 +598,6 @@ void Config::read_field_ (Parameters * p) throw()
   field_padding = p->value_integer("Field:padding",0);
 
   field_history = p->value_integer("Field:history",0);
-
-  // Field precision
-
-  std::string precision_str = p->value_string("Field:precision","default");
-
-  if      (precision_str == "default")   field_precision = precision_default;
-  else if (precision_str == "single")    field_precision = precision_single;
-  else if (precision_str == "double")    field_precision = precision_double;
-  else if (precision_str == "quadruple") field_precision = precision_quadruple;
-  else {
-    ERROR1 ("Config::read()", "Unknown precision %s",
-	    precision_str.c_str());
-  }
 
   field_prolong   = p->value_string ("Field:prolong","enzo");
   field_restrict  = p->value_string ("Field:restrict","linear");

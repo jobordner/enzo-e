@@ -32,7 +32,6 @@ int RefineDensity::apply ( Block * block ) throw ()
   Field field = block->data()->field();
 
   int id = field.field_id ("density");
-  int precision = field.precision(id);
 
   int mx,my,mz;
   field.dimensions(id,&mx,&my,&mz);
@@ -42,42 +41,7 @@ int RefineDensity::apply ( Block * block ) throw ()
   } else {
     field.ghost_depth(id, &gx,&gy,&gz);
   }
-  char * array = field.values(id);
-
-  int adapt_result;
-
-  if (precision == precision_single) {
-
-    adapt_result = apply_ ((const float*)      array,mx,my,mz,gx,gy,gz);
-
-  } else if (precision == precision_double) {
-
-    adapt_result = apply_ ((const double*)     array,mx,my,mz,gx,gy,gz);
-
-  } else if (precision == precision_quadruple) {
-
-    adapt_result = apply_ ((const long double*)array,mx,my,mz,gx,gy,gz);
-
-  } else {
-    ERROR1 ("RefineDensity::apply()",
-	   "Unrecognized precision %d\n",
-	    precision);
-    adapt_result = adapt_unknown;
-  }
-
-  // Don't refine if already at maximum level
-  adjust_for_level_( &adapt_result, block->level() );
-    
-  return adapt_result;
-}
-
-//----------------------------------------------------------------------s    
-template <class T>
-int RefineDensity::apply_
-( const T * array,
-  int mx, int my, int mz,
-  int gx, int gy, int gz ) const throw ()
-{
+  cello_float * array = field.values(id);
 
   bool any_refine  = false;
   bool all_coarsen = true;
@@ -90,12 +54,13 @@ int RefineDensity::apply_
       }
     }
   }
-  return 
-    any_refine ?  adapt_refine :
-    (all_coarsen ? adapt_coarsen : adapt_same) ;
+  int adapt_result = any_refine ?
+    adapt_refine : (all_coarsen ? adapt_coarsen : adapt_same) ;
 
+  // Don't refine if already at maximum level
+  adjust_for_level_( &adapt_result, block->level() );
+  return adapt_result;
 }
-
 
 //======================================================================
 

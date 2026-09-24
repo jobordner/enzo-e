@@ -152,7 +152,7 @@ void MethodFluxCorrect::compute_continue_refresh( Block * block ) throw()
 
   if (block->is_leaf()) {
 
-    cello_float * density = (cello_float *) field.values("density");
+    cello_float * density = field.values("density");
 
     Grouping * groups = cello::field_groups();
 
@@ -163,7 +163,7 @@ void MethodFluxCorrect::compute_continue_refresh( Block * block ) throw()
       const bool scale_by_density =
         groups->is_in(field.field_name(index_field),"make_field_conservative");
 
-      values = (cello_float *) field.values(index_field);
+      values = field.values(index_field);
 
       if (scale_by_density) {
         for (int iz=gz; iz<mz-gz; iz++) {
@@ -241,7 +241,6 @@ void MethodFluxCorrect::compute_continue_sum_fields
       if (block->state()->cycle() == 0) {
         field_sum_0_[i_f] = field_sum_[i_f];
       }
-      const int precision = field.precision (index_field);
       const double digits =
         -log10(cello::err_rel(field_sum_0_[i_f],field_sum_[i_f]));
       const std::string& field_name = field.field_name(index_field);
@@ -250,7 +249,7 @@ void MethodFluxCorrect::compute_continue_sum_fields
          field_name.c_str(),
          field_sum_[i_f],
          digits,
-         cello::digits_max(precision));
+         std::numeric_limits<cello_float>::digits10);
 
       auto search = min_digits_map_.find(field_name);
       if (search != min_digits_map_.end()){
@@ -486,7 +485,7 @@ void MethodFluxCorrect::flux_correct_(Block * block)
     // load the density array
     cello_float* density_array = nullptr;
     if (field.is_field("density")){
-      density_array = (cello_float*) field.unknowns("density");
+      density_array = field.unknowns("density");
 
       // copy the values in the density_array (we could be more selective about
       // what we copy)
@@ -517,7 +516,7 @@ void MethodFluxCorrect::flux_correct_(Block * block)
         continue;
       }
 
-      cello_float* field_array = (cello_float*) field.unknowns(index_field);
+      cello_float* field_array = field.unknowns(index_field);
 
       if (groups->is_in(field_name, "make_field_conservative")){
         // Handle flux corrections for fields that must be multiplied by the

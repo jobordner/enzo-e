@@ -912,12 +912,10 @@ void Block::refresh_coarse_apply_ (Refresh * refresh)
             field.coarse_dimensions(i_f,m3_c,m3_c+1,m3_c+2);
             field.dimensions(index_field_src,&m3_f[0],&m3_f[1],&m3_f[2]);
 
-            cello_float * field_values_src =
-              (cello_float *) field.values(index_field_src);
-            cello_float * field_values_dst =
-              (cello_float *) field.values(index_field_dst);
+            cello_float * field_values_src = field.values(index_field_src);
+            cello_float * field_values_dst = field.values(index_field_dst);
             cello_float * coarse_field_src =
-              (cello_float *) field.coarse_values(index_field_src);
+              field.coarse_values(index_field_src);
 
             const float r = n3_f[0] / n3_c[0];
             const cello_float rr = (r == 1) ? 1.0 : 1.0/cello::num_children();
@@ -976,8 +974,7 @@ void Block::refresh_coarse_apply_ (Refresh * refresh)
 
             prolong_ptr->array_sizes_valid (n3_f,n3_c);
             const bool accumulate = refresh->accumulate(i_f);
-            prolong_ptr->apply(default_precision,
-                               field_values_dst, m3_f, ip3_f, np3_f,
+            prolong_ptr->apply(field_values_dst, m3_f, ip3_f, np3_f,
                                coarse_field_src, m3_c, ip3_c, np3_c,
                                accumulate);
 

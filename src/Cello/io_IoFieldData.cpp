@@ -68,26 +68,11 @@ void IoFieldData::field_array
 		std::string("field_") +	field_descr->field_name(field_index_);
   int type_size = 0;
   if (type) {
-
-    precision_type precision = field_descr->precision(field_index_);
-    if (precision == precision_default) precision = default_precision;
-    switch (precision) {
-    case precision_single:
+    type_size = sizeof(cello_float);
+    if (sizeof(cello_float) == sizeof(float)) {
       (*type) = type_float;
-      type_size = sizeof(float);
-      break;
-    case precision_double:
+    } else {
       (*type) = type_double;
-      type_size = sizeof(double);
-      break;
-    case precision_quadruple:
-      (*type) = type_quadruple;
-      type_size = sizeof(long double);
-      break;
-    default:
-      ERROR2 ("IoFieldData",
-	      "Unsupported precision type %d for field %s",
-	      precision, field_descr->field_name(field_index_).c_str());
     }
   }
   int mx,my,mz;

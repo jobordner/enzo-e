@@ -232,7 +232,7 @@ public:
    int nx, int ny, int nz,
    int num_field_blocks,
    int num_adapt_steps,
-   int narray, char * array, int face_type,
+   int narray, cello_float * array, int face_type,
    const std::vector<int> & face_level,
    Adapt * adapt,
    State * state);
@@ -632,7 +632,7 @@ public:
   void refresh_exit (Refresh * refresh);
 
   /// Get restricted data from child when it is deleted
-  void p_refresh_child (int n, char a[],int ic3[3]);
+  void p_refresh_child (int n, cello_float a[],int ic3[3]);
 
   void p_method_flux_correct_refresh();
   void r_method_flux_correct_sum_fields(CkReductionMsg * msg);

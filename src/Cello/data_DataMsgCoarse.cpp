@@ -57,7 +57,7 @@ DataMsgCoarse::DataMsgCoarse
 
     int mfx,mfy,mfz;
     field.dimensions(index_field,&mfx,&mfy,&mfz);
-    cello_float * field_values = (cello_float *) field.values(index_field);
+    cello_float * field_values = field.values(index_field);
     const int if0 = ifms3[0] + mfx*(ifms3[1] + mfy*ifms3[2]);
 
     cello_float * field_array = field_buffer_.data() + i_f*na;
@@ -186,8 +186,7 @@ void DataMsgCoarse::update (Data * data)
       const int ic0 = iam3_[0] + m3_c[0]*(iam3_[1] + m3_c[1]*iam3_[2]);
 
       cello_float * field_array = field_buffer_.data() + i_f*na;
-      cello_float * field_values =
-        (cello_float *) field.coarse_values(index_field);
+      cello_float * field_values = field.coarse_values(index_field);
 
       for (int kz=0; kz<na3[2]; kz++) {
         for (int ky=0; ky<na3[1]; ky++) {

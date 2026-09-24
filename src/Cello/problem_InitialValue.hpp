@@ -55,10 +55,6 @@ private: // functions
   /// Helper function used to initialize values_
   void initialize_values_();
 
-  template<class T>
-  void copy_precision_
-  (T * field, int offset, double * value, int nx, int ny, int nz);
-
 private: // attributes
 
   Parameters * parameters_;

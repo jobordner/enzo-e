@@ -654,12 +654,6 @@ void Simulation::initialize_data_descr_() throw()
 
   field_descr_->set_default_ghost_depth (gx,gy,gz);
 
-  // Default precision
-
-  for (int i=0; i<field_descr_->field_count(); i++) {
-    field_descr_->set_precision(i,config_->field_precision);
-  }
-
   //--------------------------------------------------
   // parameter: Field : alignment
   //--------------------------------------------------
@@ -1155,7 +1149,8 @@ void Simulation::monitor_performance()
   counters_reduce_vector.push_back( ParticleData::counter[in] );
   counters_reduce_vector.push_back( hierarchy_->num_particles() );
 
-  // Refresh count, fields, particles, bytes sent/received per refresh object
+  // Refresh count, fields, particles, bytes sent/received per refresh
+  // object
   for (size_t i=0; i<refresh_list_.size(); i++) {
     counters_reduce_vector.push_back (refresh_perf_count_[i]);
     counters_reduce_vector.push_back (refresh_perf_bytes_[i]);

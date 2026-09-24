@@ -104,12 +104,6 @@ Field Descriptor
 
 ----
 
-:Method:   :p:`Field::set_precision(int id, int precision)`
-:Summary:   :s:`Set precision for a field`
-:Return:   :t:`void`
-
-----
-
 :Method:   :p:`Field::insert_permanent(const std::string & name)`
 :Summary:   :s:`Insert a new field`
 :Return:   :t:`int`
@@ -180,12 +174,6 @@ Properties
 :Method:   :p:`ghost_depth(int id, int \* gx, int \* gy = 0, int \* gz = 0) const`
 :Summary:   :s:`depth of ghost zones of given field`
 :Return:   :t:`void`
-
-----
-
-:Method:   :p:`precision(int id) const`
-:Summary:   :s:`Return precision of given field`
-:Return:   :t:`int`
 
 ----
 

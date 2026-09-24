@@ -195,7 +195,7 @@ void InitialValue::copy_values_
 
   // Copy the floating-point values to the field where mask values are true
 
-  void * array = field_data->unknowns(field_descr,index_field);
+  cello_float * array = field_data->unknowns(field_descr,index_field);
 
   // Determine allocated array size
 
@@ -206,44 +206,11 @@ void InitialValue::copy_values_
   int offset = gx + nx*(gy + ny*gz);
 
   // Copy evaluated values to field values
-
-  //  @@@@ BUG: PNG image input
-  //  @@@@ IC's SMALLER BUT CENTERED IF OFFSET SET TO 0
-  //  @@@@ IC's SHIFTED TO LOWER LEFT
-  //  mask[0][0],[1][1],[2][2] == 1
-
-  // The above comment is from an earlier version
-
-  precision_type precision = field_descr->precision(index_field);
-  switch (precision) {
-  case precision_single:
-    copy_precision_((float *)array,offset,value,nx,ny,nz);
-    break;
-  case precision_double:
-    copy_precision_((double *)array,offset,value,nx,ny,nz);
-    break;
-  case precision_quadruple:
-    copy_precision_((long double *)array,offset,value,nx,ny,nz);
-    break;
-  default:
-    break;
-  }
-}
-
-//----------------------------------------------------------------------
-
-template<class T>
-void InitialValue::copy_precision_
-(T * array,
- int offset,
- double * value,
- int nx, int ny, int nz)
-{
   for (int iz = 0; iz<nz; iz++) {
     for (int iy = 0; iy<ny; iy++) {
       for (int ix = 0; ix<nx; ix++) {
 	int i = ix + nx*(iy + ny*iz);
-	(array - offset)[i] = (T) value[i];
+	(array - offset)[i] = value[i];
       }
     }
   }

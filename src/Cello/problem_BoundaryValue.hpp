@@ -66,12 +66,6 @@ public: // virtual functions
 
 protected: // functions
 
-  template <class T>
-  void copy_(T * field, double * value,
-	     int ndx, int ndy, int ndz,
-	     int nx,  int ny,  int nz,
-	     int ix0, int iy0, int iz0) const throw ();
-
   /// Create a vector of ValueFListPair instances from the Parameters
   ///
   /// @param[in] p is a reference to a Parameter object

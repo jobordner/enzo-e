@@ -48,11 +48,6 @@ public: // virtual functions
                        Field field, double hx, double hy, double hz,
                        int g0=1) throw() = 0;
 
-  virtual void matvec (precision_type precision,
-		       void * y, void * x,
-                       Field field, double hx, double hy, double hz,
-                       int g0=1) throw() = 0;
-  
   /// Extract the diagonal into the given field
   virtual void diagonal (int ix,
                          Field field, double hx, double hy, double hz,
@@ -68,13 +63,6 @@ public: // virtual functions
   /// Return given stencil value
   virtual double stencil_value (int ix, int iy, int iz,
                                 double hx, double hy, double hz) const = 0;
-
-protected: // functions
-
-  template<class T>
-  void residual_ (T * ir, T * ib,
-		 int mx, int my, int mz,
-		 int ig0) throw();
 
 };
 

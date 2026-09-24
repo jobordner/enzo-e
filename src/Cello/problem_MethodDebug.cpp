@@ -85,7 +85,7 @@ void MethodDebug::compute ( Block * block) throw()
   for (int ih = 0; ih < num_history; ih++) {
     for (int index_field=0; index_field<num_fields_; index_field++) {
 
-      cello_float * values = (cello_float *) field.values(index_field,ih);
+      cello_float * values = field.values(index_field,ih);
 
       int err_count = 0;
       for (int iz=gz; iz<mz-gz; iz++) {
@@ -271,7 +271,7 @@ void MethodDebug::compute_continue
 
         int mx,my,mz;
         field.dimensions (i_f,&mx,&my,&mz);
-        cello_float * values = (cello_float*)field.values(i_f,ih);
+        cello_float * values = field.values(i_f,ih);
 
         int gx=0,gy=0,gz=0;
         if (!l_ghost_) field.ghost_depth (i_f,&gx,&gy,&gz);
@@ -306,7 +306,7 @@ void MethodDebug::compute_continue
 
             int mx,my,mz;
             field.coarse_dimensions (i_f,&mx,&my,&mz);
-            cello_float * values = (cello_float*)field.coarse_values(i_f);
+            cello_float * values = field.coarse_values(i_f);
             for (int iz=gz; iz<mz-gz; iz++) {
               for (int iy=gy; iy<my-gy; iy++) {
                 for (int ix=gx; ix<mx-gx; ix++) {

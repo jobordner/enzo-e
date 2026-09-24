@@ -17,8 +17,8 @@ class FieldDescr
   ///
   /// This class is used to store information about Fields in general,
   /// including field names, how they are centered (cell-centered,
-  /// face-centered, on corners, etc), number of ghost zones, padding,
-  /// alignment, and precision.  There is one FieldDescr object per
+  /// face-centered, on corners, etc), number of ghost zones, padding, and
+  /// alignment.  There is one FieldDescr object per
   /// Simulation object.  Actual Field data are stored in FieldData
   /// objects, which are each associated with a unique Block of data.
 
@@ -35,7 +35,6 @@ public: // functions
     groups_(),
     alignment_(1),
     padding_(0),
-    precision_(),
     centering_(),
     ghost_depth_(),
     conserved_(),
@@ -71,7 +70,6 @@ public: // functions
     p | groups_;
     p | alignment_;
     p | padding_;
-    p | precision_;
     p | centering_;
     p | ghost_depth_;
     PUParray(p,ghost_depth_default_,3);
@@ -87,9 +85,6 @@ public: // functions
   /// Set padding
   void set_padding(int padding) throw()
   { padding_ = padding; }
-
-  /// Set precision for a field
-  void set_precision(int id_field, int precision) throw();
 
   /// Set centering for a field
   void set_centering(int id_field, int cx, int cy=0, int cz=0) throw();
@@ -193,16 +188,6 @@ public: // functions
   int padding() const throw()
   { return padding_; }
 
-  /// Return precision of given field
-  int precision(int id_field) const throw()
-  {
-    return (id_field >= 0) ? precision_.at(id_field) : precision_unknown;
-  }
-
-  /// Return the data type of a given field
-  int data_type(int id_field) const throw()
-  { return cello::convert_enum_precision_to_type(precision(id_field)); }
-
   /// centering of given field
   void centering(int id_field, int * cx, int * cy = 0, int * cz = 0) const 
     throw();
@@ -224,9 +209,6 @@ public: // functions
   {
     return (id_field >= 0) ? conserved_.at(id_field) : false;
   }
-  
-  /// Number of bytes per element required by the given field
-  int bytes_per_element(int id_field) const throw();
 
   /// Whether the field refers to a valid permanent field
   bool is_permanent (std::string field) const throw()
@@ -282,9 +264,6 @@ private: // attributes
 
   /// padding between fields in bytes
   int padding_;
-
-  /// Precision of each field
-  std::vector<int> precision_;
 
   /// cell centering for each field
   std::vector<std::tuple<int,int,int> > centering_;

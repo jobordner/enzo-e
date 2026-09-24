@@ -18,7 +18,7 @@ public: // attributes
   int n;
 
   /// Array data
-  char * a;
+  cello_float * a;
 
   /// Child indices
   int ic3[3];

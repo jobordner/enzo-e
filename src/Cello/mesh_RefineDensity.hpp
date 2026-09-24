@@ -47,11 +47,6 @@ public: // interface
 
 private: // functions
 
-  template <class T>
-  int apply_ (const T * array,
-	      int mx, int my, int mz,
-	      int gx, int gy, int gz) const throw ();
-
 };
 
 #endif /* MESH_REFINE_DENSITY_HPP */

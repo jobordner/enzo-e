@@ -123,21 +123,20 @@ public: // interface
   Refresh * refresh () const { return refresh_; }
 
   /// Create an array with the field's face data
-  void face_to_array(Field field, int * n, char ** array) throw();
+  void face_to_array(Field field, int * n, cello_float ** array) throw();
 
   /// Use existing array for field's face data
-  void face_to_array (Field field, char * array) throw();
+  void face_to_array (Field field, cello_float * array) throw();
 
   /// Copy the input array data to the field's ghost zones
 
-  void array_to_face(char * array, Field field) throw();
+  void array_to_face(cello_float * array, Field field) throw();
 
   /// Copy directly the face from source FieldData to destination FieldData
   void face_to_face (Field field_src, Field field_dst);
 
-  /// Calculate the number of bytes needed
-
-  int num_bytes_array (Field field) throw();
+  /// Calculate the number of elements in the packed array
+  int num_elements_array (Field field) throw();
 
   //--------------------------------------------------
 
@@ -165,31 +164,27 @@ private: // functions
 
   const Restrict * restrict_ () const
   { return refresh_->get_restrict(); }
-  
+
   /// copy data
   void copy_(const FieldFace & field_face); 
 
-  /// Precision-agnostic function for loading field block face into
-  /// the field_face array; returns number of bytes copied
-  template<class T>
-  size_t load_ (      T * array_face,
-                const T * field_face,
+  /// Load field block face into the field_face array; return number
+  /// of bytes copied
+  size_t load_ (      cello_float * array_face,
+                const cello_float * field_face,
 		int nd3[3], int nf3[3], int im3[3],
 		bool accumulate) throw();
 
-  /// Precision-agnostic function for copying the field_face array into
-  /// the field block ghosts; returns number of bytes copied
-  template<class T>
-  size_t store_ (      T * field_ghosts,
-                 const T * array_ghosts, 
+  /// Copy the field_face array into the field block ghosts; return
+  /// number of bytes copied
+  size_t store_ (      cello_float * field_ghosts,
+                 const cello_float * array_ghosts, 
 		 int nd3[3], int nf3[3], int im3[3],
 		 bool accumulate) throw();
 
-  /// Precision-agnostic function for copying a field block face
-  /// into another block's ghost zones
-  template<class T>
-  void copy_ (      T * vd, int md3[3], int nd3[3], int id3[3],
-	      const T * vs, int ms3[3], int ns3[3], int is3[3],
+  /// Copy a field block face into another block's ghost zones
+  void copy_ (      cello_float * vd, int md3[3], int nd3[3], int id3[3],
+	      const cello_float * vs, int ms3[3], int ns3[3], int is3[3],
 	      bool accumulate) throw();
 
   /// Multiply the given field by density to convert to conservative
