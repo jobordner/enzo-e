@@ -352,7 +352,7 @@ public:
   int index_solver() const throw()
   {
     ASSERT1("Block::index_solver()","%s index_solver_[] stack is empty",
-	   name().c_str(),
+	   name8().c_str(),
 	   (index_solver_.size() > 0));
     return index_solver_[index_solver_.size()-1];
   }
@@ -903,20 +903,20 @@ protected: // functions
   /// Update boundary conditions
   void update_boundary_ ();
 
-  void new_msg_count_ (Index index, int id_refresh);
-  void new_msg_clear_count_ (int id_refresh);
+  void msg_count_ (Index index, int id_refresh);
+  void msg_clear_count_ (int id_refresh);
 
-  MsgRefresh * new_msg_refresh_ (Index index, int id_refresh);
-  void new_msg_refresh_ (Index index, int id_refresh, FieldFace *);
-  void new_msg_refresh_ (Index index, int id_refresh,
-                         Field field, Refresh * refresh,
-                         int iam3[3],int iap3[3],
-                         int ifms3[3],int ifps3[3],
-                         int ifmr3[3],int ifpr3[3]);
-  void new_msg_refresh_ (Index index, int id_refresh, ParticleData *);
-  void new_msg_refresh_ (Index index, int id_refresh,
-                         int face_type, int axis, int face, int ic3[3],
-                         FluxData * flux_data);
+  MsgRefresh * msg_refresh_ (Index index, int id_refresh);
+  void msg_refresh_ (Index index, int id_refresh, FieldFace *);
+  void msg_refresh_ (Index index, int id_refresh,
+                     Field field, Refresh * refresh,
+                     int iam3[3],int iap3[3],
+                     int ifms3[3],int ifps3[3],
+                     int ifmr3[3],int ifpr3[3]);
+  void msg_refresh_ (Index index, int id_refresh, ParticleData *);
+  void msg_refresh_ (Index index, int id_refresh,
+                     int face_type, int axis, int face, int ic3[3],
+                     FluxData * flux_data);
 
   /// Return the currently-active Refresh object
   Refresh * refresh () throw()

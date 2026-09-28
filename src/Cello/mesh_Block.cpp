@@ -535,7 +535,8 @@ void Block::push_solver(int index_solver) throw()
 
 int Block::pop_solver() throw()
 {
-  int index = this->index_solver();
+  int index = index_solver();
+
   ASSERT ("Block::pop_solver",
           "Trying to pop element off of empty Block::index_solver_ stack",
           index_solver_.size() > 0);

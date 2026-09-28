@@ -11,6 +11,37 @@
 
 //----------------------------------------------------------------------
 
+#define ENABLE_SMP_NODE_LOCK
+#define ENABLE_SMP_DATA_LOCK
+
+//----------------------------------------------------------------------
+
+// Define node lock defines
+
+#if defined(CONFIG_SMP_MODE) and defined(ENABLE_SMP_NODE_LOCK)
+static CmiNodeLock node_lock_msg_refresh;
+void mutex_init_msg_refresh()
+{ node_lock_msg_refresh = CmiCreateLock(); }
+#   define SMP_NODE_LOCK   CmiLock(node_lock_msg_refresh);
+#   define SMP_NODE_UNLOCK CmiUnlock(node_lock_msg_refresh);
+#else
+void mutex_init_msg_refresh() { }
+#   define SMP_NODE_LOCK   /* ... */
+#   define SMP_NODE_UNLOCK /* ... */
+#endif
+
+// Define data lock defines
+
+#if defined(CONFIG_SMP_MODE) and defined(ENABLE_SMP_DATA_LOCK)
+#   define SMP_DATA_LOCK    data->lock_node();
+#   define SMP_DATA_UNLOCK  data->unlock_node();
+#else
+#   define SMP_DATA_LOCK    /* ... */
+#   define SMP_DATA_UNLOCK  /* ... */
+#endif
+
+//----------------------------------------------------------------------
+
 int64_t MsgRefresh::counter[CONFIG_NODE_SIZE] = {0};
 
 //----------------------------------------------------------------------
@@ -127,10 +158,21 @@ void MsgRefresh::update (Data * data)
 {
   if (data_msg_ == nullptr) return;
 
+  PERF_SMP_START(iperf_smp_msg_refresh);
+
+  SMP_DATA_LOCK;
+  SMP_NODE_LOCK;
+
   data_msg_->update(data,is_local_);
+
+  SMP_NODE_UNLOCK;
+  SMP_DATA_UNLOCK;
+
+  PERF_SMP_STOP(iperf_smp_msg_refresh);
 
   if (!is_local_) {
     CkFreeMsg (buffer_);
     buffer_ = nullptr;
   }
+
 }

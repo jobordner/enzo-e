@@ -43,6 +43,7 @@ void Block::adapt_enter_()
 
 void Block::adapt_begin_()
 {
+  cello::hierarchy()->clear_num_neighbors();
   cello::simulation()->set_phase(phase_adapt);
 
   if (is_leaf()) {
@@ -525,18 +526,12 @@ void Block::adapt_send_level()
   int of3[3];
   std::map<Index,int> index_count;
   std::map<Index,bool> index_first;
-  int num_local_neighbors=0;
-  int num_total_neighbors=0;
   while (it_neighbor.next(of3)) {
     Index index_neighbor = it_neighbor.index();
-    ++num_total_neighbors;
-    if (thisProxy[index_neighbor].ckLocal() != nullptr)
-      ++num_local_neighbors;
     index_first[index_neighbor] = true;
     ++index_count[index_neighbor];
   }
 
-  cello::hierarchy()->increment_neighbors(num_local_neighbors,num_total_neighbors);
   std::map<Index,MsgAdapt *> msg_map;
 
   while (it_neighbor.next(of3)) {

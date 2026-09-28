@@ -16,13 +16,23 @@
 
 //----------------------------------------------------------------------
 
-static CmiNodeLock throttle_node_lock;
+#define ENABLE_SMP_NODE_LOCK
 
 //----------------------------------------------------------------------
+
+// Define node lock defines
+
+#if defined(CONFIG_SMP_MODE) and defined(ENABLE_SMP_NODE_LOCK)
+static CmiNodeLock throttle_node_lock;
 void mutex_init()
-{
-  throttle_node_lock = CmiCreateLock();
-}
+{ throttle_node_lock = CmiCreateLock(); }
+#   define SMP_NODE_LOCK   CmiLock(throttle_node_lock);
+#   define SMP_NODE_UNLOCK CmiUnlock(throttle_node_lock);
+#else
+void mutex_init() { }
+#   define SMP_NODE_LOCK   /* ... */
+#   define SMP_NODE_UNLOCK /* ... */
+#endif
 
 //----------------------------------------------------------------------
 
@@ -60,7 +70,7 @@ void EnzoInitialMusic::pup (PUP::er &p)
   // NOTE: change this function whenever attributes change
 
   p | level_;
-  
+
   p | field_files_;
   p | field_datasets_;
   p | field_coords_;
@@ -95,7 +105,7 @@ void EnzoInitialMusic::enforce_block
   // Optionally pause before reading if throttling enabled.  For
   // reducing filesystem contention on large runs
   throttle_stagger_();
- 
+
   // Get the grid size at level_
   double lower_domain[3];
   double upper_domain[3];
@@ -120,7 +130,7 @@ void EnzoInitialMusic::enforce_block
     int mx,my,mz;
     int nx,ny,nz;
     int gx,gy,gz;
- 
+
     field.dimensions (0,&mx,&my,&mz);
     field.size         (&nx,&ny,&nz);
     field.ghost_depth(0,&gx,&gy,&gz);
@@ -128,10 +138,9 @@ void EnzoInitialMusic::enforce_block
     // Open the field file
 
     if (throttle_intranode_) {
-#ifdef CONFIG_SMP_MODE
+
       PERF_SMP_START(iperf_smp_initial_music);
-      CmiLock(throttle_node_lock);
-#endif
+      SMP_NODE_LOCK;
     }
 
     FileHdf5 * file = nullptr;
@@ -139,7 +148,7 @@ void EnzoInitialMusic::enforce_block
     if (throttle_node_files_) {
       if (FileHdf5::file_list[file_name] == nullptr) {
         FileHdf5::file_list[file_name] = new FileHdf5 ("./",file_name);
-#ifdef DEBUG_THROTTLE      
+#ifdef DEBUG_THROTTLE
         CkPrintf ("%d %g DEBUG_THROTTLE opening %s\n",
                   CkMyPe(),cello::simulation()->timer(),file_name.c_str());
         fflush(stdout);
@@ -150,11 +159,11 @@ void EnzoInitialMusic::enforce_block
       file = FileHdf5::file_list[file_name];
     } else {
       file =  new FileHdf5 ("./",file_name);
-#ifdef DEBUG_THROTTLE      
+#ifdef DEBUG_THROTTLE
       CkPrintf ("%d %g DEBUG_THROTTLE opening %s\n",
                 CkMyPe(),cello::simulation()->timer(),file_name.c_str());
       fflush(stdout);
-#endif      
+#endif
       file->file_open();
       throttle_delay_();
     }
@@ -171,7 +180,7 @@ void EnzoInitialMusic::enforce_block
 	     ((IX<4)&&(IY<4)&&(IZ<4)) &&
 	     ((IX != IY) || (IY==-1 && IZ == -1)) &&
 	     ((IX != IY && IY != IZ) || (IZ == -1)));
-    
+
     int m4[4] = {0,0,0,0};
     int type_data = type_unknown;
     file-> data_open (field_datasets_[index], &type_data,
@@ -211,14 +220,14 @@ void EnzoInitialMusic::enforce_block
     file->mem_create (n4[IX],n4[IY],n4[IZ],
 		     n4[IX],n4[IY],n4[IZ],
 		     0,0,0);
-    
+
     // input domain size
     union {
       void   * data;
       float  * data_float;
       double * data_double;
     };
-    
+
     if (type_data == type_single) {
       data_float = new float [nx*ny*nz];
     } else if (type_data == type_double) {
@@ -237,7 +246,7 @@ void EnzoInitialMusic::enforce_block
 
       copy_field_data_to_array_
 	(array,data_float,mx,my,mz,nx,ny,nz,gx,gy,gz,n4,IX,IY);
-      
+
     } else if (type_data == type_double) {
 
       copy_field_data_to_array_
@@ -249,13 +258,13 @@ void EnzoInitialMusic::enforce_block
     } else if (type_data == type_double) {
       delete [] data_double;
     }
-    
+
     file->data_close();
 
     const bool can_close = (++close_count[file_name] == throttle_close_count_);
     const bool do_close = (throttle_node_files_ && can_close)
       ||                  (! throttle_node_files_);
-    
+
     if ( do_close ) {
       close_count[file_name] = 0;
       file->file_close();
@@ -265,14 +274,12 @@ void EnzoInitialMusic::enforce_block
       CkPrintf ("%d %g DEBUG_THROTTLE closed %s\n",
                 CkMyPe(),cello::simulation()->timer(),file_name.c_str());
       fflush(stdout);
-#endif    
-    }    
+#endif
+    }
 
     if (throttle_intranode_) {
-#ifdef CONFIG_SMP_MODE
-      CmiUnlock(throttle_node_lock);
+      SMP_NODE_UNLOCK;
       PERF_SMP_STOP(iperf_smp_initial_music);
-#endif
     }
   }
 
@@ -281,10 +288,8 @@ void EnzoInitialMusic::enforce_block
     std::string file_name = particle_files_[index];
 
     if (throttle_intranode_) {
-#ifdef CONFIG_SMP_MODE
       PERF_SMP_START(iperf_smp_initial_music);
-      CmiLock(throttle_node_lock);
-#endif
+      SMP_NODE_LOCK;
     }
 
     FileHdf5 * file = nullptr;
@@ -294,25 +299,25 @@ void EnzoInitialMusic::enforce_block
       if (FileHdf5::file_list[file_name] == nullptr) {
 
         FileHdf5::file_list[file_name] = new FileHdf5 ("./",file_name);
-#ifdef DEBUG_THROTTLE      
+#ifdef DEBUG_THROTTLE
         CkPrintf ("%d %g DEBUG_THROTTLE opening %s\n",
                   CkMyPe(),cello::simulation()->timer(),file_name.c_str());
         fflush(stdout);
-#endif      
+#endif
         FileHdf5::file_list[file_name]->file_open();
         throttle_delay_();
       }
 
       file = FileHdf5::file_list[file_name];
-        
+
     } else {
 
       file =  new FileHdf5 ("./",file_name);
 
-#ifdef DEBUG_THROTTLE      
+#ifdef DEBUG_THROTTLE
       CkPrintf ("%d %g DEBUG_THROTTLE opening %s\n",
                 CkMyPe(),cello::simulation()->timer(),file_name.c_str());
-#endif      
+#endif
       file->file_open();
       throttle_delay_();
     }
@@ -328,7 +333,7 @@ void EnzoInitialMusic::enforce_block
     int mx,my,mz;
     int nx,ny,nz;
     int gx,gy,gz;
- 
+
     field.dimensions (0,&mx,&my,&mz);
     field.size         (&nx,&ny,&nz);
     field.ghost_depth(0,&gx,&gy,&gz);
@@ -343,7 +348,7 @@ void EnzoInitialMusic::enforce_block
     n4[IX] = nx;
     n4[IY] = ny;
     n4[IZ] = nz;
-    
+
     // compute cell widths
     double h4[4] = {1,1,1,1};
     h4[IX] = (upper_block[0] - lower_block[0]) / nx;
@@ -386,7 +391,7 @@ void EnzoInitialMusic::enforce_block
 	      "Unsupported data type %d in file %s particle dataset %s",
 	      type_data,file_name.c_str(),particle_datasets_[index].c_str());
     }
-    
+
     // read data and close file unless throttling
     file->data_read (data);
 
@@ -395,7 +400,7 @@ void EnzoInitialMusic::enforce_block
     const bool can_close = (++close_count[file_name] == throttle_close_count_);
     const bool do_close = (throttle_node_files_ && can_close)
       ||                  (! throttle_node_files_);
-    
+
     if ( do_close ) {
       close_count[file_name] = 0;
       file->file_close();
@@ -406,16 +411,14 @@ void EnzoInitialMusic::enforce_block
       CkPrintf ("%d %g DEBUG_THROTTLE closed %s\n",
                 CkMyPe(),cello::simulation()->timer(),file_name.c_str());
       fflush(stdout);
-#endif    
-    } 
-
-    if (throttle_intranode_) {
-#ifdef CONFIG_SMP_MODE
-      CmiUnlock(throttle_node_lock);
-      PERF_SMP_STOP(iperf_smp_initial_music);
 #endif
     }
-    
+
+    if (throttle_intranode_) {
+      SMP_NODE_UNLOCK;
+      PERF_SMP_STOP(iperf_smp_initial_music);
+    }
+
     // Create particles and initialize them
 
     Particle particle = block->data()->particle();
@@ -464,7 +467,7 @@ void EnzoInitialMusic::enforce_block
 	      particle.type_name(it).c_str(),
 	      particle.attribute_name(it,ia).c_str());
     }
-    
+
     if (type_data == type_single) {
       delete [] data_float;
     } else if (type_data == type_double) {
@@ -475,7 +478,7 @@ void EnzoInitialMusic::enforce_block
 
     // update positions with displacements
     if (type_array == type_single) {
-      
+
       if (particle_datasets_[index] == "ParticleDisplacements_x") {
 	for (int iz=0; iz<nz; iz++) {
 	  for (int iy=0; iy<ny; iy++) {
@@ -515,7 +518,7 @@ void EnzoInitialMusic::enforce_block
       }
 
     } else { // (type_array != type_single) {
-      
+
       if (particle_datasets_[index] == "ParticleDisplacements_x") {
 	for (int iz=0; iz<nz; iz++) {
 	  for (int iy=0; iy<ny; iy++) {
@@ -554,7 +557,7 @@ void EnzoInitialMusic::enforce_block
 	}
       }
     }
-  }  
+  }
 
   block->initial_done();
 }
@@ -571,17 +574,17 @@ void EnzoInitialMusic::throttle_stagger_()
 	count_threads < node_size ) {
       ++count_threads;
       int ms = 1000*((CkMyPe() / node_size) % throttle_group_size_) * throttle_seconds_stagger_;
-#ifdef DEBUG_THROTTLE  
+#ifdef DEBUG_THROTTLE
       CkPrintf ("%d %g DEBUG_THROTTLE %d ms stagger start\n",
 		CkMyPe(),cello::simulation()->timer(),ms);
       fflush(stdout);
-#endif      
+#endif
       std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-#ifdef DEBUG_THROTTLE  
+#ifdef DEBUG_THROTTLE
       CkPrintf ("%d %g DEBUG_THROTTLE %d ms stagger stop\n",
 		CkMyPe(),cello::simulation()->timer(),ms);
       fflush(stdout);
-#endif      
+#endif
     }
   }
 }
@@ -592,17 +595,17 @@ void EnzoInitialMusic::throttle_delay_()
 {
   if (throttle_internode_) {
     int ms = 1000*throttle_seconds_delay_;
-#ifdef DEBUG_THROTTLE  
+#ifdef DEBUG_THROTTLE
     CkPrintf ("%d %g DEBUG_THROTTLE %d ms delay start\n",
 	      CkMyPe(),cello::simulation()->timer(),ms);
     fflush(stdout);
-#endif      
+#endif
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-#ifdef DEBUG_THROTTLE  
+#ifdef DEBUG_THROTTLE
     CkPrintf ("%d %g DEBUG_THROTTLE %d ms delay stop\n",
 	      CkMyPe(),cello::simulation()->timer(),ms);
     fflush(stdout);
-#endif      
+#endif
   }
 }
 

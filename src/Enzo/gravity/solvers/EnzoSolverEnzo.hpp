@@ -185,7 +185,8 @@ protected: // methods
     return scalar_data->value(scalar_descr,i_level_refresh_);
   }
   FieldMsg * pack_field_
-  (EnzoBlock *, int index_field, int refresh_type, int ic3[3]);
+  (EnzoBlock *, Index index_send, int index_field,
+   int refresh_type, int ic3[3]);
 
   void unpack_field_
   (EnzoBlock *, FieldMsg *, int index_field, int refresh_type);

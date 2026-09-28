@@ -15,6 +15,7 @@ while true; do
     /Input File name /{inp=$NF}; \
     / time-sim / {te=$2; ts=$NF}; \
     / redshift /{tr=$NF}; \
+    /num-particles total/{pc=$NF}; \
     /Parameters  Mesh:root_rank/{mr=$NF}; \
     /Parameters  Mesh:root_blocks/{mb=$(NF-1)}; \
     /Parameters  Mesh:root_size/{ms=$(NF-1)}; \
@@ -44,11 +45,13 @@ while true; do
          f_cycle = sprintf ("%d",cn); \
          f_block = sprintf ("%d",bn); \
          f_mesh = sprintf ("N%d:%d-L%d",ms,mb,ml); \
+         f_part = sprintf ("P%d",pc); \
          f_charm = sprintf ("rs%d%d",rnd,smp); \
          f_proc = sprintf ("%d:%d/%d",nh,nn,np); \
    print st, \
        f_mr,\
        f_mesh,\
+       f_part,\
        f_charm,\
        f_proc,\
        f_time,\

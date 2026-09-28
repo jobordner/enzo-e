@@ -105,6 +105,21 @@
 #include "Enzo/enzo.hpp"
 #include "Enzo/gravity/gravity.hpp"
 
+// #define TRACE_REDUCE
+
+#ifdef TRACE_REDUCE
+#   define TRACE_REDUCE_START(BLOCK,TYPE) \
+  CkPrintf ("TRACE_REDUCE %s start %s\n",BLOCK->name8().c_str(), \
+            std::string(TYPE).c_str());
+#   define TRACE_REDUCE_STOP(BLOCK,TYPE) \
+  CkPrintf ("TRACE_REDUCE %s stop  %s\n",BLOCK->name8().c_str(), \
+            std::string(TYPE).c_str());
+#else
+#   define TRACE_REDUCE_START(BLOCK,TYPE) /* ... */
+#   define TRACE_REDUCE_STOP(BLOCK,TYPE)  /* ... */
+#endif
+
+
 // #define TRACE_SOLVE
 #define CYCLE_TRACE 0
 
@@ -300,6 +315,7 @@ void EnzoSolverMg0::enter_solver_ (EnzoBlock * enzo_block) throw()
                         enzo::block_array());
 
     PERF_REDUCE_START(iperf_reduce_solver_mg0);
+    TRACE_REDUCE_START(enzo_block,"root");
     enzo_block->contribute(2*sizeof(cello_reduce_type), &reduce,
 			   sum_cello_reduce_2_type, callback);
   } else {
@@ -334,6 +350,7 @@ void EnzoSolverMg0::compute_shift_
 void EnzoBlock::r_solver_mg0_begin_solve(CkReductionMsg* msg)
 {
   PERF_REDUCE_STOP(iperf_reduce_solver_mg0);
+  TRACE_REDUCE_STOP(this,"root");
   static_cast<EnzoSolverMg0*> (solver())->begin_solve(this,msg);
 }
 
@@ -342,7 +359,6 @@ void EnzoBlock::r_solver_mg0_begin_solve(CkReductionMsg* msg)
 void EnzoSolverMg0::begin_solve(EnzoBlock * enzo_block,
 				CkReductionMsg *msg) throw()
 {
-  TRACE_SOLVE(enzo_block,"03 begin_solve");
   TRACE_FIELD(enzo_block,ib_,"B");
   do_shift_(enzo_block,msg);
 
@@ -577,9 +593,9 @@ void EnzoSolverMg0::restrict_send(EnzoBlock * enzo_block) throw()
   TRACE_FIELD(enzo_block,ib_,"B");
   compute_residual_(enzo_block);
 
-  FieldMsg * msg = pack_residual_(enzo_block);
-
   Index index_parent = enzo_block->index().index_parent(min_level_);
+
+  FieldMsg * msg = pack_residual_(enzo_block,index_parent);
 
   enzo::block_array()[index_parent].p_solver_mg0_restrict_recv(msg);
 
@@ -694,9 +710,9 @@ void EnzoSolverMg0::prolong_send_(EnzoBlock * enzo_block) throw()
 
   while (it_child.next(ic3)) {
 
-    FieldMsg * msg = pack_correction_(enzo_block,ic3);
-
     Index index_child = enzo_block->index().index_child(ic3,min_level_);
+
+    FieldMsg * msg = pack_correction_(enzo_block,index_child,ic3);
 
     enzo::block_array()[index_child].p_solver_mg0_prolong_recv(msg);
 
@@ -878,7 +894,8 @@ void EnzoSolverMg0::end(Block * block)
 
 //----------------------------------------------------------------------
 
-FieldMsg * EnzoSolverMg0::pack_residual_(EnzoBlock * enzo_block) throw()
+FieldMsg * EnzoSolverMg0::pack_residual_
+(EnzoBlock * enzo_block, Index index_send) throw()
 {
   Field field = enzo_block->data()->field();
   int ic3[3];
@@ -901,7 +918,7 @@ void EnzoSolverMg0::unpack_residual_
 //----------------------------------------------------------------------
 
 FieldMsg * EnzoSolverMg0::pack_correction_
-(EnzoBlock * enzo_block, int ic3[3]) throw()
+(EnzoBlock * enzo_block, Index index_send, int ic3[3]) throw()
 {
   Field field = enzo_block->data()->field();
   return  field.pack_field_msg

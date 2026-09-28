@@ -11,9 +11,23 @@
 
 //----------------------------------------------------------------------
 
+#define ENABLE_SMP_NODE_LOCK
+
+//----------------------------------------------------------------------
+
+// Define node lock defines
+
+#if defined(CONFIG_SMP_MODE) and defined(ENABLE_SMP_NODE_LOCK)
 static CmiNodeLock initial_value_node_lock;
 void mutex_init_initial_value()
-{  initial_value_node_lock = CmiCreateLock(); }
+{ initial_value_node_lock = CmiCreateLock(); }
+#   define SMP_NODE_LOCK   CmiLock(initial_value_node_lock);
+#   define SMP_NODE_UNLOCK CmiUnlock(initial_value_node_lock);
+#else
+void mutex_init_initial_value() { }
+#   define SMP_NODE_LOCK   /* ... */
+#   define SMP_NODE_UNLOCK /* ... */
+#endif
 
 //----------------------------------------------------------------------
 
@@ -54,10 +68,10 @@ void InitialValue::pup (PUP::er &p)
 void InitialValue::enforce_block ( Block * block,
 				   const Hierarchy  * hierarchy ) throw()
 {
-#ifdef CONFIG_SMP_MODE
   PERF_SMP_START(iperf_smp_initial_value);
-  CmiLock(initial_value_node_lock);
-#endif  
+
+  SMP_NODE_LOCK;
+
   // make sure values_ is initialized
   initialize_values_();
 
@@ -172,10 +186,9 @@ void InitialValue::enforce_block ( Block * block,
     delete [] zf;
   }
 
-#ifdef CONFIG_SMP_MODE
-  CmiUnlock(initial_value_node_lock);
+  SMP_NODE_UNLOCK;
+
   PERF_SMP_STOP(iperf_smp_initial_value);
-#endif
 
   block->initial_done();
 }

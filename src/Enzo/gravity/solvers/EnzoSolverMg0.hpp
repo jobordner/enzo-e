@@ -131,13 +131,17 @@ public: // interface
   void compute_residual_(EnzoBlock *) throw();
 
   /// Pack and unpack residual for restricting to parent
-  FieldMsg * pack_residual_ (EnzoBlock *) throw();
+  FieldMsg * pack_residual_
+  (EnzoBlock *, Index index_send) throw();
+
   void unpack_residual_(EnzoBlock *, FieldMsg *) throw();
 
   /// Pack and unpack correction for prolonging to child
-  FieldMsg * pack_correction_(EnzoBlock * enzo_block, int ic3[3]) throw();
+  FieldMsg * pack_correction_
+  (EnzoBlock * enzo_block, Index index_send, int ic3[3]) throw();
+
   void unpack_correction_(EnzoBlock *, FieldMsg *) throw();
-  
+
   /// Restrict residual to coarser Block
   void do_restrict(EnzoBlock * enzo_block) throw();
 

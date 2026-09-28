@@ -14,9 +14,9 @@
 
 #ifdef TRACE_SYNC
 #  undef TRACE_SYNC
-#  define TRACE_SYNC(MSG)                                               \
-  CkPrintf ("TRACE_SYNC %s :%d %d/%d %d\n",                             \
-            MSG,__LINE__,index_curr_,index_stop_,is_done_);\
+#  define TRACE_SYNC(MSG)                                       \
+  CkPrintf ("TRACE_SYNC %s :%d %d/%d %d\n",                     \
+            MSG,__LINE__,index_curr_,index_stop_,is_done_);     \
   fflush(stdout);
 #else
 #  define TRACE_SYNC(MSG) /* ... */
@@ -26,7 +26,7 @@ Sync::Sync (int index_stop)
   : is_done_(0),
     index_stop_(index_stop),
     index_curr_(0),
-    state_(RefreshState::INACTIVE)
+    state_(RefreshState::Inactive)
 {}
 
 //----------------------------------------------------------------------

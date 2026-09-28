@@ -12,7 +12,7 @@
 #ifndef CELLO_SYNC_HPP
 #define CELLO_SYNC_HPP
 
-enum class RefreshState { INACTIVE, ACTIVE, READY };
+enum class RefreshState { Inactive, Active, Ready };
 
 class Sync {
 
@@ -21,6 +21,7 @@ class Sync {
   /// @brief    [\ref Parallel] 
 
 public:
+
   /// Create a Sync counter object
   Sync (int index_stop = 0);
 
@@ -34,10 +35,10 @@ public:
   /// Increment counter but not return whether the counter reached the
   /// stopping value (used to bypass Coverity analysis false positive)
   void advance () throw();
-  
+
   /// Return whether the Sync counter has reached the stopping value
   bool is_done () const throw();
-  
+
   /// Set the stopping value for the counter
   void set_stop (int stop) throw ();
 

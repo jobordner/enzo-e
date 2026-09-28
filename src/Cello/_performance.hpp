@@ -85,6 +85,9 @@
 #   define PERF_SMP_STOP(INDEX)                 \
   PERF_STOP(iperf_smp);                         \
   PERF_STOP(INDEX);
+#else
+#   define PERF_SMP_START(INDEX) /* ... */
+#   define PERF_SMP_STOP(INDEX)  /* ... */
 #endif
 
 #else

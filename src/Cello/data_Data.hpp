@@ -53,6 +53,9 @@ public: // interface
       scalar_data_sync_(),
       scalar_data_void_(),
       scalar_data_index_()
+#ifdef CONFIG_SMP_MODE
+  , node_lock_(CmiCreateLock())
+#endif
   {
     lower_[0] = 0.0;
     lower_[1] = 0.0;
@@ -97,6 +100,12 @@ public: // interface
     }
     PUParray(p,lower_,3);
     PUParray(p,upper_,3);
+#ifdef CONFIG_SMP_MODE
+    if (up) {
+      node_lock_ = CmiCreateLock();
+    }
+#endif
+
     // NOTE: change this function whenever attributes change
   }
 
@@ -248,6 +257,22 @@ public: // interface
        &scalar_data_index_); }
 
 
+  /// Lock nodes for SMP single-thread access when updating data
+  void lock_node()
+  {
+#ifdef CONFIG_SMP_MODE
+   CmiLock(node_lock_);
+#endif
+  }
+
+  /// Unlock node for SMP single-thread access when updating data
+  void unlock_node()
+  {
+#ifdef CONFIG_SMP_MODE
+   CmiUnlock(node_lock_);
+#endif
+  }
+
 private: // functions
 
   void copy_(const Data & data) throw();
@@ -280,6 +305,11 @@ private: // attributes
 
   /// Upper extent of the box associated with the block [computable]
   double upper_[3];
+
+  /// Block-level lock for SMP
+#ifdef CONFIG_SMP_MODE
+  CmiNodeLock node_lock_;
+#endif
 
   // NOTE: change pup() function whenever attributes change
 

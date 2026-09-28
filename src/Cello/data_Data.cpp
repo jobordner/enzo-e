@@ -20,6 +20,9 @@ Data::Data(int nx, int ny, int nz,
     field_data_(),
     particle_data_(),
     flux_data_()
+#ifdef CONFIG_SMP_MODE
+  , node_lock_(CmiCreateLock())
+#endif
 {
   if (field_descr == nullptr)
     field_descr = cello::field_descr();
@@ -63,6 +66,10 @@ Data::~Data() throw ()
 
   delete flux_data_;
   flux_data_ = nullptr;
+
+#ifdef CONFIG_SMP_MODE
+  CmiDestroyLock(node_lock_);
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -167,4 +174,7 @@ void Data::copy_(const Data & data) throw()
   }
   particle_data_ = new ParticleData (*data.particle_data_);
   flux_data_ = new FluxData (*data.flux_data_);
+#ifdef CONFIG_SMP_MODE
+  node_lock_ = CmiCreateLock();
+#endif
 }

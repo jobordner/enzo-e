@@ -202,10 +202,9 @@ void EnzoSolverEnzo::restrict_send(EnzoBlock * enzo_block)
   int ic3[3];
   index.child(level,&ic3[0],&ic3[1],&ic3[2],min_level_);
 
-  FieldMsg * msg = pack_field_(enzo_block,ib_,-1,ic3);
-
   // Send packed field to parent
   Index index_parent = enzo_block->index().index_parent(min_level_);
+  FieldMsg * msg = pack_field_(enzo_block,index_parent,ib_,-1,ic3);
   enzo::block_array()[index_parent].p_solver_enzo_restrict_recv(msg);
 }
 
@@ -326,9 +325,9 @@ void EnzoSolverEnzo::prolong_send(EnzoBlock * enzo_block)
   int ic3[3];
   while (it_child.next(ic3)) {
 
-    FieldMsg * msg = pack_field_(enzo_block,ix_,+1,ic3);
-
     Index index_child = enzo_block->index().index_child(ic3,min_level_);
+
+    FieldMsg * msg = pack_field_(enzo_block,index_child,ix_,+1,ic3);
 
     enzo::block_array()[index_child].p_solver_enzo_prolong_recv(msg);
 
@@ -577,10 +576,12 @@ bool EnzoSolverEnzo::do_call_refresh_
 
 //----------------------------------------------------------------------
 
-FieldMsg * EnzoSolverEnzo::pack_field_(EnzoBlock * enzo_block,
-				     int index_field,
-				     int refresh_type,
-				     int * ic3)
+FieldMsg * EnzoSolverEnzo::pack_field_
+(EnzoBlock * enzo_block,
+ Index index_send,
+ int index_field,
+ int refresh_type,
+ int * ic3)
 {
   Field field = enzo_block->data()->field();
   return field.pack_field_msg

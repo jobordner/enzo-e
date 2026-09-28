@@ -13,14 +13,24 @@
 
 //----------------------------------------------------------------------
 
-static CmiNodeLock hierarchy_node_lock;
-
-void mutex_init_hierarchy()
-{
-  hierarchy_node_lock = CmiCreateLock();
-}
-
+#define ENABLE_SMP_NODE_LOCK;
 // #define CELLO_TRACE
+
+//----------------------------------------------------------------------
+
+// Define node lock defines
+
+#if defined(CONFIG_SMP_MODE) and defined(ENABLE_SMP_NODE_LOCK)
+static CmiNodeLock hierarchy_node_lock;
+void mutex_init_hierarchy()
+{ hierarchy_node_lock = CmiCreateLock(); }
+#   define SMP_NODE_LOCK   CmiLock(hierarchy_node_lock);
+#   define SMP_NODE_UNLOCK CmiUnlock(hierarchy_node_lock);
+#else
+void mutex_init_hierarchy() { }
+#   define SMP_NODE_LOCK   /* ... */
+#   define SMP_NODE_UNLOCK /* ... */
+#endif
 
 //----------------------------------------------------------------------
 
@@ -50,8 +60,6 @@ Hierarchy::Hierarchy
   block_vec_(),
   /// Number of block neighbors on this process
   num_particles_(0),
-  num_zones_total_(0),
-  num_zones_real_(0),
   block_array_()
 {
   TRACE("Hierarchy::Hierarchy()");
@@ -103,8 +111,6 @@ void Hierarchy::pup (PUP::er &p)
   p | num_neighbors_total_;
 
   p | num_particles_;
-  p | num_zones_total_;
-  p | num_zones_real_;
 
   // clear if unpacking: load balancing expects num_blocks_ to be
   // updated by Block(CkMigrateMessage) and ~Block(), but
@@ -115,8 +121,6 @@ void Hierarchy::pup (PUP::er &p)
       num_blocks_level_[i]=0;
     num_blocks_ = 0;
     num_particles_   = 0;
-    num_zones_total_ = 0;
-    num_zones_real_  = 0;
   }
 
   p | block_array_;
@@ -259,15 +263,15 @@ void Hierarchy::increment_block_count(int count, int level)
           "Block level %d exceeds block count array",
           level, 0 <= index && index < n);
   num_blocks_level_[level-min_level_] += count;
-#ifdef CONFIG_SMP_MODE
   PERF_SMP_START(iperf_smp_hierarchy);
-  CmiLock(hierarchy_node_lock);
-#endif
+
+  SMP_NODE_LOCK;
+
   Hierarchy::num_blocks_node += count;
-#ifdef CONFIG_SMP_MODE
-  CmiUnlock(hierarchy_node_lock);
+
+  SMP_NODE_UNLOCK;
+
   PERF_SMP_STOP(iperf_smp_hierarchy);
-#endif
 }
 
 //----------------------------------------------------------------------
@@ -275,16 +279,16 @@ void Hierarchy::increment_block_count(int count, int level)
 void Hierarchy::increment_particle_count(int64_t count)
 {
   num_particles_ += count;
-#ifdef CONFIG_SMP_MODE
+
   PERF_SMP_START(iperf_smp_hierarchy);
-  CmiLock(hierarchy_node_lock);
-#endif
+
+  SMP_NODE_LOCK;
+
   Hierarchy::num_particles_node += count;
-#ifdef CONFIG_SMP_MODE
-  CmiUnlock(hierarchy_node_lock);
+
+  SMP_NODE_UNLOCK;
+
   PERF_SMP_STOP(iperf_smp_hierarchy);
-#endif
-  
 }
 
 //----------------------------------------------------------------------

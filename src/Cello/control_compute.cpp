@@ -19,11 +19,10 @@
 #ifdef DEBUG_COMPUTE
 #define TRACE_COMPUTE(FUN,NUM)                                          \
   if (state()->cycle() >= CYCLE)                                        \
-    CkPrintf ("%02d %d %d %s %s %d DEBUG_COMPUTE %s()\n",               \
+    CkPrintf ("%02d %d %d %s %d DEBUG_COMPUTE %s()\n",               \
               state()->cycle(),                                         \
               NUM,                                                      \
               CkMyPe(),                                                 \
-              name().c_str(),                                           \
               this->method()?this->method()->name().c_str():"null",     \
               this->method()?index_method_ : 0,                         \
               FUN);

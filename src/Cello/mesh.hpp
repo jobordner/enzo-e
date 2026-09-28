@@ -28,9 +28,11 @@
 #include "_data.hpp" 
 
 //----------------------------------------------------------------------
+extern void mutex_init_data_msg();
+extern void mutex_init_field_face();
 extern void mutex_init_hierarchy();
 extern void mutex_init_initial_value();
-extern void mutex_init_field_face();
+extern void mutex_init_msg_refresh();
 //----------------------------------------------------------------------
 
 #endif /* MESH_HPP */

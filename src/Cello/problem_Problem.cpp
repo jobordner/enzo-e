@@ -923,6 +923,8 @@ Method * Problem::create_method_
     method = new MethodOrder
       (config->method_order_ordering[index_method],
        cello::min_level());
+  } else if (name == "order_rotate") {
+    method = new MethodOrderRotate;
   } else if (name == "order_hilbert") {
     method = new MethodOrderHilbert(cello::min_level());
   } else if (name == "refresh") {

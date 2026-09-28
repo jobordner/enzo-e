@@ -35,13 +35,25 @@
 
 #define S(index) scalar_(block,is_##index##_)
 
-static CmiNodeLock bcg_iter_node_lock;
+//----------------------------------------------------------------------
+
+#define ENABLE_SMP_NODE_LOCK
 
 //----------------------------------------------------------------------
+
+// Define node lock defines
+
+#if defined(CONFIG_SMP_MODE) and defined(ENABLE_SMP_NODE_LOCK)
+static CmiNodeLock bcg_iter_node_lock;
 void mutex_init_bcg_iter()
-{
-  bcg_iter_node_lock = CmiCreateLock();
-}
+{ bcg_iter_node_lock = CmiCreateLock(); }
+#   define SMP_NODE_LOCK   CmiLock(bcg_iter_node_lock);
+#   define SMP_NODE_UNLOCK CmiUnlock(bcg_iter_node_lock);
+#else
+void mutex_init_bcg_iter() { }
+#   define SMP_NODE_LOCK   /* ... */
+#   define SMP_NODE_UNLOCK /* ... */
+#endif
 
 //----------------------------------------------------------------------
 
@@ -549,15 +561,11 @@ void EnzoSolverBiCgStab::loop_0(EnzoBlock* block) throw() {
 
   if (is_converged) {
     if (block->level() == coarse_level_) {
-#ifdef CONFIG_SMP_MODE
       PERF_SMP_START(iperf_smp_solver_bcg);
-      CmiLock(bcg_iter_node_lock);
-#endif
+      SMP_NODE_LOCK;
       cello::simulation()->set_solver_iter(index_,iter);
-#ifdef CONFIG_SMP_MODE
-      CmiUnlock(bcg_iter_node_lock);
+      SMP_NODE_UNLOCK;
       PERF_SMP_STOP(iperf_smp_solver_bcg);
-#endif
     }
   }
 

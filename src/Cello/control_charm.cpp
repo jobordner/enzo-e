@@ -33,8 +33,23 @@ void Block::initial_exit_()
 
 void Block::adapt_exit_()
 {
-  //  verify_neighbors();
-
+  // Update Hierarchy num_neighbors local vs total
+  if (is_leaf()) {
+    int num_local_neighbors=0;
+    int num_total_neighbors=0;
+    ItNeighbor it_neighbor = this->it_neighbor(index_);
+    int of3[3];
+    while (it_neighbor.next(of3)) {
+      Index index_neighbor = it_neighbor.index();
+      ++num_total_neighbors;
+      if (thisProxy[index_neighbor].ckLocal() != nullptr)
+        ++num_local_neighbors;
+    }
+    cello::hierarchy()->increment_neighbors
+      (num_local_neighbors,num_total_neighbors);
+  }
+  
+  // Continue to output phase  after quiescence
   control_sync_quiescence(CkIndex_Main::p_output_enter());
 }
 
