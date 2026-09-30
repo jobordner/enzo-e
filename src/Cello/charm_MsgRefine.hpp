@@ -40,16 +40,10 @@ public: // interface
   virtual ~MsgRefine();
 
   /// Copy constructor
-  MsgRefine(const MsgRefine & data_msg) throw()
-  {
-    ++counter[cello::index_static()]; 
-  };
+  MsgRefine(const MsgRefine & data_msg) = delete;
 
   /// Assignment operator
-  MsgRefine & operator= (const MsgRefine & data_msg) throw()
-  {
-    return *this;
-  }
+  MsgRefine & operator= (const MsgRefine & data_msg) = delete;
 
   /// Access the index_ element
   Index index() { return index_; }

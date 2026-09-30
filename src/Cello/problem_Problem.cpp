@@ -921,12 +921,11 @@ Method * Problem::create_method_
     method = new MethodOutput(factory, p_group);
   } else if (name == "order") {
     method = new MethodOrder
-      (config->method_order_ordering[index_method],
-       cello::min_level());
+      (config->method_order_ordering[index_method]);
   } else if (name == "order_rotate") {
     method = new MethodOrderRotate;
   } else if (name == "order_hilbert") {
-    method = new MethodOrderHilbert(cello::min_level());
+    method = new MethodOrderHilbert;
   } else if (name == "refresh") {
     method = new MethodRefresh(p_group);
   } else if (name == "debug") {

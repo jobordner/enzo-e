@@ -18,8 +18,7 @@ class MethodOrder : public Method {
 public: // interface
 
   /// Constructor
-  MethodOrder(std::string ordering,
-              int min_level) throw();
+  MethodOrder(std::string ordering) throw();
 
   /// Charm++ PUP::able declarations
   PUPable_decl(MethodOrder);
@@ -42,7 +41,6 @@ public: // interface
     p | is_wcount_child_;
     p | is_sync_index_;
     p | is_sync_count_;
-    p | min_level_;
   }
 
 public: // virtual methods
@@ -56,10 +54,12 @@ public: // virtual methods
 public: // methods
 
   // accumulate block counts and weights
-  void accum_count(Block * block, int count, double wcount, const int ic3[3],
+  void accum_count(Block * block, long long count, double wcount, const int ic3[3],
                    int sync_stop = 0);
   // accumulate the final block index in the ordering
-  void accum_index(Block * block, int index, int count, double windex, double wcount,
+  void accum_index(Block * block,
+                   long long index, long long count,
+                   double windex, double wcount,
                    int sync_stop = 0);
 
 private: // methods
@@ -82,10 +82,10 @@ private: // methods
   double & wcount_(Block * block);
 
   /// Return the given Block's child block count
-  long long & count_child_(Block * block, int index);
+  long long & count_child_(Block * block, long long index);
 
   /// Return the given Block's child weight
-  double & wcount_child_(Block * block, int index);
+  double & wcount_child_(Block * block, long long index);
 
   /// Return the Block's ordering index
   Sync & sync_index_(Block * block);
@@ -137,9 +137,6 @@ private: // attributes
   int is_sync_index_;
   /// Block Scalar<sync> sync counter for count (fine->coarse)
   int is_sync_count_;
-
-  /// Minimum refinement level for ordering; may be < 0
-  int min_level_;
 };
 
 #endif /* PROBLEM_METHOD_ORDER_HPP */

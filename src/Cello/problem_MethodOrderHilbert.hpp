@@ -28,7 +28,7 @@ class MethodOrderHilbert : public Method {
 public: // interface
 
   /// Constructor
-  MethodOrderHilbert(int min_level) throw();
+  MethodOrderHilbert() throw();
 
   /// Charm++ PUP::able declarations
   PUPable_decl(MethodOrderHilbert);
@@ -49,7 +49,6 @@ public: // interface
     p | is_weight_child_;
     p | is_sync_index_;
     p | is_sync_weight_;
-    p | min_level_;
   }
 
   void compute_continue( Block * block);
@@ -94,7 +93,7 @@ private: // methods
   void hilbert_children(Block * block, int* children);
 
   /// Return the index appearing after the given index in the hilber order.
-  Index hilbert_next (Index index, int rank, bool is_leaf, int min_level);
+  Index hilbert_next (Index index, int rank, bool is_leaf);
 
   /// Write, to the given states array, the recursive states of the given index up to level m. 
   void hilbert_states(Index index, int m, int* states);
@@ -132,9 +131,6 @@ private: // attributes
   int is_sync_index_;
   /// Block Scalar<sync> sync counter for weight (fine->coarse)
   int is_sync_weight_;
-
-  /// Minimum refinement level for ordering; may be < 0
-  int min_level_;
 
   /// Look up tables for encoding/decoding Hilbert indices
   static int HPM[12][8];

@@ -413,6 +413,7 @@ void EnzoInitialMusic::enforce_block
       fflush(stdout);
 #endif
     }
+    //    if (file) delete file;
 
     if (throttle_intranode_) {
       SMP_NODE_UNLOCK;

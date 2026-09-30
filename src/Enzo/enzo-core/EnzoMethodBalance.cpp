@@ -104,7 +104,7 @@ void EnzoSimulation::r_method_balance_count(CkReductionMsg * msg)
 void EnzoBlock::p_method_balance_migrate()
 {
   TRACE_BALANCE (this,"3 migrate");
-#ifdef TRACE_BALANCE
+#ifdef TRACE_BALANCE_SYNC
   CkPrintf ("TRACE_BALANCE 5 p_method_balance_migrate() calling do_migrate()\n");
   fflush(stdout);
 #endif
@@ -151,7 +151,7 @@ void EnzoBlock::p_method_balance_done()
 
 void EnzoMethodBalance::done(EnzoBlock * enzo_block)
 {
-  TRACE_BALANCE(enzo_block,"5 done");
+  TRACE_BALANCE (enzo_block,"5 done");
   enzo_block->set_ip_next(-1);
   enzo_block->compute_done();
 }

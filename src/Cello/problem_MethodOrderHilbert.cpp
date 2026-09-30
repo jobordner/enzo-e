@@ -22,12 +22,11 @@
 
 //----------------------------------------------------------------------
 
-MethodOrderHilbert::MethodOrderHilbert(int min_level) throw ()
+MethodOrderHilbert::MethodOrderHilbert() throw ()
   : Method("order_hilbert"),
     is_index_(-1),
     is_weight_(-1),
-    is_weight_child_(-1),
-    min_level_(min_level)
+    is_weight_child_(-1)
 {
   Refresh * refresh = cello::refresh(ir_post_);
   refresh->add_field("density");
@@ -101,20 +100,21 @@ void MethodOrderHilbert::send_weight(Block * block, long long weight_child, bool
     recv_weight(block,ic3,0,true);
   }
   const int level = block->level();
-  if ((!self || block->is_leaf()) && level > min_level_)  {
-    const Index index_parent = block->index().index_parent(min_level_);
-    block->index().child(level,ic3,ic3+1,ic3+2,min_level_);
+  const int min_level = cello::min_level();
+  if ((!self || block->is_leaf()) && level > min_level)  {
+    const Index index_parent = block->index().index_parent(min_level);
+    block->index().child(level,ic3,ic3+1,ic3+2,min_level);
     TRACE_ORDER_BLOCK("send_weight",block);
     cello::block_array()[index_parent].p_method_order_hilbert_weight
       (ic3,weight,block->index());
     send_index(block, 0, 0, self);
-  } else if (level == min_level_) {
+  } else if (level == min_level) {
 
     const int rank = cello::rank();
     int na3[3];
     cello::simulation()->hierarchy()->root_blocks(na3,na3+1,na3+2);
 
-    Index index_next = hilbert_next(block->index(), rank, block->is_leaf(), min_level_);
+    Index index_next = hilbert_next(block->index(), rank, block->is_leaf());
 
     *pindex_(block) = 0;
     *pcount_(block) = 0;
@@ -154,7 +154,7 @@ void MethodOrderHilbert::recv_weight
   if ((!block->is_leaf()) && psync_weight_(block)->next()) {
     // Forward weight to parent when computed
     int ic3[3] = {0,0,0};
-    block->index().child(block->level(),ic3,ic3+1,ic3+2,min_level_);
+    block->index().child(block->level(),ic3,ic3+1,ic3+2,cello::min_level());
     send_weight(block,*pweight_(block),false);
   }
 }
@@ -174,7 +174,7 @@ void MethodOrderHilbert::send_index
       ic3[0] = (children[i] >> 0) & 1;
       ic3[1] = (children[i] >> 1) & 1;
       ic3[2] = (children[i] >> 2) & 1;
-      Index index_child = block->index().index_child(ic3,min_level_);
+      Index index_child = block->index().index_child(ic3,cello::min_level());
       cello::block_array()[index_child].p_method_order_hilbert_index(index,count);
 
       index += *pweight_child_(block, children[i]);
@@ -201,7 +201,7 @@ void MethodOrderHilbert::recv_index
     int na3[3];
     cello::simulation()->hierarchy()->root_blocks(na3,na3+1,na3+2);
 
-    Index index_next = hilbert_next(block->index(), rank, block->is_leaf(), min_level_);
+    Index index_next = hilbert_next(block->index(), rank, block->is_leaf());
     *pindex_(block) = index;
     *pcount_(block) = count;
     *pnext_(block) = index_next;
@@ -321,7 +321,7 @@ void MethodOrderHilbert::hilbert_children(Block * block, int* children){
     }
 }
 
-Index MethodOrderHilbert::hilbert_next (Index index, int rank, bool is_leaf, int min_level)
+Index MethodOrderHilbert::hilbert_next (Index index, int rank, bool is_leaf)
 {
     Index index_next = index;
     int level = index.level();
@@ -332,6 +332,7 @@ Index MethodOrderHilbert::hilbert_next (Index index, int rank, bool is_leaf, int
 
     // If the block has children then the first child (according to the hilbert order)
     // is the next index.
+    const int min_level = cello::min_level();
     if (! is_leaf) {
         int T = states[m];
         int ic = hilbert_ind_to_coord(T, 0);
