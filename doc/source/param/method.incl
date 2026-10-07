@@ -501,6 +501,20 @@ order
    option. Note the "order" method may be used multiple times in a
    simulation, as described in the` :ref:`order` :e:`section.`
 
+.. par:parameter:: Method:order:quantize
+
+   :Summary:    :s:`Whether to constrain child blocks of a given parent to be assigned to the same process`
+   :Type:       :par:typefmt:`logical`
+   :Default:    :d:`false`
+   :Scope:     :z:`Cello`
+
+   :e:`This parameter is used to constrain all child blocks with the
+   same parent to be assigned to the same process. This affects the
+   "count" value returned by the ordering method as well as the
+   "index". When set to true, both the count and index will be
+   approximately eight (or four for 2D runs) smaller than when set to
+   false.`
+
 pm_deposit
 ----------
 

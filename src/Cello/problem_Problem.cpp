@@ -921,11 +921,13 @@ Method * Problem::create_method_
     method = new MethodOutput(factory, p_group);
   } else if (name == "order") {
     method = new MethodOrder
-      (config->method_order_ordering[index_method]);
+      (config->method_order_ordering[index_method],
+       config->method_order_quantize[index_method]);
   } else if (name == "order_rotate") {
     method = new MethodOrderRotate;
   } else if (name == "order_hilbert") {
-    method = new MethodOrderHilbert;
+    method = new MethodOrderHilbert
+      (config->method_order_quantize[index_method]);
   } else if (name == "refresh") {
     method = new MethodRefresh(p_group);
   } else if (name == "debug") {

@@ -257,8 +257,12 @@ public: // interface
 
   /// Return the number of root-level Blocks along each rank
   /// in the given level (default level is root)
+  inline size_t root_blocks
+  (int nb3[3],int level=0) const throw()
+  { return root_blocks (&nb3[0],&nb3[1],&nb3[2],level);  }
+ 
   size_t root_blocks
-  (int * nbx, int * nby=0, int * nbz=0, int level=0) const throw();
+  (int * nbx, int * nby, int * nbz, int level=0) const throw();
 
   /// Return the factory object associated with the Hierarchy
   const Factory * factory () const throw()

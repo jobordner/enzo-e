@@ -18,7 +18,8 @@ class MethodOrder : public Method {
 public: // interface
 
   /// Constructor
-  MethodOrder(std::string ordering) throw();
+  MethodOrder(std::string ordering,
+              bool quantize) throw();
 
   /// Charm++ PUP::able declarations
   PUPable_decl(MethodOrder);
@@ -33,6 +34,7 @@ public: // interface
   {
     Method::pup(p);
     p | type_;
+    p | quantize_;
     p | is_index_;
     p | is_count_;
     p | is_windex_;
@@ -120,6 +122,9 @@ private: // attributes
   /// enum type of ordering
   enum class Type { morton };
   Type type_;
+
+  /// Whether to force child blocks to be on the same process
+  bool quantize_;
 
   /// Block Scalar<long long> index
   int is_index_;

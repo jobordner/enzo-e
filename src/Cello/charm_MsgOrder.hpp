@@ -57,12 +57,6 @@ public: // interface
     ic3_[1]=ic3[1];
     ic3_[2]=ic3[2];
   }
-  void print (std::string message) const
-  {
-    CkPrintf ("MsgOrder %d %p %s %lld %lld %g %g [%d %d %d]\n",
-              CkMyPe(),this,message.c_str(),
-              index_,count_,windex_,wcount_,ic3_[0],ic3_[1],ic3_[2]);
-  }
 
 public: // static methods
 

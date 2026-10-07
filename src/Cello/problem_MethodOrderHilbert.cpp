@@ -22,8 +22,9 @@
 
 //----------------------------------------------------------------------
 
-MethodOrderHilbert::MethodOrderHilbert() throw ()
+MethodOrderHilbert::MethodOrderHilbert(bool quantize) throw ()
   : Method("order_hilbert"),
+    quantize_(quantize),
     is_index_(-1),
     is_weight_(-1),
     is_weight_child_(-1)

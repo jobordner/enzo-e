@@ -128,6 +128,7 @@ void Config::pup (PUP::er &p)
   p | method_schedule_index;
   p | method_courant;
   p | method_order_ordering;
+  p | method_order_quantize;
   p | method_type;
 
   // Monitor
@@ -863,6 +864,7 @@ void Config::read_method_ (Parameters * p) throw()
   method_courant.resize(num_method);
   method_debug_ghost.resize(num_method);
   method_order_ordering.resize(num_method);
+  method_order_quantize.resize(num_method);
   method_schedule_index.resize(num_method);
   method_type.resize(num_method);
 
@@ -905,12 +907,15 @@ void Config::read_method_ (Parameters * p) throw()
     method_debug_ghost[index_method] =
       p->value_logical (full_name + ":ghost",false);
 
-    // Read method ordering
-    method_order_ordering[index_method] = p->value_string
-      (full_name+":ordering", "morton");
-
     method_type[index_method] = p->value_string
       (full_name + ":type", name);
+
+    // Read method ordering parameters
+    method_order_ordering[index_method] = p->value_string
+      (full_name+":ordering", "morton");
+    method_order_quantize[index_method] = p->value_logical
+      (full_name+":quantize", false);
+
   }
 
 }

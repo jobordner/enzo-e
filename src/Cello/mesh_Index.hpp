@@ -155,12 +155,18 @@ public:
              int level=INDEX_UNDEFINED_LEVEL) const;
 
   /// child index of this node in parent
+  inline void child (int level, int ic3[3], int min_level = 0) const
+  { child (level,&ic3[0],&ic3[1],&ic3[2],min_level); }
+
   void child (int level, int * icx, int * icy, int * icz,
               int min_level = 0) const;
 
   /// Set the child indicies of this node in the parent
   void set_child(int level, int icx, int icy=0, int icz=0,
                  int min_level = 0);
+
+  inline void set_child(int level, int ic3[3], int min_level = 0)
+  { set_child(level,ic3[0],ic3[1],ic3[2],min_level); }
 
   /// Set this Index to be the given child of the index
   inline void push_child(int icx, int icy=0, int icz=0,

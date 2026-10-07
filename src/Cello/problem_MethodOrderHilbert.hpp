@@ -28,7 +28,7 @@ class MethodOrderHilbert : public Method {
 public: // interface
 
   /// Constructor
-  MethodOrderHilbert() throw();
+  MethodOrderHilbert(bool quantize) throw();
 
   /// Charm++ PUP::able declarations
   PUPable_decl(MethodOrderHilbert);
@@ -42,6 +42,7 @@ public: // interface
   void pup (PUP::er &p)
   {
     Method::pup(p);
+    p | quantize_;
     p | is_index_;
     p | is_count_;
     p | is_next_;
@@ -67,6 +68,9 @@ public: // virtual methods
   { return true; }
 
 private: // methods
+
+  /// Whether to force child blocks to be on the same process
+  bool quantize_;
 
   /// Return the pointer to the Block's Hilbert ordering index 
   long long * pindex_(Block * block);
