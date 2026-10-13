@@ -52,7 +52,7 @@ int EnzoMethodPpm::SolveHydroEquations
   int gx,gy,gz;
   int mx,my,mz;
   field.ghost_depth(0,&gx,&gy,&gz);
-  field.dimensions(0,&mx,&my,&mz);
+  const int m = field.dimensions(0,&mx,&my,&mz);
 
 #ifdef IE_ERROR_FIELD
   int num_ie_error = 0;
@@ -66,30 +66,27 @@ int EnzoMethodPpm::SolveHydroEquations
   int *ie_error_z = nullptr;
 #endif
 
-
   //------------------------------
   // Prepare color field parameters
   //------------------------------
 
-  // ncolor: number of color fields
+  int nc = field.groups()->size("color");
 
-  int    ncolor  = field.groups()->size("color");
+  // Initialize color_offsets
+  std::vector<int> color_offsets;
+  color_offsets.resize(nc);
+  for (int ic=0; ic<nc; ic++) {
+    color_offsets[ic] = ic*m;
+  }
 
-  // colorpt: the color 'array' (contains all color fields)
-  enzo_float * colorpt = (enzo_float *) field.permanent();
-
-  // coloff: offsets into the color array (for each color field)
-  int * coloff   = (ncolor > 0) ? (new int [ncolor]) : NULL;
-  int index_color = 0;
-  for (int index_field = 0;
-       index_field < field.field_count();
-       index_field++) {
-    std::string name = field.field_name(index_field);
-    if (field.groups()->is_in(name,"color")) {
-      coloff[index_color++]
-	= (enzo_float *)(field.values(index_field)) - colorpt;
-    }
-
+  // Copy color fields to single color_field_list
+  std::vector<enzo_float> color_field_list;
+  color_field_list.resize(m*nc);
+  for (int ic=0; ic<nc; ic++) {
+    const std::string & field_name = field.groups()->item("color",ic);
+    const enzo_float * field_src = field.values(field_name);
+    enzo_float *       field_dst = &color_field_list[ic*m];
+    std::copy_n(field_src,m,field_dst);
   }
 
   /* Compute size (in enzo_floats) of the current grid. */
@@ -107,9 +104,9 @@ int EnzoMethodPpm::SolveHydroEquations
   /* velocity_x must exist, but if y & z aren't present, then create blank
      buffers for them (since the solver needs to advect something). */
 
-  enzo_float * velocity_x = NULL;
-  enzo_float * velocity_y = NULL;
-  enzo_float * velocity_z = NULL;
+  enzo_float * velocity_x = nullptr;
+  enzo_float * velocity_y = nullptr;
+  enzo_float * velocity_z = nullptr;
 
   velocity_x = (enzo_float *) field.values("velocity_x");
 
@@ -128,11 +125,11 @@ int EnzoMethodPpm::SolveHydroEquations
   }
 
   enzo_float * acceleration_x  = field.is_field("acceleration_x") ?
-    (enzo_float *) field.values("acceleration_x") : NULL;
+    (enzo_float *) field.values("acceleration_x") : nullptr;
   enzo_float * acceleration_y  = field.is_field("acceleration_y") ?
-    (enzo_float *)field.values("acceleration_y") : NULL;
+    (enzo_float *)field.values("acceleration_y") : nullptr;
   enzo_float * acceleration_z  = field.is_field("acceleration_z") ?
-    (enzo_float *)field.values("acceleration_z") : NULL;
+    (enzo_float *)field.values("acceleration_z") : nullptr;
 
 
   /* Determine if Gamma should be a scalar or a field. */
@@ -174,8 +171,8 @@ int EnzoMethodPpm::SolveHydroEquations
 
           // rescale color fields to account for change in
           // baryon mass from enforcing density floor
-          for (int ic = 0; ic < ncolor; ic++){
-            enzo_float * cfield = (enzo_float *)
+          for (int ic = 0; ic < nc; ic++){
+            enzo_float * cfield = &color_field_list[ic];
             field.values(field.groups()->item("color",ic));
             cfield[i] *= density_ratio;
           }
@@ -200,18 +197,18 @@ int EnzoMethodPpm::SolveHydroEquations
   }
 
   /* allocate temporary space for solver (enough to fit 31 of the largest
-     possible 2d slices plus 4*ncolor). */
+     possible 2d slices plus 4*nc). */
 
   int tempsize = MAX(MAX(block.GridDimension[0]*block.GridDimension[1],
 			 block.GridDimension[1]*block.GridDimension[2]),
 		     block.GridDimension[2]*block.GridDimension[0]);
 
-  enzo_float *temp = new enzo_float[tempsize*(32+ncolor*4)];
+  enzo_float *temp = new enzo_float[tempsize*(32+nc*4)];
 
   /* create and fill in arrays which are easier for the solver to
      understand. */
 
-  size = NumberOfSubgrids*3*(18+2*ncolor) + 1;
+  size = NumberOfSubgrids*3*(18+2*nc) + 1;
 
   int * array = new int[size];
   for (int i=0; i<size; i++) array[i] = 0;
@@ -229,7 +226,7 @@ int EnzoMethodPpm::SolveHydroEquations
   int *vindex    = p; p+=3*2;
   int *windex    = p; p+=3*2;
   int *geindex   = p; p+=3*2;
-  int *colindex  = p; p+=3*2*ncolor;
+  int *colindex  = p; p+=3*2*nc;
 
   // Offsets computed from the "standard" pointer to the start of each
   // flux data
@@ -254,7 +251,7 @@ int EnzoMethodPpm::SolveHydroEquations
   long long max=std::numeric_limits<long long>::lowest();
 #endif  
  
-  index_color = 0; 
+  int index_color = 0; 
   for (int i_f=0; i_f<nf; i_f++) {
     int * flux_index = 0;
     const int index_field = flux_data->index_field(i_f);
@@ -316,7 +313,7 @@ int EnzoMethodPpm::SolveHydroEquations
 
   ASSERT ("EnzoMethodPpm::SolveHydroEquations()",
 	  "comoving_coordinates enabled but missing EnzoPhysicsCosmology",
-	  ! (comoving_coordinates && (cosmology == NULL)) );
+	  ! (comoving_coordinates && (cosmology == nullptr)) );
 
   /* Create a cell width array to pass (and convert to absolute coords). */
 
@@ -338,7 +335,7 @@ int EnzoMethodPpm::SolveHydroEquations
      the right thing for < 3 dimensions. */
   /* note: Start/EndIndex are zero based */
 
-  int gravity_on = (acceleration_x != NULL) ? 1 : 0;
+  int gravity_on = (acceleration_x != nullptr) ? 1 : 0;
 
   int iconsrec = 0;
   int iposrec = 0;
@@ -372,9 +369,18 @@ int EnzoMethodPpm::SolveHydroEquations
      istart, iend, jstart, jend,
      flux_array, dindex, Eindex, uindex, vindex, windex,
      geindex, temp,
-     &ncolor, colorpt, coloff, colindex, &pressure_floor, &density_floor,
+     &nc, color_field_list.data(), color_offsets.data(),
+     colindex, &pressure_floor, &density_floor,
      &error, ie_error_x,ie_error_y,ie_error_z,&num_ie_error
      );
+
+  // Copy color_field_list back to color fields
+  for (int ic=0; ic<nc; ic++) {
+    const std::string & field_name = field.groups()->item("color",ic);
+    const enzo_float * field_src = &color_field_list[ic*m];
+    enzo_float *       field_dst = field.values(field_name);
+    std::copy_n(field_src,m,field_dst);
+  }
 
 #ifdef EXIT_ON_ERROR  
   ASSERT2 ("EnzoMethodPpm::SolveHydroEquations",
@@ -412,7 +418,7 @@ int EnzoMethodPpm::SolveHydroEquations
 
   delete [] array;
 
-  delete [] coloff;
+                          //  delete [] color_offsets;
 #ifdef IE_ERROR_FIELD
   delete [] ie_error_x;
   delete [] ie_error_y;

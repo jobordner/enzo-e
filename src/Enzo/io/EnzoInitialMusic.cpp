@@ -281,8 +281,9 @@ void EnzoInitialMusic::enforce_block
       SMP_NODE_UNLOCK;
       PERF_SMP_STOP(iperf_smp_initial_music);
     }
+    delete file;
   }
-
+  
   for (size_t index=0; index<particle_files_.size(); index++) {
 
     std::string file_name = particle_files_[index];
@@ -413,7 +414,6 @@ void EnzoInitialMusic::enforce_block
       fflush(stdout);
 #endif
     }
-    //    if (file) delete file;
 
     if (throttle_intranode_) {
       SMP_NODE_UNLOCK;

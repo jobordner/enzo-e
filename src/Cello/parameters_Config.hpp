@@ -49,9 +49,8 @@ public: // interface
     boundary_field_list(),
     num_fields(0),
     field_list(),
-    field_alignment(0),
-    field_padding(0),
     field_history(0),
+    field_coalesce_children(false),
     field_precision(0),
     field_prolong(""),
     field_restrict(""),
@@ -85,7 +84,6 @@ public: // interface
     method_schedule_index(),
     method_courant(),
     method_order_ordering(),
-    method_order_quantize(),
     method_type(),
     monitor_debug(false),
     monitor_mute_list(),
@@ -220,9 +218,8 @@ public: // interface
       boundary_field_list(),
       num_fields(0),
       field_list(),
-      field_alignment(0),
-      field_padding(0),
       field_history(0),
+      field_coalesce_children(false),
       field_precision(0),
       field_prolong(""),
       field_restrict(""),
@@ -256,7 +253,6 @@ public: // interface
       method_schedule_index(),
       method_courant(),
       method_order_ordering(),
-      method_order_quantize(),
       method_type(),
       monitor_debug(false),
       monitor_mute_list(),
@@ -422,11 +418,10 @@ public: // attributes
 
   int                        num_fields;
   std::vector<std::string>   field_list;
-  int                        field_alignment;
   std::vector<int>           field_centering [3];
   int                        field_ghost_depth[3];
-  int                        field_padding;
   int                        field_history;
+  bool                       field_coalesce_children;
   int                        field_precision;
   std::string                field_prolong;
   std::string                field_restrict;
@@ -480,7 +475,6 @@ public: // attributes
   std::vector<int>           method_schedule_index;
   std::vector<double>        method_courant;
   std::vector<std::string>   method_order_ordering;
-  std::vector<int>           method_order_quantize;
   std::vector<std::string>   method_type;
 
   // Monitor

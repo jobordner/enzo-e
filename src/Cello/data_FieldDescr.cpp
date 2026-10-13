@@ -252,8 +252,6 @@ void FieldDescr::copy_(const FieldDescr & field_descr) throw()
   num_temporary_ = field_descr.num_temporary_;
   id_        = field_descr.id_;
   groups_    = field_descr.groups_;
-  alignment_ = field_descr.alignment_;
-  padding_   = field_descr.padding_;
   centering_ = field_descr.centering_;
   ghost_depth_ = field_descr.ghost_depth_;
   for (int i=0; i<3; i++) {

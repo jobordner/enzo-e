@@ -19,7 +19,6 @@ FieldData::FieldData
  ) throw()
   : array_permanent_(),
     array_temporary_(),
-    offsets_(),
     ghosts_allocated_(true),
     history_id_(),
     history_time_(),
@@ -47,7 +46,6 @@ FieldData::FieldData
 
 FieldData::~FieldData() throw()
 {
-  deallocate_permanent();
 }
 
 //----------------------------------------------------------------------
@@ -76,7 +74,6 @@ void FieldData::pup(PUP::er &p)
       p | array_coarse_[i];
     }
   }
-  p | offsets_;
   p | ghosts_allocated_;
   p | history_id_;
   p | history_time_;
@@ -158,7 +155,7 @@ cello_float * FieldData::values
 
       const int num_fields = field_descr->field_count();
       if (0 <= id_field && id_field < num_fields) {
-	values = array_permanent_.data() + offsets_[id_field];
+	values = array_permanent_[id_field].data();
       }
 
     } else {
@@ -324,23 +321,20 @@ void FieldData::clear
  int                id_field_first,
  int                id_field_last) throw()
 {
-  if ( permanent_allocated() ) {
-    if (id_field_first == -1) {
-      id_field_first = 0;
-      id_field_last  = field_descr->field_count() - 1;
-    } else if (id_field_last == -1) {
-      id_field_last  = id_field_first;
-    }
-    for (int id_field = id_field_first;
-	 id_field <= id_field_last;
-	 id_field++) {
-      const int m = dimensions (field_descr,id_field);
-      cello_float * array = array_permanent_.data() + offsets_[id_field];
-      std::fill_n(array,m,value);
-    }
-  } else {
-    ERROR("FieldData::clear",
-	  "Called clear with unallocated arrays");
+  // Handle default parameters
+  if (id_field_first == -1) {
+    id_field_first = 0;
+    id_field_last  = field_descr->field_count() - 1;
+  } else if (id_field_last == -1) {
+    id_field_last  = id_field_first;
+  }
+  // Clear fields
+  for (int id_field = id_field_first;
+       id_field <= id_field_last;
+       id_field++) {
+    const int m = dimensions (field_descr,id_field);
+    cello_float * array = array_permanent_[id_field].data();
+    std::fill_n(array,m,value);
   }
 }
 
@@ -357,8 +351,8 @@ void FieldData::copy
   int gx,gy,gz;
   const int m = dimensions(field_descr,id_src,&mx,&my,&mz);
   field_descr->ghost_depth(id_src,&gx,&gy,&gz);
-  cello_float * src  = array_permanent_.data() + offsets_[id_src];
-  cello_float * dst  = array_permanent_.data() + offsets_[id_dst];
+  cello_float * src  = array_permanent_[id_src].data();
+  cello_float * dst  = array_permanent_[id_dst].data();
   if (l_ghost) {
     for (int i=0; i<m; i++) {
       dst[i] = src[i];
@@ -390,70 +384,19 @@ void FieldData::allocate_permanent
 		   "Allocate called with zero field size");
   }
 
-  // Warning check array already allocated
-  if (permanent_allocated() ) {
-    WARNING ("FieldData::allocate_permanent",
-	     "Array already allocated: calling reallocate()");
-    reallocate_permanent(field_descr,ghosts_allocated);
-    return;
-  }
-
   allocate_coarse(field_descr);
 
   ghosts_allocated_ = ghosts_allocated;
 
-  int padding   = field_descr->padding();
-  int alignment = field_descr->alignment();
-
-  int array_size = 0;
-
-  for (int id_field=0; id_field<field_descr->field_count(); id_field++) {
-
-    // Increment array_size, including padding and alignment adjustment
-
-    const int m = dimensions(field_descr,id_field);
-
-    array_size += adjust_padding_   (m,padding);
-    array_size += adjust_alignment_ (m,alignment);
-
+  const int np = field_descr->num_permanent();
+  array_permanent_.resize(np);
+  for (int ip=0; ip<np; ip++) {
+    const int m = dimensions(field_descr,ip);
+    array_permanent_[ip].resize(m);
   }
-
-  // Adjust for possible initial misalignment
-
-  array_size += alignment - 1;
-
-  // Allocate the array
-
-  array_permanent_.resize(array_size);
-
-  // Initialize field_begin
-
-  int field_offset = align_padding_(alignment);
-
-  offsets_.reserve(field_descr->field_count());
-
-  for (int id_field=0; id_field<field_descr->field_count(); id_field++) {
-
-    offsets_.push_back(field_offset);
-
-    // Increment array_size, including padding and alignment adjustment
-    const int m = dimensions(field_descr,id_field);
-
-    field_offset += adjust_padding_  (m,padding);
-    field_offset += adjust_alignment_(m,alignment);
-  }
-
-  // check if array_size is too big or too small
-
-  if ( ! ( 0 <= (array_size - field_offset)
-	   &&   (array_size - field_offset) < alignment)) {
-    ERROR ("FieldData::allocate_permanent",
-           "Code error: array size was computed incorrectly");
-  };
 
   // Allocate any "temporary" fields for history
 
-  const int np = field_descr->num_permanent();
   const int nh = field_descr->num_history();
   for (int ih=0; ih<nh; ih++) {
     for (int ip=0; ip<np; ip++) {
@@ -523,17 +466,21 @@ void FieldData::allocate_coarse (const FieldDescr * field_descr, int id_field) t
 
 //----------------------------------------------------------------------
 
-void FieldData::deallocate_temporary (const FieldDescr * field_descr,
-				      int id_field) throw()
+void FieldData::deallocate_temporary (const FieldDescr * field_descr) throw()
 {
-  allocate_coarse(field_descr,id_field);
-
-  int index_field = id_field - field_descr->num_permanent();
-
-  if (! (index_field < int(array_temporary_.size()))) {
-    array_temporary_.resize(index_field+1);
+  for (size_t index_field=0; index_field<array_temporary_.size(); index_field++) {
+    deallocate_temporary(field_descr,index_field);
   }
-  if (array_temporary_[index_field].size() != 0) {
+  array_temporary_.clear();
+}
+
+//----------------------------------------------------------------------
+
+void FieldData::deallocate_temporary (const FieldDescr * field_descr,
+                                      int id_field) throw()
+{
+  int index_field = id_field - field_descr->num_permanent();
+  if (index_field < (int)array_temporary_.size()) {
     array_temporary_[index_field].clear();
   }
 }
@@ -545,7 +492,7 @@ void FieldData::deallocate_coarse () throw()
   for (size_t index_field=0; index_field<array_coarse_.size(); index_field++) {
     deallocate_coarse(index_field);
   }
-
+  array_coarse_.clear();
 }
 
 //----------------------------------------------------------------------
@@ -559,46 +506,12 @@ void FieldData::deallocate_coarse (int index_field) throw()
 }
 //----------------------------------------------------------------------
 
-void FieldData::reallocate_permanent
-(
- const FieldDescr * field_descr,
- bool               ghosts_allocated
- ) throw()
-{
-  if (! permanent_allocated() ) {
-    WARNING ("FieldData::reallocate_permanent",
-	     "Array not allocated yet: calling allocate()");
-    allocate_permanent(field_descr,ghosts_allocated);
-    return;
-  }
-
-  std::vector<int>  old_offsets;
-  std::vector<cello_float> old_array;
-
-  old_array = array_permanent_;
-  old_offsets = offsets_;
-
-  array_permanent_.clear();
-  offsets_.clear();
-
-  ghosts_allocated_ = ghosts_allocated;
-
-  allocate_permanent(field_descr,ghosts_allocated_);
-
-  restore_permanent_ (field_descr,&old_array[0], old_offsets);
-}
-
-//----------------------------------------------------------------------
-
 void FieldData::deallocate_permanent () throw()
 {
-  if ( permanent_allocated() ) {
-
-    deallocate_coarse();
-
-    array_permanent_.clear();
-    offsets_.clear();
+  for (int ip=0; ip<array_permanent_.size(); ip++) {
+    array_permanent_[ip].clear();
   }
+  array_permanent_.clear();
 }
 
 //----------------------------------------------------------------------
@@ -831,7 +744,6 @@ int FieldData::data_size (FieldDescr * field_descr) const
   SIZE_ARRAY_TYPE(size,int,size_,3);
   SIZE_VECTOR_TYPE(size,cello_float,array_permanent_);
   SIZE_VECTOR_VECTOR_TYPE(size,cello_float,array_temporary_);
-  SIZE_VECTOR_TYPE(size,int,offsets_);
   SIZE_SCALAR_TYPE(size,bool,ghosts_allocated_);
   SIZE_VECTOR_TYPE(size,int,history_id_);
   SIZE_VECTOR_TYPE(size,double,history_time_);
@@ -852,7 +764,6 @@ char * FieldData::save_data (FieldDescr * field_descr,
   SAVE_ARRAY_TYPE(pc,int,size_,3);
   SAVE_VECTOR_TYPE(pc,cello_float,array_permanent_);
   SAVE_VECTOR_VECTOR_TYPE(pc,cello_float,array_temporary_);
-  SAVE_VECTOR_TYPE(pc,int,offsets_);
   SAVE_SCALAR_TYPE(pc,bool,ghosts_allocated_);
   SAVE_VECTOR_TYPE(pc,int,history_id_);
   SAVE_VECTOR_TYPE(pc,double,history_time_);
@@ -878,7 +789,6 @@ char * FieldData::load_data (FieldDescr * field_descr,
   LOAD_ARRAY_TYPE(pc,int,size_,3);
   LOAD_VECTOR_TYPE(pc,cello_float,array_permanent_);
   LOAD_VECTOR_VECTOR_TYPE(pc,cello_float,array_temporary_);
-  LOAD_VECTOR_TYPE(pc,int,offsets_);
   LOAD_SCALAR_TYPE(pc,bool,ghosts_allocated_);
   LOAD_VECTOR_TYPE(pc,int,history_id_);
   LOAD_VECTOR_TYPE(pc,double,history_time_);
@@ -970,97 +880,6 @@ void FieldData::unpack_field_msg_
 }
 
 //======================================================================
-
-int FieldData::adjust_padding_
-(
- int size,
- int padding) const throw ()
-{
-  return size + padding;
-}
-
-//----------------------------------------------------------------------
-
-int FieldData::adjust_alignment_
-(
- int size,
- int alignment) const throw ()
-{
-  return (alignment - (size % alignment)) % alignment;
-}
-
-//----------------------------------------------------------------------
-
-int FieldData::align_padding_ (int alignment) const throw()
-{
-  long unsigned start_long = reinterpret_cast<long unsigned>(&array_permanent_[0]);
-  return ( alignment - (start_long % alignment) ) % alignment;
-}
-
-//----------------------------------------------------------------------
-
-void FieldData::restore_permanent_
-(
- const FieldDescr * field_descr,
- const cello_float * array_from,
-  std::vector<int> & offsets_from) throw ()
-{
-
-  // copy values
-  for (int id_field=0;
-       id_field < field_descr->field_count();
-       id_field++) {
-
-    // get "to" field size
-
-    int mx2,my2,mz2;
-    dimensions(field_descr,id_field, &mx2,&my2,&mz2);
-
-    // get "from" field size
-
-    ghosts_allocated_ = ! ghosts_allocated_;
-
-    int mx1,my1,mz1;
-    dimensions(field_descr,id_field, &mx1,&my1,&mz1);
-
-    ghosts_allocated_ = ! ghosts_allocated_;
-
-    // determine offsets to unknowns if ghosts allocated
-
-    int offset1 = (mx1-mx2)/2 + mx1* ( (my1-my2)/2 + my1 * (mz1-mz2)/2 );
-    offset1 = MAX (offset1, 0);
-
-    int offset2 = (mx2-mx1)/2 + mx2* ( (my2-my1)/2 + my2 * (mz2-mz1)/2 );
-    offset2 = MAX (offset2, 0);
-
-    // determine unknowns size
-
-    int mx = MIN(mx1,mx2);
-    int my = MIN(my1,my2);
-    int mz = MIN(mz1,mz2);
-
-    // determine array start
-
-    const cello_float * array1 = offset1 + offsets_from.at(id_field) + array_from;
-    cello_float       * array2 = offset2 + offsets_.at    (id_field) + &array_permanent_[0];
-
-    // copy values (use memcopy?)
-
-    for (int iz=0; iz<mz; iz++) {
-      for (int iy=0; iy<my; iy++) {
-	for (int ix=0; ix<mx; ix++) {
-          int i1 = (ix + mx1*(iy + my1*iz));
-          int i2 = (ix + mx2*(iy + my2*iz));
-          array2[i2] = array1[i1];
-	}
-      }
-    }
-  }
-
-  offsets_from.clear();
-}
-
-//----------------------------------------------------------------------
 
 void FieldData::set_history_(const FieldDescr * field_descr)
 {

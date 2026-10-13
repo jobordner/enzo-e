@@ -656,21 +656,6 @@ void Simulation::initialize_data_descr_() throw()
 
   field_descr_->set_default_ghost_depth (gx,gy,gz);
 
-  //--------------------------------------------------
-  // parameter: Field : alignment
-  //--------------------------------------------------
-
-  int alignment = config_->field_alignment;
-
-  ASSERT1 ("Simulation::initialize_data_descr_",
-	  "Illegal Field:alignment parameter value %d",
-	   alignment,
-	   1 <= alignment );
-
-  field_descr_->set_alignment (alignment);
-
-  field_descr_->set_padding (config_->field_padding);
-
   field_descr_->set_history (config_->field_history);
 
   for (int i=0; i<field_descr_->field_count(); i++) {

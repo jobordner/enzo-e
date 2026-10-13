@@ -74,11 +74,10 @@ void Config::pup (PUP::er &p)
 
   p | num_fields;
   p | field_list;
-  p | field_alignment;
   PUParray(p,field_centering,3);
   PUParray(p,field_ghost_depth,3);
-  p | field_padding;
   p | field_history;
+  p | field_coalesce_children;
   p | field_prolong;
   p | field_restrict;
   p | field_group_list;
@@ -128,7 +127,6 @@ void Config::pup (PUP::er &p)
   p | method_schedule_index;
   p | method_courant;
   p | method_order_ordering;
-  p | method_order_quantize;
   p | method_type;
 
   // Monitor
@@ -510,8 +508,6 @@ void Config::read_field_ (Parameters * p) throw()
     field_ghost_depth[2] = 0;
   }
 
-  field_alignment = p->value_integer("Field:alignment",8);
-
   field_centering[0].resize(num_fields);
   field_centering[1].resize(num_fields);
   field_centering[2].resize(num_fields);
@@ -596,9 +592,9 @@ void Config::read_field_ (Parameters * p) throw()
     }
   }
 
-  field_padding = p->value_integer("Field:padding",0);
-
   field_history = p->value_integer("Field:history",0);
+  field_coalesce_children = p->value_logical
+    ("Field:coalesce_children",false);
 
   field_prolong   = p->value_string ("Field:prolong","enzo");
   field_restrict  = p->value_string ("Field:restrict","linear");
@@ -864,7 +860,6 @@ void Config::read_method_ (Parameters * p) throw()
   method_courant.resize(num_method);
   method_debug_ghost.resize(num_method);
   method_order_ordering.resize(num_method);
-  method_order_quantize.resize(num_method);
   method_schedule_index.resize(num_method);
   method_type.resize(num_method);
 
@@ -913,8 +908,6 @@ void Config::read_method_ (Parameters * p) throw()
     // Read method ordering parameters
     method_order_ordering[index_method] = p->value_string
       (full_name+":ordering", "morton");
-    method_order_quantize[index_method] = p->value_logical
-      (full_name+":quantize", false);
 
   }
 

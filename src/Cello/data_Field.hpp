@@ -73,14 +73,6 @@ public: // interface
   // FieldDescr
   //==================================================
 
-  /// Set alignment
-  void set_alignment(int alignment) throw()
-  { field_descr_->set_alignment(alignment); }
-
-  /// Set padding
-  void set_padding(int padding) throw()
-  { field_descr_->set_padding(padding); }
-
   /// Set centering for a field
   void set_centering(int id, int cx, int cy=0, int cz=0)
     throw()
@@ -125,14 +117,6 @@ public: // interface
 
   const Grouping * groups () const
   { return field_descr_->groups(); }
-
-  /// alignment in bytes of fields in memory
-  int alignment() const throw()
-  { return field_descr_-> alignment();}
-
-  /// padding in bytes between fields in memory
-  int padding() const throw()
-  { return field_descr_->padding() ;}
 
   /// centering of given field
   void centering(int id, int * cx, int * cy = 0, int * cz = 0) const
@@ -343,12 +327,6 @@ public: // interface
   const cello_float * unknowns (std::string name, int index_history=0) const throw ()
   { return field_data_->unknowns(field_descr_,name,index_history); }
 
-  /// Return raw pointer to the array of all fields.  Const since
-  /// otherwise dangerous due to varying field sizes,
-  /// padding and alignment
-  const cello_float * permanent ()  const throw () 
-  { return field_data_->permanent(); }
-
   /// Return width of cells along each dimension
   void cell_width(double xm,   double xp,   double * hx,
 		  double ym=0, double yp=0, double * hy=0,
@@ -376,14 +354,6 @@ public: // interface
   {
     field_data_->copy(field_descr_,id_src,id_dst,l_ghost);
   }
-
-  /// Return whether array is allocated or not
-  bool permanent_allocated() const throw()
-  { return field_data_->permanent_allocated(); }
-
-  /// Return whether array is allocated or not
-  size_t permanent_size() const throw()
-  { return field_data_->permanent_size(); }
 
   /// Allocate storage for the field data
   void allocate_permanent(bool ghosts_allocated = false) throw()

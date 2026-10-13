@@ -11,6 +11,24 @@
    :e:`All fields must be explicitly listed in the` :par:param:`~Field:list` :e:`parameter.  Field names depend on the Method(s) used; e.g., PPM uses` :t:`"density"`,  :t:`"velocity_x"`, :t:`"velocity_y"`, :t:`"total_energy"`, :e:`and`  :t:`"internal_energy"`.
 
 
+.. par:parameter:: Field:coalesce_children
+
+   :Summary:    :s:`Whether to allocate child block fields as a single array`
+   :Type:       :par:typefmt:`logical`
+   :Default:    :d:`false`
+   :Scope:     :z:`Cello`
+
+   :e:`This parameter is used to constrain sibling blocks (all child
+   blocks of the same parent) to be assigned to the same process, and
+   allocate field data arrays as a single array for all sibling
+   blocks. This reduces ghost zone data and communication by half,
+   field data allocations by a factor of about eight (or about four
+   for 2D), and allows for methods to be applied to all child blocks
+   together if they are all leaf blocks. Note this affects the load
+   balancer by constraining sibling blocks to the same process. Also
+   note that some methods may need to be updated to avoid read-write
+   data dependencies at sibling neighbor faces.`
+
 ----
 
 .. par:parameter:: Field:gamma
@@ -27,17 +45,6 @@
       This parameter is deprecated and will be removed in a future version.
       Going forward, pass this value to :par:param:`Physics:fluid_props:eos:gamma`.
 
-
-----
-
-.. par:parameter:: Field:alignment
-
-   :Summary: :s:`Force field data on each block to start on alignment bytes`
-   :Type:    :par:typefmt:`integer`
-   :Default: :d:`8`
-   :Scope:     :c:`Cello`
-
-   :e:`Depending on the computer architecture, variables can be accessed from memory faster if they have at least 4-byte or 8-byte alignment.  This parameter forces each field block array to have an address evenly divisible by the specified number of bytes.`
 
 ----
 
@@ -71,17 +78,6 @@
    :Scope:     :c:`Cello`
 
    :e:`The default storage patch / block ghost zone depths [gx, gy, gz] along each axis for fields.  If an integer, then the same ghost zone depth is used for each axis.  Currently this value needs to be 4 for PPM when AMR is used.`
-
-----
-
-.. par:parameter:: Field:padding
-
-   :Summary: :s:`Add padding of the specified number of bytes between fields on each block.`
-   :Type:    :par:typefmt:`integer`
-   :Default: :d:`0`
-   :Scope:     :c:`Cello`
-
-   :e:`If block sizes are large and a power of two, and if the computer's cache has low associativity, performance can suffer due to cache thrashing.  This can be avoided by introducing padding between fields.  A value of twice the cache line width is recommended.  Since field blocks are usually small, this should not usually be an issue.`
 
 ----
 

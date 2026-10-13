@@ -188,8 +188,8 @@ void EnzoSolverRBGS::local_solve_(Block * block, int n)
   int mx,my,mz;
   field.dimensions(ix_,&mx,&my,&mz);
   const int ixp = 1;
-  const int iyp = mx;
-  const int izp = mx*my;
+  const int iyp = (rank >= 2) ? mx : 0;
+  const int izp = (rank >= 3) ? mx*my : 0;
   if (w_ == 1.0) {
     // red (even)
     for (int k=0; k<n; k++) {
