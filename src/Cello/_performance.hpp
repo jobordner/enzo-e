@@ -42,9 +42,6 @@
 #   define PERF_ADAPT_STOP(INDEX)               \
   PERF_STOP(iperf_adapt);                       \
   PERF_STOP(INDEX);
-#   define PERF_ADAPT_POST(INDEX)               \
-  PERF_START(INDEX);                            \
-  PERF_START(iperf_adapt_post);
 
 #   define PERF_REDUCE_START(INDEX)             \
   PERF_START(iperf_reduce);                     \
@@ -56,6 +53,7 @@
 #   define PERF_REFRESH_START(REFRESH)                                  \
   PERF_START((cello::simulation()->perf_refresh_base() + (REFRESH)->id())); \
   PERF_START(iperf_refresh);
+
 #   define PERF_REFRESH_STOP(REFRESH)                                   \
   PERF_STOP((cello::simulation()->perf_refresh_base() + (REFRESH)->id())); \
   PERF_STOP(iperf_refresh);
@@ -95,12 +93,10 @@
 #   define PERF_STOP(INDEX) /* ... */
 #   define PERF_ADAPT_START(INDEX) /* ... */
 #   define PERF_ADAPT_STOP(INDEX) /* ... */
-#   define PERF_ADAPT_POST(INDEX) /* ... */
 #   define PERF_REDUCE_START(INDEX) /* ... */
 #   define PERF_REDUCE_STOP(INDEX) /* ... */
 #   define PERF_REFRESH_START(INDEX) /* ... */
 #   define PERF_REFRESH_STOP(INDEX)  /* ... */
-#   define PERF_REFRESH_POST(INDEX)  /* ... */
 #   define PERF_SOLVER_START(SOLVER) /* ... */
 #   define PERF_SOLVER_STOP(SOLVER) /* ... */
 #   define PERF_METHOD_START(METHOD) /* ... */

@@ -203,7 +203,11 @@ public: // interface
 
   /// Allocate storage for the permanent fields
   void allocate_permanent(const FieldDescr *,
-                          bool ghosts_allocated = false) throw();
+                          bool allocate_ghosts) throw();
+  void allocate_permanent(const FieldDescr *,
+                          bool coalesced,
+                          bool owns_array,
+                          bool allocate_ghosts) throw();
 
   /// Allocate storage for the temporary fields
   void allocate_temporary(const FieldDescr *, int id) throw ();
@@ -367,6 +371,13 @@ private: // attributes
 
   /// Current scaling of each field
   std::vector<double> units_scaling_;
+
+  /// Whether the associated block owns its own data or not
+  bool owns_array_;
+
+  /// Whether the array is coalesced (sized for all child blocks) or
+  /// not
+  bool coalesced_array_;
 
   //--------------------------------------------------
 

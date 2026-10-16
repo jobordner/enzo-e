@@ -139,11 +139,10 @@ void Data::field_cell_width
   double xp,yp,zp;
   this->upper(&xp,&yp,&zp);
   field_data()->cell_width(xm,xp,hx, ym,yp,hy, zm,zp,hz);
-}   
+}
 
 //----------------------------------------------------------------------
-
-void Data::allocate (int level) throw()
+void Data::allocate_coalesced (int level, bool owns_array, bool coalesced) throw()
 {
   // allocate Block scalar storage
   scalar_data_long_double_.allocate(cello::scalar_descr_long_double());
@@ -154,13 +153,15 @@ void Data::allocate (int level) throw()
   scalar_data_void_       .allocate(cello::scalar_descr_void());
   scalar_data_index_      .allocate(cello::scalar_descr_index());
   // allocate Block Field storage
+  const FieldDescr * field_descr = cello::field_descr();
   for (size_t i=0; i<field_data_.size(); i++) {
-    field_data_[i]->set_history_(cello::field_descr());
+    field_data_[i]->set_history_(field_descr);
     auto time = (level >= 0) ? cello::simulation()->state()->time(level) : 0.0;
-    field_data_[i]->init_history_time(cello::field_descr(),time);
-    field_data_[i]->allocate_permanent(cello::field_descr(),true);
+    field_data_[i]->init_history_time(field_descr,time);
+    bool allocate_ghosts;
+    field_data_[i]->allocate_permanent
+      (field_descr,coalesced,owns_array,allocate_ghosts=true);
   }
-  // initialize Flux field list
 }
 
 //======================================================================

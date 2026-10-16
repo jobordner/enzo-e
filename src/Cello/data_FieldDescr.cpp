@@ -225,6 +225,15 @@ void FieldDescr::set_centering(int id_field, int cx, int cy, int cz) throw()
 
 //----------------------------------------------------------------------
 
+void FieldDescr::set_default_ghost_depth(int gx, int gy, int gz) throw()
+{
+  ghost_depth_default_[0] = gx;
+  ghost_depth_default_[1] = gy;
+  ghost_depth_default_[2] = gz;
+}
+
+//----------------------------------------------------------------------
+
 void FieldDescr::set_ghost_depth(int id_field, int gx, int gy, int gz) throw()
 {
   if (id_field >= 0) {
@@ -232,15 +241,6 @@ void FieldDescr::set_ghost_depth(int id_field, int gx, int gy, int gz) throw()
     std::get<1>(ghost_depth_[id_field]) = gy;
     std::get<2>(ghost_depth_[id_field]) = gz;
   }
-}
-
-//----------------------------------------------------------------------
-
-void FieldDescr::set_default_ghost_depth(int gx, int gy, int gz) throw()
-{
-  ghost_depth_default_[0] = gx;
-  ghost_depth_default_[1] = gy;
-  ghost_depth_default_[2] = gz;
 }
 
 //======================================================================
@@ -256,10 +256,6 @@ void FieldDescr::copy_(const FieldDescr & field_descr) throw()
   ghost_depth_ = field_descr.ghost_depth_;
   for (int i=0; i<3; i++) {
     ghost_depth_default_[i] = field_descr.ghost_depth_default_[i];
-  }
-  conserved_.resize(field_descr.conserved_.size());
-  for (size_t i=0; i<field_descr.conserved_.size(); i++) {
-    conserved_[i] = field_descr.conserved_[i];
   }
   history_ = field_descr.history_;
   history_id_.resize(field_descr.history_id_.size());

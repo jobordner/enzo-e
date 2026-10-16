@@ -50,7 +50,7 @@ public: // interface
     num_fields(0),
     field_list(),
     field_history(0),
-    field_coalesce_children(false),
+    field_coalesced(false),
     field_precision(0),
     field_prolong(""),
     field_restrict(""),
@@ -219,7 +219,7 @@ public: // interface
       num_fields(0),
       field_list(),
       field_history(0),
-      field_coalesce_children(false),
+      field_coalesced(false),
       field_precision(0),
       field_prolong(""),
       field_restrict(""),
@@ -421,7 +421,7 @@ public: // attributes
   std::vector<int>           field_centering [3];
   int                        field_ghost_depth[3];
   int                        field_history;
-  bool                       field_coalesce_children;
+  bool                       field_coalesced;
   int                        field_precision;
   std::string                field_prolong;
   std::string                field_restrict;

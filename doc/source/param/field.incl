@@ -11,7 +11,7 @@
    :e:`All fields must be explicitly listed in the` :par:param:`~Field:list` :e:`parameter.  Field names depend on the Method(s) used; e.g., PPM uses` :t:`"density"`,  :t:`"velocity_x"`, :t:`"velocity_y"`, :t:`"total_energy"`, :e:`and`  :t:`"internal_energy"`.
 
 
-.. par:parameter:: Field:coalesce_children
+.. par:parameter:: Field:coalesced
 
    :Summary:    :s:`Whether to allocate child block fields as a single array`
    :Type:       :par:typefmt:`logical`

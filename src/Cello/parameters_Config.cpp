@@ -77,7 +77,7 @@ void Config::pup (PUP::er &p)
   PUParray(p,field_centering,3);
   PUParray(p,field_ghost_depth,3);
   p | field_history;
-  p | field_coalesce_children;
+  p | field_coalesced;
   p | field_prolong;
   p | field_restrict;
   p | field_group_list;
@@ -593,8 +593,8 @@ void Config::read_field_ (Parameters * p) throw()
   }
 
   field_history = p->value_integer("Field:history",0);
-  field_coalesce_children = p->value_logical
-    ("Field:coalesce_children",false);
+  field_coalesced = p->value_logical
+    ("Field:coalesced",false);
 
   field_prolong   = p->value_string ("Field:prolong","enzo");
   field_restrict  = p->value_string ("Field:restrict","linear");

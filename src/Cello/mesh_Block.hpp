@@ -455,7 +455,6 @@ public:
     PERF_ADAPT_START(iperf_adapt_enter);
     adapt_enter_();
     PERF_ADAPT_STOP(iperf_adapt_enter);
-    PERF_ADAPT_POST(iperf_adapt_enter_post);
   }
   void r_adapt_enter(CkReductionMsg * msg)
   {
@@ -463,7 +462,6 @@ public:
     delete msg;
     adapt_enter_();
     PERF_ADAPT_STOP(iperf_adapt_enter);
-    PERF_ADAPT_POST(iperf_adapt_enter_post);
   }
 
   void r_adapt_next(CkReductionMsg * msg)
@@ -473,7 +471,6 @@ public:
     delete msg;
     adapt_next_();
     PERF_ADAPT_STOP(iperf_adapt_next);
-    PERF_ADAPT_POST(iperf_adapt_next_post);
   }
 
   void p_adapt_called()
@@ -481,7 +478,6 @@ public:
     PERF_ADAPT_START(iperf_adapt_called);
     adapt_called_();
     PERF_ADAPT_STOP(iperf_adapt_called);
-    PERF_ADAPT_POST(iperf_adapt_called_post);
   }
 
   void p_adapt_end ()
@@ -489,14 +485,12 @@ public:
     PERF_ADAPT_START(iperf_adapt_end);
     adapt_end_();
     PERF_ADAPT_STOP(iperf_adapt_end);
-    PERF_ADAPT_POST(iperf_adapt_end_post);
   }
   void p_adapt_update()
   {
     PERF_ADAPT_START(iperf_adapt_update);
     adapt_update_();
     PERF_ADAPT_STOP(iperf_adapt_update);
-    PERF_ADAPT_POST(iperf_adapt_update_post);
   }
 
   void p_adapt_exit()
@@ -504,7 +498,6 @@ public:
     PERF_ADAPT_START(iperf_adapt_exit);
     adapt_exit_();
     PERF_ADAPT_STOP(iperf_adapt_exit);
-    PERF_ADAPT_POST(iperf_adapt_exit_post);
   }
 
   /// Parent tells child to delete itself

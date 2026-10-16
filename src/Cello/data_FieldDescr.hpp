@@ -35,7 +35,7 @@ public: // functions
     groups_(),
     centering_(),
     ghost_depth_(),
-    conserved_(),
+    coalesced_(false),
     history_(0),
     history_id_()
   {
@@ -69,7 +69,7 @@ public: // functions
     p | centering_;
     p | ghost_depth_;
     PUParray(p,ghost_depth_default_,3);
-    p | conserved_;
+    p | coalesced_;
     p | history_;
     p | history_id_;
   }
@@ -83,8 +83,12 @@ public: // functions
   /// Set ghost_depth for a field
   void set_ghost_depth(int id_field, int gx, int gy=0, int gz=0) throw();
 
-  /// Set whether a field is a conserved quantity
-  void set_conserved(int id_field, bool conserved) throw();
+  /// Set whether a field arrays for child blocks are allocated as a single
+  /// array
+  void set_coalesced (bool coalesced) throw()
+  { coalesced_ = coalesced; }
+  bool coalesced() const throw()
+  { return coalesced_; }
 
   /// Insert a new permanent field
   int insert_permanent(const std::string & name_field) throw();
@@ -186,13 +190,6 @@ public: // functions
   int  ghost_depth(int id_field, int * gx = 0, int * gy = 0, int * gz = 0) const 
     throw();
 
-  /// whether the field is a conserved quantity
-  bool conserved(int id_field) const 
-    throw()
-  {
-    return (id_field >= 0) ? conserved_.at(id_field) : false;
-  }
-
   /// Whether the field refers to a valid permanent field
   bool is_permanent (std::string field) const throw()
   { return is_permanent(field_id(field)); }
@@ -249,11 +246,9 @@ private: // attributes
   /// Default ghost depth if not specified
   int ghost_depth_default_[3];
 
-  /// Whether the field is conserved or not.  If so it is multiplied
-  /// by density when interpolated or coarsened, then divided again.
-  /// (char instead of bool otherwise charmc complains at compile time:
-  /// "Error 1: taking address of temporary (-fpermissive)"
-  std::vector<char> conserved_;
+  /// Whether fields of sibling blocks are allocated as a single
+  /// array
+  bool coalesced_;
 
   /// Number of generations of history to save
   int history_;

@@ -221,7 +221,7 @@ void Index::child
     if (icx) (*icx) = (a_[0].tree >> shift) & 1;
     if (icy) (*icy) = (a_[1].tree >> shift) & 1;
     if (icz) (*icz) = (a_[2].tree >> shift) & 1;
-  } else if (level > min_level) {
+  } else {
     unsigned shift = - level;
     if (icx) (*icx) = (a_[0].array >> shift) & 1;
     if (icy) (*icy) = (a_[1].array >> shift) & 1;
@@ -233,6 +233,13 @@ void Index::child
 
 bool Index::is_root() const
 { return (v_[0]==0 && v_[1]==0 && v_[2]==0); }
+
+bool Index::is_root_child() const
+{
+  int cx,cy,cz;
+  child(level(),&cx,&cy,&cz);
+  return ! (cx || cy || cz);
+}
 
 //----------------------------------------------------------------------
 
@@ -372,7 +379,7 @@ void Index::set_child(int level, int ix, int iy, int iz, int min_level)
     a_[0].tree = (a_[0].tree & mask) | (ix<<shift);
     a_[1].tree = (a_[1].tree & mask) | (iy<<shift);
     a_[2].tree = (a_[2].tree & mask) | (iz<<shift);
-  } else if (level > min_level) {
+  } else {
     // switch to array bits if tree bits exhausted (subroot blocks only)
     unsigned shift = - level;
     unsigned mask  = ~(1 << shift);

@@ -23,6 +23,8 @@ FieldData::FieldData
     history_id_(),
     history_time_(),
     units_scaling_(),
+    owns_array_(true),
+    coalesced_array_(false),
     coarse_dimensions_(),
     array_coarse_()
 {
@@ -78,7 +80,8 @@ void FieldData::pup(PUP::er &p)
   p | history_id_;
   p | history_time_;
   p | units_scaling_;
-
+  p | owns_array_;
+  p | coalesced_array_;
 }
 
 
@@ -368,13 +371,24 @@ void FieldData::copy
     }
   }
 }
+
 //----------------------------------------------------------------------
 
 void FieldData::allocate_permanent
 (const FieldDescr * field_descr,
  bool ghosts_allocated ) throw()
 {
+  allocate_permanent(field_descr,false,true,ghosts_allocated);
+}
 
+//----------------------------------------------------------------------
+
+void FieldData::allocate_permanent
+(const FieldDescr * field_descr,
+ bool coalesced_array,
+ bool owns_data,
+ bool ghosts_allocated) throw()
+{
   // Error check size
 
   if (! (size_[0] > 0 &&
@@ -388,6 +402,7 @@ void FieldData::allocate_permanent
 
   ghosts_allocated_ = ghosts_allocated;
 
+  // Allocate permanent fields
   const int np = field_descr->num_permanent();
   array_permanent_.resize(np);
   for (int ip=0; ip<np; ip++) {
@@ -396,7 +411,6 @@ void FieldData::allocate_permanent
   }
 
   // Allocate any "temporary" fields for history
-
   const int nh = field_descr->num_history();
   for (int ih=0; ih<nh; ih++) {
     for (int ip=0; ip<np; ip++) {
@@ -748,6 +762,8 @@ int FieldData::data_size (FieldDescr * field_descr) const
   SIZE_VECTOR_TYPE(size,int,history_id_);
   SIZE_VECTOR_TYPE(size,double,history_time_);
   SIZE_VECTOR_TYPE(size,double,units_scaling_);
+  SIZE_SCALAR_TYPE(size,bool,owns_array_);
+  SIZE_SCALAR_TYPE(size,bool,coalesced_array_);
   SIZE_VECTOR_TYPE(size,int,coarse_dimensions_);
   SIZE_VECTOR_VECTOR_TYPE(size,cello_float,array_coarse_);
 
@@ -768,6 +784,8 @@ char * FieldData::save_data (FieldDescr * field_descr,
   SAVE_VECTOR_TYPE(pc,int,history_id_);
   SAVE_VECTOR_TYPE(pc,double,history_time_);
   SAVE_VECTOR_TYPE(pc,double,units_scaling_);
+  SAVE_SCALAR_TYPE(pc,bool,owns_array_);
+  SAVE_SCALAR_TYPE(pc,bool,coalesced_array_);
   SAVE_VECTOR_TYPE(pc,int,coarse_dimensions_);
   SAVE_VECTOR_VECTOR_TYPE(pc,cello_float,array_coarse_);
 
@@ -793,6 +811,8 @@ char * FieldData::load_data (FieldDescr * field_descr,
   LOAD_VECTOR_TYPE(pc,int,history_id_);
   LOAD_VECTOR_TYPE(pc,double,history_time_);
   LOAD_VECTOR_TYPE(pc,double,units_scaling_);
+  LOAD_SCALAR_TYPE(pc,bool,owns_array_);
+  LOAD_SCALAR_TYPE(pc,bool,coalesced_array_);
   LOAD_VECTOR_TYPE(pc,int,coarse_dimensions_);
   LOAD_VECTOR_VECTOR_TYPE(pc,cello_float,array_coarse_);
 

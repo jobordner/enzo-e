@@ -100,6 +100,10 @@ public:
   /// (array (0 0 0), level 0)
   bool is_root() const;
 
+  /// Return whether this is the "root-child" index of its parent; that
+  /// is if its child index is (0,0,0)
+  bool is_root_child() const;
+
   /// Whether given `index` is a sibling (has the same parent as this Index)
   bool is_sibling (Index index, int min_level = 0) const
   {

@@ -922,12 +922,12 @@ Method * Problem::create_method_
   } else if (name == "order") {
     method = new MethodOrder
       (config->method_order_ordering[index_method],
-       config->field_coalesce_children);
+       config->field_coalesced);
   } else if (name == "order_rotate") {
     method = new MethodOrderRotate;
   } else if (name == "order_hilbert") {
     method = new MethodOrderHilbert
-      (config->field_coalesce_children);
+      (config->field_coalesced);
   } else if (name == "refresh") {
     method = new MethodRefresh(p_group);
   } else if (name == "debug") {

@@ -82,7 +82,8 @@ class Refresh : public PUP::able {
       id_refresh_(-1),
       id_prolong_(0),
       id_restrict_(0),
-      final_sync_(false)
+      final_sync_(false),
+      trace_perf_(true)
   {
   }
 
@@ -132,7 +133,8 @@ public: // interface
       id_refresh_(-1),
       id_prolong_(0),
       id_restrict_(0),
-      final_sync_(false)
+      final_sync_(false),
+      trace_perf_(true)
   {
   }
 
@@ -167,7 +169,8 @@ public: // interface
       id_refresh_(-1),
       id_prolong_(0),
       id_restrict_(0),
-      final_sync_(false)
+      final_sync_(false),
+      trace_perf_(true)
   {
   }
 
@@ -203,6 +206,7 @@ public: // interface
     p | id_prolong_;
     p | id_restrict_;
     p | final_sync_;
+    p | trace_perf_;
   }
 
   //--------------------------------------------------
@@ -569,6 +573,12 @@ public: // interface
   void set_final_sync (int sync = true)
   { final_sync_ = sync; }
 
+  /// Return whether to output performance traces for this refresh
+  bool trace_perf() const { return trace_perf_; }
+  /// Set whether to output performance traces for this refresh
+  void set_trace_perf(bool trace_perf = true)
+  { trace_perf_ = trace_perf; }
+
   const Restrict * get_restrict () const;
 
   //--------------------------------------------------
@@ -677,6 +687,8 @@ private: // attributes
   /// Whether to perform a final synchronization (using sync_exit())
   int final_sync_;
 
+  /// Whether to output performance output
+  bool trace_perf_;
 };
 
 #endif /* PROBLEM_REFRESH_HPP */
