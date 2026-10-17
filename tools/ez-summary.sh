@@ -17,6 +17,7 @@ while true; do
     / redshift /{tr=$NF}; \
     /num-particles total/{pc=$NF}; \
     /Parameters  Mesh:root_rank/{mr=$NF}; \
+    /BRANCH/{br=$NF}; \
     /Parameters  Mesh:root_blocks/{mb=$(NF-1)}; \
     /Parameters  Mesh:root_size/{ms=$(NF-1)}; \
     /Parameters  Adapt:max_level/{ml=$NF}; \
@@ -58,7 +59,8 @@ while true; do
        f_cycle,\
        f_block,\
        f_mem,\
-       inp};' $out
+       inp, \
+       br};' $out
     shift
 done
 
