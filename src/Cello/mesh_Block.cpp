@@ -240,7 +240,9 @@ void Block::init_refine_
 		     num_field_blocks,
 		     xm,xp, ym,yp, zm,zp);
 
-  data_->allocate(index.level());
+  data_->allocate_coalesced(thisIndex.level(),
+                            thisIndex.is_root_child(),
+                            cello::config()->field_coalesced);
 
   child_data_ = nullptr;
 

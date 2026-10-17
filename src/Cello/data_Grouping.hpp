@@ -34,7 +34,7 @@ public: // interface
   //----------------------------------------------------------------------
 
   /// Add an item to a group
-  void add(std::string item, std::string group) 
+  void add(const std::string & item, const std::string & group) 
     throw()
   {
     std::pair<std::string,std::string> value(item,group);
@@ -42,7 +42,7 @@ public: // interface
   }
 
   /// Return whether the item is in the given group
-  bool is_in(std::string item, std::string group) const
+  bool is_in(const std::string & item, const std::string & group) const
     throw()
   {
     std::pair<std::string,std::string> value(item,group);
@@ -50,7 +50,7 @@ public: // interface
   }
 
   /// Return the number of items in the group
-  int size(std::string item) const
+  int size(const std::string & item) const
   {
     int count = 0;
     for (auto it=groups_.begin(); it != groups_.end(); it++) {
@@ -60,7 +60,7 @@ public: // interface
   }
 
   /// Return the nth item in the group
-  std::string item (std::string group, int index)
+  std::string item (const std::string & group, int index)
   {
     int count = 0;
 
@@ -74,7 +74,7 @@ public: // interface
   }
 
   /// Return a vector of all elements of a group
-  std::vector<std::string> group_list (std::string group)
+  std::vector<std::string> group_list (const std::string & group)
   {
     int count = 0;
 

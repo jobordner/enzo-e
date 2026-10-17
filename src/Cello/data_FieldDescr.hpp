@@ -17,10 +17,10 @@ class FieldDescr
   ///
   /// This class is used to store information about Fields in general,
   /// including field names, how they are centered (cell-centered,
-  /// face-centered, on corners, etc), number of ghost zones, padding, and
-  /// alignment.  There is one FieldDescr object per
-  /// Simulation object.  Actual Field data are stored in FieldData
-  /// objects, which are each associated with a unique Block of data.
+  /// face-centered, on corners, etc), and number of ghost zones.
+  /// There is one FieldDescr object per Simulation object.  Actual
+  /// Field data are stored in FieldData objects, which are each
+  /// associated with a unique Block of data.
 
   friend class Field;
 
@@ -33,11 +33,9 @@ public: // functions
     num_temporary_(0),
     id_(),
     groups_(),
-    alignment_(1),
-    padding_(0),
     centering_(),
     ghost_depth_(),
-    conserved_(),
+    coalesced_(false),
     history_(0),
     history_id_()
   {
@@ -68,23 +66,13 @@ public: // functions
     p | num_temporary_;
     p | id_;
     p | groups_;
-    p | alignment_;
-    p | padding_;
     p | centering_;
     p | ghost_depth_;
     PUParray(p,ghost_depth_default_,3);
-    p | conserved_;
+    p | coalesced_;
     p | history_;
     p | history_id_;
   }
-
-  /// Set alignment
-  void set_alignment(int alignment) throw()
-  { alignment_ = alignment; }
-
-  /// Set padding
-  void set_padding(int padding) throw()
-  { padding_ = padding; }
 
   /// Set centering for a field
   void set_centering(int id_field, int cx, int cy=0, int cz=0) throw();
@@ -95,8 +83,12 @@ public: // functions
   /// Set ghost_depth for a field
   void set_ghost_depth(int id_field, int gx, int gy=0, int gz=0) throw();
 
-  /// Set whether a field is a conserved quantity
-  void set_conserved(int id_field, bool conserved) throw();
+  /// Set whether a field arrays for child blocks are allocated as a single
+  /// array
+  void set_coalesced (bool coalesced) throw()
+  { coalesced_ = coalesced; }
+  bool coalesced() const throw()
+  { return coalesced_; }
 
   /// Insert a new permanent field
   int insert_permanent(const std::string & name_field) throw();
@@ -138,8 +130,9 @@ public: // functions
   /// current, 1 first generation, etc.) for field ip
   int history_id (int ip, int age) const throw()
   {
+    const int np = num_permanent();
     return (age == 0 || is_temporary(ip)) ?
-      ip : history_id_[ip + num_permanent()*(age-1)];
+      ip : history_id_[ip + np*(age-1)];
   }
 
   /// Return the current field (history = 0) corresponding to the given id
@@ -148,16 +141,18 @@ public: // functions
   {
     if (history_age(id) == 0) return id;
     size_t i=0;
+    const int np = num_permanent();
     for (i=0; i<history_id_.size(); i++)
       if (history_id_[i] == id) break;
-    return i % num_permanent();
+    return i % np;
   }
 
   /// Return the age of the given field id
   int history_age (int ip) const throw()
   {
     // (age == 0)
-    if (ip < num_permanent()) {
+    const int np = num_permanent();
+    if (ip < np) {
       return 0;
     } else {
       // (age > 0) or temporary
@@ -168,7 +163,7 @@ public: // functions
       //     if found, return computed age
       //     otherwise it's a non-saved temporary so must be age 0
       return (i < history_id_.size()) ?
-        (1 + i/num_permanent()) : 0;
+        (1 + i/np) : 0;
     }
 
   }
@@ -179,14 +174,6 @@ public: // functions
 
   Grouping * groups () { return & groups_; }
   const Grouping * groups () const { return & groups_; }
-
-  /// alignment in bytes of fields in memory
-  int alignment() const throw()
-  {  return alignment_;  }
-
-  /// padding in bytes between fields in memory
-  int padding() const throw()
-  { return padding_; }
 
   /// centering of given field
   void centering(int id_field, int * cx, int * cy = 0, int * cz = 0) const 
@@ -203,37 +190,28 @@ public: // functions
   int  ghost_depth(int id_field, int * gx = 0, int * gy = 0, int * gz = 0) const 
     throw();
 
-  /// whether the field is a conserved quantity
-  bool conserved(int id_field) const 
-    throw()
-  {
-    return (id_field >= 0) ? conserved_.at(id_field) : false;
-  }
-
   /// Whether the field refers to a valid permanent field
   bool is_permanent (std::string field) const throw()
   { return is_permanent(field_id(field)); }
   /// Whether the field id refers to a valid permanent field
-  bool is_permanent (int id_field) const throw()
+  bool is_permanent (int ip) const throw()
   {
-    return ( (0 <= id_field) &&
-	     (id_field < num_permanent_)); }
+    const int np = num_permanent();
+    return ( (0 <= ip) && (ip < np)); }
 
-  /// Return the number of permanent fields
-  int num_permanent() const throw()
+  int num_permanent() const
   { return num_permanent_; }
-
+  int num_temporary() const
+  { return num_temporary_; }
   /// Whether the field refers to a valid temporary field
   bool is_temporary (std::string field) const throw()
   {  return is_temporary(field_id(field));  }
   /// Whether the field id refers to a valid temporary field
-  bool is_temporary (int id_field) const throw()
-  { return ((num_permanent_ <= id_field) &&
-	    (id_field < num_permanent_ + num_temporary_)); }
-
-  /// Return the number of temporary fields
-  int num_temporary() const throw()
-  { return num_temporary_; }
+  bool is_temporary (int it) const throw()
+  {
+    const int np = num_permanent();
+    const int nt = num_temporary();
+    return ((np <= it) && (it < np + nt)); }
 
 private: // functions
 
@@ -250,7 +228,7 @@ private: // attributes
   /// Number of permanent fields declared
   int num_permanent_;
 
-    /// Number of temporary fields declared
+  /// Number of temporary fields declared
   int num_temporary_;
 
   /// Index of each field in name_
@@ -258,12 +236,6 @@ private: // attributes
 
   /// Groupings of fields
   Grouping groups_;
-
-  /// alignment of start of each field in bytes
-  int alignment_;
-
-  /// padding between fields in bytes
-  int padding_;
 
   /// cell centering for each field
   std::vector<std::tuple<int,int,int> > centering_;
@@ -274,11 +246,9 @@ private: // attributes
   /// Default ghost depth if not specified
   int ghost_depth_default_[3];
 
-  /// Whether the field is conserved or not.  If so it is multiplied
-  /// by density when interpolated or coarsened, then divided again.
-  /// (char instead of bool otherwise charmc complains at compile time:
-  /// "Error 1: taking address of temporary (-fpermissive)"
-  std::vector<char> conserved_;
+  /// Whether fields of sibling blocks are allocated as a single
+  /// array
+  bool coalesced_;
 
   /// Number of generations of history to save
   int history_;

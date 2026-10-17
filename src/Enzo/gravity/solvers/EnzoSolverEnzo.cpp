@@ -91,7 +91,7 @@ EnzoSolverEnzo::EnzoSolverEnzo
     refresh_level->set_prolong(index_prolong);
     refresh_level->set_restrict(index_restrict);
     refresh_level->set_final_sync(false);
-
+    refresh_level->set_trace_perf(false);
     std::string refresh_name =
       std::string("solver_")+this->name()+":level:"+std::to_string(level);
     ir_level = cello::simulation()->new_register_refresh

@@ -16,13 +16,13 @@ class FieldData {
   /// @ingroup  Data
   /// @brief [\ref Data] Interface between field arrays and low-level
   /// (C/fortran) routines.
-  /// 
+  ///
   /// A FieldData stores up to a 4D fortran-like array for
   /// permanently storing 1 or more 3D arrays.  Axes can be permuted,
   /// including the index selecting the array for storing interleaved
   /// arrays.  Temporary fields can be allocated and deallocated as
   /// well, and are stored in a vector of pointers to 3D arrays.  Descriptive
-  /// information, such as number of ghost zones, padding, centering, etc.,
+  /// information, such as number of ghost zones, centering, etc.,
   /// are stored in a separate FieldDescr object, for which there is
   /// one per Simulation object (i.e. one per process)
 
@@ -34,7 +34,7 @@ public: // interface
 
   /// Create a new initialized FieldData object
   FieldData(const FieldDescr * = NULL,
-	    int nx=0, int ny=1, int nz=1) throw();
+            int nx=0, int ny=1, int nz=1) throw();
 
   /// Deconstructor
   ~FieldData() throw();
@@ -54,17 +54,17 @@ public: // interface
   /// Return array for the corresponding field, which may or may not
   /// contain ghosts depending on if they're allocated
   cello_float * values (const FieldDescr *,
-		 int id_field, int history=0) throw ();
+                 int id_field, int history=0) throw ();
   cello_float * values (const FieldDescr * field_descr,
-		 std::string name, int history=0) throw ()
+                 std::string name, int history=0) throw ()
   { return values (field_descr,field_descr->field_id(name),history); }
 
   /// Return array for the corresponding field, which may or may not
   /// contain ghosts depending on if they're allocated
   const cello_float * values (const FieldDescr *,
-		       int id_field, int history=0) const throw ();
+                       int id_field, int history=0) const throw ();
   const cello_float * values (const FieldDescr * field_descr,
-		       std::string name, int history=0) const throw ()
+                       std::string name, int history=0) const throw ()
   { return values (field_descr,field_descr->field_id(name),history); }
 
   template <class T>
@@ -73,7 +73,7 @@ public: // interface
   template <class T>
   std::shared_ptr<T[]> values_at (const FieldDescr * field_descr,
                                   std::string name, double time);
-  
+
   /// Return a CelloView that acts as a view of the corresponding field
   ///
   /// If the field cannot be found the program will abort with an error.
@@ -118,16 +118,16 @@ public: // interface
 
   /// Return array for the corresponding coarse field
   cello_float * coarse_values (const FieldDescr *,
-		 int id_field, int history=0) throw ();
+                 int id_field, int history=0) throw ();
   cello_float * coarse_values (const FieldDescr * field_descr,
-		 std::string name, int history=0) throw ()
+                 std::string name, int history=0) throw ()
   { return coarse_values (field_descr,field_descr->field_id(name),history); }
 
   /// Return array for the corresponding coarse field
   const cello_float * coarse_values (const FieldDescr *,
-		       int id_field, int history=0) const throw ();
+                       int id_field, int history=0) const throw ();
   const cello_float * coarse_values (const FieldDescr * field_descr,
-		       std::string name, int history=0) const throw ()
+                       std::string name, int history=0) const throw ()
   { return coarse_values (field_descr,field_descr->field_id(name),history); }
 
   /// Return a CelloView that acts as a view of the corresponding coarse field
@@ -167,87 +167,77 @@ public: // interface
 
   template<class T>
   CelloView<const T, 3> coarse_view(const FieldDescr * field_descr,
-				     std::string name,
+                                     std::string name,
                                      int history=0) const throw()
   { return coarse_view<T>(field_descr, field_descr->field_id(name), history); }
 
   /// Return array for the corresponding field, which does not contain
   /// ghosts whether they're allocated or not
   cello_float * unknowns (const FieldDescr *,
-		   int id_field, int history=0) throw ();
+                   int id_field, int history=0) throw ();
   cello_float * unknowns (const FieldDescr * field_descr,
-		   std::string name, int history=0) throw ()
+                   std::string name, int history=0) throw ()
   { return unknowns (field_descr,field_descr->field_id(name),history); }
 
   const cello_float * unknowns (const FieldDescr *,
-			 int id_field, int history=0) const throw ();
+                         int id_field, int history=0) const throw ();
   const cello_float * unknowns (const FieldDescr * field_descr,
-			 std::string name, int history=0) const throw ()
+                         std::string name, int history=0) const throw ()
   { return unknowns (field_descr,field_descr->field_id(name),history); }
-
-  /// Return raw pointer to the array of all permanent fields.  Const since
-  /// otherwise dangerous due to varying field sizes, precisions,
-  /// padding and alignment
-  const cello_float * permanent ()  const throw () 
-  { return permanent_allocated() ? &array_permanent_[0] : NULL; };
 
   /// Return width of cells along each dimension
   void cell_width(double xm,   double xp,   double * hx,
-		  double ym=0, double yp=0, double * hy=0,
-		  double zm=0, double zp=0, double * hz=0) const throw ();
+                  double ym=0, double yp=0, double * hy=0,
+                  double zm=0, double zp=0, double * hz=0) const throw ();
 
   /// Clear specified array(s) to specified value
   void clear ( const FieldDescr *,
-	       float value = 0.0, 
-	       int id_field_first = -1, 
-	       int id_field_last  = -1) throw();
+               float value = 0.0,
+               int id_field_first = -1,
+               int id_field_last  = -1) throw();
 
   void copy ( const FieldDescr *,
-              int id_field_src, 
+              int id_field_src,
               int id_field_dst,
               bool l_ghost = true) throw();
-  
-  /// Return whether array is allocated or not
-  bool permanent_allocated() const throw()
-  { return array_permanent_.size() > 0; }
-
-  /// Return whether array is allocated or not
-  size_t permanent_size() const throw()
-  { return array_permanent_.size(); }
 
   /// Allocate storage for the permanent fields
   void allocate_permanent(const FieldDescr *,
-			  bool ghosts_allocated = false) throw();
+                          bool allocate_ghosts) throw();
+  void allocate_permanent(const FieldDescr *,
+                          bool coalesced,
+                          bool owns_array,
+                          bool allocate_ghosts) throw();
 
   /// Allocate storage for the temporary fields
   void allocate_temporary(const FieldDescr *, int id) throw ();
-
-  /// Reallocate storage for the field data, e.g. when changing
-  /// from ghosts to non-ghosts [ costly for large blocks ]
-  void reallocate_permanent(const FieldDescr * ,
-			    bool ghosts_allocated = false) throw();
-
-  /// Deallocate storage for the permanent fields
-  void deallocate_permanent() throw();
-
-  /// Deallocate storage for the temporary fields
-  void deallocate_temporary(const FieldDescr *,int id) 
-    throw ();
 
   /// Allocate storage for coarse padded array
   void allocate_coarse(const FieldDescr *) throw();
   /// Allocate storage for a coarse padded array
   void allocate_coarse(const FieldDescr *, int id) throw();
-  /// Deallocate storage for the coarse fields
+
+  /// Reallocate storage for the field data, e.g. when changing
+  /// from ghosts to non-ghosts [ costly for large blocks ]
+  void reallocate_permanent(const FieldDescr * ,
+                            bool ghosts_allocated = false) throw();
+
+  /// Deallocate storage for the permanent fields
+  void deallocate_permanent() throw();
+
+  /// Deallocate storage for the temporary fields or field
+  void deallocate_temporary(const FieldDescr *) throw();
+  void deallocate_temporary(const FieldDescr *, int id) throw ();
+
+  /// Deallocate storage for the coarse fields or field
   void deallocate_coarse() throw ();
-  /// Deallocate storage for the coarse fields
   void deallocate_coarse(int id) throw ();
 
-  /// Return whether ghost cells are allocated or not.  
+  /// Return whether ghost cells are allocated or not.
   bool ghosts_allocated() const throw ()
   {  return ghosts_allocated_; }
 
-  /// Return the number of elements (nx,ny,nz) along each axis of the
+  /// Return the number of elements allocated along each axis of the
   /// coarse field
   int  coarse_dimensions
   (const FieldDescr *, int id_field, int *mx=0, int *my=0, int *mz=0) const throw();
@@ -287,7 +277,7 @@ public: // interface
   /// except if it's in cgs but the scaling factor has changed (e.g. due to
   /// expansion) then adjust for the new scaling factor
   void units_scale_cgs (const FieldDescr *, int id, double amount);
-    
+
   /// convert the field to "code units" given the unit scaling factor
   /// if it's already in code units, leave it as-is
   /// warning if scaling factor has changed
@@ -330,23 +320,6 @@ public: // interface
 private: // functions
   //--------------------------------------------------
 
-  /// Given field size and padding, compute offset to start of the next field
-  int adjust_padding_ (int size, int padding) const throw();
-
-  /// Given field size and alignment, compute offset to start of the next field
-  int adjust_alignment_ (int size, int alignment) const throw();
-
-  /// Given array start and alignment, return first address that is
-  /// aligned
-  int align_padding_ (int alignment) const throw();
-
-  /// Move (not copy) array to array_permanent_ and offsets to
-  /// offsets_
-  void restore_permanent_ 
-  (const FieldDescr *,
-   const cello_float       * array_from,
-   std::vector<int> & offsets_from ) throw ();
-
   /// (Re-)initialize temporary fields for history
   void set_history_ (const FieldDescr * field_descr);
 
@@ -357,7 +330,7 @@ private: // functions
     if (i < n+1) {
       units_scaling_.resize(n+1);
       for (; i<n+1; i++) {
-	units_scaling_[i] = 1.0;
+        units_scaling_[i] = 1.0;
       }
     }
   }
@@ -373,16 +346,19 @@ private: // attributes
   /// Size of fields, assuming centered
   int size_[3];
 
-  /// Single array of permanent fields
-  std::vector<cello_float> array_permanent_;
+  /// Array of permanent fields
+  std::vector< std::vector<cello_float> > array_permanent_;
 
   /// Array of temporary fields
   std::vector< std::vector<cello_float> > array_temporary_;
 
+  /// Coarse fields with one ghost zone for padded Prolong
+  std::vector< std::vector<cello_float> > array_coarse_;
+
   /// Offsets into values_ of the first element of each field
   std::vector<int> offsets_;
 
-  /// Whether ghost values are allocated or not 
+  /// Whether ghost values are allocated or not
   bool ghosts_allocated_;
 
   /// Temporary field id's used for history.  May be permuted
@@ -396,14 +372,18 @@ private: // attributes
   /// Current scaling of each field
   std::vector<double> units_scaling_;
 
+  /// Whether the associated block owns its own data or not
+  bool owns_array_;
+
+  /// Whether the array is coalesced (sized for all child blocks) or
+  /// not
+  bool coalesced_array_;
+
   //--------------------------------------------------
-  
+
   /// Length of allocated coarse fields
   std::vector<int> coarse_dimensions_;
 
-  /// Coarse fields with one ghost zone for padded Prolong
-  std::vector< std::vector<cello_float> > array_coarse_;
-
-};   
+};
 
 #endif /* DATA_FIELD_DATA_HPP */

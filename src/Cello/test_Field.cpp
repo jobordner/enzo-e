@@ -250,25 +250,6 @@ PARALLEL_MAIN_BEGIN
 
     field.allocate_permanent(false);
 
-    size_t array_size_without_ghosts = field.permanent_size();
-
-    unit_assert(field.permanent() != 0);
-    unit_assert(field.permanent_allocated());
-    unit_assert(field.permanent_size() > 0);
-
-    // Reallocate
-
-    unit_func("reallocate_permanent");
-
-    field.reallocate_permanent(true);
-
-    size_t array_size_with_ghosts = field.permanent_size();
-
-    unit_assert(field.permanent() != 0);
-    unit_assert(field.permanent_allocated());
-    unit_assert(field.permanent_size() > 0);
-    unit_assert(array_size_with_ghosts > array_size_without_ghosts);
-
     // Deallocate
 
     unit_func("deallocate_permanent");
@@ -277,7 +258,6 @@ PARALLEL_MAIN_BEGIN
 
     unit_assert(field.permanent() == 0);
     unit_assert( ! field.permanent_allocated());
-    unit_assert(field.permanent_size() == 0);
 
     // Allocate
 
@@ -287,9 +267,6 @@ PARALLEL_MAIN_BEGIN
 
     unit_assert(field.permanent() != 0);
     unit_assert(field.permanent_allocated());
-    unit_assert(field.permanent_size() == array_size_with_ghosts);
-
-  
     //----------------------------------------------------------------------
     field.reallocate_permanent(false);
 

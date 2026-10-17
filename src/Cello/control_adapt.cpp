@@ -589,7 +589,6 @@ void Block::p_adapt_recv_level (MsgAdapt * msg)
     delete msg;
   }
   PERF_ADAPT_STOP (iperf_adapt_recv_level);
-  PERF_ADAPT_POST (iperf_adapt_recv_level_post);
 }
 
 void Block::adapt_recv_level()
@@ -940,7 +939,6 @@ void Block::p_adapt_recv_child (MsgCoarsen * msg)
   delete msg;
 
   PERF_ADAPT_STOP (iperf_adapt_recv_child);
-  PERF_ADAPT_POST (iperf_adapt_recv_child_post);
 }
 
 

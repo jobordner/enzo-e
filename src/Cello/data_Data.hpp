@@ -134,7 +134,14 @@ public: // interface
   //----------------------------------------------------------------------
 
   /// Allocate all data for a block in given level
-  void allocate (int level) throw();
+  void allocate (int level) throw()
+  {
+    allocate_coalesced (level,true,false);
+  }
+
+  /// Allocate data for a block, but used coaleced storage for
+  /// child blocks if enabled
+  void allocate_coalesced (int level, bool owns_array, bool coalesced) throw();
 
   //----------------------------------------------------------------------
   // fields

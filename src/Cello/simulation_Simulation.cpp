@@ -445,36 +445,21 @@ void Simulation::initialize_performance_() throw()
 
   const bool in_charm = true;
   p->new_region(iperf_adapt,                 "adapt");
-  p->new_region(iperf_adapt_post,            "adapt_post",in_charm);
   p->new_region(iperf_adapt_enter,           "adapt_enter");
-  p->new_region(iperf_adapt_enter_post,      "adapt_enter_post",in_charm);
   p->new_region(iperf_adapt_end,             "adapt_end");
-  p->new_region(iperf_adapt_end_post,        "adapt_end_post",in_charm);
   p->new_region(iperf_adapt_update,          "adapt_update");
-  p->new_region(iperf_adapt_update_post,     "adapt_update_post",in_charm);
   p->new_region(iperf_adapt_next,            "adapt_next");
-  p->new_region(iperf_adapt_next_post,       "adapt_next_post",in_charm);
   p->new_region(iperf_adapt_called,          "adapt_called");
-  p->new_region(iperf_adapt_called_post,     "adapt_called_post",in_charm);
   p->new_region(iperf_adapt_exit,            "adapt_exit");
-  p->new_region(iperf_adapt_exit_post,       "adapt_exit_post",in_charm);
   p->new_region(iperf_adapt_delete,          "adapt_delete");
-  p->new_region(iperf_adapt_delete_post,     "adapt_delete_post",in_charm);
   p->new_region(iperf_adapt_recv_level,      "adapt_recv_level");
-  p->new_region(iperf_adapt_recv_level_post, "adapt_recv_level_post",in_charm);
   p->new_region(iperf_adapt_recv_child,      "adapt_recv_child");
-  p->new_region(iperf_adapt_recv_child_post, "adapt_recv_child_post",in_charm);
   p->new_region(iperf_refresh,               "refresh");
-  p->new_region(iperf_refresh_post,          "refresh_post",in_charm);
   p->new_region(iperf_refresh_recv,          "refresh_recv");
-  p->new_region(iperf_refresh_recv_post,     "refresh_recv_post",in_charm);
   p->new_region(iperf_refresh_exit,          "refresh_exit");
-  p->new_region(iperf_refresh_exit_post,     "refresh_exit_post",in_charm);
   p->new_region(iperf_refresh_child,         "refresh_child");
-  p->new_region(iperf_refresh_child_post,    "refresh_child_post",in_charm);
 
   p->new_region(iperf_reduce,                "reduce");
-  //  p->new_region(iperf_reduce_adapt,          "reduce_adapt");
   p->new_region(iperf_reduce_charm,          "reduce_charm");
   p->new_region(iperf_reduce_initialize,     "reduce_initialize");
   p->new_region(iperf_reduce_method_balance, "reduce_method_balance");
@@ -656,21 +641,6 @@ void Simulation::initialize_data_descr_() throw()
 
   field_descr_->set_default_ghost_depth (gx,gy,gz);
 
-  //--------------------------------------------------
-  // parameter: Field : alignment
-  //--------------------------------------------------
-
-  int alignment = config_->field_alignment;
-
-  ASSERT1 ("Simulation::initialize_data_descr_",
-	  "Illegal Field:alignment parameter value %d",
-	   alignment,
-	   1 <= alignment );
-
-  field_descr_->set_alignment (alignment);
-
-  field_descr_->set_padding (config_->field_padding);
-
   field_descr_->set_history (config_->field_history);
 
   for (int i=0; i<field_descr_->field_count(); i++) {
@@ -684,6 +654,8 @@ void Simulation::initialize_data_descr_() throw()
     field_descr_->set_centering(i,cx,cy,cz);
 
   }
+
+  field_descr_->set_coalesced (config_->field_coalesced);
 
   // field groups
 
