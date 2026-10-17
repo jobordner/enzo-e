@@ -2,9 +2,19 @@ import matplotlib.pyplot as plt
 from numpy import *
 import numpy as np
 import glob
+import subprocess
 from matplotlib.patches import Rectangle, Circle
 # Create a figure and axis
 
+
+awk_out=subprocess.run(["awk","/\[/{print $2}","PLOG"],
+                       capture_output=True,check=True)
+sort_out=subprocess.run(["sort"], input=awk_out.stdout,
+                      capture_output=True,check=True)
+uniq_out=subprocess.run(["uniq"], input=sort_out.stdout,
+                      capture_output=True,check=True)
+print (uniq_out)
+exit(1)
 fig, ax = plt.subplots(figsize=(16,4))
 xmax_g=-10000
 xmax_g=-10000
