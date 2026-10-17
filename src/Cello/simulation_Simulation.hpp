@@ -429,7 +429,7 @@ protected: // functions
   void initialize_block_array_ () throw();
 
   /// Initialize the data object
-  void initialize_data_descr_ () throw();
+  void initialize_data_ () throw();
 
   /// Initialize load balancing
   void initialize_balance_ () throw();

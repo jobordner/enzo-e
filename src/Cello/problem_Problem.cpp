@@ -132,9 +132,27 @@ void Problem::pup (PUP::er &p)
 }
 
 //----------------------------------------------------------------------
+void Problem::initialize(Config * config,
+                         Parameters * parameters,
+                         const Factory * factory) throw()
+{
+  initialize_units_   (config);
+  initialize_physics_ (config,parameters);
+  initialize_boundary_(config,parameters);
+  initialize_prolong_ (config);
+  initialize_restrict_(config);
+  initialize_initial_ (config,parameters);
+  initialize_method_  (config,factory);
+  initialize_solver_  (config);
+  initialize_refine_  (config,parameters);
+  initialize_stopping_(config);
+  initialize_output_  (config,factory);
+}
 
-void Problem::initialize_boundary(Config * config,
-                                  Parameters * parameters) throw()
+//----------------------------------------------------------------------
+
+void Problem::initialize_boundary_(Config * config,
+                                   Parameters * parameters) throw()
 {
   for (int index=0; index < config->num_boundary; index++) {
 
@@ -150,7 +168,7 @@ void Problem::initialize_boundary(Config * config,
         err_prefix = "\"Boundary:" + config->boundary_list[index] + "\" has ";
       }
 
-      ERROR2("Problem::initialize_boundary",
+      ERROR2("Problem::initialize_boundary_()",
              "%sunrecognized Boundary type: \"%s\"",
              err_prefix.c_str(), type.c_str());
     }
@@ -162,8 +180,8 @@ void Problem::initialize_boundary(Config * config,
 
 //----------------------------------------------------------------------
 
-void Problem::initialize_initial(Config * config,
-                                 Parameters * parameters) throw()
+void Problem::initialize_initial_(Config * config,
+                                  Parameters * parameters) throw()
 {
 
   for (int index=0; index < config->num_initial; index++) {
@@ -172,7 +190,7 @@ void Problem::initialize_initial(Config * config,
 
     Initial * initial = create_initial_ (type,index,config,parameters);
 
-    ASSERT1("Problem::initialize_initial",
+    ASSERT1("Problem::initialize_initial_()",
             "Initial type %s not recognized",
             config->initial_list[index].c_str(),
             (initial != nullptr) );
@@ -183,8 +201,8 @@ void Problem::initialize_initial(Config * config,
 
 //----------------------------------------------------------------------
 
-void Problem::initialize_physics(Config * config,
-                                 Parameters * parameters) throw()
+void Problem::initialize_physics_(Config * config,
+                                  Parameters * parameters) throw()
 {
 
   for (int index=0; index < config->num_physics; index++) {
@@ -194,7 +212,7 @@ void Problem::initialize_physics(Config * config,
     Physics * physics = create_physics_
       (type,index,config,parameters);
 
-    ASSERT1("Problem::initialize_physics",
+    ASSERT1("Problem::initialize_physics_()",
             "Physics type %s not recognized",
             config->physics_list[index].c_str(),
             (physics != nullptr) );
@@ -207,8 +225,8 @@ void Problem::initialize_physics(Config * config,
 
 //----------------------------------------------------------------------
 
-void Problem::initialize_refine(Config * config,
-                                Parameters * parameters) throw()
+void Problem::initialize_refine_(Config * config,
+                                 Parameters * parameters) throw()
 {
   for (int index=0; index<config->num_adapt; index++) {
 
@@ -231,7 +249,7 @@ void Problem::initialize_refine(Config * config,
                               config->schedule_list[index_schedule]));
       }
     } else {
-      ERROR1("Problem::initialize_refine",
+      ERROR1("Problem::initialize_refine_()",
              "Cannot create Refine type %s",name.c_str());
     }
   }
@@ -239,11 +257,11 @@ void Problem::initialize_refine(Config * config,
 
 //----------------------------------------------------------------------
 
-void Problem::initialize_stopping(Config * config) throw()
+void Problem::initialize_stopping_(Config * config) throw()
 {
   stopping_ = create_stopping_("default",config);
 
-  ASSERT("Problem::initialize_stopping",
+  ASSERT("Problem::initialize_stopping_()",
          "Stopping object not successfully created",
          stopping_ != nullptr);
 }
@@ -253,7 +271,7 @@ void Problem::initialize_stopping(Config * config) throw()
 int Problem::new_prolong (std::string type) throw()
 {
   Prolong * prolong_ptr = create_prolong_(type);
-  ASSERT1("Problem::initialize_prolong",
+  ASSERT1("Problem::new__prolong",
           "Prolong type %s not recognized",
           type.c_str(),
           prolong_ptr != nullptr);
@@ -266,7 +284,7 @@ int Problem::new_prolong (std::string type) throw()
 int Problem::new_restrict (std::string type) throw()
 {
   Restrict * restrict_ptr = create_restrict_(type);
-  ASSERT1("Problem::initialize_restrict",
+  ASSERT1("Problem::new_restrict",
           "Restrict type %s not recognized",
           type.c_str(),
           restrict_ptr != nullptr);
@@ -276,32 +294,32 @@ int Problem::new_restrict (std::string type) throw()
 
 //----------------------------------------------------------------------
 
-void Problem::initialize_prolong(Config * config) throw()
+void Problem::initialize_prolong_(Config * config) throw()
 {
   // default prolongation
 
   int id_prolong = new_prolong (config->field_prolong);
-  ASSERT ("Problem::initialize_prolong()",
+  ASSERT ("Problem::initialize_prolong_()",
           "Initial default prolongation must be added to Problem::prolong_list_ first",
           (id_prolong == 0));
 }
 
 //----------------------------------------------------------------------
 
-void Problem::initialize_restrict(Config * config) throw()
+void Problem::initialize_restrict_(Config * config) throw()
 {
   // default restriction
 
   const int id_restrict = new_restrict (config->field_restrict);
 
-  ASSERT ("Problem::initialize_restrict()",
+  ASSERT ("Problem::initialize_restrict_()",
           "Initial default restriction must be added to Problem::restrict_list_ first",
           (id_restrict == 0));
 }
 
 //----------------------------------------------------------------------
 
-void Problem::initialize_output
+void Problem::initialize_output_
 (Config * config, const Factory * factory) throw()
 {
   FieldDescr * field_descr = cello::field_descr();
@@ -313,7 +331,7 @@ void Problem::initialize_output
     Output * output = create_output_ (type,index, config,factory);
 
     if (output == nullptr) {
-      ERROR2("Problem::initialize_output",
+      ERROR2("Problem::initialize_output_()",
              "Unknown parameter type Output:%s:type = %s",
              config->output_list[index].c_str(),type.c_str());
     } else {
@@ -480,7 +498,7 @@ void Problem::initialize_output
 
 //----------------------------------------------------------------------
 
-void Problem::initialize_method
+void Problem::initialize_method_
 ( Config * config, const Factory * factory ) throw()
 {
   const size_t num_method = config->method_list.size();
@@ -513,7 +531,7 @@ void Problem::initialize_method
 
     } else {
 
-      ERROR1("Problem::initialize_method",
+      ERROR1("Problem::initialize_method_()",
              "Unknown Method %s",name.c_str());
 
     }
@@ -522,7 +540,7 @@ void Problem::initialize_method
 
 //----------------------------------------------------------------------
 
-void Problem::initialize_solver( Config * config ) throw()
+void Problem::initialize_solver_( Config * config ) throw()
 {
   const size_t num_solver = config->solver_list.size();
 
@@ -537,7 +555,7 @@ void Problem::initialize_solver( Config * config ) throw()
       solver_list_.push_back(solver);
 
     } else {
-      ERROR1("Problem::initialize_solver",
+      ERROR1("Problem::initialize_solver_()",
              "Unknown Solver %s",type.c_str());
     }
   }
@@ -545,11 +563,11 @@ void Problem::initialize_solver( Config * config ) throw()
 
 //----------------------------------------------------------------------
 
-void Problem::initialize_units(Config * config) throw()
+void Problem::initialize_units_(Config * config) throw()
 {
   units_ = create_units_(config);
 
-  ASSERT("Problem::initialize_units",
+  ASSERT("Problem::initialize_units_()",
 	  "Units object not successfully created",
          units_ != nullptr);
 }

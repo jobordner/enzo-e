@@ -194,44 +194,9 @@ public: // interface
   /// Return the Units object
   Units * units() const throw() { return units_; }
 
-  /// Initialize the boundary conditions object
-  void initialize_boundary(Config * config,
-			   Parameters * parameters) throw();
-
-  /// Initialize the initial conditions object
-  void initialize_initial(Config * config,
-			  Parameters * parameters) throw();
-
-  /// Initialize any physics-related objects
-  void initialize_physics(Config * config,
-			  Parameters * parameters) throw();
-
-  /// Initialize the refine object
-  void initialize_refine(Config * config,
-			 Parameters * parameters) throw();
-
-  /// Initialize the stopping object
-  void initialize_stopping(Config * config ) throw();
-
-  /// Initialize the output objects
-  void initialize_output(Config * config,
-			 const Factory * factory) throw();
-
-  /// Initialize the method objects
-  void initialize_method(Config * config,
-			 const Factory * factory) throw();
-
-  /// Initialize Solver objects
-  void initialize_solver(Config * config) throw();
-
-  /// Initialize the prolong objects
-  void initialize_prolong(Config * config) throw();
-
-  /// Initialize the restrict objects
-  void initialize_restrict(Config * config) throw();
-
-  /// Initialize the units object
-  void initialize_units(Config * config ) throw();
+  void initialize(Config * config,
+                  Parameters * parameters,
+                  const Factory * factory) throw();
 
   int new_prolong (std::string type) throw();
   int new_restrict (std::string type) throw();
@@ -245,6 +210,45 @@ public: // interface
   { return id_refresh_initial_; }
 
 protected: // functions
+
+  /// Initialize the boundary conditions object
+  void initialize_boundary_(Config * config,
+                           Parameters * parameters) throw();
+
+  /// Initialize the initial conditions object
+  void initialize_initial_(Config * config,
+                          Parameters * parameters) throw();
+
+  /// Initialize any physics-related objects
+  void initialize_physics_(Config * config,
+                          Parameters * parameters) throw();
+
+  /// Initialize the refine object
+  void initialize_refine_(Config * config,
+                         Parameters * parameters) throw();
+
+  /// Initialize the stopping object
+  void initialize_stopping_(Config * config ) throw();
+
+  /// Initialize the output objects
+  void initialize_output_(Config * config,
+                         const Factory * factory) throw();
+
+  /// Initialize the method objects
+  void initialize_method_(Config * config,
+                         const Factory * factory) throw();
+
+  /// Initialize Solver objects
+  void initialize_solver_(Config * config) throw();
+
+  /// Initialize the prolong objects
+  void initialize_prolong_(Config * config) throw();
+
+  /// Initialize the restrict objects
+  void initialize_restrict_(Config * config) throw();
+
+  /// Initialize the units object
+  void initialize_units_(Config * config ) throw();
 
   /// Deallocate components
   void deallocate_() throw();

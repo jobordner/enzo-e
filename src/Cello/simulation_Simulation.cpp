@@ -611,7 +611,7 @@ void Simulation::initialize_monitor_() throw()
 
 //----------------------------------------------------------------------
 
-void Simulation::initialize_data_descr_() throw()
+void Simulation::initialize_data_() throw()
 {
   scalar_descr_long_double_ = new ScalarDescr;
   scalar_descr_double_      = new ScalarDescr;
@@ -701,7 +701,7 @@ void Simulation::initialize_data_descr_() throw()
     for (int ic=0; ic<nc; ic++) {
       std::string name = config_->particle_constant_name[it][ic];
       int         type = type_val[config_->particle_constant_type[it][ic]];
-      ASSERT3 ("Simulation::initialize_data_descr_()",
+      ASSERT3 ("Simulation::initialize_data_()",
 	       "Unknown Particle type \"%s\" constant \"%s\" "
 	       "has unknown type \"%s\"",
 	       config_->particle_list[it].c_str(),
@@ -738,7 +738,7 @@ void Simulation::initialize_data_descr_() throw()
       case type_int64:      *i64 = config_->particle_constant_value[it][ic];
 	break;
       default:
-	ERROR3 ("Simulation::initialize_data_descr_()",
+	ERROR3 ("Simulation::initialize_data_()",
 		"Unrecognized type %d for particle constant %s in type %s",
 		type,name.c_str(),config_->particle_list[it].c_str());
 	break;
@@ -750,7 +750,7 @@ void Simulation::initialize_data_descr_() throw()
     for (int ia=0; ia<na; ia++) {
       std::string name = config_->particle_attribute_name[it][ia];
       int type         = type_val[config_->particle_attribute_type[it][ia]];
-      ASSERT3 ("Simulation::initialize_data_descr_()",
+      ASSERT3 ("Simulation::initialize_data_()",
 	       "Unknown Particle type \"%s\" attribute \"%s\" has unknown type \"%s\"",
 	       config_->particle_list[it].c_str(),
 	       name.c_str(),
