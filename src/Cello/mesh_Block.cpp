@@ -10,31 +10,7 @@
 #include "main.hpp"
 #include "charm_simulation.hpp"
 
-// KEEP CONSISTENT WITH _comm.hpp: phase_type
-const char * phase_name[] = {
-  "unknown",
-  "initial_enter",
-  "initial_exit",
-  "adapt_enter",
-  "adapt_called",
-  "adapt_next",
-  "adapt_end",
-  "adapt_exit",
-  "compute_enter",
-  "compute_continue",
-  "compute_exit",
-  "refresh_enter",
-  "refresh_exit",
-  "stopping_enter",
-  "stopping_exit",
-  "output_enter",
-  "output_exit",
-  "restart",
-  "balance",
-  "exit"
-};
-
-// #define TRACE_BLOCK
+//----------------------------------------------------------------------
 
 Block::Block ()
   : CBase_Block(),
@@ -79,10 +55,6 @@ Block::Block ()
     level_lower_(-1),
     level_upper_(-1)
 {
-#ifdef TRACE_BLOCK
-  CkPrintf ("%d TRACE_BLOCK %s Block::Block()\n",
-            CkMyPe(),name(thisIndex).c_str());
-#endif
   PERF_START(iperf_block);
   init_refresh_();
   init_adapt_(nullptr);
@@ -94,10 +66,6 @@ Block::Block ()
 Block::Block (CkMigrateMessage *m)
   : CBase_Block(m)
 {
-#ifdef TRACE_BLOCK
-  CkPrintf ("%d TRACE_BLOCK %s Block::Block(CkMigrateMessage)\n",
-            CkMyPe(),name(thisIndex).c_str());
-#endif
 }
 
 //----------------------------------------------------------------------
@@ -145,10 +113,6 @@ Block::Block ( MsgType msg_type )
     level_lower_(-1),
     level_upper_(-1)
 {
-#ifdef TRACE_BLOCK
-  CkPrintf ("%d TRACE_BLOCK %s Block::Block(MsgType)\n",  CkMyPe(),name(thisIndex).c_str());
-#endif
-
   PERF_START(iperf_block);
 
   init_refresh_();
@@ -165,8 +129,6 @@ void Block::set_msg_refine(MsgRefine * msg)
 {
   PERF_START(iperf_block);
 
-  std::vector<int> face_level;
-  face_level.clear();
   init_refine_
     (msg->index_,
      msg->nx_, msg->ny_, msg->nz_,
@@ -182,19 +144,8 @@ void Block::set_msg_refine(MsgRefine * msg)
 
   apply_initial_(msg);
 
-#ifdef TRACE_BLOCK
-  {
-  CkPrintf ("%d %s index TRACE_BLOCK set_msg_refine(MsgRefine) done\n",
-            CkMyPe(),name(msg->index_).c_str());
-  }
-#endif
-
-#ifdef TRACE_REFINE
-  CkPrintf ("TRACE_REFINE %s\n",name().c_str());
-  fflush(stdout);
-#endif
-
   delete msg;
+
   PERF_STOP(iperf_block);
 }
 
@@ -343,11 +294,6 @@ void Block::init_refine_
 
 void Block::initialize()
 {
-#ifdef TRACE_BLOCK
-  CkPrintf ("TRACE_BLOCK %s initialize()\n",name().c_str());
-  fflush(stdout);
-#endif
-
   const bool initial_new = cello::config()->initial_new;
 
   if (! initial_new) {
@@ -633,8 +579,6 @@ void Block::compute_derived(const std::vector< std::string>& field_list
                             /* = std::vector< std::string>() */ ) throw ()
 /// @param      field_list     list of fields that may be derived to compute
 {
-  TRACE("Block::compute_derived()");
-
   // compute all derived fields on this block
 
   Field field = data()->field();
@@ -681,16 +625,11 @@ void Block::compute_derived(const std::vector< std::string>& field_list
 
 void Block::apply_initial_(MsgRefine * msg) throw ()
 {
-#ifdef TRACE_BLOCK
-  CkPrintf ("TRACE_BLOCK %s apply_initial()\n",name().c_str());
-  fflush(stdout);
-#endif
   if (! cello::is_initial_cycle(state_->cycle(),InitCycleKind::fresh)) {
 
     msg->update(data());
 
   } else {
-    TRACE("Block::apply_initial_()");
     Simulation * simulation = cello::simulation();
     if (simulation->phase() == phase_initial) {
       // Create child blocks if this block refines during the initialization
@@ -864,12 +803,6 @@ void Block::init_adapt_(Adapt * adapt_parent)
     int ic3[3];
     index_.child(level,ic3,ic3+1,ic3+2);
     adapt_.refine(*adapt_parent,ic3);
-#ifdef DEBUG_ADAPT
-    CkPrintf ("DEBUG_ADAPT %s Block() level > 0\n",
-              name().c_str());
-    adapt_parent->print("init_adapt parent",this);
-    adapt_.print("init_adapt child after",this);
-#endif    
   }
 
   // replace neighbor blocks with their child blocks if they refine
@@ -1280,8 +1213,6 @@ void Block::facing_child_(int jc3[3], const int ic3[3], const int if3[3]) const
   jc3[0] = if3[0] ? 1 - ic3[0] : ic3[0];
   jc3[1] = if3[1] ? 1 - ic3[1] : ic3[1];
   jc3[2] = if3[2] ? 1 - ic3[2] : ic3[2];
-  TRACE9("facing_child %d %d %d  child %d %d %d  face %d %d %d",
-	 jc3[0],jc3[1],jc3[2],ic3[0],ic3[1],ic3[2],if3[0],if3[1],if3[2]);
 }
 
 //----------------------------------------------------------------------

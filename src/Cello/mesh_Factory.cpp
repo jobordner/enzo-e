@@ -26,9 +26,6 @@ void Factory::pup (PUP::er &p)
   // NOTE: change this function whenever attributes change
 
   PUP::able::pup(p);
-
-  //  p | bound_arrays_;
-
 }
 
 //----------------------------------------------------------------------
@@ -61,9 +58,6 @@ CProxy_Block Factory::new_block_proxy
  int nbx, int nby, int nbz
  ) const throw()
 {
-  TRACE3("Factory::new_block_array(na(%d %d %d)))",
-	  nbx,nby,nbz);
-
   CProxy_Block proxy_block;
 
   CProxy_MappingArray array_map  = CProxy_MappingArray::ckNew(nbx,nby,nbz);
@@ -86,15 +80,8 @@ void Factory::create_block_array
  int num_field_data
  ) const throw()
 {
-  TRACE7("Factory::create_block_array(na(%d %d %d) n(%d %d %d) num_field_data %d)",
-	 nbx,nby,nbz,nx,ny,nz,num_field_data);
-
   std::vector<int> face_level;
   face_level.clear();
-
-#ifdef DEBUG_ADAPT
-  CkPrintf ("TRACE_FACTORY %s:%d\n",__FILE__,__LINE__); fflush(stdout);
-#endif
 
   for (int ix=0; ix<nbx; ix++) {
     for (int iy=0; iy<nby; iy++) {
@@ -123,8 +110,6 @@ void Factory::create_block_array
       }
     }
   }
-
-  TRACE1("Factory::create_block_array = %p",&proxy_block);
 }
 
 //----------------------------------------------------------------------
@@ -139,13 +124,10 @@ void Factory::create_subblock_array
  int num_field_blocks
  ) const throw()
 {
-  TRACE8("Factory::create_subblock_array(min_level %d na(%d %d %d) n(%d %d %d) num_field_blocks %d",
-	 min_level,nbx,nby,nbz,nx,ny,nz,num_field_blocks);
-
   if (min_level >= 0) {
     WARNING1("Factor::create_subblock_array",
-	     "Trying to create subblock array with min_level %d >= 0",
-	     min_level);
+             "Trying to create subblock array with min_level %d >= 0",
+             min_level);
     return ;
   }
 
@@ -158,9 +140,6 @@ void Factory::create_subblock_array
     std::vector<int> face_level;
     face_level.clear();
 
-#ifdef DEBUG_ADAPT  
-  CkPrintf ("TRACE_FACTORY %s:%d\n",__FILE__,__LINE__); fflush(stdout);
-#endif
   for (int ix=0; ix<nbx; ix++) {
       for (int iy=0; iy<nby; iy++) {
 	for (int iz=0; iz<nbz; iz++) {
@@ -172,8 +151,6 @@ void Factory::create_subblock_array
 
           int count_adapt;
           int face_type;
-
-          TRACE3 ("inserting %d %d %d",ix,iy,iz);
 
 	  MsgRefine * msg = new MsgRefine
 	    (index,
@@ -215,19 +192,6 @@ void Factory::create_block
  int ip
  ) const throw()
 {
-
-  TRACE3("Factory::create_block(%d %d %d)",nx,ny,nz);
-  TRACE2("Factory::create_block(num_field_data %d  count_adapt %d)",
-	 num_field_data,count_adapt);
-
-  // --------------------------------------------------
-  // ENTRY: #3 Factory::create_block() -> Block::Block()
-  // ENTRY: level > 0 block array insert
-  // --------------------------------------------------
-
-#ifdef DEBUG_ADAPT  
-  CkPrintf ("TRACE_FACTORY %s:%d\n",__FILE__,__LINE__); fflush(stdout);
-#endif
   MsgRefine * msg = new MsgRefine
     (index,
      nx,ny,nz,

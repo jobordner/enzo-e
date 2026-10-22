@@ -47,6 +47,7 @@ public: // interface
   /// create a Block whose MsgRefine is on the creating process
   Block ( MsgType msg_type );
   /// Initialize Block using MsgRefine returned by creating process
+
   virtual void set_msg_refine(MsgRefine * msg);
 
   /// Destructor

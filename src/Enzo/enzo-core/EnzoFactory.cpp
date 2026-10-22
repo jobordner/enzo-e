@@ -11,8 +11,6 @@
 
 #include "Enzo/io/io.hpp" // IoEnzoBlock
 
-// #define TRACE_FACTORY
-
 //----------------------------------------------------------------------
 
 void EnzoFactory::pup (PUP::er &p)
@@ -56,16 +54,9 @@ void EnzoFactory::create_block_array
  int num_field_blocks
  ) const throw()
 {
-#ifdef TRACE_FACTORY
-  CkPrintf ("TRACE_FACTORY create_block_array %d %d %d\n",nbx,nby,nbz);
-#endif  
   CProxy_EnzoBlock enzo_block_array = enzo::block_array();
 
   State state = create_state_();
-
-#ifdef TRACE_FACTORY
-  CkPrintf ("TRACE_FACTORY %s:%d\n",__FILE__,__LINE__); fflush(stdout);
-#endif
 
   int ax,ay,az;
   cello::hierarchy()->root_blocks(&ax,&ay,&az);
@@ -103,8 +94,6 @@ void EnzoFactory::create_block_array
       }
     }
   }
-
-  TRACE1("EnzoFactory::create_block_array = %p",&enzo_block_array);
 }
 
 //----------------------------------------------------------------------
@@ -118,12 +107,6 @@ void EnzoFactory::create_subblock_array
  int nx, int ny, int nz,
  int num_field_blocks) const throw()
 {
-#ifdef TRACE_FACTORY
-  CkPrintf ("TRACE_FACTORY create_subblock_array %d %d %d\n",nbx,nby,nbz);
-#endif  
-  TRACE8("EnzoFactory::create_subblock_array(min_level %d na(%d %d %d) n(%d %d %d) num_field_blocks %d",
-	 min_level,nbx,nby,nbz,nx,ny,nz,num_field_blocks);
-
   if (min_level >= 0) {
     WARNING1("EnzoFactor::create_subblock_array",
 	     "Trying to create subblock array with min_level %d >= 0",
@@ -146,10 +129,6 @@ void EnzoFactory::create_subblock_array
     if (nby > 1) nby = ceil(0.5*nby);
     if (nbz > 1) nbz = ceil(0.5*nbz);
 
-#ifdef TRACE_FACTORY
-    CkPrintf ("TRACE_FACTORY %s:%d\n",__FILE__,__LINE__); fflush(stdout);
-#endif
-
     for (int ix=0; ix<nbx; ix++) {
       for (int iy=0; iy<nby; iy++) {
         for (int iz=0; iz<nbz; iz++) {
@@ -164,8 +143,6 @@ void EnzoFactory::create_subblock_array
             Index index(ix<<shift,iy<<shift,iz<<shift);
 
             index.set_level(level);
-
-            TRACE3 ("inserting %d %d %d",ix,iy,iz);
 
             int count_adapt;
             int face_type;
@@ -208,15 +185,6 @@ void EnzoFactory::create_block
  int io_reader,
  int ip) const throw()
 {
-#ifdef TRACE_FACTORY
-  CkPrintf ("TRACE_FACTORY create_block %d %d %d\n");
-  index.print("TRACE_FACTORY create_block",2);
-#endif  
-
-  TRACE3("EnzoFactory::create_block(%d %d %d)",nx,ny,nz);
-  TRACE2("EnzoFactory::create_block() num_field_blocks %d  count_adapt %d",
-	 num_field_blocks,count_adapt);
-
   CProxy_EnzoBlock enzo_block_array = (CProxy_EnzoBlock) block_array;
 
   MsgRefine * msg = new MsgRefine 

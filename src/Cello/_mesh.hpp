@@ -34,7 +34,6 @@
 // Enums
 //----------------------------------------------------------------------
 
-// KEEP CONSISTENT WITH comm_Block.cpp: phase_string
 enum phase_type {
   phase_unknown,
   phase_initial,
@@ -64,17 +63,6 @@ enum phase_type {
   phase_exit,
   phase_last
 };
-
-/// @enum   RefreshState
-///
-/// @brief  New refresh states:
-///         RefreshState::inactive (done() called),
-///         RefreshState::active   (start() called),
-///         RefreshState::ready    (wait() called)
-
-// #define PHASE_COUNT (phase_exit + 1)
-// #define PHASE_COUNT 100
-extern const char * phase_name[];
 
 /// @enum     adapt_type
 /// @brief    Mesh adaptation type: refine, coarsen, or stay the same

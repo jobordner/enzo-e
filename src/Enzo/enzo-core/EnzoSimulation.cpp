@@ -170,7 +170,7 @@ void EnzoSimulation::refine_create_block(MsgRefine * msg)
 void EnzoSimulation::set_msg_check(Index index, EnzoMsgCheck * msg)
 {
   if (msg_check_map_[index] != NULL) {
-   
+
     int v3[3];
     index.values(v3);
     ASSERT3 ("EnzoSimulation::set_msg_check",
@@ -224,7 +224,6 @@ MsgRefine * EnzoSimulation::get_msg_refine(Index index)
 
 void EnzoSimulation::r_startup_begun (CkReductionMsg *msg)
 {
-
 #ifdef DEBUG_ENZO_SIMULATION
   CkPrintf ("%d DEBUG_ENZO_SIMULATION r_startup_begun()\n",CkMyPe());
   fflush(stdout);

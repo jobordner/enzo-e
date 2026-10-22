@@ -10,8 +10,6 @@
 
 //----------------------------------------------------------------------
 
-// #define TRACE_BLOCK
-
 #include "charm_enzo.hpp"
 
 class EnzoBlock : public CBase_EnzoBlock
@@ -34,9 +32,10 @@ class EnzoBlock : public CBase_EnzoBlock
 public: // interface
 
   /// Initialize the EnzoBlock chare array
-
   EnzoBlock ( MsgType msg_type );
-  /// Initialize EnzoBlock using MsgRefine returned by creating process
+
+  /// Initialize EnzoBlock using MsgRefine returned by creating
+  /// process
   void set_msg_refine(MsgRefine * msg);
   void set_msg_check(EnzoMsgCheck * msg);
 

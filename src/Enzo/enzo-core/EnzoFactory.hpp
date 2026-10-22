@@ -23,7 +23,7 @@ public: // interface
   /// CHARM++ constructor
   EnzoFactory() throw() 
   : Factory()
-  { TRACE ("EnzoFactory::EnzoFactory()"); }
+  { }
 
   PUPable_decl(EnzoFactory);
 

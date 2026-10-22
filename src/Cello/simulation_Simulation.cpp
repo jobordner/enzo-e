@@ -18,6 +18,8 @@
 // #define DEBUG_SIMULATION
 // #define DEBUG_MSG_REFINE
 
+//----------------------------------------------------------------------
+
 Simulation::Simulation
 (
  const char *   parameter_file,
@@ -217,7 +219,6 @@ Simulation::Simulation (CkMigrateMessage *m)
   CkPrintf ("%d DEBUG_SIMULATION Simulation(msg)\n",CkMyPe());
   fflush(stdout);
 #endif
-  TRACE("Simulation(CkMigrateMessage)");
 }
 
 //----------------------------------------------------------------------
@@ -373,7 +374,6 @@ void Simulation::refine_create_block(MsgRefine * msg)
 
 void Simulation::initialize_simulation_() throw()
 {
-
 #ifdef DEBUG_SIMULATION
   CkPrintf ("%d DEBUG_SIMULATION Simulation::initialize_simulation_()\n",CkMyPe());
   fflush(stdout);
@@ -1003,7 +1003,6 @@ float Simulation::timer() const
 
 void Simulation::data_insert_block(Block * block)
 {
-
 #ifdef CELLO_DEBUG
   PARALLEL_PRINTF ("%d: ++sync_output_begin_ %d %lu\n",
 		   CkMyPe(),sync_output_begin_.stop(),hierarchy_->num_blocks());

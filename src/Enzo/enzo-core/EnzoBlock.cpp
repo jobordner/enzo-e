@@ -10,24 +10,13 @@
 
 #include "enzo.hpp"
 
-// #define TRACE_BLOCK
-
-// #define DEBUG_ENZO_BLOCK
-
 //----------------------------------------------------------------------
 
 EnzoBlock::EnzoBlock( CkMigrateMessage *m)
   : CBase_EnzoBlock (m)
 {
-#ifdef TRACE_BLOCK
-  CkPrintf ("%d TRACE_BLOCK %s EnzoBlock::EnzoBlock(CkMigrateMessage*)\n",
-            CkMyPe(),name(thisIndex).c_str());
-  fflush(stdout);
-#endif
   // replace Block's State with EnzoState
   state_ = std::make_shared<EnzoState>(0, 0.0, 0.0, false);
-
-  TRACE("CkMigrateMessage");
 }
 
 //----------------------------------------------------------------------
@@ -37,11 +26,6 @@ EnzoBlock::EnzoBlock( MsgType msg_type)
 {
   // replace Block's State with EnzoState
   state_ = std::make_shared<EnzoState>(0, 0.0, 0.0, false);
-#ifdef TRACE_BLOCK
-  CkPrintf ("%d TRACE_BLOCK %s EnzoBlock::EnzoBlock(ip)\n",
-            CkMyPe(),name(thisIndex).c_str());
-  fflush(stdout);
-#endif
 
   if (msg_type == MsgType::msg_check) {
     set_msg_check(enzo::simulation()->get_msg_check(thisIndex));
@@ -65,11 +49,6 @@ void EnzoBlock::set_msg_check(EnzoMsgCheck * msg)
 
 void EnzoBlock::set_msg_refine(MsgRefine * msg)
 {
-#ifdef TRACE_BLOCK
-  CkPrintf ("%d %p :%d TRACE_BLOCK %s EnzoBlock set_msg_refine()\n",
-            CkMyPe(),(void *)this,__LINE__,name(thisIndex).c_str());
-  fflush(stdout);
-#endif
   int io_reader = msg->restart_io_reader_;
   Block::set_msg_refine(msg);
   initialize();
@@ -84,10 +63,6 @@ void EnzoBlock::set_msg_refine(MsgRefine * msg)
 
 EnzoBlock::~EnzoBlock()
 {
-#ifdef TRACE_BLOCK
-  CkPrintf ("%d %p TRACE_BLOCK %s ~EnzoBlock(...)\n",
-            CkMyPe(),(void *)this,name(thisIndex).c_str());
-#endif
 }
 
 //----------------------------------------------------------------------
@@ -112,7 +87,6 @@ void EnzoBlock::pup(PUP::er &p)
 {
 
   TRACEPUP;
-  TRACE ("BEGIN EnzoBlock::pup()");
 
   CBase_EnzoBlock::pup(p);
 
@@ -215,8 +189,6 @@ void EnzoBlock::initialize () throw()
   GridDimension[1]  = ny + 2*gy;
   GridDimension[2]  = nz + 2*gz;
 
-  TRACE("Initializing GridStartIndex");
-
   GridStartIndex[0] = gx;
   GridStartIndex[1] = gy;
   GridStartIndex[2] = gz;
@@ -236,14 +208,15 @@ void EnzoBlock::initialize () throw()
   CellWidth[1] = hy;
   CellWidth[2] = hz;
 
-  TRACE ("Exit  EnzoBlock::initialize()\n");
 }
+
+//----------------------------------------------------------------------
 
 bool EnzoBlock::spawn_child_blocks() throw()
 {
   int level = index_.level();
   if (level >= 0) {
-    
+
     if (level + 1 <= enzo::config()->refined_regions_lower.size()) {
 
       std::vector<int> lower = enzo::config()->refined_regions_lower.at(level);
@@ -264,19 +237,18 @@ bool EnzoBlock::spawn_child_blocks() throw()
   return false;
 }
 
+//----------------------------------------------------------------------
+
 void EnzoBlock::create_initial_child_blocks()
 {
   bool spawn_children = spawn_child_blocks();
   if (spawn_children) {instantiate_children();}
 }
 
+//----------------------------------------------------------------------
+
 void EnzoBlock::instantiate_children() throw()
 {
-#ifdef TRACE_BLOCK
-  CkPrintf ("%d %p :%d TRACE_BLOCK %s EnzoBlock instantiate_children()\n",
-            CkMyPe(),(void *)this,__LINE__,name(thisIndex).c_str());
-  fflush(stdout);
-#endif
   child_face_level_curr_.resize(cello::num_children()*27);
   int num_field_blocks = 1;
 
@@ -308,7 +280,7 @@ void EnzoBlock::instantiate_children() throw()
        &adapt_,state_.get());
 
     msg->set_data_msg(data_msg);
-    cello::simulation()->refine_create_block (msg);
+    enzo::simulation()->refine_create_block (msg);
 
     children_.push_back(index_child);
   }
