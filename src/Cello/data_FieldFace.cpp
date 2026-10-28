@@ -35,44 +35,6 @@ int64_t FieldFace::counter[CONFIG_NODE_SIZE] = {0};
 
 //----------------------------------------------------------------------
 
-enum enum_op_type {
-  op_unknown,
-  op_load,
-  op_store
-};
-
-
-//----------------------------------------------------------------------
-
-FieldFace::FieldFace () throw()
-  : level_(0),
-    face_type_(0),
-    refresh_(NULL),
-    new_refresh_(false)
-{
-  ++counter[cello::index_static()]; 
-  for (int i=0; i<3; i++) {
-    face_[i] = 0;
-    ghost_[i] = 0;
-    child_[i] = 0;
-  }
-
-}
-
-//----------------------------------------------------------------------
-
-FieldFace::~FieldFace() throw ()
-{
-  --counter[cello::index_static()];
-
-  if (new_refresh_) {
-    delete refresh_;
-    refresh_ = NULL;
-  }
-}
-
-//----------------------------------------------------------------------
-
 FieldFace::FieldFace(const FieldFace & field_face) throw ()
   : level_(0),
     face_type_(0),
@@ -154,8 +116,7 @@ void FieldFace::face_to_array ( Field field,cello_float * array) throw()
 {
   size_t index_array = 0;
 
-  auto field_list_src = refresh_->field_list_src(level_,face_type_);
-  auto field_list_dst = refresh_->field_list_dst(level_,face_type_);
+  const auto & field_list_src = refresh_->field_list_src(face_type_);
 
   for (size_t i_f=0; i_f < field_list_src.size(); i_f++) {
     const size_t index_field = field_list_src[i_f];
@@ -231,8 +192,7 @@ void FieldFace::array_to_face (cello_float * array, Field field) throw()
 
   size_t index_array = 0;
 
-  auto field_list_src = refresh_->field_list_src(level_,face_type_);
-  auto field_list_dst = refresh_->field_list_dst(level_,face_type_);
+  auto field_list_dst = refresh_->field_list_dst(face_type_);
 
   for (size_t i_f=0; i_f < field_list_dst.size(); i_f++) {
     size_t index_field = field_list_dst[i_f];
@@ -324,8 +284,8 @@ void FieldFace::array_to_face (cello_float * array, Field field) throw()
 
 void FieldFace::face_to_face (Field field_src, Field field_dst)
 {
-  auto field_list_src = refresh_->field_list_src(level_,face_type_);
-  auto field_list_dst = refresh_->field_list_dst(level_,face_type_);
+  auto field_list_src = refresh_->field_list_src(face_type_);
+  auto field_list_dst = refresh_->field_list_dst(face_type_);
 
   PERF_SMP_START(iperf_smp_field_face);
 
@@ -425,8 +385,8 @@ int FieldFace::num_elements_array(Field field) throw()
 {
   int array_size = 0;
 
-  auto field_list_src = refresh_->field_list_src(level_,face_type_);
-  auto field_list_dst = refresh_->field_list_dst(level_,face_type_);
+  auto field_list_src = refresh_->field_list_src(face_type_);
+  auto field_list_dst = refresh_->field_list_dst(face_type_);
 
   for (size_t i_f=0; i_f < field_list_src.size(); i_f++) {
 
@@ -479,14 +439,12 @@ int FieldFace::data_size () const
 {
   int count = 0;
 
+  SIZE_SCALAR_TYPE(count,int,level_);
+  SIZE_SCALAR_TYPE(count,int,face_type_);
   SIZE_ARRAY_TYPE(count,int,face_,3);
   SIZE_ARRAY_TYPE(count,int,ghost_,3);
   SIZE_ARRAY_TYPE(count,int,child_,3);
-
-  SIZE_SCALAR_TYPE(count,int,level_);
-  SIZE_SCALAR_TYPE(count,int,face_type_);
-
-  count += refresh_->data_size(); // refresh_
+  SIZE_OBJECT_PTR_TYPE(count,Refresh,refresh_);
 
   return count;
 
@@ -498,14 +456,12 @@ char * FieldFace::save_data (char * buffer) const
 {
   char * p = buffer;
 
+  SAVE_SCALAR_TYPE(p,int,level_);
+  SAVE_SCALAR_TYPE(p,int,face_type_);
   SAVE_ARRAY_TYPE(p,int,face_,3);
   SAVE_ARRAY_TYPE(p,int,ghost_,3);
   SAVE_ARRAY_TYPE(p,int,child_,3);
-
-  SAVE_SCALAR_TYPE(p,int,level_);
-  SAVE_SCALAR_TYPE(p,int,face_type_);
-
-  p = refresh_->save_data(p);
+  SAVE_OBJECT_PTR_TYPE(p,Refresh,refresh_);
 
   ASSERT2("FieldFace::save_data()",
           "Buffer has size %ld but expecting size %d",
@@ -521,16 +477,12 @@ char * FieldFace::load_data (char * buffer)
 {
   char * p = buffer;
 
+  LOAD_SCALAR_TYPE(p,int,level_);
+  LOAD_SCALAR_TYPE(p,int,face_type_);
   LOAD_ARRAY_TYPE(p,int,face_,3);
   LOAD_ARRAY_TYPE(p,int,ghost_,3);
   LOAD_ARRAY_TYPE(p,int,child_,3);
-
-  LOAD_SCALAR_TYPE(p,int,level_);
-  LOAD_SCALAR_TYPE(p,int,face_type_);
-
-  set_refresh(new Refresh,true);
-
-  p = refresh_->load_data(p);
+  LOAD_OBJECT_PTR_TYPE(p,Refresh,refresh_);
 
   ASSERT2("FieldFace::save_data()",
           "Buffer has size %ld but expecting size %d",
@@ -555,10 +507,10 @@ size_t FieldFace::load_
     for (int iy=0; iy < n3[1]; iy++) {
       int ky = iy+i3[1];
       for (int ix=0; ix < n3[0]; ix++) {
-	int kx = ix+i3[0];
-	int index_array = ix +   n3[0]*(iy +   n3[1] * iz);
-	int index_field = kx + m3[0]*(ky + m3[1] * kz);
-	array_face[index_array] = field_face[index_field];
+        int kx = ix+i3[0];
+        int index_array = ix + n3[0]*(iy + n3[1] * iz);
+        int index_field = kx + m3[0]*(ky + m3[1] * kz);
+        array_face[index_array] = field_face[index_field];
       }
     }
   }
@@ -730,9 +682,7 @@ void FieldFace::set_box_(Box * box, bool invert)
 {
   // Invert face direction if from destination perspective,
   // and restore afterwards
-  if (invert) invert_face();
-  box->set_block(BoxType_receive,face_type_,face_,child_);
-  if (invert) invert_face();
+  box->set_block(BoxType_receive,face_type_,face_,child_,invert);
 
   int pad = prolong_() ? refresh_->coarse_padding(prolong_()) : 0;
   if (face_type_ <= 0) pad = 0;

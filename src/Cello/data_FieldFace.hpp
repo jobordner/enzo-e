@@ -27,21 +27,41 @@ public: // interface
   FieldFace (int level, int face_type, 
              int if3[3], int ic3[3], int g3[3],
              Refresh * refresh, bool new_refresh = true)
+    : level_(level),
+      face_type_(face_type),
+      face_{if3[0],if3[1],if3[2]},
+      child_{ic3[0],ic3[1],ic3[2]},
+      ghost_{g3[0],g3[1],g3[2]},
+      refresh_(refresh),
+      new_refresh_(new_refresh)
   {
     ++counter[cello::index_static()];
-    set_level (level);
-    set_face_type (face_type);
-    set_child (ic3[0],ic3[1],ic3[2]);
-    set_face (if3[0],if3[1],if3[2]);
-    set_ghost(g3[0],g3[1],g3[2]);
-    set_refresh(refresh,new_refresh);
   }
 
   /// Constructor of uninitialized FieldFace
-  FieldFace () throw();
+  FieldFace () throw()
+    : level_(0),
+      face_type_(0),
+      face_{0,0,0},
+      ghost_{0,0,0},
+      child_{0,0,0},
+      refresh_(nullptr),
+      new_refresh_(false)
+  {
+    ++counter[cello::index_static()]; 
+  }
 
   /// Destructor
-  ~FieldFace() throw();
+  ~FieldFace() throw()
+  {
+    --counter[cello::index_static()];
+
+    if (new_refresh_) {
+      delete refresh_;
+      refresh_ = nullptr;
+    }
+  }
+
 
   /// Copy constructor
   FieldFace(const FieldFace & FieldFace) throw();
@@ -54,29 +74,14 @@ public: // interface
 
   //----------------------------------------------------------------------
 
-  /// Set whether or not to include ghost zones along each axis
-  void set_ghost (int gx, int gy, int gz)
-  {
-    ghost_[0] = gx;
-    ghost_[1] = gy;
-    ghost_[2] = gz;
-  }
-
+  /// Return whether or not to include ghost zones along each axis
   void ghost (int *gx, int *gy, int *gz)
   {
     *gx = ghost_[0];
     *gy = ghost_[1];
     *gz = ghost_[2];
   }
-  /// Set the face
-  inline void set_face (int fx, int fy = 0, int fz = 0)
-  {
-    face_[0] = fx;
-    face_[1] = fy;
-    face_[2] = fz;
-  }
-  
-  /// Set the face
+  /// Return the face
   inline void face (int * fx, int * fy = 0, int * fz = 0)
   {
     if (fx) (*fx) = face_[0]; 
@@ -92,32 +97,13 @@ public: // interface
     face_[1] = -face_[1];
     face_[2] = -face_[2];
   }
-  /// Set child if restrict or prolong is required
-  void set_child(int icx, int icy=0, int icz=0) throw()
-  {
-    child_[0] = icx;
-    child_[1] = icy;
-    child_[2] = icz;
-  }
 
-  /// Set level of associated Block
-  void set_level (int level)
-  { level_ = level; }
   /// Return level of associated Block
   int level () const { return level_; }
 
-  /// Set face type: > 0 for finer level, < 0 for coarser level, 0 for
-  /// same level
-  void set_face_type (int face_type)
-  {  face_type_ = face_type;  }
-
+  /// Return the face type: > 0 for finer-level block along the face,
+  /// < 0 for coarser-level face block, or 0 for same level
   int face_type() const { return face_type_; }
-
-  void set_refresh (Refresh * refresh, bool new_refresh)
-  {
-    refresh_ = refresh;
-    new_refresh_ = new_refresh;
-  }
 
   /// Return the Refresh object
   Refresh * refresh () const { return refresh_; }

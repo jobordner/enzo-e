@@ -92,12 +92,13 @@ public: // interface
   }
 
   /// Set Block face
-  inline void set_block (BoxType bt, int level, int face[3], int child[3])
+  inline void set_block (BoxType bt, int level, int face[3], int child[3],
+                         bool invert_face = false)
   {
     level_[bt] = level;
-    face_[bt][0] = face[0];
-    face_[bt][1] = face[1];
-    face_[bt][2] = face[2];
+    face_[bt][0] = invert_face ? -face[0] : face[0];
+    face_[bt][1] = invert_face ? -face[1] : face[1];
+    face_[bt][2] = invert_face ? -face[2] : face[2];
     child_[bt][0] = child[0];
     child_[bt][1] = child[1];
     child_[bt][2] = child[2];

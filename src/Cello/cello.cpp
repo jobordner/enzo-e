@@ -750,10 +750,6 @@ namespace cello {
                "cello::config() returned nullptr", config != nullptr);
         return cycle == config->initial_cycle;
       }
-    case InitCycleKind::charmrestart:
-      ERROR("cello::is_initial_cycle(int, InitCycleKind)",
-            "can't currently provide any details about whether a charm-based "
-            "restart just occured.");
     case InitCycleKind::fresh_or_noncharm_restart:
       {
         const Simulation * sim = cello::simulation();
@@ -766,6 +762,20 @@ namespace cello {
     }
 
   }
+
+  bool is_initial_cycle()
+  { return simulation()->state()->cycle() ==
+      config()->initial_cycle &&
+      simulation()->is_first_cycle(); }
+
+  bool is_restart_cycle()
+  {
+    return simulation()->state()->cycle() ==
+      simulation()->initial_cycle() && config()->initial_restart; }
+
+  bool is_first_cycle()
+  { return simulation()->is_first_cycle(); }
+
   bool is_ats() {
     return (simulation()->state()->state_type() == State::Type::Level);
   }

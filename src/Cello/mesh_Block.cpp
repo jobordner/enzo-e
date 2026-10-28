@@ -119,7 +119,6 @@ Block::Block ( MsgType msg_type )
   usesAtSync = true;
 
   thisIndex.array(array_,array_+1,array_+2);
-
   PERF_STOP(iperf_block);
 }
 
@@ -162,7 +161,6 @@ void Block::init_refine_
  Adapt * adapt,
  State * state)
 {
-  index_ = index;
   *state_ = *state;
 
   // Initialize method state
@@ -657,8 +655,8 @@ void Block::initial_begin()
   } else {
 
     // Apply initial conditions
-    for (size_t k=0; k<cello::num_initial(); k++) {
-      cello::initial(k)->enforce_block(this,cello::hierarchy());
+    for (Initial * initial : cello::problem()->initial_list() ) {
+      initial->enforce_block(this,cello::hierarchy());
     }
   }
 }
@@ -733,9 +731,7 @@ void Block::p_refresh_child
     (state()->state_type() == State::Type::Level);
 
   FieldFace * field_face = new FieldFace
-    (level(), -1, if3, ic3, g3, refresh, true);
-  // Adjust level for child block
-  field_face->set_level (level()+1);
+    (level() + 1, -1, if3, ic3, g3, refresh, true);
 
   field_face -> array_to_face (array, data()->field());
   delete field_face;
@@ -789,7 +785,7 @@ void Block::init_adapt_(Adapt * adapt_parent)
     for (if3[2]=ifm3[2]; if3[2]<=ifp3[2]; ++if3[2]) {
       for (if3[1]=ifm3[1]; if3[1]<=ifp3[1]; ++if3[1]) {
         for (if3[0]=ifm3[0]; if3[0]<=ifp3[0]; ++if3[0]) {
-          if (if3[0] || if3[1] || if3[2]) {
+          if (if3[0] || if3[1] || if3[2]) { // skip self-face (0,0,0)
             Index index_neighbor = index_.index_neighbor(if3,nb3);
             adapt_.insert_neighbor(index_neighbor);
           }
@@ -867,14 +863,23 @@ std::string Block::name(Index index) const throw()
 
 std::string Block::name8(Index index) const throw()
 {
-  int a3[3];
-  int t3[3];
-  index.array(a3,a3+1,a3+2);
-  index.tree(t3,t3+1,t3+2);
 
-  const int min_level = cello::config()->mesh_min_level;
+  // Find effective min_level
+  int blocking[3] = {1,1,1};
+  cello::hierarchy()->root_blocks(blocking,blocking+1,blocking+2);
+  int max_blocking = std::max({blocking[0],blocking[1],blocking[2]});
+
+  int min_level = 0;
+  while (max_blocking/=2) {
+    min_level--;
+  }
 
   std::string name8 = "[#";
+
+  // Get array bits
+
+  int a3[3];
+  index.array(a3,a3+1,a3+2);
   for (int level=std::min(index.level(),0)-min_level-1; level>=0; level--) {
     int shift = level;
     int ax = (a3[0] >> shift) & 1;
@@ -883,7 +888,12 @@ std::string Block::name8(Index index) const throw()
     char digit = '0' + ax+2*(ay+2*az);
     name8 += digit;
   }
+
   name8 += ":";
+
+  // get tree bits
+  int t3[3];
+  index.tree(t3,t3+1,t3+2);
   for (int level=1; level<=index.level(); level++) {
     int shift = (INDEX_BITS_TREE-level);
     int tx = (t3[0] >> shift) & 1;

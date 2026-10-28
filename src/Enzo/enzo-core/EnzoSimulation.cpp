@@ -191,7 +191,7 @@ EnzoMsgCheck * EnzoSimulation::get_msg_check(Index index)
   if (msg == NULL) {
     int v3[3];
     index.values(v3);
-    
+
     ASSERT3 ("EnzoSimulation::get_msg_check",
 	    "index %08x %08x %08x is not in the msg_check mapping",
 	    v3[0],v3[1],v3[2],

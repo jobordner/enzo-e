@@ -594,13 +594,11 @@ void IoEnzoReader::file_read_block_fields_
     refresh->add_all_data();
     refresh -> set_adaptive_timestep
       (cello::simulation()->state()->state_type() == State::Type::Level);
-    FieldFace  * field_face = new FieldFace;
+    int ic3[3] = {0,0,0};
+    int if3[3] = {0,0,0};
+    int g3[3]  = {true,true,true};
+    FieldFace  * field_face = new FieldFace (0,0,if3,ic3,g3,refresh,true);
 
-    field_face -> set_face_type (0);
-    field_face -> set_child (0,0,0);
-    field_face -> set_face (0,0,0);
-    field_face -> set_ghost(true,true,true);
-    field_face -> set_refresh(refresh,true);
     bool is_new;
     data_msg -> add_field_face (field_face,is_new=true);
     data_msg -> set_field_data (field_data,is_new=true);

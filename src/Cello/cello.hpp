@@ -307,7 +307,6 @@ enum class DirType { Unknown, Both, Send, Recv };
 /// actually identify a charm-based restart
 enum class InitCycleKind {
   fresh,                    ///< doesn't follow a restart
-  charmrestart,             ///< follows a charm-based restart
   fresh_or_noncharm_restart ///< any kind other than a charm-based restart
 };
 
@@ -1326,6 +1325,14 @@ namespace cello {
   /// (however, the option exists to make the code more explicit)
   bool is_initial_cycle(InitCycleKind kind) noexcept;
   bool is_initial_cycle(int cycle, InitCycleKind kind) noexcept;
+
+  /// Is in cycle in which initial conditions are applied
+  bool is_initial_cycle();
+  /// Is in restart cycle in which data are read from restart files
+  bool is_restart_cycle();
+  /// Is in first cycle of the simulation, which may be either an
+  /// initial cycle or a restart cycle
+  bool is_first_cycle();
 
   /// Returns whether simulation uses adaptive time-stepping (ats) or
   /// global time-stepping (gts)

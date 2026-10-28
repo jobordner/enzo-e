@@ -57,7 +57,6 @@ Hierarchy::Hierarchy
   num_blocks_level_global_(),
   num_neighbors_local_(0),
   num_neighbors_total_(0),
-  block_vec_(),
   /// Number of block neighbors on this process
   num_particles_(0),
   block_array_()
@@ -296,7 +295,6 @@ void Hierarchy::increment_particle_count(int64_t count)
 CProxy_Block Hierarchy::new_block_proxy ( bool allocate_data) throw()
 {
   TRACE("Creating block_array_");
-
   DataMsg * data_msg = NULL;
 
   block_array_ = factory_->new_block_proxy

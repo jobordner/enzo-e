@@ -100,6 +100,8 @@ public: // interface
   /// Return the ith initialization object
   Initial * initial(int i) const throw()
   {  return initial_list_.at(i); }
+  const std::vector <Initial *> & initial_list() const
+  { return initial_list_; }
 
   size_t num_physics() const throw()
   { return physics_list_.size(); }

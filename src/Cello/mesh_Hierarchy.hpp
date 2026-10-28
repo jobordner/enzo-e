@@ -38,7 +38,6 @@ public: // interface
     num_blocks_level_global_(),
     num_neighbors_local_(0),
     num_neighbors_total_(0),
-    block_vec_(),
     num_particles_(0), 
     block_array_()
   {
@@ -158,26 +157,6 @@ public: // interface
   /// Increment (decrement) number of mesh blocks
   void increment_block_count(int count, int level);
 
-  /// Add Block to the list of blocks (block_vec_ and block_map_)
-  void insert_block (Block * block)
-  {
-    block_vec_.push_back(block);
-  }
-
-  /// Remove Block from the list of blocks (block_vec_) and return
-  /// true iff Block is found in the list
-  bool delete_block (Block * block)
-  {
-    const int n = block_vec_.size();
-    bool found = false;
-    for (int i=0; i<n; i++) {
-      if (found) block_vec_[i-1] = block_vec_[i];
-      if (block_vec_[i] == block) found=true;
-    }
-    if (found) block_vec_.resize(n-1);
-    return found;
-  }
-  
   /// Increment (decrement) number of particles
   void increment_particle_count(int64_t count);
 
@@ -228,10 +207,6 @@ public: // interface
     num_neighbors_local_ = 0;
     num_neighbors_total_ = 0;
   }
-
-  /// Return the ith block in this pe
-  Block * block (int index_block)
-  { return block_vec_.at(index_block); }
 
   /// Return the number of particles on this process
   int64_t num_particles() const throw()
@@ -327,9 +302,6 @@ protected: // attributes
   /// Number of block neighbors on this process
   long long num_neighbors_local_;
   long long num_neighbors_total_;
-
-  /// Pointers to Blocks on this process
-  std::vector<Block *> block_vec_;
 
   /// Current number of particles on this process
   int64_t num_particles_;

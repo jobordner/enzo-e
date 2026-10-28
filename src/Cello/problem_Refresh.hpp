@@ -263,12 +263,10 @@ public: // interface
   bool any_fields() const
   { return (all_fields_ || (field_list_src().size() > 0)); }
 
-  std::vector<int> field_list_src(int level = 0,
-                                  int face_type = 0) const;
+  std::vector<int> field_list_src(int face_type = 0) const;
   /// Return the list of destination fields participating in the
   /// Refresh operation
-  std::vector<int> field_list_dst(int level = 0,
-                                  int face_type = 0) const;
+  std::vector<int> field_list_dst(int face_type = 0) const;
 
   //--------------------------------------------------
   // PARTICLE METHODS

@@ -145,8 +145,11 @@ public: // interface
   }
   
   /// Return the initial cycle number
-  int initial_cycle() const throw() 
+  int initial_cycle() const throw()
   { return cycle_initial_; };
+
+  bool is_first_cycle () const throw()
+  { return is_first_cycle_; }
 
   /// Return the current phase of the simulation
   int phase() const throw() 
@@ -488,6 +491,9 @@ protected: // attributes
   /// Initial cycle
   int cycle_initial_;
 
+  /// Is first cycle in run whether restart or not
+  bool is_first_cycle_;
+  
   /// Current state of the simulation (time, cycle, etc.)
   std::shared_ptr<State> state_;
 

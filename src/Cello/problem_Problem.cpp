@@ -183,7 +183,6 @@ void Problem::initialize_boundary_(Config * config,
 void Problem::initialize_initial_(Config * config,
                                   Parameters * parameters) throw()
 {
-
   for (int index=0; index < config->num_initial; index++) {
 
     std::string type = config->initial_list[index];
@@ -204,7 +203,6 @@ void Problem::initialize_initial_(Config * config,
 void Problem::initialize_physics_(Config * config,
                                   Parameters * parameters) throw()
 {
-
   for (int index=0; index < config->num_physics; index++) {
 
     std::string type = config->physics_list[index];

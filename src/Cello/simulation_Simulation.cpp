@@ -36,6 +36,7 @@ Simulation::Simulation
   rank_(0),
   cycle_watch_(-1),
   cycle_initial_(-1),
+  is_first_cycle_(true),
   state_(new State (0, 0.0, 0.0, false)),
   phase_(phase_unknown),
   config_(&g_config),
@@ -111,6 +112,7 @@ Simulation::Simulation()
   rank_(0),
   cycle_watch_(-1),
   cycle_initial_(-1),
+  is_first_cycle_(true),
   state_(new State (0, 0.0, 0.0, false)),
   phase_(phase_unknown),
   config_(&g_config),
@@ -173,6 +175,7 @@ Simulation::Simulation (CkMigrateMessage *m)
     rank_(0),
     cycle_watch_(-1),
     cycle_initial_(-1),
+    is_first_cycle_(true),
     state_(),
     phase_(phase_unknown),
     config_(&g_config),
@@ -255,6 +258,7 @@ void Simulation::pup (PUP::er &p)
   p | rank_; 
   p | cycle_watch_;
   p | cycle_initial_;
+  p | is_first_cycle_;
   p | *state_;
   p | phase_;
 
@@ -434,7 +438,6 @@ void Simulation::initialize_memory_() throw()
 
 void Simulation::initialize_performance_() throw()
 {
-
   performance_ = new Performance (config_);
 
   Performance * p = performance_;
@@ -585,7 +588,6 @@ void Simulation::initialize_config_() throw()
 
 void Simulation::initialize_monitor_() throw()
 {
-
   monitor_->set_include_proc(config_->monitor_proc);
   monitor_->set_include_time(config_->monitor_time);
   monitor_->set_verbose     (config_->monitor_verbose);
@@ -1008,7 +1010,6 @@ void Simulation::data_insert_block(Block * block)
 		   CkMyPe(),sync_output_begin_.stop(),hierarchy_->num_blocks());
 #endif
   if (hierarchy_) {
-    hierarchy_->insert_block(block);
     hierarchy_->increment_block_count(1,block->level());
   }
   ++sync_advance_state_;
@@ -1021,7 +1022,6 @@ void Simulation::data_insert_block(Block * block)
 void Simulation::data_delete_block(Block * block)
 {
   if (hierarchy_) {
-    hierarchy_->delete_block(block);
     hierarchy_->increment_block_count(-1,block->level());
   }
   --sync_advance_state_;

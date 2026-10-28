@@ -42,7 +42,7 @@ void Refresh::add_all_fields(std::string field_group)
 
 //----------------------------------------------------------------------
 
-std::vector<int> Refresh::field_list_src(int level, int face_type) const
+std::vector<int> Refresh::field_list_src(int face_type) const
 {
   std::vector<int> field_list = field_list_src_;
   if (all_fields_) {
@@ -59,7 +59,7 @@ std::vector<int> Refresh::field_list_src(int level, int face_type) const
 //----------------------------------------------------------------------
 
 
-std::vector<int> Refresh::field_list_dst(int level, int face_type) const
+std::vector<int> Refresh::field_list_dst(int face_type) const
 {
   std::vector<int> field_list = field_list_dst_;
   if (all_fields_) {

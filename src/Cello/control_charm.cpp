@@ -104,6 +104,7 @@ void Simulation::compute_advance_state()
 {
   // Transition from Block to Simulation parallelism
   if (sync_advance_state_.next()) {
+    is_first_cycle_ = false;
     // Advance Simulation state
     state_->advance();
     // barrier before exiting compute
