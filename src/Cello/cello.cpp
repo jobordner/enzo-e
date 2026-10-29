@@ -730,39 +730,6 @@ namespace cello {
     return ".";
   }
 
-  //----------------------------------------------------------------------
-
-  bool is_initial_cycle(InitCycleKind kind) noexcept {
-    Simulation * sim = cello::simulation();
-    ASSERT("cello::is_first_cycle(InitCycleKind)",
-           "cello::simulation() returned nullptr", sim != nullptr);
-    return cello::is_initial_cycle(sim->state()->cycle(), kind);
-  }
-
-  //----------------------------------------------------------------------
-
-  bool is_initial_cycle(int cycle, InitCycleKind kind) noexcept {
-    switch (kind) {
-    case InitCycleKind::fresh:
-      {
-        const Config * config = cello::config();
-        ASSERT("cello::is_initial_cycle(int, InitCycleKind)",
-               "cello::config() returned nullptr", config != nullptr);
-        return cycle == config->initial_cycle;
-      }
-    case InitCycleKind::fresh_or_noncharm_restart:
-      {
-        const Simulation * sim = cello::simulation();
-        ASSERT("cello::is_initial_cycle(int, InitCycleKind)",
-               "cello::simulation() returned nullptr", sim != nullptr);
-        return cycle == sim->initial_cycle();
-      }
-    default:
-      return false;
-    }
-
-  }
-
   bool is_initial_cycle()
   { return simulation()->state()->cycle() ==
       config()->initial_cycle &&

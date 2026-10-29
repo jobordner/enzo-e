@@ -299,17 +299,6 @@ enum class DirType { Unknown, Both, Send, Recv };
 /// Length of hex message tags used for debugging
 #define TAG_LEN 8
 
-/// represents a kind of initial cycle
-///
-/// @note
-/// At the moment, we distinguish between a charm-based restart and a
-/// non-charm-based restart for completeness. But to my knowledge, we can't
-/// actually identify a charm-based restart
-enum class InitCycleKind {
-  fresh,                    ///< doesn't follow a restart
-  fresh_or_noncharm_restart ///< any kind other than a charm-based restart
-};
-
 //----------------------------------------------------------------------
 /// Macros for debugging
 //----------------------------------------------------------------------
@@ -1309,22 +1298,13 @@ namespace cello {
     }
   }
 
-  /// Returns whether the current cycle is the first cycle after starting the
-  /// simulation
-  ///
-  /// This differentiates between the different kinds of initial cycles
-  ///
-  /// @note
-  /// While the Cello-layer is not actually responsible for implementing
-  /// non-charm-based restart functionality, it's useful to store the
-  /// functionality in this layer.
-  ///
-  /// @note
-  /// At the time of writing, we can't actually detect when a charm-based
-  /// restart has occured - the program aborts with an error in that case
-  /// (however, the option exists to make the code more explicit)
-  bool is_initial_cycle(InitCycleKind kind) noexcept;
-  bool is_initial_cycle(int cycle, InitCycleKind kind) noexcept;
+  /// Is in cycle in which initial conditions are applied
+  bool is_initial_cycle();
+  /// Is in restart cycle in which data are read from restart files
+  bool is_restart_cycle();
+  /// Is in first cycle of the simulation, which may be either an
+  /// initial cycle or a restart cycle
+  bool is_first_cycle();
 
   /// Is in cycle in which initial conditions are applied
   bool is_initial_cycle();

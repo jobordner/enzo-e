@@ -45,7 +45,7 @@ public: // functions
   virtual void p_refine_create_block(MsgRefine*);
   void refine_create_block(MsgRefine*);
 
-  void set_msg_check (Index index, EnzoMsgCheck *);
+  void initialize_from_checkpoint (Index index, EnzoMsgCheck *);
 
   /// Request by newly created EnzoBlock to get its MsgRefine object
   MsgRefine * get_msg_refine(Index index);

@@ -74,7 +74,7 @@ void EnzoMethodCheck::pup (PUP::er &p)
 
 void EnzoMethodCheck::compute ( Block * block) throw()
 {
-  if (!cello::is_initial_cycle(InitCycleKind::fresh_or_noncharm_restart)) {
+  if (! cello::is_first_cycle()) {
      CkCallback callback(CkIndex_EnzoSimulation::r_method_check_enter(NULL),0,
                          proxy_enzo_simulation);
      PERF_REDUCE_START(iperf_reduce_method_check);

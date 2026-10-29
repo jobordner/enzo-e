@@ -124,7 +124,7 @@ Block::Block ( MsgType msg_type )
 
 //----------------------------------------------------------------------
 
-void Block::set_msg_refine(MsgRefine * msg)
+void Block::initialize_after_refinement(MsgRefine * msg)
 {
   PERF_START(iperf_block);
 
@@ -295,7 +295,7 @@ void Block::initialize()
   const bool initial_new = cello::config()->initial_new;
 
   if (! initial_new) {
-    if (cello::is_initial_cycle(state_->cycle(),InitCycleKind::fresh) && level() <= 0) {
+    if (cello::is_initial_cycle() && level() <= 0) {
       CkCallback callback (CkIndex_Block::r_end_initialize(nullptr), thisProxy);
       contribute(0,0,CkReduction::concat,callback);
     }
@@ -623,7 +623,7 @@ void Block::compute_derived(const std::vector< std::string>& field_list
 
 void Block::apply_initial_(MsgRefine * msg) throw ()
 {
-  if (! cello::is_initial_cycle(state_->cycle(),InitCycleKind::fresh)) {
+  if (! cello::is_initial_cycle()) {
 
     msg->update(data());
 
@@ -756,7 +756,7 @@ void Block::init_adapt_(Adapt * adapt_parent)
   adapt_.set_periodicity(p3);
   adapt_.set_valid(true);
 
-  if ( (level <= 0) && cello::is_initial_cycle(state_->cycle(),InitCycleKind::fresh) ) {
+  if ( (level <= 0) && cello::is_initial_cycle() ) {
     // If root-level (or below) block in first simulation cycle,
     // initialize neighbors to be all adjacent root-level blocks
     int nb3[3],np3[3],ib3[3];

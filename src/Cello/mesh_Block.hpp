@@ -48,7 +48,7 @@ public: // interface
   Block ( MsgType msg_type );
   /// Initialize Block using MsgRefine returned by creating process
 
-  virtual void set_msg_refine(MsgRefine * msg);
+  virtual void initialize_after_refinement(MsgRefine * msg);
 
   /// Destructor
   virtual ~Block();

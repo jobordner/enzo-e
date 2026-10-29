@@ -98,7 +98,7 @@ void EnzoMethodSinkMaker::pup (PUP::er &p)
 
 void EnzoMethodSinkMaker::compute ( Block *block) throw()
 {
-  if (cello::is_initial_cycle(InitCycleKind::fresh_or_noncharm_restart)) {
+  if (cello::is_first_cycle()) {
     do_checks_(block);
   }
 

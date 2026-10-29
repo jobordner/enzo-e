@@ -39,7 +39,7 @@ void EnzoMethodBondiHoyleAccretion::pup (PUP::er &p)
 void EnzoMethodBondiHoyleAccretion::compute (Block * block) throw()
 {
 
-  if (cello::is_initial_cycle(InitCycleKind::fresh_or_noncharm_restart)) {
+  if (cello::is_first_cycle()) {
     do_checks_(block);
   }
 

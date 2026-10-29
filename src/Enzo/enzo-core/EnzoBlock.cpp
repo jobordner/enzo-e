@@ -28,32 +28,37 @@ EnzoBlock::EnzoBlock( MsgType msg_type)
   state_ = std::make_shared<EnzoState>(0, 0.0, 0.0, false);
 
   if (msg_type == MsgType::msg_check) {
-    set_msg_check(enzo::simulation()->get_msg_check(thisIndex));
+    auto * msg_check = enzo::simulation()->get_msg_check(thisIndex);
+    initialize_from_checkpoint(msg_check);
   } else if (msg_type == MsgType::msg_refine) {
-    set_msg_refine(enzo::simulation()->get_msg_refine(thisIndex));
+    auto * msg_refine = enzo::simulation()->get_msg_refine(thisIndex);
+    initialize_after_refinement(msg_refine);
   }
 }
 
 //----------------------------------------------------------------------
 
-void EnzoBlock::set_msg_check(EnzoMsgCheck * msg)
+void EnzoBlock::initialize_from_checkpoint(EnzoMsgCheck * msg)
 {
   PERF_START(iperf_block);
   restart_set_data_(msg);
-  initialize();
   Block::initialize();
   PERF_STOP(iperf_block);
 }
 
 //----------------------------------------------------------------------
 
-void EnzoBlock::set_msg_refine(MsgRefine * msg)
+void EnzoBlock::initialize_after_refinement(MsgRefine * msg)
 {
   int io_reader = msg->restart_io_reader_;
-  Block::set_msg_refine(msg);
+
+  Block::initialize_after_refinement(msg);
+
   initialize();
   Block::initialize();
-  // If refined block and restarting, notify file reader block is created
+
+  // If refined block and restarting, notify file reader block is
+  // created
   if (io_reader >= 0) {
     proxy_io_enzo_reader[io_reader].p_block_created();
   }

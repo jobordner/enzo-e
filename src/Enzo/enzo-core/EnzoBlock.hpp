@@ -33,11 +33,9 @@ public: // interface
 
   /// Initialize the EnzoBlock chare array
   EnzoBlock ( MsgType msg_type );
-
-  /// Initialize EnzoBlock using MsgRefine returned by creating
-  /// process
-  void set_msg_refine(MsgRefine * msg);
-  void set_msg_check(EnzoMsgCheck * msg);
+  /// Initialize EnzoBlock using MsgRefine returned by creating process
+  void initialize_after_refinement(MsgRefine * msg);
+  void initialize_from_checkpoint(EnzoMsgCheck * msg);
 
   /// Initialize an empty EnzoBlock
   EnzoBlock()

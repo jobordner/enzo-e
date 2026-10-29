@@ -167,13 +167,13 @@ void EnzoSimulation::refine_create_block(MsgRefine * msg)
 
 //----------------------------------------------------------------------
 
-void EnzoSimulation::set_msg_check(Index index, EnzoMsgCheck * msg)
+void EnzoSimulation::initialize_from_checkpoint(Index index, EnzoMsgCheck * msg)
 {
   if (msg_check_map_[index] != NULL) {
 
     int v3[3];
     index.values(v3);
-    ASSERT3 ("EnzoSimulation::set_msg_check",
+    ASSERT3 ("EnzoSimulation::initialize_from_checkpoint",
 	    "index %08x %08x %08x is already in the msg_check mapping",
 	    v3[0],v3[1],v3[2],
 	    (msg == NULL));

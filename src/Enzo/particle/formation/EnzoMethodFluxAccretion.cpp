@@ -49,7 +49,7 @@ void EnzoMethodFluxAccretion::pup (PUP::er &p)
 void EnzoMethodFluxAccretion::compute (Block * block) throw()
 {
 
-  if (cello::is_initial_cycle(InitCycleKind::fresh_or_noncharm_restart)) {
+  if (cello::is_first_cycle()) {
     do_checks_(block);
   }
 

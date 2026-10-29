@@ -187,7 +187,7 @@ void EnzoMethodGravity::compute(Block * block) throw()
   TRACE_GRAVITY(block,"01 apply");
   EnzoBlock * enzo_block = static_cast<EnzoBlock*>(block);
 
-  if (cello::is_initial_cycle(InitCycleKind::fresh_or_noncharm_restart)) {
+  if (cello::is_first_cycle()) {
     ASSERT("EnzoMethodGravity",
            "Error: pm_deposit method must precede gravity method.",
            enzo::problem()->methods_in_order("pm_deposit", "gravity"));
