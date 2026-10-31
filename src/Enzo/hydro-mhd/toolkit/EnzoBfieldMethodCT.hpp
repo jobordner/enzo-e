@@ -20,8 +20,7 @@ public: // interface
   /// @param[in] num_partial_timesteps The number of partial timesteps over
   ///     which the constructed instance will update the magnetic fields.
   EnzoBfieldMethodCT(int num_partial_timesteps)
-    : EnzoBfieldMethod(num_partial_timesteps),
-      cell_widths_(nullptr)
+    : EnzoBfieldMethod(num_partial_timesteps)
   { }
 
   /// checks that the interface bfields exist and have the required shapes
@@ -230,7 +229,7 @@ protected: // methods
   /// @param[in] stale_depth indicates the current stale_depth for the supplied
   ///     quantities
   static void update_bfield
-  (const enzo_float* &cell_widths, int dim,
+  (enzo_float* cell_widths, int dim,
    const std::array<CelloView<const enzo_float, 3>, 3> &efield_l,
    const CelloView<enzo_float, 3> &cur_interface_bfield,
    const CelloView<enzo_float, 3> &out_interface_bfield,
@@ -252,7 +251,7 @@ protected: // attributes
   std::array<EFlt3DArray,3> bfieldi_l_;
 
   /// Array holding cell widths (from the CellWidth attribute of EnzoBlock)
-  const enzo_float *cell_widths_;
+  enzo_float cell_widths_[3];
 
 
   // Scratch arrays: The following are reused for different blocks

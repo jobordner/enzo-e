@@ -43,14 +43,6 @@ public: // interface
   {
     // replace Block's State with EnzoState
     state_ = std::make_shared<EnzoState> (0, 0.0, 0.0, false );
-
-    for (int i=0; i<MAX_DIMENSION; i++) {
-      GridLeftEdge[i] = 0;
-      GridDimension[i] = 0;
-      GridStartIndex[i] = 0;
-      GridEndIndex[i] = 0;
-      CellWidth[i] = 0.0;
-    }
   }
 
   /// Charm++ Migration constructor
@@ -76,9 +68,6 @@ public: // interface
   virtual const CProxyElement_Block proxy_element() const
   { return thisProxy[thisIndex]; }
 
-  /// Write attributes, e.g. to stdout for debugging
-  void write(FILE *fp=stdout) throw ();
-
   //--------------------------------------------------
   // Nested grid initialization.
   //--------------------------------------------------
@@ -89,9 +78,6 @@ public: // interface
   /// Create child blocks.
   virtual void create_initial_child_blocks();
   void instantiate_children() throw();
-
-  /// Initialize EnzoBlock
-  virtual void initialize () throw();
 
 public: /// entry methods
 
@@ -277,11 +263,6 @@ public: /// entry methods
     if (!fp) fp = fopen ((std::string("EB-")+name_).c_str(),"a");
     fprintf (fp,"PRINT_ENZO_BLOCK name = %s\n",name().c_str());
     fprintf (fp,"PRINT_ENZO_BLOCK redshift = %g\n",state()->redshift());
-    fprintf (fp,"PRINT_ENZO_BLOCK GridLeftEdge[] = %g %g %g\n",GridLeftEdge[0],GridLeftEdge[1],GridLeftEdge[2]);
-    fprintf (fp,"PRINT_ENZO_BLOCK GridDimension[] = %d %d %d\n",GridDimension[0],GridDimension[1],GridDimension[2]);
-    fprintf (fp,"PRINT_ENZO_BLOCK GridStartIndex[] = %d %d %d\n",GridStartIndex[0],GridStartIndex[1],GridStartIndex[2]);
-    fprintf (fp,"PRINT_ENZO_BLOCK GridEndIndex[] = %d %d %d\n",GridEndIndex[0],GridEndIndex[1],GridEndIndex[2]);
-    fprintf (fp,"PRINT_ENZO_BLOCK CellWidth[] = %g %g %g\n",CellWidth[0],CellWidth[1],CellWidth[2]);
     Block::print(fp);
     fclose (fp);
   }
@@ -302,16 +283,6 @@ protected: // methods
 protected: // attributes
 
 public: // attributes (YIKES!)
-
-  /// starting pos (active problem space)
-  enzo_float GridLeftEdge[MAX_DIMENSION];
-  /// total dimensions of all grids
-  int GridDimension[MAX_DIMENSION];
-  /// starting index of the active region
-  int GridStartIndex[MAX_DIMENSION];
-  /// stoping index of the active region
-  int GridEndIndex[MAX_DIMENSION];
-  enzo_float CellWidth[MAX_DIMENSION];
 
 };
 

@@ -93,10 +93,8 @@ int EnzoMethodPpm::SolveHydroEquations
 
   int rank = cello::rank();
 
-  size = 1;
-  for (dim = 0; dim < rank; dim++)
-    size *= block.GridDimension[dim];
-
+  int m3[3];
+  size = field.dimensions(field.field_id("density"),m3,m3+1,m3+2);
   enzo_float * density         = (enzo_float *) field.values("density");
   enzo_float * total_energy    = (enzo_float *) field.values("total_energy");
   enzo_float * internal_energy = (enzo_float *) field.values("internal_energy");
@@ -189,20 +187,11 @@ int EnzoMethodPpm::SolveHydroEquations
 
   /* fix grid quantities so they are defined to at least 3 dims */
 
-  for (int i = rank; i < 3; i++) {
-    block.GridDimension[i]   = 1;
-    block.GridStartIndex[i]  = 0;
-    block.GridEndIndex[i]    = 0;
-    //      GridGlobalStart[i] = 0;
-  }
-
   /* allocate temporary space for solver (enough to fit 31 of the largest
      possible 2d slices plus 4*nc). */
 
-  int tempsize = MAX(MAX(block.GridDimension[0]*block.GridDimension[1],
-			 block.GridDimension[1]*block.GridDimension[2]),
-		     block.GridDimension[2]*block.GridDimension[0]);
-
+  field.dimensions(field.field_id("density"),m3,m3+1,m3+2);
+  int tempsize = std::max({ m3[0]*m3[1], m3[1]*m3[2], m3[2]*m3[0] });
   enzo_float *temp = new enzo_float[tempsize*(32+nc*4)];
 
   /* create and fill in arrays which are easier for the solver to
@@ -317,14 +306,17 @@ int EnzoMethodPpm::SolveHydroEquations
 
   /* Create a cell width array to pass (and convert to absolute coords). */
 
-  enzo_float * CellWidthTemp[MAX_DIMENSION];
+  enzo_float h3[3];
+  block.cell_width(h3,h3+1,h3+2);
+  enzo_float * CellWidthTemp[3];
+
   for (dim = 0; dim < MAX_DIMENSION; dim++) {
-    CellWidthTemp[dim] = new enzo_float [block.GridDimension[dim]];
+    CellWidthTemp[dim] = new enzo_float [m3[dim]];
     if (dim < rank) {
-      for (int i=0; i<block.GridDimension[dim]; i++)
-	CellWidthTemp[dim][i] = (cosmo_a*block.CellWidth[dim]);
+      for (int i=0; i<m3[dim]; i++)
+	CellWidthTemp[dim][i] = (cosmo_a*h3[dim]);
     } else {
-      for (int i=0; i<block.GridDimension[dim]; i++)
+      for (int i=0; i<m3[dim]; i++)
 	CellWidthTemp[dim][i] = 1.0;
     }
   }
@@ -358,8 +350,9 @@ int EnzoMethodPpm::SolveHydroEquations
      acceleration_z,
      &gamma, &dt, &cycle,
      CellWidthTemp[0], CellWidthTemp[1], CellWidthTemp[2],
-     &rank, &block.GridDimension[0], &block.GridDimension[1],
-     &block.GridDimension[2], block.GridStartIndex, block.GridEndIndex,
+     &rank,
+     m3, m3+1, m3+2,
+     l3,u3,
      &flattening,
      &pressure_free_int,
      &iconsrec, &iposrec,

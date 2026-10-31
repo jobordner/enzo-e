@@ -42,7 +42,7 @@ void EnzoBlock::initialize_from_checkpoint(EnzoMsgCheck * msg)
 {
   PERF_START(iperf_block);
   restart_set_data_(msg);
-  Block::initialize();
+  initialize();
   PERF_STOP(iperf_block);
 }
 
@@ -55,7 +55,6 @@ void EnzoBlock::initialize_after_refinement(MsgRefine * msg)
   Block::initialize_after_refinement(msg);
 
   initialize();
-  Block::initialize();
 
   // If refined block and restarting, notify file reader block is
   // created
@@ -103,116 +102,10 @@ void EnzoBlock::pup(PUP::er &p)
     WARNING("EnzoBlock::pup()", "skipping SubgridFluxes (not used)");
   }
 
-  PUParray(p,GridLeftEdge,MAX_DIMENSION);
-  PUParray(p,GridDimension,MAX_DIMENSION);
-  PUParray(p,GridStartIndex,MAX_DIMENSION);
-  PUParray(p,GridEndIndex,MAX_DIMENSION);
-  PUParray(p,CellWidth,MAX_DIMENSION);
-
   // If tagged for deletion, then delete after unpacking
   if (coarsened_ && p.isUnpacking()) {
     ckDestroy();
   }
-}
-
-//======================================================================
-
-void EnzoBlock::write(FILE * fp) throw ()
-{
-  // Grid
-
-  fprintf (fp,"EnzoBlock: GridDimension %d %d %d\n",
-	   GridDimension[0],GridDimension[1],GridDimension[2]);
-  fprintf (fp,"EnzoBlock: GridStartIndex %d %d %d\n",
-	   GridStartIndex[0],GridStartIndex[1],GridStartIndex[2]);
-  fprintf (fp,"EnzoBlock: GridEndIndex %d %d %d\n",
-	   GridEndIndex[0],GridEndIndex[1],GridEndIndex[2]);
-  fprintf (fp,"EnzoBlock: GridLeftEdge %g %g %g\n",
-	   GridLeftEdge[0],GridLeftEdge[1],GridLeftEdge[2]);
-
-  fprintf (fp,"EnzoBlock: CellWidth %g %g %g\n",
-	   CellWidth[0], CellWidth[1], CellWidth[2] );
-
-  // problem
-
-}
-
-//----------------------------------------------------------------------
-
-void EnzoBlock::initialize () throw()
-{
-  double xm,ym,zm;
-
-  data()->lower(&xm,&ym,&zm);
-
-  GridLeftEdge[0]  = xm;
-  GridLeftEdge[1]  = ym;
-  GridLeftEdge[2]  = zm;
-
-  // Grid dimensions
-
-  Field field = data()->field();
-
-  // the following check was originally located elsewhere, but we moved it here
-  // for lack of a better place to put it. We might be able to remove this in
-  // the future.
-  //
-  // It's unclear whether we should be using field.num_permanent() or a
-  // different count of fields. In any case, this is improvement over the count
-  // that was used previously in this check
-  if (field.num_permanent() > MAX_NUMBER_OF_BARYON_FIELDS) {
-    ERROR2 ("EnzoBlock::initialize",
-            "MAX_NUMBER_OF_BARYON_FIELDS = %d is too small for %d fields",
-            MAX_NUMBER_OF_BARYON_FIELDS, field.num_permanent() );
-  }
-
-  int nx,ny,nz;
-  field.size (&nx,&ny,&nz);
-
-  // query the ghost depth.
-  //
-  // Note: this is an improper way to do things... We only do it this way
-  // because this is how it used to be done when EnzoBlock::ghost_depth was a
-  // global variable
-  //
-  // In the future, we should be computing GridDimension, GridStartIndex and
-  // GridEndIndex within the Method objects where that information is needed
-  // and using the ghost_depth information relevant to the fields that are
-  // being used. Specifically, this would look something like:
-  //     int gx,gy,gz;
-  //     field.ghost_depth(field.field_id("density"), &gx, &gy, &gz);
-  //     if (cello::rank() < 1) gx = 0;
-  //     if (cello::rank() < 2) gy = 0;
-  //     if (cello::rank() < 3) gz = 0;
-
-  const int rank = cello::rank();
-  int gx = (rank < 1) ? 0 : cello::config()->field_ghost_depth[0];
-  int gy = (rank < 2) ? 0 : cello::config()->field_ghost_depth[1];
-  int gz = (rank < 3) ? 0 : cello::config()->field_ghost_depth[2];
-
-  GridDimension[0]  = nx + 2*gx;
-  GridDimension[1]  = ny + 2*gy;
-  GridDimension[2]  = nz + 2*gz;
-
-  GridStartIndex[0] = gx;
-  GridStartIndex[1] = gy;
-  GridStartIndex[2] = gz;
-
-  GridEndIndex[0] = gx + nx - 1;
-  GridEndIndex[1] = gy + ny - 1;
-  GridEndIndex[2] = gz + nz - 1;
-
-  // Initialize CellWidth
-
-  double xp,yp,zp;
-  data()->upper(&xp,&yp,&zp);
-  double hx,hy,hz;
-  field.cell_width(xm,xp,&hx,ym,yp,&hy,zm,zp,&hz);
-
-  CellWidth[0] = hx;
-  CellWidth[1] = hy;
-  CellWidth[2] = hz;
-
 }
 
 //----------------------------------------------------------------------

@@ -36,11 +36,15 @@ void EnzoBfieldMethodCT::register_target_block_
   }
 
   EnzoBlock *enzo_block = enzo::block(block);
-  cell_widths_ = (const enzo_float*)enzo_block->CellWidth;
+
+  enzo_block->cell_width(cell_widths_,
+                         cell_widths_+1,
+                         cell_widths_+2);
 
   if (first_initialization){
-    // if num_partial_timesteps() > 1, setup temp_bfieldi_l_ (they have the same
-    // shape as each component of bfieldi_l_ and manage their own memory).
+    // if num_partial_timesteps() > 1, setup temp_bfieldi_l_ (they
+    // have the same shape as each component of bfieldi_l_ and manage
+    // their own memory).
     if (num_partial_timesteps() > 1){
       for (std::size_t i = 0; i<3; i++){
         temp_bfieldi_l_[i] = EFlt3DArray(bfieldi_l_[i].shape(0),
@@ -57,16 +61,17 @@ void EnzoBfieldMethodCT::register_target_block_
     // values on external faces of the grid)
     const int mx = bfieldi_l_[0].shape(2) - 1;
 
-    // allocate arrays to hold weight values for each dimension. For a given
-    // dimension, the array tracks the upwind/downwind direction on the cell
-    // interfaces for that dimension (they exclude exterior faces of the block)
+    // allocate arrays to hold weight values for each dimension. For a
+    // given dimension, the array tracks the upwind/downwind direction
+    // on the cell interfaces for that dimension (they exclude
+    // exterior faces of the block)
     weight_l_[0] = EFlt3DArray(  mz,   my, mx-1);
     weight_l_[1] = EFlt3DArray(  mz, my-1,   mx);
     weight_l_[2] = EFlt3DArray(mz-1,   my,   mx);
 
-    // allocate arrays to hold for each component of the edge-centered electric
-    // fields. The array for component i is cell-centered along i and face
-    // centered along j and k.
+    // allocate arrays to hold for each component of the edge-centered
+    // electric fields. The array for component i is cell-centered
+    // along i and face centered along j and k.
     edge_efield_l_[0] = EFlt3DArray(mz-1, my-1,   mx);
     edge_efield_l_[1] = EFlt3DArray(mz-1,   my, mx-1);
     edge_efield_l_[2] = EFlt3DArray(  mz, my-1, mx-1);
@@ -249,7 +254,7 @@ void EnzoBfieldMethodCT::update_all_bfield_components
   const auto const_edge_efield_l = immutable_arr_of_EFlt3DArray(edge_efield_l_);
   for (int dim = 0; dim<3; dim++){
     EnzoBfieldMethodCT::update_bfield
-      (cell_widths_, dim, const_edge_efield_l, (*cur_bfieldi_l)[dim],
+      (&cell_widths_[0], dim, const_edge_efield_l, (*cur_bfieldi_l)[dim],
        (*out_bfieldi_l)[dim], dt, stale_depth);
   }
 
@@ -615,7 +620,7 @@ void EnzoBfieldMethodCT::compute_all_edge_efields
 //   E_k_term(k,j,i+1/2) = dt/dj*(ek_Rj(k,j,i) - ek_Lj(k,j,i))
 //   E_j_term(k,j,i+1/2) = dt/dk*(ej_Rk(k,j,i) - ej_Lk(k,j,i))
 void EnzoBfieldMethodCT::update_bfield
-(const enzo_float* &cell_widths, int dim,
+(enzo_float* cell_widths, int dim,
  const std::array<CelloView<const enzo_float, 3>,3> &efield_l,
  const CelloView<enzo_float, 3> &cur_interface_bfield,
  const CelloView<enzo_float, 3> &out_interface_bfield,

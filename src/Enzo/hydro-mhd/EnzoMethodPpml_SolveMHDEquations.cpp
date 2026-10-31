@@ -63,13 +63,8 @@ int EnzoMethodPpml::SolveMHDEquations( EnzoBlock& block, enzo_float dt )
     /* initialize */
 
     int dim, i,  size;
-    Elong_int GridGlobalStart[MAX_DIMENSION];
 
-    /* Compute size (in floats) of the current grid. */
-
-    size = 1;
-    for (dim = 0; dim < GridRank; dim++)
-      size *= block.GridDimension[dim];
+    size = field.dimensions(field.field_id("density"));
 
     /* Get easy to handle pointers for each variable. */
 
@@ -104,77 +99,27 @@ int EnzoMethodPpml::SolveMHDEquations( EnzoBlock& block, enzo_float dt )
     enzo_float *bfieldy_rz = (enzo_float *) field.values ("bfieldy_rz");
     enzo_float *bfieldz_rz = (enzo_float *) field.values ("bfieldz_rz");
 
-    /* allocate space for fluxes */
-
-//     for (i = 0; i < NumberOfSubgrids; i++) {
-//       for (dim = 0; dim < GridRank; dim++)  {
-
-// 	/* compute size (in floats) of flux storage */
-
-//         size = 1;
-//         for (j = 0; j < GridRank; j++)
-//           size *= SubgridFluxes[i]->LeftFluxEndGlobalIndex[dim][j] -
-//                   SubgridFluxes[i]->LeftFluxStartGlobalIndex[dim][j] + 1;
-
-// 	/* set unused dims (for the solver, which is hardwired for 3d). */
-
-//         for (j = GridRank; j < 3; j++) {
-//           SubgridFluxes[i]->LeftFluxStartGlobalIndex[dim][j]  = 0;
-//           SubgridFluxes[i]->LeftFluxEndGlobalIndex[dim][j]    = 0;
-//           SubgridFluxes[i]->RightFluxStartGlobalIndex[dim][j] = 0;
-//           SubgridFluxes[i]->RightFluxEndGlobalIndex[dim][j]   = 0;
-//         }
-
-// 	/* Allocate space (if necessary). */
-
-//         for (field = 0; field < NumberOfBaryonFields; field++) {
-// 	  if (SubgridFluxes[i]->LeftFluxes[field][dim] == NULL)
-// 	    SubgridFluxes[i]->LeftFluxes[field][dim]  = new enzo_float[size];
-// 	  if (SubgridFluxes[i]->RightFluxes[field][dim] == NULL)
-// 	    SubgridFluxes[i]->RightFluxes[field][dim] = new enzo_float[size];
-// 	  for (n = 0; n < size; n++) {
-// 	    SubgridFluxes[i]->LeftFluxes[field][dim][n]  = 0;
-// 	    SubgridFluxes[i]->RightFluxes[field][dim][n] = 0;
-// 	  }
-//         }
-
-// 	for (field = NumberOfBaryonFields; field < MAX_NUMBER_OF_BARYON_FIELDS;
-// 	     field++) {
-//           SubgridFluxes[i]->LeftFluxes[field][dim]  = NULL;
-//           SubgridFluxes[i]->RightFluxes[field][dim] = NULL;
-// 	}
-
-//       }  // next dimension
-
-//       /* make things pretty */
-
-//       for (dim = GridRank; dim < 3; dim++)
-//         for (field = 0; field < MAX_NUMBER_OF_BARYON_FIELDS; field++) {
-//           SubgridFluxes[i]->LeftFluxes[field][dim]  = NULL;
-//           SubgridFluxes[i]->RightFluxes[field][dim] = NULL;
-// 	}
-
-//     } // end of loop over subgrids
-
     /* compute global start index for left edge of entire grid
        (including boundary zones) */
 
-     for (dim = 0; dim < GridRank; dim++)
-       GridGlobalStart[dim] =
-     	NINT((block.GridLeftEdge[dim] - DomainLeftEdge[dim])
-             /block.CellWidth[dim]) - block.GridStartIndex[dim];
+    enzo_float lower[3];
+    block.lower(lower,lower+1,lower+2);
+    int im3[3],ip3[3];
 
-    /* fix grid quantities so they are defined to at least 3 dims */
-
-    for (i = GridRank; i < 3; i++) {
-      block.GridDimension[i]   = 1;
-      block.GridStartIndex[i]  = 0;
-      block.GridEndIndex[i]    = 0;
-      GridGlobalStart[i] = 0;
+    {
+      int g3[3],m3[3];
+      enzo_float h3[3];
+      const int id = field.field_id("density");
+      field.ghost_depth(id,g3,g3+1,g3+2);
+      field.dimensions (id,m3,m3+1,m3+2);
+      block.cell_width(h3,h3+1,h3+2);
+      for (dim = 0; dim < GridRank; dim++) {
+        im3[dim]=g3[dim];
+        ip3[dim]=m3[dim]-g3[dim]-1;
+      }
     }
 
     /* allocate temporary space for solver */
-
     int k = 0;
     enzo_float *temp = new enzo_float[size*(31)];
     enzo_float *f1 = &temp[k*size];  k++;
@@ -217,20 +162,6 @@ int EnzoMethodPpml::SolveMHDEquations( EnzoBlock& block, enzo_float dt )
 
     int NumberOfSubgrids = 0; // JB
 
-    // int *leftface  = new int[NumberOfSubgrids*3*20];
-    // int *rightface = leftface + NumberOfSubgrids*3*1;
-    // int *istart    = leftface + NumberOfSubgrids*3*2;
-    // int *jstart    = leftface + NumberOfSubgrids*3*3;
-    // int *iend      = leftface + NumberOfSubgrids*3*4;
-    // int *jend      = leftface + NumberOfSubgrids*3*5;
-    // int *dnindex   = leftface + NumberOfSubgrids*3*6;
-    // int *vxindex   = leftface + NumberOfSubgrids*3*8;
-    // int *vyindex   = leftface + NumberOfSubgrids*3*10;
-    // int *vzindex   = leftface + NumberOfSubgrids*3*12;
-    // int *bxindex   = leftface + NumberOfSubgrids*3*14;
-    // int *byindex   = leftface + NumberOfSubgrids*3*16;
-    // int *bzindex   = leftface + NumberOfSubgrids*3*18;
-
     enzo_float *standard = NULL;
 
     int *leftface  = NULL;
@@ -247,122 +178,22 @@ int EnzoMethodPpml::SolveMHDEquations( EnzoBlock& block, enzo_float dt )
     int *byindex   =  NULL;
     int *bzindex   =  NULL;
 
-    // enzo_float *standard = NULL;
-    //    if (NumberOfSubgrids > 0) standard = SubgridFluxes[0]->LeftFluxes[0][0];
+    /* current PPML implementation only supports 3D and does not
+       support color fields */
 
-    // for (subgrid = 0; subgrid < NumberOfSubgrids; subgrid++)
-    //   for (dim = 0; dim < GridRank; dim++) {
-
-        /* Set i,j dimensions of 2d flux slice (this works even if we
-           are in 1 or 2d) the correspond to the dimensions of the global
-           indicies.  I.e. for dim = 0, the plane is dims 1,2
-                           for dim = 1, the plane is dims 0,2
-                           for dim = 2, the plane is dims 0,1 */
-
-// 	idim = (dim == 0) ? 1 : 0;
-// 	jdim = (dim == 2) ? 1 : 2;
-
-        /* Set the index (along the dimension perpindicular to the flux
-           plane) of the left and right flux planes.  The index is zero
-           based from the left side of the entire grid. */
-
- 	// leftface[subgrid*3+dim] =
- 	//   SubgridFluxes[subgrid]->LeftFluxStartGlobalIndex[dim][dim] -
- 	//     GridGlobalStart[dim];
- 	// rightface[subgrid*3+dim] =
- 	//   SubgridFluxes[subgrid]->RightFluxStartGlobalIndex[dim][dim] -
- 	//     GridGlobalStart[dim];   // (+1 done by fortran code)
-
-        /* set the start and end indicies (zero based on entire grid)
-           of the 2d flux plane. */
-
-// 	istart[subgrid*3+dim] =
-// 	  SubgridFluxes[subgrid]->RightFluxStartGlobalIndex[dim][idim] -
-// 	    GridGlobalStart[idim];
-// 	jstart[subgrid*3+dim] =
-// 	  SubgridFluxes[subgrid]->RightFluxStartGlobalIndex[dim][jdim] -
-// 	    GridGlobalStart[jdim];
-// 	iend[subgrid*3+dim] =
-// 	  SubgridFluxes[subgrid]->RightFluxEndGlobalIndex[dim][idim] -
-// 	    GridGlobalStart[idim];
-// 	jend[subgrid*3+dim] =
-// 	  SubgridFluxes[subgrid]->RightFluxEndGlobalIndex[dim][jdim] -
-// 	    GridGlobalStart[jdim];
-
-//         /* Compute offset from the standard pointer to the start of
-//            each set of flux data.  This is done to compensate for
-//            fortran's inability to handle arrays of pointers or structs.
-// 	   NOTE: This pointer arithmetic is illegal; some other way should
-// 	   be found to do it (like write higher level ppm stuff in c++). */
-
-// 	dnindex[subgrid*6+dim*2] =
-// 	  SubgridFluxes[subgrid]->LeftFluxes[0][dim]  - standard;
-// 	dnindex[subgrid*6+dim*2+1] =
-// 	  SubgridFluxes[subgrid]->RightFluxes[0][dim] - standard;
-// 	vxindex[subgrid*6+dim*2] =
-// 	  SubgridFluxes[subgrid]->LeftFluxes[1][dim]  - standard;
-// 	vxindex[subgrid*6+dim*2+1] =
-// 	  SubgridFluxes[subgrid]->RightFluxes[1][dim] - standard;
-// 	vyindex[subgrid*6+dim*2] =
-// 	  SubgridFluxes[subgrid]->LeftFluxes[2][dim]  - standard;
-// 	vyindex[subgrid*6+dim*2+1] =
-// 	  SubgridFluxes[subgrid]->RightFluxes[2][dim] - standard;
-// 	vzindex[subgrid*6+dim*2] =
-// 	  SubgridFluxes[subgrid]->LeftFluxes[3][dim]  - standard;
-// 	vzindex[subgrid*6+dim*2+1] =
-// 	  SubgridFluxes[subgrid]->RightFluxes[3][dim] - standard;
-// 	bxindex[subgrid*6+dim*2] =
-// 	  SubgridFluxes[subgrid]->LeftFluxes[4][dim]  - standard;
-// 	bxindex[subgrid*6+dim*2+1] =
-// 	  SubgridFluxes[subgrid]->RightFluxes[4][dim] - standard;
-// 	byindex[subgrid*6+dim*2] =
-// 	  SubgridFluxes[subgrid]->LeftFluxes[5][dim]  - standard;
-// 	byindex[subgrid*6+dim*2+1] =
-// 	  SubgridFluxes[subgrid]->RightFluxes[5][dim] - standard;
-// 	bzindex[subgrid*6+dim*2] =
-// 	  SubgridFluxes[subgrid]->LeftFluxes[6][dim]  - standard;
-// 	bzindex[subgrid*6+dim*2+1] =
-// 	  SubgridFluxes[subgrid]->RightFluxes[6][dim] - standard;
-
-      // }
-
-    /* If using comoving coordinates, multiply dx by a(n+1/2).
-       In one fell swoop, this recasts the equations solved by solver
-       in comoving form (except for the expansion terms which are taken
-       care of elsewhere). */
-
-    /* Create a cell width array to pass (and convert to absolute coords). */
-    // this is not going to work for cosmology right away !AK
-
-    enzo_float a = 1.0;
-    enzo_float CellWidthTemp[MAX_DIMENSION];
-    for (dim = 0; dim < MAX_DIMENSION; dim++) {
-      if (dim < GridRank)
-	CellWidthTemp[dim] = enzo_float(a*block.CellWidth[dim]);
-      else
-	CellWidthTemp[dim] = 1.0;
-    }
-
-    /* Prepare Gravity. */
-
-    /* call a Fortran routine to actually compute the hydro equations
-       on this grid.
-       Notice that it is hard-wired for three dimensions, but it does
-       the right thing for < 3 dimensions. */
-    /* note: Start/EndIndex are zero based */
-
-
-    /* current PPML implementation only supports 3D and does not support color fields */	
-
+    int mx,my,mz;
+    field.dimensions(field.field_id("density"),&mx,&my,&mz);
+    enzo_float hx,hy,hz;
+    block.cell_width(&hx,&hy,&hz);
       FORTRAN_NAME(ppml)
 	(density,velox,   veloy,   veloz,   bfieldx,   bfieldy,   bfieldz,
 	 dens_rx,velox_rx,veloy_rx,veloz_rx,bfieldx_rx,bfieldy_rx,bfieldz_rx,
 	 dens_ry,velox_ry,veloy_ry,veloz_ry,bfieldx_ry,bfieldy_ry,bfieldz_ry,
 	 dens_rz,velox_rz,veloy_rz,veloz_rz,bfieldx_rz,bfieldy_rz,bfieldz_rz,
-	 &dt, &CellWidthTemp[0], &CellWidthTemp[1], &CellWidthTemp[2],
-	 &block.GridDimension[0], &block.GridDimension[1],
-         &block.GridDimension[2],
-	 block.GridStartIndex, block.GridEndIndex,
+	 &dt,
+         &hx,&hy,&hz,
+         &mx,&my,&mz,
+         im3,ip3,
 	 &NumberOfSubgrids, leftface, rightface,
 	 istart, iend, jstart, jend,
 	 standard, dnindex,

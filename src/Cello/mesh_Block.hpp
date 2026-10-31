@@ -819,7 +819,7 @@ public: // virtual functions
                                const double& z, bool include_ghost = false);
 
   /// Initialize Block
-  virtual void initialize ();
+  void initialize ();
 
   //  int count_neighbors() const;
 

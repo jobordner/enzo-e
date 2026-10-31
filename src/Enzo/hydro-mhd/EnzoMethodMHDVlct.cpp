@@ -421,11 +421,10 @@ void EnzoMethodMHDVlct::compute ( Block * block) throw()
       bfield_method_->register_target_block(block);
     }
 
-    const std::array<enzo_float,3> cell_widths_xyz =
-      { enzo::block(block)->CellWidth[0],
-        enzo::block(block)->CellWidth[1],
-        enzo::block(block)->CellWidth[2],
-      };
+    std::array<enzo_float,3> cell_widths_xyz;
+    block->cell_width(&cell_widths_xyz.data()[0],
+                      &cell_widths_xyz.data()[1],
+                      &cell_widths_xyz.data()[2]);
 
     const double dt = block->dt();
 
@@ -574,9 +573,8 @@ double EnzoMethodMHDVlct::timestep ( Block * block ) throw()
 
   // widths of cells
   EnzoBlock * enzo_block = enzo::block(block);
-  const double dx = enzo_block->CellWidth[0];
-  const double dy = enzo_block->CellWidth[1];
-  const double dz = enzo_block->CellWidth[2];
+  enzo_float dx,dy,dz;
+  enzo_block->cell_width(&dx,&dy,&dz);
 
   // compute the actual timestep
   double dtBaryons = integrator_->timestep(integration_map, pressure,

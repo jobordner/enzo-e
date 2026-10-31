@@ -85,14 +85,8 @@ double EnzoMethodPpml::timestep (Block * block) throw()
   // enzo_float dtAcceleration = ENZO_HUGE_VAL;
   // int dim, i, result;
  
-  /* Compute the field size. */
- 
-  // int size = 1;
-  // for (dim = 0; dim < GridRank; dim++)
-  //   size *= GridDimension[dim];
- 
-  /* If using comoving coordinates, compute the expansion factor a.  Otherwise,
-     set it to one. */
+  /* If using comoving coordinates, compute the expansion factor a.
+     Otherwise, set it to one. */
  
   enzo_float cosmo_a = 1.0, cosmo_dadt = 0.0;
   
@@ -151,19 +145,25 @@ double EnzoMethodPpml::timestep (Block * block) throw()
     enzo_float * by = (enzo_float *) field.values("bfieldy");
     enzo_float * bz = (enzo_float *) field.values("bfieldz");
 
+    int g3[3],m3[3];
+    const int id = field.field_id("density");
+    field.dimensions(id,m3,m3+1,m3+2);
+    field.ghost_depth(id,g3,g3+1,g3+2);
+    int ixm = g3[0];
+    int iym = g3[1];
+    int izm = g3[2];
+
+    int ixp = m3[0] - g3[0] - 1;
+    int iyp = m3[1] - g3[1] - 1;
+    int izp = m3[2] - g3[2] - 1;
+
+    enzo_float hx,hy,hz;
+    enzo_block->cell_width(&hx,&hy,&hz);
+
     FORTRAN_NAME(calc_dt_ppml)
-      (enzo_block->GridDimension, 
-       enzo_block->GridDimension+1, 
-       enzo_block->GridDimension+2,
-       enzo_block->GridStartIndex, 
-       enzo_block->GridEndIndex,
-       enzo_block->GridStartIndex+1, 
-       enzo_block->GridEndIndex+1,
-       enzo_block->GridStartIndex+2, 
-       enzo_block->GridEndIndex+2,
-       &enzo_block->CellWidth[0], 
-       &enzo_block->CellWidth[1], 
-       &enzo_block->CellWidth[2],
+      (m3,m3+1,m3+2,
+       &ixm,&ixp,&iym,&iyp,&izm,&izp,
+       &hx,&hy,&hz,
        d,
        vx, vy, vz,
        bx, by, bz,

@@ -46,15 +46,14 @@ int enzo::SetMinimumSupport(EnzoBlock& block,
     const int GridRank = cello::rank();
  
     int dim, size = 1, i;
-    for (dim = 0; dim < GridRank; dim++)
-      size *= block.GridDimension[dim];
 
-    enzo_float * density         = (enzo_float*) field.values("density");
-    enzo_float * total_energy    = (enzo_float *)field.values("total_energy");
-    enzo_float * internal_energy = (enzo_float *)field.values("internal_energy");
-    enzo_float * velocity_x      = (enzo_float*) field.values("velocity_x");
-    enzo_float * velocity_y      = (enzo_float*) field.values("velocity_y");
-    enzo_float * velocity_z      = (enzo_float*) field.values("velocity_z");
+    size = field.dimensions(field.field_id("density"));
+    enzo_float * density         = field.values("density");
+    enzo_float * total_energy    = field.values("total_energy");
+    enzo_float * internal_energy = field.values("internal_energy");
+    enzo_float * velocity_x      = field.values("velocity_x");
+    enzo_float * velocity_y      = field.values("velocity_y");
+    enzo_float * velocity_z      = field.values("velocity_z");
 
     // Set minimum specific internal energy (aka gas energy)
     //
@@ -73,22 +72,23 @@ int enzo::SetMinimumSupport(EnzoBlock& block,
     // I'm don't totally understand where the extra CosmoFactor comes in...
     // that was here earlier
 
+    enzo_float hx,hy,hz;
+    block.cell_width(&hx,&hy,&hz);
     ASSERT("EnzoBlock::SetMinimumSupport",
            "This function currently requires that cells are perfect cubes. "
            "The cell-widths are NOT all equal",
-           enzo_utils::consistent_cube_cellwidths(block.CellWidth[0],
-                                                  block.CellWidth[1],
-                                                  block.CellWidth[2]));
+           enzo_utils::consistent_cube_cellwidths(hx,hy,hz));
 
-    // TODO: Consider what kind of assumptions are made right here about cell
-    //       shapes (are we assuming that each side is the same length?)
-    // -> If this isn't a problem, add a clarifying comment!
+    // TODO: Consider what kind of assumptions are made right here
+    //       about cell shapes (are we assuming that each side is the
+    //       same length?)  -> If this isn't a problem, add a
+    //       clarifying comment!
 
     const enzo_float gamma = enzo::fluid_props()->gamma();
     MinimumSupportEnergyCoefficient =
       enzo::grav_constant_codeU() / (cello::pi * (gamma*(gamma-1.0))) *
       CosmoFactor * minimum_pressure_support_parameter *
-      block.CellWidth[0] * block.CellWidth[0];
+      hx*hx;
 
     /* PPM: set GE. */
     

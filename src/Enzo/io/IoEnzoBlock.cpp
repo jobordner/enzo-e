@@ -37,12 +37,27 @@ void IoEnzoBlock::set_block (Block * block) throw()
   EnzoBlock * enzo_block = static_cast<EnzoBlock*>(block);
 
   enzo_dt_ = enzo_block->dt();
+
+  Field field = block->data()->field();
+  const int id = field.field_id("density");
+
+  enzo_float lower[3];
+  block->lower(lower,lower+1,lower+2);
+
+  int g3[3],m3[3];
+  enzo_float h3[3];
+  field.dimensions(id,m3,m3+1,m3+2);
+  field.ghost_depth(id,g3,g3+1,g3+2);
+  enzo_block->cell_width(h3,h3+1,h3+2);
+
   for (int i=0; i<3; i++) {
-    enzo_GridLeftEdge_[i] = enzo_block->GridLeftEdge[i];
-    enzo_GridDimension_[i] = enzo_block->GridDimension[i];
-    enzo_GridStartIndex_[i] = enzo_block->GridStartIndex[i];
-    enzo_GridEndIndex_[i] = enzo_block->GridEndIndex[i];
-    enzo_CellWidth_[i] = enzo_block->CellWidth[i];
+    int im = g3[i];
+    int ip = m3[i] - g3[i] - 1;
+    enzo_GridLeftEdge_[i] = lower[i];
+    enzo_GridDimension_[i] = m3[i];
+    enzo_GridStartIndex_[i] = im;
+    enzo_GridEndIndex_[i] = ip;
+    enzo_CellWidth_[i] = h3[i];
   }
   enzo_redshift_ = enzo_block->state()->redshift();
 }
@@ -191,13 +206,6 @@ void IoEnzoBlock::save_to (void * v)
   EnzoBlock * enzo_block = (EnzoBlock *)v;
 
   enzo_block->state()->set_dt(enzo_dt_);
-  for (int i=0; i<3; i++) {
-    enzo_block->GridLeftEdge[i] = enzo_GridLeftEdge_[i];;
-    enzo_block->GridDimension[i] = enzo_GridDimension_[i];;
-    enzo_block->GridStartIndex[i] = enzo_GridStartIndex_[i];;
-    enzo_block->GridEndIndex[i] = enzo_GridEndIndex_[i];;
-    enzo_block->CellWidth[i] = enzo_CellWidth_[i];;
-  }
   enzo_block->state()->set_redshift(enzo_redshift_);
 }
 
