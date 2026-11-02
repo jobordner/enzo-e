@@ -31,7 +31,8 @@ public: // functions
   Output() throw() { }
 
   /// Create an uninitialized Output object
-  Output(int index, const Factory * factory) throw();
+  Output(int index,
+         const std::shared_ptr<Factory> factory) throw();
 
   /// Delete an Output object
   virtual ~Output() throw();

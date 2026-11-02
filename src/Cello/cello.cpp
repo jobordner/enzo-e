@@ -165,7 +165,7 @@ namespace cello {
 
   //---------------------------------------------------------------------- 
 
-  const Factory * factory()
+  const std::shared_ptr<Factory> factory()
   {
     return simulation()->factory();
   }

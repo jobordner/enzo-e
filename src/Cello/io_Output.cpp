@@ -13,7 +13,9 @@
 
 //----------------------------------------------------------------------
 
-Output::Output (int index, const Factory * factory) throw()
+Output::Output
+(int index,
+ const std::shared_ptr<Factory> factory) throw()
   : file_(nullptr),           // Initialization deferred
     schedule_(nullptr),
     sync_write_(1),     // default process-per-stride

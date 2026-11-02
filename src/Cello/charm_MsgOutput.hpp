@@ -68,7 +68,7 @@ public: // interface
   void set_index_send (Index index);
 
   /// Set the Block whose data this message will be holding
-  void set_block (Block * block, const Factory * factory);
+  void set_block (Block * block, const std::shared_ptr<Factory> factory);
 
   /// Clear the Block data in this message
   void del_block();

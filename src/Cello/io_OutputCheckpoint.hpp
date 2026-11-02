@@ -20,10 +20,11 @@ public: // functions
   OutputCheckpoint() throw() { }
 
   /// Create an uninitialized OutputCheckpoint object
-  OutputCheckpoint(int index, 
-		   const Factory * factory, 
-		   Config * config, 
-		   int process_count) throw();
+  OutputCheckpoint
+  (int index, 
+   const std::shared_ptr<Factory> factory, 
+   Config * config, 
+   int process_count) throw();
 
   /// Destructor
   ~OutputCheckpoint() throw()  { }

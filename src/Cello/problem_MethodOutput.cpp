@@ -48,7 +48,8 @@ static std::vector<std::string> read_path_param_(ParameterGroup p,
 
 //----------------------------------------------------------------------
 
-MethodOutput::MethodOutput(const Factory * factory, ParameterGroup p) noexcept
+MethodOutput::MethodOutput(const std::shared_ptr<Factory> factory,
+                           ParameterGroup p) noexcept
   : MethodOutput(factory,
                  read_path_param_(p, "file_name"),
                  read_path_param_(p, "path_name"),
@@ -67,7 +68,7 @@ MethodOutput::MethodOutput(const Factory * factory, ParameterGroup p) noexcept
 //----------------------------------------------------------------------
 
 MethodOutput::MethodOutput
-  (const Factory * factory,
+  (const std::shared_ptr<Factory> factory,
    std::vector< std::string > file_name,
    std::vector< std::string > path_name,
    std::vector< std::string > field_list,
@@ -538,10 +539,6 @@ void MethodOutput::file_write_block_
   std::string block_name = (is_local) ?
     block->name() : msg_output->block_name();
 
-  IoBlock * io_block = (is_local) ?
-    factory_->create_io_block() : msg_output->io_block();
-  if (is_local) io_block->set_block(block);
-
   // Write Block name to block_list file
   ScalarData<void *> * scalar_void = block->data()->scalar_data_void();
   FILE ** fp_block_list = (FILE **)
@@ -568,6 +565,10 @@ void MethodOutput::file_write_block_
   file->group_create();
 
   // Write block meta data
+
+  IoBlock * io_block = (is_local) ?
+    factory_->create_io_block() : msg_output->io_block();
+  if (is_local) io_block->set_block(block);
 
   write_meta_ (file, io_block, "group");
 

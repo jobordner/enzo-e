@@ -33,7 +33,7 @@ public: // functions
 
   /// Create an uninitialized OutputImage object
   OutputImage(int index,
-              const Factory * factory,
+              const std::shared_ptr<Factory> factory,
               int process_count,
               const int root_size[3],
               const int root_blocks[3],

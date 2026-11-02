@@ -350,7 +350,7 @@ void Block::adapt_refine_()
       ParticleData * p_data = new ParticleData(*particle_list[IC3(ic3)]);
       data_msg -> set_particle_data (p_data,true);
 
-      const Factory * factory = cello::simulation()->factory();
+      auto factory = cello::simulation()->factory();
 
       // Create the child object with interpolated data
 

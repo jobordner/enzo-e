@@ -98,18 +98,11 @@ public: // virtual functions
   /// Initialize the Enzo Simulation
   virtual void initialize() throw() override;
 
-  /// Return an EnzoFactory object, creating it if needed
-  virtual const Factory * factory() const throw() override;
-
   virtual void monitor_output() override;
 
 private: // functions
 
   void infer_check_create_();
-
-private: // virtual functions
-
-  virtual void initialize_config_() throw();
 
 private: // attributes
 

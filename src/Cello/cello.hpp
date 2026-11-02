@@ -939,7 +939,7 @@ namespace cello {
   /// Return a proxy for the Simulation chare array
   CProxy_Simulation simulation_array();
   /// Return a pointer to the Factory object on this process
-  const Factory * factory();
+  const std::shared_ptr<Factory> factory();
   /// Return a proxy for the Block chare array of Blocks
   CProxy_Block    block_array();
   /// Return a pointer to the Problem object defining the problem being solved

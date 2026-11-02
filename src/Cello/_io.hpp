@@ -73,8 +73,6 @@ namespace cello {
 #include "io_IoReader.hpp"
 #include "io_IoWriter.hpp"
 
-#include "io_Input.hpp"
-
 #include "io_Output.hpp"
 #include "io_OutputCheckpoint.hpp"
 #include "io_OutputData.hpp"

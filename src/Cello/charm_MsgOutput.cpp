@@ -251,7 +251,7 @@ void MsgOutput::set_index_send(Index index)
 
 //----------------------------------------------------------------------
 
-void MsgOutput::set_block (Block * block, const Factory * factory)
+void MsgOutput::set_block (Block * block, const std::shared_ptr<Factory> factory)
 {
   block_name_ = block->name();
   block->data()->lower(block_lower_,block_lower_+1,block_lower_+2);

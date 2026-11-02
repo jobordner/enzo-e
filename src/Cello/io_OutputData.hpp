@@ -25,7 +25,7 @@ public: // functions
 
   /// Create an uninitialized OutputData object
   OutputData(int index_output,
-	     const Factory * factory,
+	     const std::shared_ptr<Factory> factory,
 	     Config * config) throw();
 
   /// Close the file if it is open

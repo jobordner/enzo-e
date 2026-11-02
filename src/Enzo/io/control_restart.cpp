@@ -366,7 +366,7 @@ void EnzoBlock::p_restart_refine(int ic3[3],int io_reader, int ip)
   data_msg -> add_field_face (field_face,is_new=false);
   data_msg -> set_field_data (field_data,is_new=false);
 
-  const Factory * factory = cello::simulation()->factory();
+  const auto factory = cello::simulation()->factory();
 
   // Create the child object with interpolated data
 

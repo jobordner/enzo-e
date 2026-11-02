@@ -14,11 +14,6 @@ namespace enzo {
     return (CProxy_EnzoSimulation) proxy_enzo_simulation;
   }
 
-  const EnzoFactory * factory()
-  {
-    return (const EnzoFactory *) simulation()->factory();
-  }
-
   EnzoProblem * problem()
   {
     return (EnzoProblem *) simulation()->problem();

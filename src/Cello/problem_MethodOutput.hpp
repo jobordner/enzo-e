@@ -26,11 +26,12 @@ class MethodOutput : public Method
 public: // interface
 
   /// Create a new MethodOutput
-  MethodOutput(const Factory * factory, ParameterGroup p) noexcept;
+  MethodOutput(const std::shared_ptr<Factory> factory,
+               ParameterGroup p) noexcept;
 
   /// Create a new MethodOutput
   MethodOutput
-  (const Factory * factory,
+  (const std::shared_ptr<Factory> factory,
    std::vector< std::string > file_name,
    std::vector< std::string > path_name,
    std::vector< std::string > field_list,
@@ -66,7 +67,7 @@ public: // interface
   /// Write the block's data
   void write (Block * block, MsgOutput *);
 
-  const Factory * factory () const
+  const std::shared_ptr<Factory> factory () const
   { return factory_; }
 
   public: // virtual functions
@@ -129,9 +130,9 @@ protected: // attributes
 
   /// Factory for creating Io objects
   union {
-    const Factory * factory_;
+    const std::shared_ptr<Factory> factory_;
     // non-const USED IN pup() ONLY
-    Factory * factory_nonconst_;
+    std::shared_ptr<Factory> factory_nonconst_;
   };
 
   /// Whether to output all blocks or just leaf-blocks

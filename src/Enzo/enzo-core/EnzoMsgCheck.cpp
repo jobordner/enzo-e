@@ -260,7 +260,7 @@ void EnzoMsgCheck::set_block (Block * block)
   block->data()->upper(block_upper_,block_upper_+1,block_upper_+2);
   block->data()->field().size(block_size_,block_size_+1,block_size_+2);
 
-  io_block_ = (IoEnzoBlock *)enzo::factory()->create_io_block();
+  io_block_ = (IoEnzoBlock *)cello::factory()->create_io_block();
   io_block_->set_block(block);
   Scalar<long long> scalar(cello::scalar_descr_long_long(),
                            block->data()->scalar_data_long_long());

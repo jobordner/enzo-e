@@ -19,8 +19,6 @@ void Simulation::initialize() throw()
 {
   set_phase(phase_initial);
 
-  initialize_config_();
-
   initialize_monitor_();
   initialize_memory_();
   initialize_simulation_();
@@ -29,7 +27,7 @@ void Simulation::initialize() throw()
 
   initialize_data_();
 
-  problem_->initialize(config_,parameters_,factory());
+  problem_->initialize(config_,parameters_,factory_);
 
   cello::finalize_fields();
 

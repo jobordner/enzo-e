@@ -185,7 +185,8 @@ public: // virtual functions
   { ERROR ("Simulation::run","Implictly abstract function called"); }
 
   /// Return a Hierarchy factory object
-  virtual const Factory * factory () const throw();
+  const auto & factory () const throw()
+  { return factory_; }
   
   // Performance
 
@@ -407,9 +408,6 @@ protected: // functions
   /// Initialize global refresh operations
   void initialize_refresh_() throw();
 
-  /// Initialize the Config object
-  void initialize_config_ () throw();
-
   /// Initialize the Problem object
   void initialize_problem_ () throw();
 
@@ -474,7 +472,7 @@ protected: // attributes
   //----------------------------------------------------------------------
 
   /// Factory, created on first call to factory()
-  mutable Factory * factory_;
+  std::shared_ptr<Factory> factory_;
 
   /// Parameters associated with this simulation
   Parameters * parameters_;

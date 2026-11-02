@@ -43,7 +43,8 @@ EnzoSimulation::EnzoSimulation
     restart_level_(0)
 {
   // replace Simulation's State with EnzoState
-  state_ = std::make_unique<EnzoState> (0, 0.0, 0.0, false);
+  state_ = std::make_shared<EnzoState> (0, 0.0, 0.0, false);
+  factory_ = std::make_shared<EnzoFactory>();
 
 #ifdef CHECK_MEMORY
   mtrace();
@@ -70,13 +71,13 @@ EnzoSimulation::EnzoSimulation
 EnzoSimulation::EnzoSimulation() : CBase_EnzoSimulation()
 {
   // replace Simulation's State with EnzoState
-  state_ = std::make_unique<EnzoState> (0, 0.0, 0.0, false);
+  state_ = std::make_shared<EnzoState> (0, 0.0, 0.0, false);
 }
 
 EnzoSimulation::EnzoSimulation(CkMigrateMessage * m) : CBase_EnzoSimulation(m)
 {
   // replace Simulation's State with EnzoState
-  state_ = std::make_unique<EnzoState> (0, 0.0, 0.0, false);
+  state_ = std::make_shared<EnzoState> (0, 0.0, 0.0, false);
 }
 
 //----------------------------------------------------------------------
@@ -236,10 +237,6 @@ void EnzoSimulation::r_startup_begun (CkReductionMsg *msg)
   fflush(stdout);
 #endif  
 
-  problem_ = new EnzoProblem;
-
-  initialize_config_();
-
   initialize();
   
 #ifdef TRACE_PARAMETERS
@@ -250,45 +247,17 @@ void EnzoSimulation::r_startup_begun (CkReductionMsg *msg)
 
 //----------------------------------------------------------------------
 
-void EnzoSimulation::initialize_config_() throw()
-{
-#ifdef DEBUG_ENZO_SIMULATION
-  CkPrintf ("%d DEBUG_ENZO_SIMULATION begin initialize_config()\n",CkMyPe());
-  fflush(stdout);
-#endif  
-
-  config_ = static_cast<EnzoConfig*>(&g_enzo_config);
-
-#ifdef DEBUG_ENZO_SIMULATION
-  CkPrintf ("%d DEBUG_ENZO_SIMULATION end initialize_config()\n",CkMyPe());
-  fflush(stdout);
-#endif  
-
-}
-
-//----------------------------------------------------------------------
-
 void EnzoSimulation::initialize() throw()
 {
 #ifdef DEBUG_ENZO_SIMULATION
   CkPrintf ("%d DEBUG_ENZO_SIMULATION initialize()\n",CkMyPe());
   fflush(stdout);
 #endif  
+  problem_ = new EnzoProblem;
+  config_ = static_cast<EnzoConfig*>(&g_enzo_config);
   // Call initialize() on base Simulation class
   Simulation::initialize();
 
-}
-
-//----------------------------------------------------------------------
-
-const Factory * EnzoSimulation::factory() const throw()
-{ 
-#ifdef DEBUG_ENZO_SIMULATION
-  CkPrintf ("%d DEBUG_ENZO_SIMULATION factory()\n",CkMyPe());
-  fflush(stdout);
-#endif  
-  if (! factory_) factory_ = new EnzoFactory;
-  return factory_;
 }
 
 //----------------------------------------------------------------------

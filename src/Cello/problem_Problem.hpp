@@ -198,7 +198,7 @@ public: // interface
 
   void initialize(Config * config,
                   Parameters * parameters,
-                  const Factory * factory) throw();
+                  const std::shared_ptr<Factory> factory) throw();
 
   int new_prolong (std::string type) throw();
   int new_restrict (std::string type) throw();
@@ -234,11 +234,11 @@ protected: // functions
 
   /// Initialize the output objects
   void initialize_output_(Config * config,
-                         const Factory * factory) throw();
+                          const std::shared_ptr<Factory> factory) throw();
 
   /// Initialize the method objects
   void initialize_method_(Config * config,
-                         const Factory * factory) throw();
+                          const std::shared_ptr<Factory> factory) throw();
 
   /// Initialize Solver objects
   void initialize_solver_(Config * config) throw();
@@ -299,14 +299,14 @@ protected: // functions
   (std::string_view type,
    int index_method,
    Config * config,
-   const Factory * factory) throw ();
+   const std::shared_ptr<Factory> factory) throw ();
 
   /// Create named output object
   virtual Output *   create_output_
   (std::string_view type,
    int index,
    Config * config,
-   const Factory * ) throw ();
+   const std::shared_ptr<Factory> factory ) throw ();
 
   /// Create named prolongation object
   virtual Prolong * create_prolong_ (std::string_view type) throw ();

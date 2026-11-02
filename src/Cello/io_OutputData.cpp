@@ -17,7 +17,7 @@
 OutputData::OutputData
 (
  int index,
- const Factory * factory,
+ const std::shared_ptr<Factory> factory,
  Config * config
 ) throw ()
   : Output(index,factory),

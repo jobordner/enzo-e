@@ -134,7 +134,7 @@ void Problem::pup (PUP::er &p)
 //----------------------------------------------------------------------
 void Problem::initialize(Config * config,
                          Parameters * parameters,
-                         const Factory * factory) throw()
+                         const std::shared_ptr<Factory> factory) throw()
 {
   initialize_units_   (config);
   initialize_physics_ (config,parameters);
@@ -318,7 +318,8 @@ void Problem::initialize_restrict_(Config * config) throw()
 //----------------------------------------------------------------------
 
 void Problem::initialize_output_
-(Config * config, const Factory * factory) throw()
+(Config * config,
+ const std::shared_ptr<Factory> factory) throw()
 {
   FieldDescr * field_descr = cello::field_descr();
 
@@ -497,7 +498,8 @@ void Problem::initialize_output_
 //----------------------------------------------------------------------
 
 void Problem::initialize_method_
-( Config * config, const Factory * factory ) throw()
+( Config * config,
+  const std::shared_ptr<Factory> factory ) throw()
 {
   const size_t num_method = config->method_list.size();
 
@@ -903,7 +905,7 @@ Method * Problem::create_method_
 ( std::string_view name,
   int index_method,
   Config * config,
-  const Factory * factory
+  const std::shared_ptr<Factory> factory
   ) throw ()
 {
   TRACE1("Problem::create_method %s",name.c_str());
@@ -967,7 +969,7 @@ Output * Problem::create_output_
  std::string_view name,
  int index,
  Config *  config,
- const Factory * factory
+ const std::shared_ptr<Factory> factory
  ) throw ()
 /// @param name           Name of Output object to create
 /// @param index          Index of output object in Object list

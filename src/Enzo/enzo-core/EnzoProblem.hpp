@@ -83,7 +83,7 @@ private: // functions
   (std::string_view type,
    int index_method, 
    Config * config,
-   const Factory * factory) throw() override;
+   const std::shared_ptr<Factory> factory) throw() override;
 
   /// Create named interpolation object
   virtual Prolong * create_prolong_ (std::string_view type) throw() override;

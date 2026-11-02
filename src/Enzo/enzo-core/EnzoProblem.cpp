@@ -569,7 +569,7 @@ Method * EnzoProblem::create_method_
 ( std::string_view  name,
   int index_method,
   Config * config,
-  const Factory * factory) throw ()
+  const std::shared_ptr<Factory> factory) throw ()
 /// @param name   Name of the method to create
 /// @param config Configuration parameters class
 {

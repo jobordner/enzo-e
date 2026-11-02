@@ -13,7 +13,7 @@
 OutputCheckpoint::OutputCheckpoint
 (
  int index,
- const Factory * factory,
+ const std::shared_ptr<Factory> factory,
  Config * config,
  int process_count
 ) throw ()

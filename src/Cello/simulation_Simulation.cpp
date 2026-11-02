@@ -30,14 +30,14 @@ Simulation::Simulation
 #if defined(CELLO_DEBUG) || defined(CELLO_VERBOSE)
   fp_debug_(NULL),
 #endif
-  factory_(NULL),
+  factory_(std::make_shared<Factory>()),
   parameters_(&g_parameters),
   parameter_file_(parameter_file),
   rank_(0),
   cycle_watch_(-1),
   cycle_initial_(-1),
   is_first_cycle_(true),
-  state_(new State (0, 0.0, 0.0, false)),
+  state_(std::make_shared<State> (0, 0.0, 0.0, false)),
   phase_(phase_unknown),
   config_(&g_config),
   problem_(NULL),
@@ -106,14 +106,14 @@ Simulation::Simulation()
 #if defined(CELLO_DEBUG) || defined(CELLO_VERBOSE)
   fp_debug_(NULL),
 #endif
-  factory_(NULL),
+  factory_(std::make_shared<Factory>()),
   parameters_(&g_parameters),
   parameter_file_(""),
   rank_(0),
   cycle_watch_(-1),
   cycle_initial_(-1),
   is_first_cycle_(true),
-  state_(new State (0, 0.0, 0.0, false)),
+  state_(std::make_shared<State> (0, 0.0, 0.0, false)),
   phase_(phase_unknown),
   config_(&g_config),
   problem_(NULL),
@@ -169,7 +169,7 @@ Simulation::Simulation (CkMigrateMessage *m)
 #if defined(CELLO_DEBUG) || defined(CELLO_VERBOSE)
     fp_debug_(NULL),
 #endif
-    factory_(NULL),
+    factory_(std::make_shared<Factory>()),
     parameters_(&g_parameters),
     parameter_file_(""),
     rank_(0),
@@ -249,7 +249,7 @@ void Simulation::pup (PUP::er &p)
 
   if (up) debug_open();
 
-  p | factory_; // PUP::able
+  p | *factory_;
 
   p | config_;
 
@@ -574,14 +574,6 @@ void Simulation::initialize_performance_() throw()
 
   PERF_START(iperf_simulation);
 
-}
-
-//----------------------------------------------------------------------
-
-void Simulation::initialize_config_() throw()
-{
-  TRACE("BEGIN Simulation::initialize_config_");
-  TRACE("END   Simulation::initialize_config_");
 }
 
 //----------------------------------------------------------------------
@@ -963,20 +955,10 @@ void Simulation::p_set_block_array(CProxy_Block block_array)
 
 void Simulation::deallocate_() throw()
 {
-  delete factory_;       factory_     = 0;
   delete parameters_;    parameters_  = 0;
   delete hierarchy_;     hierarchy_ = 0;
   delete field_descr_;   field_descr_ = 0;
   delete performance_;   performance_ = 0;
-}
-
-//----------------------------------------------------------------------
-
-const Factory * Simulation::factory() const throw()
-{
-  TRACE("Simulation::factory()");
-  if (factory_ == NULL) factory_ = new Factory;
-  return factory_;
 }
 
 //======================================================================

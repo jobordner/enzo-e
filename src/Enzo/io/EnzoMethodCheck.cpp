@@ -483,8 +483,8 @@ void IoEnzoWriter::file_write_block_ (EnzoMsgCheck * msg_check)
       FieldData * field_data = data->field_data(i_h);
       for (int i_f=0; i_f<nf; i_f++) {
         const int index_field = i_f;
-;
-        IoFieldData * io_field_data = enzo::factory()->create_io_field_data();
+
+        IoFieldData * io_field_data = cello::factory()->create_io_field_data();
         io_field_data -> set_include_ghosts (include_ghosts_);
 
         void * buffer;
@@ -527,7 +527,7 @@ void IoEnzoWriter::file_write_block_ (EnzoMsgCheck * msg_check)
     for (int ia=0; ia<na; ia++) {
 
       IoParticleData * io_particle_data =
-        enzo::factory()->create_io_particle_data();
+        cello::factory()->create_io_particle_data();
 
       // For each particle attribute
       int np = particle.num_particles (it);
