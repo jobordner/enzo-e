@@ -24,16 +24,25 @@ EnzoBlock::EnzoBlock( CkMigrateMessage *m)
 EnzoBlock::EnzoBlock( MsgType msg_type)
   : CBase_EnzoBlock (msg_type)
 {
+  PERF_START(iperf_block);
+
   // replace Block's State with EnzoState
   state_ = std::make_shared<EnzoState>(0, 0.0, 0.0, false);
 
+  // Initialize Block depending on message type
+
   if (msg_type == MsgType::msg_check) {
     auto * msg_check = enzo::simulation()->get_msg_check(thisIndex);
+
     initialize_from_checkpoint(msg_check);
+
   } else if (msg_type == MsgType::msg_refine) {
     auto * msg_refine = enzo::simulation()->get_msg_refine(thisIndex);
+
     initialize_after_refinement(msg_refine);
+
   }
+  PERF_STOP(iperf_block);
 }
 
 //----------------------------------------------------------------------
@@ -41,8 +50,11 @@ EnzoBlock::EnzoBlock( MsgType msg_type)
 void EnzoBlock::initialize_from_checkpoint(EnzoMsgCheck * msg)
 {
   PERF_START(iperf_block);
+
   restart_set_data_(msg);
+
   initialize();
+
   PERF_STOP(iperf_block);
 }
 
@@ -50,6 +62,7 @@ void EnzoBlock::initialize_from_checkpoint(EnzoMsgCheck * msg)
 
 void EnzoBlock::initialize_after_refinement(MsgRefine * msg)
 {
+  PERF_START(iperf_block);
   int io_reader = msg->restart_io_reader_;
 
   Block::initialize_after_refinement(msg);
@@ -61,6 +74,7 @@ void EnzoBlock::initialize_after_refinement(MsgRefine * msg)
   if (io_reader >= 0) {
     proxy_io_enzo_reader[io_reader].p_block_created();
   }
+  PERF_STOP(iperf_block);
 }
 
 //======================================================================

@@ -74,11 +74,11 @@
 
      list = [ "hdf5", "cosmology" ];
 
-     new = true; # required to use Initial:hdf5 
+     nested_ics = true;
 
      hdf5 {
-         blocking = [ 2, 2, 2 ]; 
-                                 
+         blocking = [ 2, 2, 2 ];
+
          max_level = 2;
 
          format = "music";

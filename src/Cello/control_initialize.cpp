@@ -73,19 +73,19 @@ void Simulation::r_initialize_block_array(CkReductionMsg * msg)
 // NEW INITIAL
 //======================================================================
 
-void  Block::initial_new_begin_()
+void  Block::initial_nested_begin_()
 {
   index_initial_ = 0;
 
   CkCallback callback 
-    (CkIndex_Block::r_initial_new_next(nullptr), thisProxy);
+    (CkIndex_Block::r_initial_nested_next(nullptr), thisProxy);
 
   contribute(0,0,CkReduction::concat,callback);
 }
 
 //----------------------------------------------------------------------
 
-void  Block::initial_new_next_()
+void  Block::initial_nested_next_()
 {
   const bool initial_restart = cello::config()->initial_restart;
 
@@ -107,12 +107,12 @@ void  Block::initial_new_next_()
 
 void  Block::initial_done()
 {
-  if (cello::config()->initial_new) {
+  if (cello::config()->initial_nested_ics) {
 
     // barrier before continuing
 
     CkCallback callback
-      (CkIndex_Block::r_initial_new_continue(nullptr), thisProxy);
+      (CkIndex_Block::r_initial_nested_continue(nullptr), thisProxy);
 
     contribute(0,0,CkReduction::concat,callback);
   }
@@ -120,10 +120,10 @@ void  Block::initial_done()
 
 //----------------------------------------------------------------------
 
-void  Block::initial_new_continue_()
+void  Block::initial_nested_continue_()
 {
   index_initial_++;
-  initial_new_next_();
+  initial_nested_next_();
 }
 
 //----------------------------------------------------------------------

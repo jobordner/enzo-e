@@ -48,7 +48,6 @@ public: // functions
   void initialize_from_checkpoint (Index index, EnzoMsgCheck *);
 
   /// Request by newly created EnzoBlock to get its MsgRefine object
-  MsgRefine * get_msg_refine(Index index);
   EnzoMsgCheck * get_msg_check(Index index);
 
   /// Barrier after constructor to ensure all EnzoSimulation objects created

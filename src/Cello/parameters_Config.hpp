@@ -56,7 +56,7 @@ public: // interface
     field_restrict(""),
     field_group_list(),
     num_initial(0),
-    initial_new(false),
+    initial_nested_ics(false),
     initial_list(),
     initial_cycle(0),
     initial_time(0.0),
@@ -225,7 +225,7 @@ public: // interface
       field_restrict(""),
       field_group_list(),
       num_initial(0),
-      initial_new(false),
+      initial_nested_ics(false),
       initial_list(),
       initial_cycle(0),
       initial_time(0.0),
@@ -430,7 +430,7 @@ public: // attributes
   // Initial
 
   int                        num_initial;
-  bool                       initial_new;
+  bool                       initial_nested_ics;
   std::vector<std::string>   initial_list;
   int                        initial_cycle;
   double                     initial_time;

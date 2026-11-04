@@ -278,12 +278,12 @@ public:
   /// Initiate applying all Initial conditions.
   void p_initial_begin() { initial_begin(); }
   void initial_begin();
-  void initial_new_begin_();
+  void initial_nested_begin_();
 
   /// Continue to the next Initial conditions object
-  void r_initial_new_next(CkReductionMsg * msg)
-  { delete msg; initial_new_next_(); }
-  void initial_new_next_();
+  void r_initial_nested_next(CkReductionMsg * msg)
+  { delete msg; initial_nested_next_(); }
+  void initial_nested_next_();
 
   void r_end_initialize(CkReductionMsg * msg)
   {
@@ -295,11 +295,11 @@ public:
   { initial_exit_(); }
   void initial_exit_();
 
-  void r_initial_new_continue(CkReductionMsg * msg)
-  { delete msg; initial_new_continue_(); }
+  void r_initial_nested_continue(CkReductionMsg * msg)
+  { delete msg; initial_nested_continue_(); }
 
   /// Return after performing any Refresh operations
-  void initial_new_continue_();
+  void initial_nested_continue_();
 
   /// Return the currently active Initial index
   int index_initial() const throw()

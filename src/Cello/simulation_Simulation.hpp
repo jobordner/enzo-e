@@ -403,6 +403,8 @@ public: // virtual functions
   /// during the initialization phase.
   void p_initial_block_created() throw();
 
+  MsgRefine * get_msg_refine(Index index);
+
 protected: // functions
 
   /// Initialize global refresh operations
@@ -454,6 +456,11 @@ protected: // functions
   std::string file_create_dir_(std::vector<std::string> directory_format,
                                bool & already_exists);
   std::ifstream file_open_file_list_(std::string name_dir);
+
+  /// Ensure message mapping state is correct, such as exists in
+  /// buffer when retrieving or doesn't exist when setting
+  void check_msg_state_
+  (Index index, const char * method_name, bool assertion);
 
 public:
 

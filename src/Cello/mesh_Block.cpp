@@ -292,9 +292,9 @@ void Block::init_refine_
 
 void Block::initialize()
 {
-  const bool initial_new = cello::config()->initial_new;
+  const bool initial_nested_ics = cello::config()->initial_nested_ics;
 
-  if (! initial_new) {
+  if (! initial_nested_ics) {
     if (cello::is_initial_cycle() && level() <= 0) {
       CkCallback callback (CkIndex_Block::r_end_initialize(nullptr), thisProxy);
       contribute(0,0,CkReduction::concat,callback);
@@ -647,10 +647,11 @@ void Block::apply_initial_(MsgRefine * msg) throw ()
 
 void Block::initial_begin()
 {
-  const bool initial_new = cello::config()->initial_new;
+  const bool initial_nested_ics = cello::config()->initial_nested_ics;
 
-  if (initial_new) {
-    initial_new_begin_();
+  if (initial_nested_ics) {
+
+    initial_nested_begin_();
 
   } else {
 

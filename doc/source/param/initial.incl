@@ -77,6 +77,17 @@ Parameters specific to individual initializers are specified in subgroups.
 
 ----
 
+.. par:parameter:: Initial:nested_ics
+
+   :Summary: :s:`Set to true if nested initial conditions are expected. Supported in "hdf5" initial conditions only.`
+   :Type:    :par:typefmt:`bool`
+   :Default: :d:`false`
+   :Scope:     :c:`Cello`
+
+   :e:`This parameter is required for "hdf5" initial conditions when nested IC's are used.`
+
+----
+
 .. _value-initializer-param-ref:
 
 value

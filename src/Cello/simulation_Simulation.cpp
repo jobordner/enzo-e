@@ -983,7 +983,33 @@ float Simulation::timer() const
 {
   return performance_->timer();
 }
+
 //======================================================================
+
+MsgRefine * Simulation::get_msg_refine(Index index)
+{
+  MsgRefine * msg = msg_refine_map_[index];
+  check_msg_state_(index,"get_msg_refine()",(msg != nullptr));
+  msg_refine_map_.erase(index);
+  return msg;
+}
+
+//----------------------------------------------------------------------
+
+void Simulation::check_msg_state_
+(Index index, const char * method_name, bool assertion)
+{
+  int v3[3];
+  index.values(v3);
+  char buffer[80];
+  sprintf (buffer,"Simulation::%s",method_name);
+  ASSERT3 (buffer,
+           "Message buffering error for index %08x %08x %08x",
+           v3[0],v3[1],v3[2],
+           assertion);
+}
+
+//----------------------------------------------------------------------
 
 void Simulation::data_insert_block(Block * block)
 {

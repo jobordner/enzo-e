@@ -85,7 +85,7 @@ void Config::pup (PUP::er &p)
   // Initial
 
   p | num_initial;
-  p | initial_new;
+  p | initial_nested_ics;
   p | initial_list;
   p | initial_cycle;
   p | initial_time;
@@ -611,7 +611,7 @@ void Config::read_initial_ (Parameters * p) throw()
   TRACE("Parameters: Initial");
   initial_cycle = p->value_integer("Initial:cycle",0);
   initial_time  = p->value_float  ("Initial:time",0.0);
-  initial_new = p->value_logical ("Initial:new",false);
+  initial_nested_ics = p->value_logical ("Initial:nested_ics",false);
 
   num_initial = p->list_length("Initial:list");
 

@@ -36,7 +36,6 @@ Boundary {
          from_file = true; 
      };
 
-     new = true;
      hdf5 {
          blocking = [2,2,2];
          format = "music";
