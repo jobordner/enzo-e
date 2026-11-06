@@ -251,15 +251,6 @@ void Main::p_adapt_enter()
 
 //----------------------------------------------------------------------
 
-void Main::p_initial_exit()
-{
-#ifdef CHARM_ENZO
-  cello::block_array().p_initial_exit();
-#endif
-}
-
-//----------------------------------------------------------------------
-
 void Main::p_adapt_end()
 {
   TRACE_MAIN("p_adapt_end");

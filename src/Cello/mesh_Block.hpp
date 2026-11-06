@@ -41,7 +41,7 @@ class Block : public CBase_Block
 public: // interface
 
   /// Initialize an empty Block
-  Block();
+  Block() = delete;
   /// Initialize a migrated Block
   Block (CkMigrateMessage *m);
   /// create a Block whose MsgRefine is on the creating process
@@ -241,8 +241,11 @@ public:
   /// Initialize Adapt class for neighbor connectivity
   void init_adapt_(Adapt * adapt_parent);
 
-  /// Initialize arrays for refresh
-  void init_refresh_();
+  /// Allocate buffers for Refresh operations
+  void allocate_refresh_buffers_();
+
+  /// End the block initialization phase
+  void end_initialize_ ();
 
   /// Return an iterator over faces
 
@@ -285,14 +288,9 @@ public:
   { delete msg; initial_nested_next_(); }
   void initial_nested_next_();
 
-  void r_end_initialize(CkReductionMsg * msg)
-  {
-    initial_exit_();  delete msg;
-  }
-
   /// Exiting initialization
-  void p_initial_exit()
-  { initial_exit_(); }
+  void r_initial_exit(CkReductionMsg * msg)
+  { initial_exit_();  delete msg; }
   void initial_exit_();
 
   void r_initial_nested_continue(CkReductionMsg * msg)
@@ -805,21 +803,11 @@ protected:
   void performance_projections_update_logging_();
   void perf_trace_flush();
 
-//--------------------------------------------------
-  // TESTING
-  //--------------------------------------------------
-
-  /// Check consistency between is_leaf_ and size of children_()
-  void check_leaf_();
-
 public: // virtual functions
 
   /// Check if given 3D coordinates are within the block domain
   bool check_position_in_block(const double& x, const double &y,
                                const double& z, bool include_ghost = false);
-
-  /// Initialize Block
-  void initialize ();
 
   //  int count_neighbors() const;
 

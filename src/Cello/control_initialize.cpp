@@ -70,7 +70,7 @@ void Simulation::r_initialize_block_array(CkReductionMsg * msg)
 }
 
 //======================================================================
-// NEW INITIAL
+// NESTED INITIAL CONDITIONS
 //======================================================================
 
 void  Block::initial_nested_begin_()
@@ -95,26 +95,10 @@ void  Block::initial_nested_next_()
 
   } else {
     // Bypass initialization on restart (may want exceptions)
-    bool is_first_cycle = (state_->cycle() == cello::config()->initial_cycle);
     bool level_is_valid = level() <= cello::config()->mesh_max_initial_level;
-    if (is_first_cycle && level_is_valid) {
+    if (cello::is_first_cycle() && level_is_valid) {
       initial_exit_();
     }
-  }
-}
-
-//----------------------------------------------------------------------
-
-void  Block::initial_done()
-{
-  if (cello::config()->initial_nested_ics) {
-
-    // barrier before continuing
-
-    CkCallback callback
-      (CkIndex_Block::r_initial_nested_continue(nullptr), thisProxy);
-
-    contribute(0,0,CkReduction::concat,callback);
   }
 }
 
@@ -127,5 +111,22 @@ void  Block::initial_nested_continue_()
 }
 
 //----------------------------------------------------------------------
+
+void  Block::initial_done()
+{
+  // Called after each initial condition is applied. Used for
+  // synchronization with nested initial conditions
+  if (cello::config()->initial_nested_ics) {
+
+    // barrier before continuing
+
+    CkCallback callback
+      (CkIndex_Block::r_initial_nested_continue(nullptr), thisProxy);
+
+    contribute(0,0,CkReduction::concat,callback);
+  }
+}
+
+
 
 

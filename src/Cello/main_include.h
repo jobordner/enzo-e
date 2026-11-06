@@ -14,7 +14,6 @@
 
      entry void p_checkpoint_output(int count, std::string dir);
 
-     entry void p_initial_exit();
      entry void p_adapt_enter();
      entry void p_adapt_called();
      entry void p_adapt_end();

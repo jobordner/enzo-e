@@ -38,12 +38,7 @@ public: // interface
   void initialize_from_checkpoint(EnzoMsgCheck * msg);
 
   /// Initialize an empty EnzoBlock
-  EnzoBlock()
-    :  CBase_EnzoBlock()
-  {
-    // replace Block's State with EnzoState
-    state_ = std::make_shared<EnzoState> (0, 0.0, 0.0, false );
-  }
+  EnzoBlock() = delete; 
 
   /// Charm++ Migration constructor
   EnzoBlock (CkMigrateMessage *m);
@@ -52,7 +47,7 @@ public: // interface
   void pup(PUP::er &p);
 
   /// Destructor
-  virtual ~EnzoBlock();
+  virtual ~EnzoBlock() { };
 
   /// Pre- and post-migration functions called by Charm++
   void ckAboutToMigrate(void);

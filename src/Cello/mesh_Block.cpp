@@ -12,57 +12,6 @@
 
 //----------------------------------------------------------------------
 
-Block::Block ()
-  : CBase_Block(),
-    data_(nullptr),
-    child_data_(nullptr),
-    index_(thisIndex),
-    level_next_(0),
-    state_(std::make_shared<State> (0, 0.0, 0.0, false)),
-    index_initial_(0),
-    children_(),
-    sync_coarsen_(),
-    sync_count_(),
-    sync_max_(),
-    adapt_(),
-    child_face_level_curr_(),
-    child_face_level_curr_count_(),
-    child_face_level_next_(),
-    child_face_level_next_count_(),
-    count_coarsen_(0),
-    adapt_step_(0),
-    adapt_ready_(false),
-    adapt_balanced_(false),
-    adapt_changed_(0),
-    adapt_msg_list_(),
-    coarsened_(false),
-    is_leaf_((thisIndex.level() >= 0)),
-    age_(0),
-    ip_next_(-1),
-    name_(""),
-    name8_(""),
-    index_method_(0),
-    index_solver_(),
-    refresh_(),
-    refresh_sync_list_(),
-    refresh_recv_buffer_(),
-    refresh_recv_index_(),
-    refresh_send_buffer_(),
-    refresh_send_index_(),
-    order_index_(0),
-    order_count_(1),
-    order_next_(),
-    level_lower_(-1),
-    level_upper_(-1)
-{
-  PERF_START(iperf_block);
-  init_refresh_();
-  init_adapt_(nullptr);
-}
-
-
-//----------------------------------------------------------------------
-
 Block::Block (CkMigrateMessage *m)
   : CBase_Block(m)
 {
@@ -115,7 +64,7 @@ Block::Block ( MsgType msg_type )
 {
   PERF_START(iperf_block);
 
-  init_refresh_();
+  allocate_refresh_buffers_();
   usesAtSync = true;
 
   thisIndex.array(array_,array_+1,array_+2);
@@ -145,6 +94,8 @@ void Block::initialize_after_refinement(MsgRefine * msg)
 
   delete msg;
 
+  end_initialize_();
+
   PERF_STOP(iperf_block);
 }
 
@@ -162,8 +113,6 @@ void Block::init_refine_
  State * state)
 {
   *state_ = *state;
-
-  // Initialize method state
   state_->alloc_method (cello::problem()->num_methods());
 
   adapt_step_ = num_adapt_steps;
@@ -290,13 +239,13 @@ void Block::init_refine_
 
 //----------------------------------------------------------------------
 
-void Block::initialize()
+void Block::end_initialize_()
 {
   const bool initial_nested_ics = cello::config()->initial_nested_ics;
 
   if (! initial_nested_ics) {
     if (cello::is_initial_cycle() && level() <= 0) {
-      CkCallback callback (CkIndex_Block::r_end_initialize(nullptr), thisProxy);
+      CkCallback callback (CkIndex_Block::r_initial_exit(nullptr), thisProxy);
       contribute(0,0,CkReduction::concat,callback);
     }
   }
@@ -649,16 +598,16 @@ void Block::initial_begin()
 {
   const bool initial_nested_ics = cello::config()->initial_nested_ics;
 
-  if (initial_nested_ics) {
+  if (! initial_nested_ics) {
 
-    initial_nested_begin_();
-
-  } else {
-
-    // Apply initial conditions
+    // Default: apply initial conditions directly
     for (Initial * initial : cello::problem()->initial_list() ) {
       initial->enforce_block(this,cello::hierarchy());
     }
+
+  } else {
+    // If nested initial conditions, apply level-by-level
+    initial_nested_begin_();
   }
 }
 
@@ -819,7 +768,7 @@ void Block::init_adapt_(Adapt * adapt_parent)
 
 //----------------------------------------------------------------------
 
-void Block::init_refresh_()
+void Block::allocate_refresh_buffers_()
 {
   const int count = cello::simulation()->refresh_count();
   refresh_sync_list_.resize(count);
@@ -1245,21 +1194,6 @@ Index Block::neighbor_
 
 //----------------------------------------------------------------------
 
-void Block::check_leaf_()
-{
-  if (level() >= 0 &&
-      ((  is_leaf() && children_.size() != 0) ||
-       (! is_leaf() && children_.size() == 0))) {
-
-    WARNING3("Block::check_leaf_()",
-	     "%s: is_leaf() == %s && children_.size() == %lu",
-	     name_.c_str(), is_leaf()?"true":"false",
-	     children_.size());
-  }
-}
-
-//----------------------------------------------------------------------
-
 bool Block::check_position_in_block
 (const double &x, const double &y, const double &z,
  bool include_ghost // default - false
@@ -1300,7 +1234,7 @@ bool Block::refine_during_initialization(Index index) const throw()
 {
   int level = index.level();
   if (level >= 0) {
-    
+
     if (level + 1 <= (int) cello::config()->refined_regions_lower.size()) {
 
       std::vector<int> lower = cello::config()->refined_regions_lower.at(level);

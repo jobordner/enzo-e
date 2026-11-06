@@ -107,7 +107,6 @@ module mesh {
   array[Index] Block {
 
     entry Block (MsgType msg_type);
-    entry Block();
 
     //--------------------------------------------------
     // *** INITIAL ***
@@ -116,8 +115,7 @@ module mesh {
     entry void p_initial_begin();
     entry void r_initial_nested_next(CkReductionMsg *);
     entry void r_initial_nested_continue(CkReductionMsg *);
-    entry void p_initial_exit();
-    entry void r_end_initialize(CkReductionMsg *);
+    entry void r_initial_exit(CkReductionMsg *);
 
     //--------------------------------------------------
     // *** OUTPUT ***

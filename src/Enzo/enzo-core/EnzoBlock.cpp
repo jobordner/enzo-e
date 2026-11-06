@@ -16,7 +16,7 @@ EnzoBlock::EnzoBlock( CkMigrateMessage *m)
   : CBase_EnzoBlock (m)
 {
   // replace Block's State with EnzoState
-  state_ = std::make_shared<EnzoState>(0, 0.0, 0.0, false);
+  state_ = std::make_shared<EnzoState> (0, 0.0, 0.0, false);
 }
 
 //----------------------------------------------------------------------
@@ -27,7 +27,7 @@ EnzoBlock::EnzoBlock( MsgType msg_type)
   PERF_START(iperf_block);
 
   // replace Block's State with EnzoState
-  state_ = std::make_shared<EnzoState>(0, 0.0, 0.0, false);
+  state_ = std::make_shared<EnzoState> (0, 0.0, 0.0, false);
 
   // Initialize Block depending on message type
 
@@ -53,7 +53,7 @@ void EnzoBlock::initialize_from_checkpoint(EnzoMsgCheck * msg)
 
   restart_set_data_(msg);
 
-  initialize();
+  end_initialize_();
 
   PERF_STOP(iperf_block);
 }
@@ -63,27 +63,20 @@ void EnzoBlock::initialize_from_checkpoint(EnzoMsgCheck * msg)
 void EnzoBlock::initialize_after_refinement(MsgRefine * msg)
 {
   PERF_START(iperf_block);
-  int io_reader = msg->restart_io_reader_;
-
-  Block::initialize_after_refinement(msg);
-
-  initialize();
 
   // If refined block and restarting, notify file reader block is
   // created
+  const int io_reader = msg->restart_io_reader_;
   if (io_reader >= 0) {
     proxy_io_enzo_reader[io_reader].p_block_created();
   }
+
+  Block::initialize_after_refinement(msg);
+
   PERF_STOP(iperf_block);
 }
 
 //======================================================================
-
-EnzoBlock::~EnzoBlock()
-{
-}
-
-//----------------------------------------------------------------------
 
 void EnzoBlock::ckAboutToMigrate(void)
 {
